@@ -29,7 +29,7 @@ export default function StatCards() {
         return (
           <div
             key={card.id}
-            className='rounded-xl border border-slate-100 bg-white px-3 py-2.5 shadow-sm'
+            className='group cursor-pointer rounded-xl border border-slate-100 bg-white px-3 py-2.5 shadow-sm transition-all duration-300 hover:scale-[1.02] hover:shadow-lg'
           >
             <div className='flex items-start gap-2'>
               {/* Icon */}
