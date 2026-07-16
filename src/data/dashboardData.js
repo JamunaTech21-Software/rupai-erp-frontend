@@ -13,7 +13,7 @@ export const navSections = [
         expandable: true,
         children: [
           { id: "estate-list", label: "Estate List", path: "/estates" },
-          { id: "add-estate", label: "Add Estate", path: "/estates/add" },
+          { id: "add-estate", label: "Add Estate", path: "/add-estate" },
           { id: "estate-map", label: "Estate Map", path: "/estates/map" },
         ],
       },
