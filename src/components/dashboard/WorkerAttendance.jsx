@@ -6,7 +6,7 @@ const total = attendance.reduce((sum, d) => sum + d.value, 0);
 
 export default function WorkerAttendance() {
   return (
-    <div className='group cursor-pointer flex h-full flex-col rounded-xl border border-slate-100 bg-white p-4 shadow-sm transition-all duration-300 hover:border-primary/20 hover:shadow-lg sm:p-5'>
+    <div className='group cursor-pointer flex h-full flex-col rounded-xl border border-slate-100 bg-white p-4 shadow-sm transition-all duration-300 hover:scale-[1.01] hover:border-primary/20 hover:shadow-lg sm:p-5'>
       <h3 className='mb-3 text-sm font-bold text-primary sm:mb-4'>
         Worker Attendance (Today)
       </h3>

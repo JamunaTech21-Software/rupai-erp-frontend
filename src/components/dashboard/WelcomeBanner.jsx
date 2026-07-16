@@ -62,11 +62,11 @@ export default function WelcomeBanner() {
                 </div>
 
                 <div className='min-w-0'>
-                  <p className='text-[10px] font-medium text-slate-500 sm:text-[11px]'>
+                  <p className='text-[10px] font-medium text-black sm:text-[11px]'>
                     {stat.label}
                   </p>
 
-                  <p className='truncate text-xs font-bold text-slate-800 sm:text-[15px]'>
+                  <p className='truncate text-xs font-bold text-black sm:text-[15px]'>
                     {stat.value}
                   </p>
                 </div>

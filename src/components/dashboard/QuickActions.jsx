@@ -27,7 +27,7 @@ export default function QuickActions() {
           <button
             key={action.id}
             type='button'
-            className='group flex cursor-pointer items-center gap-3 rounded-xl border border-slate-100 bg-white px-3.5 py-3.5 text-left shadow-sm transition-all duration-300 hover:border-primary/20 hover:shadow-lg'
+            className='group flex cursor-pointer items-center gap-3 rounded-xl border border-slate-100 bg-white px-3.5 py-3.5 text-left shadow-sm transition-all duration-300 hover:scale-[1.01] hover:border-primary/20 hover:shadow-lg'
           >
             <div className='flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-emerald-50'>
               <Icon className='h-5 w-5 text-primary' />

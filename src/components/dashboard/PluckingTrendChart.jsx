@@ -71,7 +71,7 @@ export default function PluckingTrendChart() {
   }, []);
 
   return (
-    <div className='group cursor-pointer flex h-full flex-col rounded-xl border border-slate-100 bg-white p-4 shadow-sm transition-all duration-300 hover:border-primary/20 hover:shadow-lg sm:p-5'>
+    <div className='group cursor-pointer flex h-full flex-col rounded-xl border border-slate-100 bg-white p-4 shadow-sm transition-all duration-300 hover:scale-[1.01] hover:border-primary/20 hover:shadow-lg sm:p-5'>
       <div className='mb-3 flex flex-wrap items-center justify-between gap-2'>
         <h3 className='text-sm font-bold text-primary'>
           Plucking Trend (Last 7 Days)
