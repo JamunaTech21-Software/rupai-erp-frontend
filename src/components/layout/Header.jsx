@@ -146,7 +146,7 @@ export default function Header({ onToggleSidebar }) {
 
         <button
           type='button'
-          className='relative rounded-lg p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-700'
+          className='relative cursor-pointer rounded-lg p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-700'
           aria-label='Notifications'
         >
           <Bell className='h-5 w-5' />
@@ -164,7 +164,7 @@ export default function Header({ onToggleSidebar }) {
               setProfileOpen((v) => !v);
               setEstateOpen(false);
             }}
-            className='flex items-center gap-2 rounded-lg py-1 pl-1 pr-1 transition hover:bg-slate-50 sm:gap-2.5 sm:pr-2'
+            className='flex cursor-pointer items-center gap-2 rounded-lg py-1 pl-1 pr-1 transition hover:bg-slate-50 sm:gap-2.5 sm:pr-2'
           >
             <img
               src={user.avatar}
@@ -199,7 +199,7 @@ export default function Header({ onToggleSidebar }) {
                     key={item.id}
                     type='button'
                     onClick={() => setProfileOpen(false)}
-                    className={`flex w-full items-center gap-2.5 px-3 py-2.5 text-left text-sm transition hover:bg-slate-50 ${
+                    className={`flex w-full cursor-pointer items-center gap-2.5 px-3 py-2.5 text-left text-sm transition hover:bg-slate-50 ${
                       item.danger
                         ? "text-red-600 hover:bg-red-50"
                         : "text-slate-700"
