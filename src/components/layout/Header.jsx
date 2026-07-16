@@ -58,7 +58,7 @@ export default function Header({ onToggleSidebar }) {
   };
 
   return (
-    <header className='sticky top-0 z-30 flex h-14 shrink-0 items-center justify-between gap-2 border-b border-slate-200 bg-white px-3 sm:h-16 sm:gap-4 sm:px-4 lg:px-6'>
+    <header className='sticky top-0 z-30 flex h-14 shrink-0 items-center justify-between gap-2 border-b border-slate-200 bg-white px-3 sm:h-16 sm:gap-4 sm:px-4 lg:px-6 '>
       <div className='flex min-w-0 items-center gap-2 sm:gap-3'>
         <button
           type='button'
@@ -73,13 +73,13 @@ export default function Header({ onToggleSidebar }) {
         </h2>
       </div>
 
-      <div className='flex shrink-0 items-center gap-1.5 sm:gap-3'>
+      <div className='flex  shrink-0 items-center gap-1.5 sm:gap-3 '>
         {/* Estate selector */}
         <div className='relative' ref={estateRef}>
           <button
             type='button'
             onClick={toggleEstate}
-            className='flex items-center gap-2 rounded-lg border border-slate-200 bg-white p-2 text-sm font-medium text-slate-700 shadow-sm transition hover:border-primary/30 hover:bg-primary-muted md:px-3 md:py-1.5'
+            className='flex items-center cursor-pointer gap-2 rounded-lg border border-slate-200 bg-white p-2 text-sm font-medium text-slate-700 shadow-sm transition hover:border-primary/30 hover:bg-primary-muted md:px-3 md:py-1.5'
             aria-label='Select estate'
           >
             <MapPin className='h-4 w-4 text-primary' />
@@ -108,7 +108,7 @@ export default function Header({ onToggleSidebar }) {
                       setSelectedEstate(item);
                       setEstateOpen(false);
                     }}
-                    className={`flex w-full items-center gap-2.5 px-3 py-2.5 text-left text-sm transition hover:bg-primary-muted ${
+                    className={`flex w-full cursor-pointer items-center gap-2.5 px-3 py-2.5 text-left text-sm transition hover:bg-primary-muted ${
                       isActive ? "bg-primary-muted" : ""
                     }`}
                   >
@@ -139,7 +139,7 @@ export default function Header({ onToggleSidebar }) {
           )}
         </div>
 
-        <div className='hidden items-center gap-2 rounded-lg border border-slate-100 bg-slate-50 px-3 py-1.5 text-sm text-slate-600 xl:flex'>
+        <div className='hidden cursor-pointer items-center gap-2 rounded-lg border border-slate-100 bg-slate-50 px-3 py-1.5 text-sm text-slate-600 xl:flex'>
           <Calendar className='h-4 w-4 text-primary' />
           <span>{date}</span>
         </div>
