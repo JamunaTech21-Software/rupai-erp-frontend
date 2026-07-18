@@ -13,6 +13,7 @@ import {
   Shield,
 } from "lucide-react";
 import { headerInfo } from "../../data/dashboardData";
+import { format } from "date-fns";
 
 const estates = [
   { id: 1, name: "Jamuna Tea Estate", location: "Sreemangal" },
@@ -141,7 +142,7 @@ export default function Header({ onToggleSidebar }) {
 
         <div className='hidden cursor-pointer items-center gap-2 rounded-lg border border-slate-100 bg-slate-50 px-3 py-1.5 text-sm text-slate-600 xl:flex'>
           <Calendar className='h-4 w-4 text-primary' />
-          <span>{date}</span>
+          <span>{format(new Date(), "EEEE, dd MMMM yyyy")}</span>
         </div>
 
         <button
