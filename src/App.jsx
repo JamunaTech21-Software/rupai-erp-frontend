@@ -3,6 +3,7 @@ import AppLayout from "./components/layout/AppLayout";
 import Dashboard from "./pages/Dashboard";
 import EstateList from "./pages/EstateList";
 import AddEstate from "./pages/AddEstate";
+import UserManagement from "./pages/UserManagement";
 
 const router = createBrowserRouter([
   {
@@ -28,6 +29,13 @@ const router = createBrowserRouter([
         element: <AddEstate />,
         handle: {
           title: "Add Estate",
+        },
+      },
+      {
+        path: "user-management",
+        element: <UserManagement />,
+        handle: {
+          title: "User Management",
         },
       },
     ],

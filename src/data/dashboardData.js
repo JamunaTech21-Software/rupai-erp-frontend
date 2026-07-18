@@ -232,16 +232,44 @@ export const navSections = [
     ],
   },
   {
-    label: "System Settings",
+    label: "System settings",
     items: [
       {
         id: "users",
-        label: "User Management",
+        label: "User Administration",
         icon: "Users",
         expandable: true,
         children: [
-          { id: "user-list", label: "User List" },
-          { id: "roles", label: "Roles & Permissions" },
+          {
+            id: "user-management",
+            label: "User Management",
+            path: "/user-management",
+          },
+          {
+            id: "role-management",
+            label: "Role Management",
+            path: "/role-management",
+          },
+          {
+            id: "permission-management",
+            label: "Permission Management",
+            path: "/permission-management",
+          },
+          {
+            id: "user-activity-log",
+            label: "User Activity Log",
+            path: "/user-activity-log",
+          },
+          {
+            id: "system-settings",
+            label: "System Settings",
+            path: "/system-settings",
+          },
+          {
+            id: "backup-&-restore",
+            label: "Backup & Restore",
+            path: "/back-&-restore",
+          },
         ],
       },
       {
