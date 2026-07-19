@@ -83,7 +83,7 @@ export default function Sidebar({ collapsed, mobileOpen, onCloseMobile }) {
   return (
     <aside
       className={`fixed inset-y-0 left-0 z-40 flex h-screen w-[min(270px,85vw)] flex-col border-r border-slate-200 bg-white transition-all duration-300 lg:static lg:translate-x-0 ${
-        collapsed ? "lg:w-[72px]" : "lg:w-[270px]"
+        collapsed ? "lg:w-18" : "lg:w-[270px]"
       } ${mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}
     >
       {/* Fixed top logo */}

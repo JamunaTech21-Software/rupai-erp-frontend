@@ -2,7 +2,7 @@ import { useState } from "react";
 import DatePicker from "react-datepicker";
 import { format } from "date-fns";
 import { PieChart, Pie, Cell, Tooltip } from "recharts";
-
+import UserMngAddUser from "../components/UserMngAddUser";
 import "react-datepicker/dist/react-datepicker.css";
 import {
   Users,
@@ -26,6 +26,7 @@ import {
 } from "lucide-react";
 
 import { userManagementData } from "../data/userManagementData";
+import { NavLink } from "react-router-dom";
 
 const iconMap = {
   Users,
@@ -81,10 +82,9 @@ const UserManagement = () => {
           );
         })}
       </section>
-
       {/* ================= User Filter Section ================= */}
       <section>
-        <div className='rounded-xl border border-gray-200 bg-white p-5 shadow-sm'>
+        <div className='rounded-xl border border-gray-200 bg-white p-5 shadow-sm '>
           {/* Labels */}
           <div className='mb-2 hidden xl:grid xl:grid-cols-12 xl:gap-2'>
             <label className='col-span-2 text-sm font-medium text-gray-700'>
@@ -118,13 +118,13 @@ const UserManagement = () => {
                 {search.label}
               </label>
 
-              <label className='flex h-10 items-center gap-2 rounded-lg border border-gray-300 px-3'>
-                <Search size={16} className='text-gray-500 cursor-pointer' />
+              <label className='flex h-10 cursor-text items-center gap-2 rounded-lg border border-gray-300 px-3'>
+                <Search size={16} className='cursor-text text-gray-500' />
 
                 <input
                   type='text'
                   placeholder={search.placeholder}
-                  className='w-full bg-transparent text-sm outline-none'
+                  className='w-full cursor-text bg-transparent text-sm outline-none'
                 />
               </label>
             </div>
@@ -139,7 +139,7 @@ const UserManagement = () => {
                   {item.label}
                 </label>
 
-                <select className='h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm outline-none'>
+                <select className='h-10 w-full cursor-pointer rounded-lg border border-gray-300 bg-white px-3 text-sm outline-none'>
                   {item.options.map((option) => (
                     <option key={option}>{option}</option>
                   ))}
@@ -153,14 +153,17 @@ const UserManagement = () => {
                 {dateRange.label}
               </label>
 
-              <label className='flex h-10 items-center gap-2 rounded-lg border border-gray-300 px-3'>
-                <CalendarDays size={16} className='text-gray-500' />
+              <label className='flex h-10 cursor-pointer items-center gap-2 rounded-lg border border-gray-300 px-3'>
+                <CalendarDays
+                  size={16}
+                  className='cursor-pointer text-gray-500'
+                />
 
                 <input
                   type='text'
                   value={`${dateRange.start} - ${dateRange.end}`}
                   readOnly
-                  className='w-full bg-transparent text-sm outline-none'
+                  className='w-full cursor-pointer bg-transparent text-sm outline-none'
                 />
               </label>
             </div>
@@ -169,16 +172,16 @@ const UserManagement = () => {
             {userManagementData.filterButtons.map((button) => (
               <button
                 key={button.id}
-                className={`flex h-10 items-center justify-center gap-2 rounded-lg px-4 text-sm font-medium transition xl:w-full ${
+                className={`flex h-10 cursor-pointer items-center justify-center gap-2 rounded-lg px-4 text-sm font-medium transition xl:w-full ${
                   button.variant === "primary"
                     ? "bg-green-700 text-white hover:bg-green-800"
                     : "border border-gray-300 bg-white text-gray-700 hover:bg-gray-100"
                 }`}
               >
                 {button.variant === "primary" ? (
-                  <Search size={16} />
+                  <Search className='h-5 w-5 shrink-0' />
                 ) : (
-                  <RotateCcw size={16} />
+                  <RotateCcw className='h-5 w-5 shrink-0' />
                 )}
 
                 {button.text}
@@ -229,7 +232,12 @@ const UserManagement = () => {
               </button>
 
               {/* Add User */}
-              <button className='flex h-9 items-center justify-center gap-2 rounded-md bg-green-700 px-3 text-[10px] font-medium text-white transition hover:bg-green-800 sm:h-8 sm:text-xs'>
+              <button
+                onClick={() =>
+                  document.getElementById("add_user_modal").showModal()
+                }
+                className='flex h-9 items-center justify-center gap-2 rounded-md bg-green-700 px-3 text-[10px] font-medium text-white transition hover:bg-green-800 sm:h-8 sm:text-xs'
+              >
                 <Plus size={14} />
                 Add New User
               </button>
@@ -600,6 +608,21 @@ const UserManagement = () => {
           </div>
         </div>
       </section>
+      {/* ================= User Management Modal ================= */}
+      <dialog id='add_user_modal' className='modal'>
+        <div className='modal-box'>
+          <h3 className='text-lg font-bold'>Hello!</h3>
+          <p className='py-4'>
+            Press ESC key or click the button below to close
+          </p>
+
+          <div className='modal-action'>
+            <form method='dialog'>
+              <button className='btn'>Close</button>
+            </form>
+          </div>
+        </div>
+      </dialog>
     </div>
   );
 };

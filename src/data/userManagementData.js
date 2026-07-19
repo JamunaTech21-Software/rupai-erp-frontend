@@ -50,9 +50,9 @@ export const userManagementData = {
     },
     {
       id: 6,
-      title: "Today's Login",
+      title: "Last login (Today)",
       value: 23,
-      description: "Users Logged In Today",
+      description: "Users Logged In",
       icon: "Clock3",
       bgColor: "bg-red-100",
       iconColor: "text-red-600",
