@@ -188,46 +188,48 @@ const UserManagement = () => {
         </div>
       </section>
       {/* ================= User List Section ================= */}
-      <section className='grid grid-cols-12 gap-2'>
+      <section className='grid grid-cols-1 gap-2 xl:grid-cols-12'>
         {/* Left Section */}
-        <div className='col-span-9'>
-          <div className='flex items-center justify-between rounded-lg border border-gray-200 bg-white px-3 py-2'>
-            {/* Left Tabs */}
-            <div className='flex items-center gap-5'>
-              <button className='border-b-2 border-green-700 pb-1 text-xs font-semibold text-green-700'>
-                User List
-              </button>
+        <div className='w-full xl:col-span-9'>
+          <div className='flex flex-col gap-4 rounded-lg border border-gray-200 bg-white p-3 lg:flex-row lg:items-center lg:justify-between'>
+            {/* ================= Left Tabs ================= */}
+            <div className='flex overflow-x-auto whitespace-nowrap scrollbar-hide'>
+              <div className='flex items-center gap-3 sm:gap-5'>
+                <button className='shrink-0 border-b-2 border-green-700 pb-1 text-[10px] font-semibold text-green-700 sm:text-xs'>
+                  User List
+                </button>
 
-              <button className='pb-1 text-xs font-medium text-gray-600 transition hover:text-green-700'>
-                Role Management
-              </button>
+                <button className='shrink-0 pb-1 text-[10px] font-medium text-gray-600 transition hover:text-green-700 sm:text-xs'>
+                  Role Management
+                </button>
 
-              <button className='pb-1 text-xs font-medium text-gray-600 transition hover:text-green-700'>
-                Permission Management
-              </button>
+                <button className='shrink-0 pb-1 text-[10px] font-medium text-gray-600 transition hover:text-green-700 sm:text-xs'>
+                  Permission Management
+                </button>
 
-              <button className='pb-1 text-xs font-medium text-gray-600 transition hover:text-green-700'>
-                User Activity Log
-              </button>
+                <button className='shrink-0 pb-1 text-[10px] font-medium text-gray-600 transition hover:text-green-700 sm:text-xs'>
+                  User Activity Log
+                </button>
+              </div>
             </div>
 
-            {/* Right Buttons */}
-            <div className='flex items-center gap-2'>
+            {/* ================= Right Buttons ================= */}
+            <div className='grid grid-cols-1 gap-2 sm:flex sm:flex-wrap sm:justify-end'>
               {/* Bulk Action */}
-              <button className='flex h-8 items-center gap-1 rounded-md border border-gray-300 bg-white px-3 text-xs font-medium text-gray-700 hover:bg-gray-50'>
+              <button className='flex h-9 items-center justify-center gap-2 rounded-md border border-gray-300 bg-white px-3 text-[10px] font-medium text-gray-700 transition hover:bg-gray-50 sm:h-8 sm:text-xs'>
                 <ListChecks size={14} />
                 Bulk Actions
                 <ChevronDown size={14} />
               </button>
 
               {/* Import */}
-              <button className='flex h-8 items-center gap-1 rounded-md border border-gray-300 bg-white px-3 text-xs font-medium text-gray-700 hover:bg-gray-50'>
+              <button className='flex h-9 items-center justify-center gap-2 rounded-md border border-gray-300 bg-white px-3 text-[10px] font-medium text-gray-700 transition hover:bg-gray-50 sm:h-8 sm:text-xs'>
                 <Download size={14} />
                 Import Users
               </button>
 
               {/* Add User */}
-              <button className='flex h-8 items-center gap-1 rounded-md bg-green-700 px-3 text-xs font-medium text-white hover:bg-green-800 cursor-pointer'>
+              <button className='flex h-9 items-center justify-center gap-2 rounded-md bg-green-700 px-3 text-[10px] font-medium text-white transition hover:bg-green-800 sm:h-8 sm:text-xs'>
                 <Plus size={14} />
                 Add New User
               </button>
@@ -407,7 +409,7 @@ const UserManagement = () => {
         </div>
 
         {/* ================= Right Section ================= */}
-        <div className='col-span-3 space-y-4'>
+        <div className='w-full space-y-4 xl:col-span-3'>
           {/* ================= User Summary ================= */}
 
           <div className='rounded-xl border border-gray-200 bg-white shadow-sm'>
