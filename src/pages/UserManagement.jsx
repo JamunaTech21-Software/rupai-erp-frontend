@@ -1,3 +1,9 @@
+import { useState } from "react";
+import DatePicker from "react-datepicker";
+import { format } from "date-fns";
+import { PieChart, Pie, Cell, Tooltip } from "recharts";
+
+import "react-datepicker/dist/react-datepicker.css";
 import {
   Users,
   UserCheck,
@@ -12,6 +18,11 @@ import {
   ChevronDown,
   Download,
   Plus,
+  MoreVertical,
+  UserPlus,
+  History,
+  FileDown,
+  CircleCheck,
 } from "lucide-react";
 
 import { userManagementData } from "../data/userManagementData";
@@ -23,6 +34,9 @@ const iconMap = {
   Shield,
   Lock,
   Clock3,
+  UserPlus,
+  History,
+  FileDown,
 };
 
 const UserManagement = () => {
@@ -33,7 +47,7 @@ const UserManagement = () => {
   return (
     <div className='space-y-6'>
       {/* ================= Summary Cards ================= */}
-      <section className='grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-6'>
+      <section className='grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-6'>
         {userManagementData.summaryCards.map((card) => {
           const Icon = iconMap[card.icon];
 
@@ -50,7 +64,7 @@ const UserManagement = () => {
                 </div>
 
                 <div className='min-w-0 flex-1'>
-                  <p className='truncate text-[11px] font-medium uppercase tracking-wide text-slate-500'>
+                  <p className='truncate text-[8px] font-medium uppercase tracking-wide text-slate-500'>
                     {card.title}
                   </p>
 
@@ -105,7 +119,7 @@ const UserManagement = () => {
               </label>
 
               <label className='flex h-10 items-center gap-2 rounded-lg border border-gray-300 px-3'>
-                <Search size={16} className='text-gray-500' />
+                <Search size={16} className='text-gray-500 cursor-pointer' />
 
                 <input
                   type='text'
@@ -213,16 +227,376 @@ const UserManagement = () => {
               </button>
 
               {/* Add User */}
-              <button className='flex h-8 items-center gap-1 rounded-md bg-green-700 px-3 text-xs font-medium text-white hover:bg-green-800'>
+              <button className='flex h-8 items-center gap-1 rounded-md bg-green-700 px-3 text-xs font-medium text-white hover:bg-green-800 cursor-pointer'>
                 <Plus size={14} />
                 Add New User
               </button>
             </div>
           </div>
+          {/* ================= User table Section ================= */}
+          <div className='mt-4 overflow-hidden rounded-xl border border-gray-200 bg-white'>
+            <div className='overflow-x-auto'>
+              <table className='min-w-full'>
+                {/* ================= Table Header ================= */}
+                <thead className='bg-slate-50'>
+                  <tr className='border-b border-gray-200'>
+                    {userManagementData.tableHeaders.map((header) => (
+                      <th
+                        key={header.id}
+                        className='whitespace-nowrap px-2 py-2 text-left text-[11px] font-medium text-slate-600'
+                      >
+                        {header.key === "checkbox" ? (
+                          <input
+                            type='checkbox'
+                            className='checkbox checkbox-xs cursor-pointer'
+                          />
+                        ) : (
+                          header.label
+                        )}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+
+                {/* ================= Table Body ================= */}
+                <tbody>
+                  {userManagementData.users.map((user, index) => (
+                    <tr
+                      key={user.id}
+                      className='border-b border-gray-100 hover:bg-slate-50'
+                    >
+                      {/* Checkbox */}
+                      <td className='px-2 py-2'>
+                        <input
+                          type='checkbox'
+                          className='checkbox checkbox-xs cursor-pointer'
+                        />
+                      </td>
+
+                      {/* SL */}
+                      <td className='px-2 py-2 text-sm font-medium'>
+                        {index + 1}
+                      </td>
+
+                      {/* User */}
+                      <td className='px-2 py-2'>
+                        <div className='flex items-center gap-2'>
+                          <img
+                            src={user.avatar}
+                            alt={user.name}
+                            className='h-8 w-8 rounded-full object-cover cursor-pointer'
+                          />
+
+                          <div>
+                            <div className='flex items-center gap-1'>
+                              <h4 className='text-xs font-normal text-slate-800'>
+                                {user.name}
+                              </h4>
+
+                              {user.isCurrentUser && (
+                                <span className='rounded bg-green-100 px-1.5 py-0 text-[9px] font-semibold text-green-700'>
+                                  You
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+
+                      {/* Username */}
+                      <td className='px-2 py-2 text-xs text-slate-600'>
+                        {user.username}
+                      </td>
+
+                      {/* Email */}
+                      <td className='px-2 py-2 text-xs text-slate-600'>
+                        {user.email}
+                      </td>
+
+                      {/* Role */}
+                      <td className='px-2 py-2'>
+                        <span
+                          className={`rounded-md px-2 py-0.5 text-[10px] font-medium ${user.roleColor}`}
+                        >
+                          {user.role}
+                        </span>
+                      </td>
+
+                      {/* Department */}
+                      <td className='px-2 py-2 text-xs text-slate-600'>
+                        {user.department}
+                      </td>
+
+                      {/* Status */}
+                      <td className='px-2 py-2'>
+                        <span
+                          className={`rounded-md px-2 py-0.5 text-[10px] font-medium ${
+                            user.status === "Active"
+                              ? "bg-green-100 text-green-700"
+                              : "bg-red-100 text-red-700"
+                          }`}
+                        >
+                          {user.status}
+                        </span>
+                      </td>
+
+                      {/* Last Login */}
+                      <td className='px-2 py-2 text-xs text-slate-600'>
+                        {user.lastLogin}
+                      </td>
+
+                      {/* Action */}
+                      <td className='px-2 py-2'>
+                        <button className='rounded-md p-1 hover:bg-slate-100'>
+                          <MoreVertical size={15} />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            {/* ================= Pagination ================= */}
+            <div className='flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3'>
+              {/* Left Side */}
+              <div className='text-xs text-slate-600'>
+                Showing{" "}
+                <span className='font-semibold text-slate-800'>
+                  {userManagementData.pagination.pageSize}
+                </span>{" "}
+                of{" "}
+                <span className='font-semibold text-slate-800'>
+                  {userManagementData.pagination.totalUsers}
+                </span>{" "}
+                users
+              </div>
+
+              {/* Right Side */}
+              <div className='flex items-center gap-1'>
+                {/* Previous */}
+                <button className='flex h-8 w-8 items-center justify-center rounded-md border border-gray-300 text-slate-600 transition hover:bg-slate-100'>
+                  &lt;
+                </button>
+
+                {/* Page Numbers */}
+                <button className='flex h-8 w-8 items-center justify-center rounded-md bg-green-700 text-xs font-semibold text-white'>
+                  1
+                </button>
+
+                <button className='flex h-8 w-8 items-center justify-center rounded-md border border-gray-300 text-xs text-slate-600 transition hover:bg-slate-100'>
+                  2
+                </button>
+
+                <button className='flex h-8 w-8 items-center justify-center rounded-md border border-gray-300 text-xs text-slate-600 transition hover:bg-slate-100'>
+                  3
+                </button>
+
+                <span className='px-1 text-slate-500'>...</span>
+
+                <button className='flex h-8 w-8 items-center justify-center rounded-md border border-gray-300 text-xs text-slate-600 transition hover:bg-slate-100'>
+                  {userManagementData.pagination.totalPages}
+                </button>
+
+                {/* Next */}
+                <button className='flex h-8 w-8 items-center justify-center rounded-md border border-gray-300 text-slate-600 transition hover:bg-slate-100'>
+                  &gt;
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
 
-        {/* Right Section */}
-        <div className='col-span-3'>Right Content</div>
+        {/* ================= Right Section ================= */}
+        <div className='col-span-3 space-y-4'>
+          {/* ================= User Summary ================= */}
+
+          <div className='rounded-xl border border-gray-200 bg-white shadow-sm'>
+            {/* Header */}
+            <div className='flex items-center justify-between border-b border-gray-200 px-4 py-3'>
+              <h3 className='text-sm font-semibold text-slate-800'>
+                {userManagementData.summaryPanel.title}
+              </h3>
+
+              <select className='rounded-md border border-gray-300 bg-white px-2 py-1 text-xs outline-none'>
+                {userManagementData.summaryPanel.filter.options.map(
+                  (option) => (
+                    <option key={option}>{option}</option>
+                  ),
+                )}
+              </select>
+            </div>
+
+            {/* Chart + Legend */}
+            <div className='flex items-center gap-1 px-2 py-3'>
+              {/* Pie Chart */}
+              <div className='flex shrink-0 items-center justify-center'>
+                <PieChart width={135} height={135}>
+                  <Pie
+                    data={userManagementData.userSummary}
+                    cx='50%'
+                    cy='50%'
+                    innerRadius={32}
+                    outerRadius={48}
+                    paddingAngle={2}
+                    dataKey='total'
+                  >
+                    {userManagementData.userSummary.map((entry, index) => (
+                      <Cell key={index} fill={entry.color} />
+                    ))}
+                  </Pie>
+
+                  <Tooltip
+                    contentStyle={{
+                      borderRadius: "8px",
+                      border: "1px solid #e5e7eb",
+                      fontSize: "12px",
+                    }}
+                  />
+                </PieChart>
+              </div>
+
+              {/* Legend */}
+              <div className='flex-1 space-y-2'>
+                {userManagementData.userSummary.map((item) => (
+                  <div
+                    key={item.role}
+                    className='flex items-center justify-between'
+                  >
+                    <div className='flex w-[130px] items-center gap-2'>
+                      <span
+                        className='h-2.5 w-2.5 rounded-full'
+                        style={{
+                          backgroundColor: item.color,
+                        }}
+                      />
+
+                      <span className='truncate text-[11px] text-slate-600'>
+                        {item.role}
+                      </span>
+                    </div>
+
+                    <span className='text-[11px] font-semibold text-slate-800'>
+                      {item.total}
+
+                      {item.percentage && (
+                        <span className='ml-1 text-[10px] font-normal text-slate-500'>
+                          ({item.percentage})
+                        </span>
+                      )}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Total Users */}
+            <div className='flex items-center justify-center gap-2 border-t border-gray-200 py-3'>
+              <p className='text-sm font-medium text-slate-500'>Total Users:</p>
+
+              <h3 className='text-xl font-bold text-slate-800'>
+                {userManagementData.pagination.totalUsers}
+              </h3>
+            </div>
+          </div>
+          {/* ================= Recent User Registrations ================= */}
+          <div className='rounded-xl border border-gray-200 bg-white shadow-sm'>
+            {/* Header */}
+            <div className='flex items-center justify-between border-b border-gray-200 px-4 py-3'>
+              <h3 className='text-sm font-semibold text-green-700'>
+                {userManagementData.recentRegistrations.title}
+              </h3>
+
+              <button className='text-xs font-medium text-blue-600 hover:text-blue-700'>
+                {userManagementData.recentRegistrations.viewAll}
+              </button>
+            </div>
+
+            {/* Body */}
+            <div className='space-y-3 px-4 py-4'>
+              {userManagementData.recentRegistrations.users.map((user) => (
+                <div
+                  key={user.id}
+                  className='grid grid-cols-3 items-center gap-2'
+                >
+                  {/* User */}
+                  <div className='flex items-center gap-2 '>
+                    <img
+                      src={user.avatar}
+                      alt={user.name}
+                      className='h-8 w-8 rounded-full object-cover '
+                    />
+
+                    <span className='text-[12px] font-medium text-slate-800 '>
+                      {user.name}
+                    </span>
+                  </div>
+
+                  {/* Role */}
+                  <p className='text-[12px] text-slate-500 ml-2'>{user.role}</p>
+
+                  {/* Date */}
+                  <p className='text-right text-[12px] text-slate-500'>
+                    {user.date}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+          {/* ================= Quick Actions ================= */}
+          <div className='rounded-xl border border-gray-200 bg-white shadow-sm'>
+            {/* Header */}
+            <div className='border-b border-gray-200 px-4 py-3'>
+              <h3 className='text-sm font-semibold text-green-700'>
+                {userManagementData.quickActions.title}
+              </h3>
+            </div>
+
+            {/* Body */}
+            <div className='grid grid-cols-5 gap-2 p-3'>
+              {userManagementData.quickActions.actions.map((action) => {
+                const Icon = iconMap[action.icon];
+
+                return (
+                  <button
+                    key={action.id}
+                    className='flex flex-col items-center justify-center rounded-lg border border-gray-200 bg-white px-2 py-3 transition hover:border-green-600 hover:bg-green-50'
+                  >
+                    <Icon size={18} className={action.iconColor} />
+
+                    <span className='mt-2 text-[9px] font-medium leading-3 text-slate-600 text-center'>
+                      {action.title}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+          {/* ================= Important Notes ================= */}
+          <div className='rounded-xl border border-gray-200 bg-white shadow-sm'>
+            {/* Header */}
+            <div className='border-b border-gray-200 px-4 py-3'>
+              <h3 className='text-sm font-semibold text-green-700'>
+                {userManagementData.importantNotes.title}
+              </h3>
+            </div>
+
+            {/* Body */}
+            <div className='space-y-3 px-4 py-4'>
+              {userManagementData.importantNotes.notes.map((note) => (
+                <div key={note.id} className='flex items-start gap-2'>
+                  <CircleCheck
+                    size={16}
+                    className='mt-0.5 shrink-0 text-green-600'
+                  />
+
+                  <p className='text-[11px] leading-5 text-slate-600'>
+                    {note.text}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
       </section>
     </div>
   );

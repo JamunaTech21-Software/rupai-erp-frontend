@@ -1,147 +1,3 @@
-// export const userManagementSummary = {
-//   summary: {
-//     totalUsers: 128,
-//     activeUsers: 104,
-//     inactiveUsers: 18,
-//     totalRoles: 16,
-//     totalPermissions: 243,
-//     todayLogins: 23,
-//   },
-
-//   users: [
-//     {
-//       id: 1,
-//       avatar: "/users/user-1.webp",
-//       name: "Md. Faruk Hossain",
-//       username: "faruk.hossain",
-//       email: "faruk.hossain@jamunatea.com",
-//       role: "Estate Manager",
-//       department: "Estate Management",
-//       status: "Active",
-//       lastLogin: "06/06/2026 10:25 AM",
-//       action: "menu",
-//       isCurrentUser: true,
-//     },
-//     {
-//       id: 2,
-//       avatar: "/users/user-2.webp",
-//       name: "Sumaiya Akter",
-//       username: "sumaiya.akter",
-//       email: "sumaiya.akter@jamunatea.com",
-//       role: "HR Manager",
-//       department: "HR & Workforce",
-//       status: "Active",
-//       lastLogin: "06/06/2026 09:12 AM",
-//       action: "menu",
-//       isCurrentUser: false,
-//     },
-//     {
-//       id: 3,
-//       avatar: "/users/user-3.webp",
-//       name: "Rashidul Islam",
-//       username: "rashidul.islam",
-//       email: "rashidul.islam@jamunatea.com",
-//       role: "Field Supervisor",
-//       department: "Field Operations",
-//       status: "Active",
-//       lastLogin: "06/06/2026 08:45 AM",
-//       action: "menu",
-//       isCurrentUser: false,
-//     },
-//     {
-//       id: 4,
-//       avatar: "/users/user-4.webp",
-//       name: "Jannatul Ferdous",
-//       username: "jannatul.ferdous",
-//       email: "jannatul.ferdous@jamunatea.com",
-//       role: "Accounts Officer",
-//       department: "Accounts & Finance",
-//       status: "Active",
-//       lastLogin: "05/06/2026 05:30 PM",
-//       action: "menu",
-//       isCurrentUser: false,
-//     },
-//     {
-//       id: 5,
-//       avatar: "/users/user-5.webp",
-//       name: "Mahfuzur Rahman",
-//       username: "mahfuzur.rahman",
-//       email: "mahfuzur.rahman@jamunatea.com",
-//       role: "Wage Officer",
-//       department: "Payroll & Wages",
-//       status: "Active",
-//       lastLogin: "05/06/2026 04:15 PM",
-//       action: "menu",
-//       isCurrentUser: false,
-//     },
-//     {
-//       id: 6,
-//       avatar: "/users/user-6.webp",
-//       name: "Abdul Karim",
-//       username: "abdul.karim",
-//       email: "abdul.karim@jamunatea.com",
-//       role: "Store Keeper",
-//       department: "Stores & Inventory",
-//       status: "Active",
-//       lastLogin: "05/06/2026 03:02 PM",
-//       action: "menu",
-//       isCurrentUser: false,
-//     },
-//     {
-//       id: 7,
-//       avatar: "/users/user-7.webp",
-//       name: "Mst. Laila Khatun",
-//       username: "laila.khatun",
-//       email: "laila.khatun@jamunatea.com",
-//       role: "Nursery Incharge",
-//       department: "Nursery Management",
-//       status: "Inactive",
-//       lastLogin: "28/05/2026 11:20 AM",
-//       action: "menu",
-//       isCurrentUser: false,
-//     },
-//     {
-//       id: 8,
-//       avatar: "/users/user-8.webp",
-//       name: "Imran Hossain",
-//       username: "imran.hossain",
-//       email: "imran.hossain@jamunatea.com",
-//       role: "IT Administrator",
-//       department: "Information Technology",
-//       status: "Active",
-//       lastLogin: "06/06/2026 09:40 AM",
-//       action: "menu",
-//       isCurrentUser: false,
-//     },
-//     {
-//       id: 9,
-//       avatar: "/users/user-9.webp",
-//       name: "Afsana Mim",
-//       username: "afsana.mim",
-//       email: "afsana.mim@jamunatea.com",
-//       role: "Data Entry Operator",
-//       department: "Administration",
-//       status: "Active",
-//       lastLogin: "04/06/2026 02:10 PM",
-//       action: "menu",
-//       isCurrentUser: false,
-//     },
-//     {
-//       id: 10,
-//       avatar: "/users/user-10.webp",
-//       name: "Sabbir Ahmed",
-//       username: "sabbir.ahmed",
-//       email: "sabbir.ahmed@jamunatea.com",
-//       role: "Security Officer",
-//       department: "Security",
-//       status: "Active",
-//       lastLogin: "04/06/2026 09:15 AM",
-//       action: "menu",
-//       isCurrentUser: false,
-//     },
-//   ],
-// };
-
 export const userManagementData = {
   // ==========================
   // Summary Cards
@@ -312,13 +168,65 @@ export const userManagementData = {
     "Export Selected",
   ],
 
+  tableHeaders: [
+    {
+      id: 1,
+      key: "checkbox",
+      label: "",
+    },
+    {
+      id: 2,
+      key: "sl",
+      label: "SL",
+    },
+    {
+      id: 3,
+      key: "user",
+      label: "User",
+    },
+    {
+      id: 4,
+      key: "username",
+      label: "Username",
+    },
+    {
+      id: 5,
+      key: "email",
+      label: "Email",
+    },
+    {
+      id: 6,
+      key: "role",
+      label: "Role",
+    },
+    {
+      id: 7,
+      key: "department",
+      label: "Department",
+    },
+    {
+      id: 8,
+      key: "status",
+      label: "Status",
+    },
+    {
+      id: 9,
+      key: "lastLogin",
+      label: "Last Login",
+    },
+    {
+      id: 10,
+      key: "action",
+      label: "Action",
+    },
+  ],
   // ==========================
   // Users Table
   // ==========================
   users: [
     {
       id: 1,
-      avatar: "/users/user-1.webp",
+      avatar: "https://i.pravatar.cc/150?img=1",
       name: "Md. Faruk Hossain",
       username: "faruk.hossain",
       email: "faruk.hossain@jamunatea.com",
@@ -327,10 +235,12 @@ export const userManagementData = {
       status: "Active",
       lastLogin: "06/06/2026 10:25 AM",
       isCurrentUser: true,
+      role: "Estate Manager",
+      roleColor: "bg-green-100 text-green-700",
     },
     {
       id: 2,
-      avatar: "/users/user-2.webp",
+      avatar: "https://i.pravatar.cc/150?img=2",
       name: "Sumaiya Akter",
       username: "sumaiya.akter",
       email: "sumaiya.akter@jamunatea.com",
@@ -339,10 +249,12 @@ export const userManagementData = {
       status: "Active",
       lastLogin: "06/06/2026 09:12 AM",
       isCurrentUser: false,
+      role: "HR Manager",
+      roleColor: "bg-blue-100 text-blue-700",
     },
     {
       id: 3,
-      avatar: "/users/user-3.webp",
+      avatar: "https://i.pravatar.cc/150?img=3",
       name: "Rashidul Islam",
       username: "rashidul.islam",
       email: "rashidul.islam@jamunatea.com",
@@ -351,10 +263,12 @@ export const userManagementData = {
       status: "Active",
       lastLogin: "06/06/2026 08:45 AM",
       isCurrentUser: false,
+      role: "Field Supervisor",
+      roleColor: "bg-purple-100 text-purple-700",
     },
     {
       id: 4,
-      avatar: "/users/user-4.webp",
+      avatar: "https://i.pravatar.cc/150?img=4",
       name: "Jannatul Ferdous",
       username: "jannatul.ferdous",
       email: "jannatul.ferdous@jamunatea.com",
@@ -363,10 +277,12 @@ export const userManagementData = {
       status: "Active",
       lastLogin: "05/06/2026 05:30 PM",
       isCurrentUser: false,
+      role: "Accounts Officer",
+      roleColor: "bg-orange-100 text-orange-700",
     },
     {
       id: 5,
-      avatar: "/users/user-5.webp",
+      avatar: "https://i.pravatar.cc/150?img=5",
       name: "Mahfuzur Rahman",
       username: "mahfuzur.rahman",
       email: "mahfuzur.rahman@jamunatea.com",
@@ -375,10 +291,12 @@ export const userManagementData = {
       status: "Active",
       lastLogin: "05/06/2026 04:15 PM",
       isCurrentUser: false,
+      role: "Wage Officer",
+      roleColor: "bg-cyan-100 text-cyan-700",
     },
     {
       id: 6,
-      avatar: "/users/user-6.webp",
+      avatar: "https://i.pravatar.cc/150?img=6",
       name: "Abdul Karim",
       username: "abdul.karim",
       email: "abdul.karim@jamunatea.com",
@@ -387,10 +305,12 @@ export const userManagementData = {
       status: "Active",
       lastLogin: "05/06/2026 03:02 PM",
       isCurrentUser: false,
+      role: "Store Keeper",
+      roleColor: "bg-amber-100 text-amber-700",
     },
     {
       id: 7,
-      avatar: "/users/user-7.webp",
+      avatar: "https://i.pravatar.cc/150?img=7",
       name: "Mst. Laila Khatun",
       username: "laila.khatun",
       email: "laila.khatun@jamunatea.com",
@@ -399,10 +319,12 @@ export const userManagementData = {
       status: "Inactive",
       lastLogin: "28/05/2026 11:20 AM",
       isCurrentUser: false,
+      role: "Nursery Incharge",
+      roleColor: "bg-pink-100 text-pink-700",
     },
     {
       id: 8,
-      avatar: "/users/user-8.webp",
+      avatar: "https://i.pravatar.cc/150?img=8",
       name: "Imran Hossain",
       username: "imran.hossain",
       email: "imran.hossain@jamunatea.com",
@@ -411,10 +333,12 @@ export const userManagementData = {
       status: "Active",
       lastLogin: "06/06/2026 09:40 AM",
       isCurrentUser: false,
+      role: "IT Administrator",
+      roleColor: "bg-sky-100 text-sky-700",
     },
     {
       id: 9,
-      avatar: "/users/user-9.webp",
+      avatar: "https://i.pravatar.cc/150?img=9",
       name: "Afsana Mim",
       username: "afsana.mim",
       email: "afsana.mim@jamunatea.com",
@@ -423,10 +347,12 @@ export const userManagementData = {
       status: "Active",
       lastLogin: "04/06/2026 02:10 PM",
       isCurrentUser: false,
+      role: "Data Entry Operator",
+      roleColor: "bg-gray-100 text-gray-700",
     },
     {
       id: 10,
-      avatar: "/users/user-10.webp",
+      avatar: "https://i.pravatar.cc/150?img=10",
       name: "Sabbir Ahmed",
       username: "sabbir.ahmed",
       email: "sabbir.ahmed@jamunatea.com",
@@ -435,50 +361,172 @@ export const userManagementData = {
       status: "Active",
       lastLogin: "04/06/2026 09:15 AM",
       isCurrentUser: false,
+      role: "Security Officer",
+      roleColor: "bg-slate-100 text-slate-700",
     },
   ],
+  // ==========================
+  // Summary Panel
+  // ==========================
+  summaryPanel: {
+    title: "User Summary",
+
+    filter: {
+      label: "View By",
+      default: "By Role",
+
+      options: ["By Role", "By Department", "By Status"],
+    },
+  },
 
   // ==========================
   // User Summary Chart
   // ==========================
+  // ==========================
+  // User Summary Chart
+  // ==========================
   userSummary: [
-    { role: "Estate Manager", total: 12 },
-    { role: "HR Manager", total: 8 },
-    { role: "Field Supervisor", total: 28 },
-    { role: "Accounts Officer", total: 15 },
-    { role: "Wage Officer", total: 18 },
-    { role: "Others", total: 47 },
+    {
+      role: "Estate Manager",
+      total: 12,
+      color: "#15803d",
+    },
+    {
+      role: "HR Manager",
+      total: 8,
+      color: "#2563eb",
+    },
+    {
+      role: "Field Supervisor",
+      total: 28,
+      color: "#8b5cf6",
+    },
+    {
+      role: "Accounts Officer",
+      total: 15,
+      color: "#f97316",
+    },
+    {
+      role: "Wage Officer",
+      total: 18,
+      color: "#14b8a6",
+    },
+    {
+      role: "Others",
+      total: 47,
+      color: "#d1d5db",
+    },
   ],
 
   // ==========================
   // Recent Registration
   // ==========================
-  recentRegistrations: [
-    {
-      id: 1,
-      name: "Kamal Uddin",
-      role: "Field Assistant",
-      date: "06/06/2026",
-    },
-    {
-      id: 2,
-      name: "Shahinur Rahman",
-      role: "Security Guard",
-      date: "05/06/2026",
-    },
-    {
-      id: 3,
-      name: "Biplob Chandra",
-      role: "Accounts Assistant",
-      date: "05/06/2026",
-    },
-    {
-      id: 4,
-      name: "Rina Sultana",
-      role: "HR Executive",
-      date: "04/06/2026",
-    },
-  ],
+  recentRegistrations: {
+    title: "Recent User Registrations",
+    viewAll: "View All",
+
+    users: [
+      {
+        id: 1,
+        avatar: "https://i.pravatar.cc/150?img=11",
+        name: "Kamal Uddin",
+        role: "Field Assistant",
+        date: "06/06/2026",
+      },
+      {
+        id: 2,
+        avatar: "https://i.pravatar.cc/150?img=12",
+        name: "Shahinur Begum",
+        role: "Nursery Worker",
+        date: "05/06/2026",
+      },
+      {
+        id: 3,
+        avatar: "https://i.pravatar.cc/150?img=13",
+        name: "Biplob Chandra",
+        role: "Factory Incharge",
+        date: "05/06/2026",
+      },
+      {
+        id: 4,
+        avatar: "https://i.pravatar.cc/150?img=14",
+        name: "Rina Sultana",
+        role: "HR Assistant",
+        date: "04/06/2026",
+      },
+      {
+        id: 5,
+        avatar: "https://i.pravatar.cc/150?img=15",
+        name: "Tariqul Islam",
+        role: "Security Officer",
+        date: "04/06/2026",
+      },
+    ],
+  },
+  // ==========================
+  // Quick Actions
+  // ==========================
+  quickActions: {
+    title: "Quick Actions",
+
+    actions: [
+      {
+        id: 1,
+        title: "Add New User",
+        icon: "UserPlus",
+        iconColor: "text-green-600",
+      },
+      {
+        id: 2,
+        title: "Create Role",
+        icon: "Users",
+        iconColor: "text-blue-600",
+      },
+      {
+        id: 3,
+        title: "Assign Permission",
+        icon: "ShieldCheck",
+        iconColor: "text-violet-600",
+      },
+      {
+        id: 4,
+        title: "User Activity Log",
+        icon: "History",
+        iconColor: "text-orange-500",
+      },
+      {
+        id: 5,
+        title: "Export Users",
+        icon: "FileDown",
+        iconColor: "text-red-500",
+      },
+    ],
+  },
+  // ==========================
+  // Important Notes
+  // ==========================
+  importantNotes: {
+    title: "Important Notes",
+
+    notes: [
+      {
+        id: 1,
+        text: "Keep user information updated and secure.",
+      },
+      {
+        id: 2,
+        text: "Assign appropriate roles and permissions.",
+      },
+      {
+        id: 3,
+        text: "Deactivating a user will restrict system access.",
+      },
+      {
+        id: 4,
+        text: "Use strong passwords and enable 2FA for security.",
+      },
+    ],
+  },
 
   // ==========================
   // Pagination

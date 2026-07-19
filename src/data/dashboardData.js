@@ -493,36 +493,35 @@ export const mapPins = [
 
 export const quickActions = [
   {
-    id: "plucking",
-    title: "Quick Entry",
-    label: "Plucking Entry",
-    icon: "Sprout",
+    id: 1,
+    title: "Add New User",
+    icon: "UserPlus",
+    iconColor: "text-green-600",
   },
   {
-    id: "allocate",
-    title: "Work Allocation",
-    label: "Allocate Work",
-    icon: "UserCog",
+    id: 2,
+    title: "Create Role",
+    icon: "Users",
+    iconColor: "text-blue-600",
   },
   {
-    id: "stock",
-    title: "Inventory Entry",
-    label: "Add Stock",
-    icon: "ClipboardList",
+    id: 3,
+    title: "Assign Permission",
+    icon: "ShieldCheck",
+    iconColor: "text-violet-600",
   },
   {
-    id: "expense",
-    title: "Expense Entry",
-    label: "Add Expense",
-    icon: "Receipt",
+    id: 4,
+    title: "User Activity Log",
+    icon: "History",
+    iconColor: "text-orange-500",
   },
   {
-    id: "face",
-    title: "Attendance",
-    label: "Face Recognition",
-    icon: "ScanFace",
+    id: 5,
+    title: "Export Users",
+    icon: "FileDown",
+    iconColor: "text-orange-500",
   },
-  { id: "reports", title: "Reports", label: "View Reports", icon: "FileUp" },
 ];
 
 export const headerInfo = {
