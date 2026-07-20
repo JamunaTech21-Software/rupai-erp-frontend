@@ -164,7 +164,6 @@ const UserManagement = () => {
                 <input
                   type='text'
                   value={`${dateRange.start} - ${dateRange.end}`}
-                  readOnly
                   className='w-full cursor-pointer bg-transparent text-sm outline-none'
                 />
               </label>
@@ -200,19 +199,19 @@ const UserManagement = () => {
             {/* ================= Left Tabs ================= */}
             <div className='flex overflow-x-auto whitespace-nowrap scrollbar-hide'>
               <div className='flex items-center gap-3 sm:gap-5'>
-                <button className='shrink-0 border-b-2 border-green-700 pb-1 text-[10px] font-semibold text-green-700 sm:text-xs'>
+                <button className='shrink-0 border-b-2 border-green-700 pb-1 text-[10px] font-semibold text-green-700 sm:text-xs cursor-pointer'>
                   User List
                 </button>
 
-                <button className='shrink-0 pb-1 text-[10px] font-medium text-gray-600 transition hover:text-green-700 sm:text-xs'>
+                <button className='shrink-0 pb-1 text-[10px] font-medium text-gray-600 transition hover:text-green-700 sm:text-xs cursor-pointer'>
                   Role Management
                 </button>
 
-                <button className='shrink-0 pb-1 text-[10px] font-medium text-gray-600 transition hover:text-green-700 sm:text-xs'>
+                <button className='shrink-0 pb-1 text-[10px] font-medium text-gray-600 transition hover:text-green-700 sm:text-xs cursor-pointer'>
                   Permission Management
                 </button>
 
-                <button className='shrink-0 pb-1 text-[10px] font-medium text-gray-600 transition hover:text-green-700 sm:text-xs'>
+                <button className='shrink-0 pb-1 text-[10px] font-medium text-gray-600 transition hover:text-green-700 sm:text-xs cursor-pointer'>
                   User Activity Log
                 </button>
               </div>
@@ -221,14 +220,14 @@ const UserManagement = () => {
             {/* ================= Right Buttons ================= */}
             <div className='grid grid-cols-1 gap-2 sm:flex sm:flex-wrap sm:justify-end'>
               {/* Bulk Action */}
-              <button className='flex h-9 items-center justify-center gap-2 rounded-md border border-gray-300 bg-white px-3 text-[10px] font-medium text-gray-700 transition hover:bg-gray-50 sm:h-8 sm:text-xs'>
+              <button className='flex h-9 items-center justify-center gap-2 rounded-md border border-gray-300 bg-white px-3 text-[10px] font-medium text-gray-700 transition hover:bg-gray-50 sm:h-8 sm:text-xs cursor-pointer'>
                 <ListChecks size={14} />
                 Bulk Actions
                 <ChevronDown size={14} />
               </button>
 
               {/* Import */}
-              <button className='flex h-9 items-center justify-center gap-2 rounded-md border border-gray-300 bg-white px-3 text-[10px] font-medium text-gray-700 transition hover:bg-gray-50 sm:h-8 sm:text-xs'>
+              <button className='flex h-9 items-center justify-center gap-2 rounded-md border border-gray-300 bg-white px-3 text-[10px] font-medium text-gray-700 transition hover:bg-gray-50 sm:h-8 sm:text-xs cursor-pointer'>
                 <Download size={14} />
                 Import Users
               </button>
@@ -236,7 +235,7 @@ const UserManagement = () => {
               {/* Add User */}
               <button
                 onClick={() => setIsModalOpen(true)}
-                className='flex h-9 items-center justify-center gap-2 rounded-md bg-green-700 px-3 text-xs font-medium text-white hover:bg-green-800'
+                className='flex h-9 items-center justify-center gap-2 rounded-md bg-green-700 px-3 text-xs font-medium text-white cursor-pointer hover:bg-green-800'
               >
                 <Plus size={14} />
                 Add New User
@@ -253,7 +252,7 @@ const UserManagement = () => {
                     {userManagementData.tableHeaders.map((header) => (
                       <th
                         key={header.id}
-                        className='whitespace-nowrap px-2 py-2 text-left text-[11px] font-medium text-slate-600'
+                        className='whitespace-nowrap px-2 py-2 text-left text-[11px] font-medium text-slate-600 '
                       >
                         {header.key === "checkbox" ? (
                           <input
@@ -357,7 +356,7 @@ const UserManagement = () => {
 
                       {/* Action */}
                       <td className='px-2 py-2'>
-                        <button className='rounded-md p-1 hover:bg-slate-100'>
+                        <button className='rounded-md p-1 hover:bg-slate-100 cursor-pointer'>
                           <MoreVertical size={15} />
                         </button>
                       </td>
@@ -367,11 +366,11 @@ const UserManagement = () => {
               </table>
             </div>
             {/* ================= Pagination ================= */}
-            <div className='flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3'>
+            <div className='flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 '>
               {/* Left Side */}
-              <div className='text-xs text-slate-600'>
+              <div className='text-xs text-slate-600 '>
                 Showing{" "}
-                <span className='font-semibold text-slate-800'>
+                <span className='font-semibold text-slate-800 '>
                   {userManagementData.pagination.pageSize}
                 </span>{" "}
                 of{" "}
@@ -384,31 +383,31 @@ const UserManagement = () => {
               {/* Right Side */}
               <div className='flex items-center gap-1'>
                 {/* Previous */}
-                <button className='flex h-8 w-8 items-center justify-center rounded-md border border-gray-300 text-slate-600 transition hover:bg-slate-100'>
+                <button className='flex h-8 w-8 items-center justify-center rounded-md border border-gray-300 text-slate-600 transition hover:bg-slate-100 cursor-pointer'>
                   &lt;
                 </button>
 
                 {/* Page Numbers */}
-                <button className='flex h-8 w-8 items-center justify-center rounded-md bg-green-700 text-xs font-semibold text-white'>
+                <button className='flex h-8 w-8 items-center justify-center rounded-md bg-green-700 text-xs font-semibold text-white cursor-pointer'>
                   1
                 </button>
 
-                <button className='flex h-8 w-8 items-center justify-center rounded-md border border-gray-300 text-xs text-slate-600 transition hover:bg-slate-100'>
+                <button className='flex h-8 w-8 items-center justify-center rounded-md border border-gray-300 text-xs text-slate-600 transition hover:bg-slate-100 cursor-pointer'>
                   2
                 </button>
 
-                <button className='flex h-8 w-8 items-center justify-center rounded-md border border-gray-300 text-xs text-slate-600 transition hover:bg-slate-100'>
+                <button className='flex h-8 w-8 items-center justify-center rounded-md border border-gray-300 text-xs text-slate-600 transition hover:bg-slate-100 cursor-pointer'>
                   3
                 </button>
 
                 <span className='px-1 text-slate-500'>...</span>
 
-                <button className='flex h-8 w-8 items-center justify-center rounded-md border border-gray-300 text-xs text-slate-600 transition hover:bg-slate-100'>
+                <button className='flex h-8 w-8 items-center justify-center rounded-md border border-gray-300 text-xs text-slate-600 transition hover:bg-slate-100 cursor-pointer'>
                   {userManagementData.pagination.totalPages}
                 </button>
 
                 {/* Next */}
-                <button className='flex h-8 w-8 items-center justify-center rounded-md border border-gray-300 text-slate-600 transition hover:bg-slate-100'>
+                <button className='flex h-8 w-8 items-center justify-center rounded-md border border-gray-300 text-slate-600 transition hover:bg-slate-100 cursor-pointer'>
                   &gt;
                 </button>
               </div>
@@ -423,11 +422,11 @@ const UserManagement = () => {
           <div className='rounded-xl border border-gray-200 bg-white shadow-sm'>
             {/* Header */}
             <div className='flex items-center justify-between border-b border-gray-200 px-4 py-3'>
-              <h3 className='text-sm font-semibold text-slate-800'>
+              <h3 className='text-sm font-semibold text-slate-800 '>
                 {userManagementData.summaryPanel.title}
               </h3>
 
-              <select className='rounded-md border border-gray-300 bg-white px-2 py-1 text-xs outline-none'>
+              <select className='rounded-md border border-gray-300 bg-white px-2 py-1 text-xs outline-none cursor-pointer'>
                 {userManagementData.summaryPanel.filter.options.map(
                   (option) => (
                     <option key={option}>{option}</option>
@@ -437,9 +436,9 @@ const UserManagement = () => {
             </div>
 
             {/* Chart + Legend */}
-            <div className='flex items-center gap-1 px-2 py-3'>
+            <div className='flex items-center gap-1 px-2 py-3 '>
               {/* Pie Chart */}
-              <div className='flex shrink-0 items-center justify-center'>
+              <div className='flex shrink-0 items-center justify-center cursor-pointer'>
                 <PieChart width={135} height={135}>
                   <Pie
                     data={userManagementData.userSummary}
@@ -516,7 +515,7 @@ const UserManagement = () => {
                 {userManagementData.recentRegistrations.title}
               </h3>
 
-              <button className='text-xs font-medium text-blue-600 hover:text-blue-700'>
+              <button className='text-xs font-medium text-blue-600 hover:text-blue-700 cursor-pointer'>
                 {userManagementData.recentRegistrations.viewAll}
               </button>
             </div>
@@ -533,7 +532,7 @@ const UserManagement = () => {
                     <img
                       src={user.avatar}
                       alt={user.name}
-                      className='h-8 w-8 rounded-full object-cover '
+                      className='h-8 w-8 rounded-full object-cover cursor-pointer'
                     />
 
                     <span className='text-[12px] font-medium text-slate-800 '>
@@ -553,16 +552,16 @@ const UserManagement = () => {
             </div>
           </div>
           {/* ================= Quick Actions ================= */}
-          <div className='rounded-xl border border-gray-200 bg-white shadow-sm'>
+          <div className='rounded-xl border border-gray-200 bg-white shadow-sm cursor-pointer'>
             {/* Header */}
-            <div className='border-b border-gray-200 px-4 py-3'>
+            <div className='border-b border-gray-200 px-4 py-3 cursor-pointer'>
               <h3 className='text-sm font-semibold text-green-700'>
                 {userManagementData.quickActions.title}
               </h3>
             </div>
 
             {/* Body */}
-            <div className='grid grid-cols-5 gap-2 p-3'>
+            <div className='grid grid-cols-5 gap-2 p-3 cursor-pointer'>
               {userManagementData.quickActions.actions.map((action) => {
                 const Icon = iconMap[action.icon];
 
@@ -626,7 +625,7 @@ const UserManagement = () => {
 
               <button
                 onClick={() => setIsModalOpen(false)}
-                className='rounded-full p-2 hover:bg-gray-100'
+                className='rounded-full p-2 hover:bg-gray-100 cursor-pointer'
               >
                 ✕
               </button>
