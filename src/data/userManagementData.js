@@ -382,9 +382,6 @@ export const userManagementData = {
   // ==========================
   // User Summary Chart
   // ==========================
-  // ==========================
-  // User Summary Chart
-  // ==========================
   userSummary: [
     {
       role: "Estate Manager",
