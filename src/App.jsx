@@ -4,7 +4,7 @@ import Dashboard from "./pages/Dashboard";
 import EstateList from "./pages/EstateList";
 import AddEstate from "./pages/AddEstate";
 import UserManagement from "./pages/UserManagement";
-import UserMngAddUser from "./components/UserMngAddUser";
+// import UserMngAddUser from "./components/UserMngAddUser";
 
 const router = createBrowserRouter([
   {
@@ -39,10 +39,6 @@ const router = createBrowserRouter([
         handle: {
           title: "User Management",
         },
-      },
-      {
-        path: "add-new-user",
-        element: <UserMngAddUser />,
       },
     ],
   },

@@ -2,7 +2,7 @@ import { useState } from "react";
 import DatePicker from "react-datepicker";
 import { format } from "date-fns";
 import { PieChart, Pie, Cell, Tooltip } from "recharts";
-import UserMngAddUser from "../components/UserMngAddUser";
+import { FaUserPlus } from "react-icons/fa6";
 import "react-datepicker/dist/react-datepicker.css";
 import {
   Users,
@@ -27,6 +27,7 @@ import {
 
 import { userManagementData } from "../data/userManagementData";
 import { NavLink } from "react-router-dom";
+import AddUserForm from "../components/UserAdminitration/AddUserForm";
 
 const iconMap = {
   Users,
@@ -45,6 +46,7 @@ const UserManagement = () => {
     userManagementData.filters;
 
   const filterItems = [role, department, status, userType];
+  const [isModalOpen, setIsModalOpen] = useState(false);
   return (
     <div className='space-y-6'>
       {/* ================= Summary Cards ================= */}
@@ -233,10 +235,8 @@ const UserManagement = () => {
 
               {/* Add User */}
               <button
-                onClick={() =>
-                  document.getElementById("add_user_modal").showModal()
-                }
-                className='flex h-9 items-center justify-center gap-2 rounded-md bg-green-700 px-3 text-[10px] font-medium text-white transition hover:bg-green-800 sm:h-8 sm:text-xs'
+                onClick={() => setIsModalOpen(true)}
+                className='flex h-9 items-center justify-center gap-2 rounded-md bg-green-700 px-3 text-xs font-medium text-white hover:bg-green-800'
               >
                 <Plus size={14} />
                 Add New User
@@ -609,20 +609,37 @@ const UserManagement = () => {
         </div>
       </section>
       {/* ================= User Management Modal ================= */}
-      <dialog id='add_user_modal' className='modal'>
-        <div className='modal-box'>
-          <h3 className='text-lg font-bold'>Hello!</h3>
-          <p className='py-4'>
-            Press ESC key or click the button below to close
-          </p>
+      {isModalOpen && (
+        <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4'>
+          <div className='relative max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-2xl bg-white shadow-2xl'>
+            {/* Header */}
+            <div className='flex items-center justify-between px-6 py-5'>
+              <div className='px-6 py-5 flex items-center gap-3'>
+                <FaUserPlus className='text-3xl text-green-900' />
+                <div>
+                  <h1 className='text-2xl font-bold'>Add New User</h1>
+                  <p className='text-slate-500'>
+                    Create a new User account and assign role & permissions
+                  </p>
+                </div>
+              </div>
 
-          <div className='modal-action'>
-            <form method='dialog'>
-              <button className='btn'>Close</button>
-            </form>
+              <button
+                onClick={() => setIsModalOpen(false)}
+                className='rounded-full p-2 hover:bg-gray-100'
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Body */}
+
+            <div className='p-6 px-6 py-5'>
+              <AddUserForm></AddUserForm>
+            </div>
           </div>
         </div>
-      </dialog>
+      )}
     </div>
   );
 };
