@@ -12,7 +12,7 @@ const EstateManagementTabs = () => {
             className={({ isActive }) =>
               `flex h-11 items-center justify-center rounded-lg border text-sm font-semibold transition-all duration-300 ${
                 isActive
-                  ? "border-green-700 bg-green-700 text-white shadow-md"
+                  ? "border-green-700 bg-green-800 text-white shadow-md"
                   : "border-gray-200 bg-white text-gray-700 hover:border-green-600 hover:bg-green-50 hover:text-green-700"
               }`
             }
