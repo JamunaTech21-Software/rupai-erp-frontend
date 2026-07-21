@@ -1,5 +1,6 @@
 import EstateManagementTabs from "../components/EstateManagement/EstateManagementTabs";
 import { estateProfileData } from "../data/estateProfileData";
+import { useForm } from "react-hook-form";
 import {
   Map,
   Leaf,
@@ -8,6 +9,9 @@ import {
   LayoutGrid,
   Users,
   CalendarDays,
+  X,
+  RotateCcw,
+  Save,
 } from "lucide-react";
 const summaryIconMap = {
   map: Map,
@@ -21,8 +25,17 @@ const summaryIconMap = {
 };
 
 const EstateProfile = () => {
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm();
+
+  const onSubmit = (data) => {
+    console.log(data);
+  };
   return (
-    <div className='space-y-6'>
+    <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
       {/* Top Tabs */}
       <EstateManagementTabs />
 
@@ -50,8 +63,17 @@ const EstateProfile = () => {
                 <input
                   type='text'
                   placeholder='Enter estate name'
+                  {...register("estateName", {
+                    required: "Estate Name is required",
+                  })}
                   className='h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-700 outline-none transition-all duration-200 placeholder:text-gray-400 focus:border-green-600'
                 />
+
+                {errors.estateName && (
+                  <p className='mt-1 text-xs text-red-500'>
+                    {errors.estateName.message}
+                  </p>
+                )}
               </div>
 
               {/* Estate Code */}
@@ -62,8 +84,17 @@ const EstateProfile = () => {
                 <input
                   type='text'
                   placeholder='Enter estate code'
+                  {...register("estateCode", {
+                    required: "Estate Code is required",
+                  })}
                   className='h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-700 outline-none transition-all duration-200 placeholder:text-gray-400 focus:border-green-600'
                 />
+
+                {errors.estateCode && (
+                  <p className='mt-1 text-xs text-red-500'>
+                    {errors.estateCode.message}
+                  </p>
+                )}
               </div>
 
               {/* Established Year */}
@@ -74,8 +105,16 @@ const EstateProfile = () => {
                 <input
                   type='number'
                   placeholder='e.g. 1998'
+                  {...register("establishedYear", {
+                    valueAsNumber: true,
+                  })}
                   className='h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-700 outline-none transition-all duration-200 placeholder:text-gray-400 focus:border-green-600'
                 />
+                {errors.establishedYear && (
+                  <p className='mt-1 text-xs text-red-500'>
+                    {errors.establishedYear.message}
+                  </p>
+                )}
               </div>
 
               {/* Company / Owner */}
@@ -86,8 +125,14 @@ const EstateProfile = () => {
                 <input
                   type='text'
                   placeholder='Enter company name'
+                  {...register("companyOwner")}
                   className='h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-700 outline-none transition-all duration-200 placeholder:text-gray-400 focus:border-green-600'
                 />
+                {errors.companyOwner && (
+                  <p className='mt-1 text-xs text-red-500'>
+                    {errors.companyOwner.message}
+                  </p>
+                )}
               </div>
 
               {/* Estate Type */}
@@ -96,12 +141,20 @@ const EstateProfile = () => {
                   Estate Type
                 </label>
 
-                <select className='h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-700 outline-none focus:border-green-600'>
+                <select
+                  {...register("estateType")}
+                  className='h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-700 outline-none focus:border-green-600'
+                >
                   <option value=''>Select Estate Type</option>
                   <option>Company Owned</option>
                   <option>Private Estate</option>
                   <option>Government Estate</option>
                 </select>
+                {errors.estateType && (
+                  <p className='mt-1 text-xs text-red-500'>
+                    {errors.estateType.message}
+                  </p>
+                )}
               </div>
 
               {/* Estate Category */}
@@ -110,12 +163,20 @@ const EstateProfile = () => {
                   Estate Category
                 </label>
 
-                <select className='h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-700 outline-none focus:border-green-600'>
+                <select
+                  {...register("estateCategory")}
+                  className='h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-700 outline-none focus:border-green-600'
+                >
                   <option value=''>Select Category</option>
                   <option>Large Estate</option>
                   <option>Medium Estate</option>
                   <option>Small Estate</option>
                 </select>
+                {errors.estateCategory && (
+                  <p className='mt-1 text-xs text-red-500'>
+                    {errors.estateCategory.message}
+                  </p>
+                )}
               </div>
 
               {/* Address */}
@@ -125,10 +186,16 @@ const EstateProfile = () => {
                 </label>
 
                 <textarea
-                  rows='1'
+                  rows={1}
                   placeholder='Enter estate address'
+                  {...register("address")}
                   className='h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-700 outline-none transition-all duration-200 placeholder:text-gray-400 focus:border-green-600'
-                ></textarea>
+                />
+                {errors.address && (
+                  <p className='mt-1 text-xs text-red-500'>
+                    {errors.address.message}
+                  </p>
+                )}
               </div>
 
               {/* Police Station */}
@@ -139,8 +206,14 @@ const EstateProfile = () => {
                 <input
                   type='text'
                   placeholder='Police Station'
+                  {...register("policeStation")}
                   className='h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-700 outline-none transition-all duration-200 placeholder:text-gray-400 focus:border-green-600'
                 />
+                {errors.policeStation && (
+                  <p className='mt-1 text-xs text-red-500'>
+                    {errors.policeStation.message}
+                  </p>
+                )}
               </div>
 
               {/* District */}
@@ -151,8 +224,14 @@ const EstateProfile = () => {
                 <input
                   type='text'
                   placeholder='District'
+                  {...register("district")}
                   className='h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-700 outline-none transition-all duration-200 placeholder:text-gray-400 focus:border-green-600'
                 />
+                {errors.district && (
+                  <p className='mt-1 text-xs text-red-500'>
+                    {errors.district.message}
+                  </p>
+                )}
               </div>
 
               {/* Division */}
@@ -163,8 +242,14 @@ const EstateProfile = () => {
                 <input
                   type='text'
                   placeholder='Division'
+                  {...register("division")}
                   className='h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-700 outline-none transition-all duration-200 placeholder:text-gray-400 focus:border-green-600'
                 />
+                {errors.division && (
+                  <p className='mt-1 text-xs text-red-500'>
+                    {errors.division.message}
+                  </p>
+                )}
               </div>
 
               {/* Country */}
@@ -175,8 +260,14 @@ const EstateProfile = () => {
                 <input
                   type='text'
                   placeholder='Country'
+                  {...register("country")}
                   className='h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-700 outline-none transition-all duration-200 placeholder:text-gray-400 focus:border-green-600'
                 />
+                {errors.country && (
+                  <p className='mt-1 text-xs text-red-500'>
+                    {errors.country.message}
+                  </p>
+                )}
               </div>
 
               {/* Zip Code */}
@@ -187,8 +278,14 @@ const EstateProfile = () => {
                 <input
                   type='text'
                   placeholder='Zip Code'
+                  {...register("zipCode")}
                   className='h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-700 outline-none transition-all duration-200 placeholder:text-gray-400 focus:border-green-600'
                 />
+                {errors.zipCode && (
+                  <p className='mt-1 text-xs text-red-500'>
+                    {errors.zipCode.message}
+                  </p>
+                )}
               </div>
 
               {/* Phone */}
@@ -199,8 +296,20 @@ const EstateProfile = () => {
                 <input
                   type='text'
                   placeholder='+8801XXXXXXXXX'
+                  {...register("phone", {
+                    pattern: {
+                      value: /^(\+8801|01)[3-9]\d{8}$/,
+                      message: "Enter a valid phone number",
+                    },
+                  })}
                   className='h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-700 outline-none transition-all duration-200 placeholder:text-gray-400 focus:border-green-600'
                 />
+
+                {errors.phone && (
+                  <p className='mt-1 text-xs text-red-500'>
+                    {errors.phone.message}
+                  </p>
+                )}
               </div>
 
               {/* Email */}
@@ -211,8 +320,20 @@ const EstateProfile = () => {
                 <input
                   type='email'
                   placeholder='example@email.com'
+                  {...register("email", {
+                    pattern: {
+                      value: /^\S+@\S+\.\S+$/,
+                      message: "Enter a valid email",
+                    },
+                  })}
                   className='h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-700 outline-none transition-all duration-200 placeholder:text-gray-400 focus:border-green-600'
                 />
+
+                {errors.email && (
+                  <p className='mt-1 text-xs text-red-500'>
+                    {errors.email.message}
+                  </p>
+                )}
               </div>
 
               {/* Website */}
@@ -223,8 +344,14 @@ const EstateProfile = () => {
                 <input
                   type='url'
                   placeholder='https://example.com'
+                  {...register("website")}
                   className='h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-700 outline-none transition-all duration-200 placeholder:text-gray-400 focus:border-green-600'
                 />
+                {errors.website && (
+                  <p className='mt-1 text-xs text-red-500'>
+                    {errors.website.message}
+                  </p>
+                )}
               </div>
             </div>
           </div>
@@ -249,9 +376,20 @@ const EstateProfile = () => {
 
                 <input
                   type='number'
+                  step='0.01'
                   placeholder='0.00'
+                  {...register("totalLandArea", {
+                    required: "Total Land Area is required",
+                    valueAsNumber: true,
+                  })}
                   className='h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-700 outline-none transition-all duration-200 placeholder:text-gray-400 focus:border-green-600'
                 />
+
+                {errors.totalLandArea && (
+                  <p className='mt-1 text-xs text-red-500'>
+                    {errors.totalLandArea.message}
+                  </p>
+                )}
               </div>
 
               {/* Tea Area */}
@@ -263,9 +401,20 @@ const EstateProfile = () => {
 
                 <input
                   type='number'
+                  step='0.01'
                   placeholder='0.00'
+                  {...register("teaArea", {
+                    required: "Tea Area is required",
+                    valueAsNumber: true,
+                  })}
                   className='h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-700 outline-none transition-all duration-200 placeholder:text-gray-400 focus:border-green-600'
                 />
+
+                {errors.teaArea && (
+                  <p className='mt-1 text-xs text-red-500'>
+                    {errors.teaArea.message}
+                  </p>
+                )}
               </div>
 
               {/* Non Tea Area */}
@@ -276,9 +425,18 @@ const EstateProfile = () => {
 
                 <input
                   type='number'
+                  step='0.01'
                   placeholder='0.00'
+                  {...register("nonTeaArea", {
+                    valueAsNumber: true,
+                  })}
                   className='h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-700 outline-none transition-all duration-200 placeholder:text-gray-400 focus:border-green-600'
                 />
+                {errors.nonTeaArea && (
+                  <p className='mt-1 text-xs text-red-500'>
+                    {errors.nonTeaArea.message}
+                  </p>
+                )}
               </div>
 
               {/* Total Field / Block */}
@@ -290,8 +448,16 @@ const EstateProfile = () => {
                 <input
                   type='number'
                   placeholder='0'
+                  {...register("totalField", {
+                    valueAsNumber: true,
+                  })}
                   className='h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-700 outline-none transition-all duration-200 placeholder:text-gray-400 focus:border-green-600'
                 />
+                {errors.totalField && (
+                  <p className='mt-1 text-xs text-red-500'>
+                    {errors.totalField.message}
+                  </p>
+                )}
               </div>
 
               {/* Total Division */}
@@ -303,8 +469,16 @@ const EstateProfile = () => {
                 <input
                   type='number'
                   placeholder='0'
+                  {...register("totalDivision", {
+                    valueAsNumber: true,
+                  })}
                   className='h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-700 outline-none transition-all duration-200 placeholder:text-gray-400 focus:border-green-600'
                 />
+                {errors.totalDivision && (
+                  <p className='mt-1 text-xs text-red-500'>
+                    {errors.totalDivision.message}
+                  </p>
+                )}
               </div>
 
               {/* Total Section */}
@@ -316,8 +490,16 @@ const EstateProfile = () => {
                 <input
                   type='number'
                   placeholder='0'
+                  {...register("totalSection", {
+                    valueAsNumber: true,
+                  })}
                   className='h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-700 outline-none transition-all duration-200 placeholder:text-gray-400 focus:border-green-600'
                 />
+                {errors.totalSection && (
+                  <p className='mt-1 text-xs text-red-500'>
+                    {errors.totalSection.message}
+                  </p>
+                )}
               </div>
 
               {/* Total Worker */}
@@ -329,8 +511,16 @@ const EstateProfile = () => {
                 <input
                   type='number'
                   placeholder='0'
+                  {...register("totalWorker", {
+                    valueAsNumber: true,
+                  })}
                   className='h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-700 outline-none transition-all duration-200 placeholder:text-gray-400 focus:border-green-600'
                 />
+                {errors.totalWorker && (
+                  <p className='mt-1 text-xs text-red-500'>
+                    {errors.totalWorker.message}
+                  </p>
+                )}
               </div>
 
               {/* Total Family */}
@@ -342,8 +532,16 @@ const EstateProfile = () => {
                 <input
                   type='number'
                   placeholder='0'
+                  {...register("totalFamily", {
+                    valueAsNumber: true,
+                  })}
                   className='h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-700 outline-none transition-all duration-200 placeholder:text-gray-400 focus:border-green-600'
                 />
+                {errors.totalFamily && (
+                  <p className='mt-1 text-xs text-red-500'>
+                    {errors.totalFamily.message}
+                  </p>
+                )}
               </div>
             </div>
           </div>
@@ -368,8 +566,17 @@ const EstateProfile = () => {
                 <input
                   type='text'
                   placeholder='Enter estate manager name'
+                  {...register("estateManager", {
+                    required: "Estate Manager is required",
+                  })}
                   className='h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-700 outline-none transition-all duration-200 placeholder:text-gray-400 focus:border-green-600'
                 />
+
+                {errors.estateManager && (
+                  <p className='mt-1 text-xs text-red-500'>
+                    {errors.estateManager.message}
+                  </p>
+                )}
               </div>
 
               {/* Mobile */}
@@ -381,8 +588,21 @@ const EstateProfile = () => {
                 <input
                   type='tel'
                   placeholder='+8801XXXXXXXXX'
+                  {...register("estateManagerMobile", {
+                    required: "Mobile Number is required",
+                    pattern: {
+                      value: /^(\+8801|01)[3-9]\d{8}$/,
+                      message: "Invalid mobile number",
+                    },
+                  })}
                   className='h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-700 outline-none transition-all duration-200 placeholder:text-gray-400 focus:border-green-600'
                 />
+
+                {errors.estateManagerMobile && (
+                  <p className='mt-1 text-xs text-red-500'>
+                    {errors.estateManagerMobile.message}
+                  </p>
+                )}
               </div>
 
               {/* Email */}
@@ -394,8 +614,20 @@ const EstateProfile = () => {
                 <input
                   type='email'
                   placeholder='manager@example.com'
+                  {...register("estateManagerEmail", {
+                    pattern: {
+                      value: /^\S+@\S+\.\S+$/,
+                      message: "Invalid email address",
+                    },
+                  })}
                   className='h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-700 outline-none transition-all duration-200 placeholder:text-gray-400 focus:border-green-600'
                 />
+
+                {errors.estateManagerEmail && (
+                  <p className='mt-1 text-xs text-red-500'>
+                    {errors.estateManagerEmail.message}
+                  </p>
+                )}
               </div>
 
               {/* Assistant Manager */}
@@ -407,8 +639,14 @@ const EstateProfile = () => {
                 <input
                   type='text'
                   placeholder='Enter assistant manager name'
+                  {...register("assistantManager")}
                   className='h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-700 outline-none transition-all duration-200 placeholder:text-gray-400 focus:border-green-600'
                 />
+                {errors.assistantManager && (
+                  <p className='mt-1 text-xs text-red-500'>
+                    {errors.assistantManager.message}
+                  </p>
+                )}
               </div>
 
               {/* Mobile */}
@@ -420,8 +658,20 @@ const EstateProfile = () => {
                 <input
                   type='tel'
                   placeholder='+8801XXXXXXXXX'
+                  {...register("assistantManagerMobile", {
+                    pattern: {
+                      value: /^(\+8801|01)[3-9]\d{8}$/,
+                      message: "Invalid mobile number",
+                    },
+                  })}
                   className='h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-700 outline-none transition-all duration-200 placeholder:text-gray-400 focus:border-green-600'
                 />
+
+                {errors.assistantManagerMobile && (
+                  <p className='mt-1 text-xs text-red-500'>
+                    {errors.assistantManagerMobile.message}
+                  </p>
+                )}
               </div>
 
               {/* Email */}
@@ -433,8 +683,20 @@ const EstateProfile = () => {
                 <input
                   type='email'
                   placeholder='assistant@example.com'
+                  {...register("assistantManagerEmail", {
+                    pattern: {
+                      value: /^\S+@\S+\.\S+$/,
+                      message: "Invalid email address",
+                    },
+                  })}
                   className='h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-700 outline-none transition-all duration-200 placeholder:text-gray-400 focus:border-green-600'
                 />
+
+                {errors.assistantManagerEmail && (
+                  <p className='mt-1 text-xs text-red-500'>
+                    {errors.assistantManagerEmail.message}
+                  </p>
+                )}
               </div>
             </div>
           </div>
@@ -455,6 +717,7 @@ const EstateProfile = () => {
                 <label className='flex items-center gap-2 text-sm text-gray-700'>
                   <input
                     type='checkbox'
+                    {...register("factory")}
                     className='checkbox checkbox-success checkbox-sm rounded'
                   />
                   Factory
@@ -463,6 +726,7 @@ const EstateProfile = () => {
                 <label className='flex items-center gap-2 text-sm text-gray-700'>
                   <input
                     type='checkbox'
+                    {...register("warehouse")}
                     className='checkbox checkbox-success checkbox-sm rounded'
                   />
                   Warehouse
@@ -471,6 +735,7 @@ const EstateProfile = () => {
                 <label className='flex items-center gap-2 text-sm text-gray-700'>
                   <input
                     type='checkbox'
+                    {...register("staffQuarter")}
                     className='checkbox checkbox-success checkbox-sm rounded'
                   />
                   Staff Quarter
@@ -479,6 +744,7 @@ const EstateProfile = () => {
                 <label className='flex items-center gap-2 text-sm text-gray-700'>
                   <input
                     type='checkbox'
+                    {...register("hospital")}
                     className='checkbox checkbox-success checkbox-sm rounded'
                   />
                   Hospital / Dispensary
@@ -490,6 +756,7 @@ const EstateProfile = () => {
                 <label className='flex items-center gap-2 text-sm text-gray-700'>
                   <input
                     type='checkbox'
+                    {...register("school")}
                     className='checkbox checkbox-success checkbox-sm rounded'
                   />
                   School
@@ -498,6 +765,7 @@ const EstateProfile = () => {
                 <label className='flex items-center gap-2 text-sm text-gray-700'>
                   <input
                     type='checkbox'
+                    {...register("playground")}
                     className='checkbox checkbox-success checkbox-sm rounded'
                   />
                   Playground
@@ -506,6 +774,7 @@ const EstateProfile = () => {
                 <label className='flex items-center gap-2 text-sm text-gray-700'>
                   <input
                     type='checkbox'
+                    {...register("religiousPlace")}
                     className='checkbox checkbox-success checkbox-sm rounded'
                   />
                   Mosque / Temple
@@ -514,6 +783,7 @@ const EstateProfile = () => {
                 <label className='flex items-center gap-2 text-sm text-gray-700'>
                   <input
                     type='checkbox'
+                    {...register("electricity")}
                     className='checkbox checkbox-success checkbox-sm rounded'
                   />
                   Electricity
@@ -525,6 +795,7 @@ const EstateProfile = () => {
                 <label className='flex items-center gap-2 text-sm text-gray-700'>
                   <input
                     type='checkbox'
+                    {...register("waterSupply")}
                     className='checkbox checkbox-success checkbox-sm rounded'
                   />
                   Water Supply
@@ -533,6 +804,7 @@ const EstateProfile = () => {
                 <label className='flex items-center gap-2 text-sm text-gray-700'>
                   <input
                     type='checkbox'
+                    {...register("transport")}
                     className='checkbox checkbox-success checkbox-sm rounded'
                   />
                   Transport
@@ -541,6 +813,7 @@ const EstateProfile = () => {
                 <label className='flex items-center gap-2 text-sm text-gray-700'>
                   <input
                     type='checkbox'
+                    {...register("canteen")}
                     className='checkbox checkbox-success checkbox-sm rounded'
                   />
                   Canteen
@@ -549,6 +822,7 @@ const EstateProfile = () => {
                 <label className='flex items-center gap-2 text-sm text-gray-700'>
                   <input
                     type='checkbox'
+                    {...register("othersFacility")}
                     className='checkbox checkbox-success checkbox-sm rounded'
                   />
                   Others
@@ -564,8 +838,14 @@ const EstateProfile = () => {
                 <input
                   type='text'
                   placeholder='Club, Library, Gym...'
+                  {...register("otherFacilityName")}
                   className='h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-700 outline-none transition-all duration-200 placeholder:text-gray-400 focus:border-green-600'
                 />
+                {errors.otherFacilityName && (
+                  <p className='mt-1 text-xs text-red-500'>
+                    {errors.otherFacilityName.message}
+                  </p>
+                )}
               </div>
             </div>
           </div>
@@ -573,7 +853,6 @@ const EstateProfile = () => {
 
         {/* Right Side */}
         <div className='col-span-12 space-y-6 xl:col-span-5'>
-          {/* Estate Images */}
           {/* Estate Images */}
           <div className='rounded-xl bg-white shadow-sm'>
             {/* Header */}
@@ -668,10 +947,29 @@ const EstateProfile = () => {
                   </label>
 
                   <input
-                    type='text'
+                    type='number'
+                    step='any'
                     placeholder='26.3417'
+                    {...register("latitude", {
+                      required: "Latitude is required",
+                      valueAsNumber: true,
+                      min: {
+                        value: -90,
+                        message: "Latitude must be greater than -90",
+                      },
+                      max: {
+                        value: 90,
+                        message: "Latitude must be less than 90",
+                      },
+                    })}
                     className='h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm outline-none transition focus:border-green-600'
                   />
+
+                  {errors.latitude && (
+                    <p className='mt-1 text-xs text-red-500'>
+                      {errors.latitude.message}
+                    </p>
+                  )}
                 </div>
 
                 <div>
@@ -680,10 +978,29 @@ const EstateProfile = () => {
                   </label>
 
                   <input
-                    type='text'
+                    type='number'
+                    step='any'
                     placeholder='88.0008'
+                    {...register("longitude", {
+                      required: "Longitude is required",
+                      valueAsNumber: true,
+                      min: {
+                        value: -180,
+                        message: "Longitude must be greater than -180",
+                      },
+                      max: {
+                        value: 180,
+                        message: "Longitude must be less than 180",
+                      },
+                    })}
                     className='h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm outline-none transition focus:border-green-600'
                   />
+
+                  {errors.longitude && (
+                    <p className='mt-1 text-xs text-red-500'>
+                      {errors.longitude.message}
+                    </p>
+                  )}
                 </div>
               </div>
 
@@ -713,14 +1030,57 @@ const EstateProfile = () => {
               <textarea
                 rows={10}
                 placeholder='Write estate description...'
-                defaultValue={estateProfileData.description}
-                className='w-full resize-none rounded-lg border  bg-white px-4 py-3 text-sm leading-6 text-gray-700 outline-none transition-all duration-200 placeholder:text-gray-400 focus:border-green-600'
+                {...register("description")}
+                className='w-full resize-none rounded-lg border bg-white px-4 py-3 text-sm leading-6 text-gray-700 outline-none transition-all duration-200 placeholder:text-gray-400 focus:border-green-600'
               />
+              {errors.description && (
+                <p className='mt-1 text-xs text-red-500'>
+                  {errors.description.message}
+                </p>
+              )}
             </div>
           </div>
         </div>
       </div>
-    </div>
+      {/* Footer */}
+      {/* Footer */}
+      <div className=' rounded-xl border border-gray-200 bg-white p-4 shadow-sm'>
+        <div className='flex flex-col justify-between gap-4 md:flex-row md:items-center'>
+          <p className='text-sm text-red-500'>* Mandatory Field</p>
+
+          <div className='flex items-center justify-end gap-3'>
+            {/* Cancel */}
+            <button
+              type='button'
+              onClick={() => navigate(-1)}
+              className='flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-100'
+            >
+              <X size={18} />
+              Cancel
+            </button>
+
+            {/* Reset */}
+            <button
+              type='button'
+              onClick={() => reset()}
+              className='flex items-center gap-2 rounded-lg border border-green-200 bg-green-50 px-5 py-2.5 text-sm font-medium text-green-700 transition hover:bg-green-100'
+            >
+              <RotateCcw size={18} />
+              Reset
+            </button>
+
+            {/* Save */}
+            <button
+              type='submit'
+              className='flex items-center gap-2 rounded-lg bg-green-700 px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-green-800'
+            >
+              <Save size={18} />
+              Save
+            </button>
+          </div>
+        </div>
+      </div>
+    </form>
   );
 };
 
