@@ -1,4 +1,4 @@
-import EstateManagementTabs from "../components/estateManagement/EstateManagementTabs";
+import EstateManagementTabs from "../components/EstateManagement/EstateManagementTabs";
 import { estateProfileData } from "../data/estateProfileData";
 import {
   Map,
