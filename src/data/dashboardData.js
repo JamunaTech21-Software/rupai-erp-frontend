@@ -12,9 +12,31 @@ export const navSections = [
         icon: "Map",
         expandable: true,
         children: [
-          { id: "estate-list", label: "Estate List", path: "/estates" },
-          { id: "add-estate", label: "Add Estate", path: "/add-estate" },
-          { id: "estate-map", label: "Estate Map", path: "/estates/map" },
+          {
+            id: "estate-profile",
+            label: "Estate Profile",
+            path: "/estate-profile",
+          },
+          {
+            id: "division-&-section",
+            label: "Division & Section",
+            path: "/division-&-section",
+          },
+          {
+            id: "fixed-or-block-management",
+            label: "Fixed/Block Management",
+            path: "/fixed-or-block-management",
+          },
+          {
+            id: "map-&-gis-tracking",
+            label: "Map & GIS Tracking",
+            path: "/map-&-gis-tracking",
+          },
+          {
+            id: "land-&-lease-management",
+            label: "Land & Lease Management",
+            path: "/land-&-lease-management",
+          },
         ],
       },
       {
