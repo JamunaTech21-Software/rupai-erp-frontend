@@ -1,5 +1,5 @@
 import React from "react";
-import EstateManagementTabs from "../components/estateManagement/EstateManagementTabs";
+import EstateManagementTabs from "../components/EstateManagement/EstateManagementTabs";
 
 const LandAndLeaseManagement = () => {
   return (
