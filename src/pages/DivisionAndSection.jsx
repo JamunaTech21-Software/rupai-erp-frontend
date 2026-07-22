@@ -1,6 +1,6 @@
 import React from "react";
 import EstateManagementTabs from "../components/EstateManagement/EstateManagementTabs";
-import { X, RotateCcw, Save, Plus, Pencil, Trash2 } from "lucide-react";
+import { X, RotateCcw, Save, Plus, Pencil, Trash2, Map } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { divisionSectionData } from "../data/divisionAndSectionData";
 
@@ -202,32 +202,37 @@ const DivisionAndSection = () => {
                 </div>
 
                 {/* Footer */}
-                <div className='mt-6 flex items-center justify-end gap-3 border-t pt-6'>
-                  <button
-                    type='button'
-                    className='inline-flex h-11 items-center gap-2 rounded-lg border border-gray-300 bg-white px-5 text-sm font-medium text-gray-700 hover:bg-gray-100'
-                  >
-                    <X size={18} />
-                    Cancel
-                  </button>
+                <div className='mt-6 border-t pt-6'>
+                  <div className='flex flex-col-reverse gap-3 sm:flex-row sm:justify-end'>
+                    {/* Cancel */}
+                    <button
+                      type='button'
+                      className='inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-5 text-sm font-medium text-gray-700 transition hover:bg-gray-100 sm:w-auto'
+                    >
+                      <X size={18} />
+                      Cancel
+                    </button>
 
-                  <button
-                    type='button'
-                    onClick={() => reset()}
-                    className='inline-flex h-11 items-center gap-2 rounded-lg border border-green-200 bg-green-50 px-5 text-sm font-medium text-green-700 hover:bg-green-100'
-                  >
-                    <RotateCcw size={18} />
-                    Reset
-                  </button>
+                    {/* Reset */}
+                    <button
+                      type='button'
+                      onClick={() => reset()}
+                      className='inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg border border-green-200 bg-green-50 px-5 text-sm font-medium text-green-700 transition hover:bg-green-100 sm:w-auto'
+                    >
+                      <RotateCcw size={18} />
+                      Reset
+                    </button>
 
-                  <button
-                    type='submit'
-                    disabled={isSubmitting}
-                    className='inline-flex h-11 items-center gap-2 rounded-lg bg-green-700 px-5 text-sm font-semibold text-white hover:bg-green-800 disabled:cursor-not-allowed disabled:opacity-60'
-                  >
-                    <Save size={18} />
-                    Save Division
-                  </button>
+                    {/* Save */}
+                    <button
+                      type='submit'
+                      disabled={isSubmitting}
+                      className='inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-green-700 px-5 text-sm font-semibold text-white transition hover:bg-green-800 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto'
+                    >
+                      <Save size={18} />
+                      Save Division
+                    </button>
+                  </div>
                 </div>
               </div>
             </form>
@@ -538,35 +543,173 @@ const DivisionAndSection = () => {
           <div className='rounded-xl bg-white shadow-sm'>
             <div className='flex items-center justify-between border-b bg-green-50 px-6 py-4'>
               <h2 className='text-lg font-semibold text-green-800'>
-                Section List
+                Section List (Rangpur Division)
               </h2>
 
               <button
                 type='button'
-                className='inline-flex items-center gap-2 rounded-lg bg-green-700 px-4 py-2 text-sm font-medium text-white hover:bg-green-800'
+                className='inline-flex items-center gap-2 rounded-lg bg-green-700 px-2 py-1 text-sm font-medium text-white hover:bg-green-800'
               >
                 <Plus size={18} />
                 Add Section
               </button>
             </div>
 
-            <div className='flex h-80 items-center justify-center p-6 text-gray-400'>
-              Section Table
+            <div className='overflow-x-auto'>
+              <table className='min-w-full border border-gray-200 border-collapse'>
+                <thead className='bg-gray-50'>
+                  <tr>
+                    {divisionSectionData.sectionTableHeaders.map((header) => (
+                      <th
+                        key={header}
+                        className='border border-gray-200 px-2 py-3 text-left text-sm font-medium text-gray-700'
+                      >
+                        {header}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+
+                <tbody>
+                  {divisionSectionData.sectionList.map((section, index) => (
+                    <tr key={section.id} className='hover:bg-gray-50'>
+                      {/* SL */}
+                      <td className='border border-gray-200 px-1 py-3 text-center text-sm'>
+                        {index + 1}
+                      </td>
+
+                      {/* Section Name */}
+                      <td className='border border-gray-200 px-1 py-3 text-sm font-regular text-gray-800'>
+                        {section.sectionName}
+                      </td>
+
+                      {/* Section Code */}
+                      <td className='border border-gray-200 px-3 py-3 text-sm'>
+                        {section.sectionCode}
+                      </td>
+
+                      {/* Parent Section */}
+                      <td className='border border-gray-200 px-3 py-3 text-sm'>
+                        {section.parentSection}
+                      </td>
+
+                      {/* Total Area */}
+                      <td className='border border-gray-200 px-3 py-3 text-sm'>
+                        {section.totalArea.toFixed(2)}
+                      </td>
+
+                      {/* Manager */}
+                      <td className='border border-gray-200 px-3 py-3 text-sm'>
+                        {section.manager}
+                      </td>
+
+                      {/* Status */}
+                      <td className='border border-gray-200 px-3 py-3 text-center'>
+                        <span
+                          className={`inline-flex rounded-full px-3 py-1 text-xs font-medium ${
+                            section.status === "Active"
+                              ? "bg-green-100 text-green-700"
+                              : "bg-gray-100 text-gray-600"
+                          }`}
+                        >
+                          {section.status}
+                        </span>
+                      </td>
+
+                      {/* Action */}
+                      <td className='border border-gray-200 px-3 py-3'>
+                        <div className='flex items-center justify-center gap-3'>
+                          <button
+                            type='button'
+                            className='text-blue-600 hover:text-blue-800'
+                          >
+                            <Pencil size={18} />
+                          </button>
+
+                          <button
+                            type='button'
+                            className='text-red-600 hover:text-red-800'
+                          >
+                            <Trash2 size={18} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+
+              <div className='flex items-center justify-between border-t border-gray-200 px-4 py-3 text-sm text-gray-600'>
+                <p>
+                  Showing 1 to {divisionSectionData.sectionList.length} of{" "}
+                  {divisionSectionData.sectionList.length} entries
+                </p>
+              </div>
             </div>
           </div>
         </div>
       </div>
-
-      {/* ================= Summary ================= */}
-      <div className='rounded-xl bg-white shadow-sm'>
-        <div className='border-b bg-green-50 px-6 py-4'>
+      {/* ================= Division & Section Summary ================= */}
+      <div className='rounded-xl border border-green-100 bg-gradient-to-r from-green-50 via-green-50 to-white shadow-sm'>
+        {/* Header */}
+        <div className='border-b border-green-100 px-6 py-4'>
           <h2 className='text-lg font-semibold text-green-800'>
             Division & Section Summary
           </h2>
         </div>
 
-        <div className='flex h-32 items-center justify-center p-6 text-gray-400'>
-          Summary Card
+        {/* Body */}
+        <div className='flex flex-col gap-6 p-6 lg:flex-row lg:items-center'>
+          {/* Icon */}
+          <div className='flex justify-center lg:w-24'>
+            <Map size={48} strokeWidth={1.8} className='text-green-700' />
+          </div>
+
+          {/* Summary */}
+          <div className='grid flex-1 grid-cols-2 gap-6 sm:grid-cols-3 xl:grid-cols-6'>
+            <div>
+              <p className='text-sm text-gray-500'>Total Division</p>
+              <h3 className='mt-2 text-2xl font-bold text-green-700'>
+                {divisionSectionData.summary.totalDivision}
+              </h3>
+            </div>
+
+            <div>
+              <p className='text-sm text-gray-500'>Total Section</p>
+              <h3 className='mt-2 text-2xl font-bold text-green-700'>
+                {divisionSectionData.summary.totalSection}
+              </h3>
+            </div>
+
+            <div>
+              <p className='text-sm text-gray-500'>Total Area (Acre)</p>
+              <h3 className='mt-2 text-2xl font-bold text-green-700'>
+                {divisionSectionData.summary.totalArea.toFixed(2)}
+              </h3>
+            </div>
+
+            <div>
+              <p className='text-sm text-gray-500'>Average Section Area</p>
+              <h3 className='mt-2 whitespace-nowrap text-2xl font-bold text-green-700'>
+                {divisionSectionData.summary.averageSectionArea}
+                <span className='ml-1 text-lg'> Acre</span>
+              </h3>
+            </div>
+
+            <div>
+              <p className='text-sm text-gray-500'>Active Division</p>
+              <h3 className='mt-2 text-2xl font-bold text-green-700'>
+                {divisionSectionData.summary.activeDivision}
+              </h3>
+            </div>
+
+            <div>
+              <p className='text-sm text-gray-500'>Active Section</p>
+              <h3 className='mt-2 text-2xl font-bold text-green-700'>
+                {divisionSectionData.summary.activeSection}
+              </h3>
+            </div>
+          </div>
         </div>
       </div>
     </div>
