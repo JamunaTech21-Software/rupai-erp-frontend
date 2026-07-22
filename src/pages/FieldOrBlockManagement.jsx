@@ -573,7 +573,157 @@ const FieldOrBlockManagement = () => {
         </div>
 
         {/* Right */}
-        <div className='xl:col-span-7'>rihgt</div>
+        <div className='xl:col-span-7'>
+          <div className='rounded-xl border border-gray-200 bg-white shadow-sm'>
+            {/* Header */}
+            <div className='flex flex-col gap-3 border-b border-gray-200 p-4 lg:flex-row lg:items-center lg:justify-between'>
+              <h2 className='text-lg font-semibold text-green-800'>
+                Field / Block List
+                <span className='ml-1 text-sm font-normal text-gray-500'>
+                  (Rangpur Division &gt; Section A)
+                </span>
+              </h2>
+
+              <button
+                type='button'
+                className='btn h-10 border-0 bg-green-700 px-4 text-white hover:bg-green-800'
+              >
+                + Add Field / Block
+              </button>
+            </div>
+
+            {/* Search & Filter */}
+            <div className='grid grid-cols-1 gap-3 border-b border-gray-200 p-4 md:grid-cols-2 xl:grid-cols-4'>
+              {/* Search */}
+              <input
+                type='text'
+                placeholder={
+                  fieldAndBlockManagementData.filters.searchPlaceholder
+                }
+                className='input input-bordered h-10 w-full'
+              />
+
+              {/* Field Type */}
+              <select className='select select-bordered h-10 w-full'>
+                <option>{fieldAndBlockManagementData.filters.fieldType}</option>
+
+                {fieldAndBlockManagementData.fieldTypes.map((item) => (
+                  <option key={item}>{item}</option>
+                ))}
+              </select>
+
+              {/* Status */}
+              <select className='select select-bordered h-10 w-full'>
+                <option>{fieldAndBlockManagementData.filters.status}</option>
+
+                {fieldAndBlockManagementData.statuses.map((item) => (
+                  <option key={item}>{item}</option>
+                ))}
+              </select>
+
+              {/* Filter Button */}
+              <button
+                className='btn h-10 border border-gray-300 bg-white hover:bg-gray-100'
+                type='button'
+              >
+                Filter
+              </button>
+            </div>
+
+            {/* Table */}
+            <div className='overflow-x-auto'>
+              <table className='table table-zebra'>
+                <thead className='bg-gray-100'>
+                  <tr>
+                    {fieldAndBlockManagementData.tableHeaders.map((header) => (
+                      <th
+                        key={header}
+                        className='whitespace-nowrap text-xs font-semibold uppercase text-gray-700'
+                      >
+                        {header}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+
+                <tbody>
+                  {fieldAndBlockManagementData.fieldList.map((field, index) => (
+                    <tr key={field.id}>
+                      <td>{index + 1}</td>
+
+                      <td className='font-normal whitespace-nowrap'>
+                        {field.fieldName}
+                      </td>
+
+                      <td>{field.code}</td>
+
+                      <td>{field.fieldType}</td>
+
+                      <td>{field.totalArea}</td>
+
+                      <td>
+                        {field.plantedArea === 0 ? "-" : field.plantedArea}
+                      </td>
+
+                      <td>
+                        <span
+                          className={`rounded-full px-3 py-1 text-xs font-medium ${
+                            field.status === "Active"
+                              ? "bg-green-100 text-green-700"
+                              : "bg-red-100 text-red-600"
+                          }`}
+                        >
+                          {field.status}
+                        </span>
+                      </td>
+
+                      <td>
+                        <div className='flex items-center justify-center gap-2'>
+                          <button
+                            type='button'
+                            className='rounded-lg border border-amber-200 bg-amber-50 px-2 py-1 text-xs font-medium text-amber-600 transition hover:bg-amber-100'
+                          >
+                            Edit
+                          </button>
+
+                          <button
+                            type='button'
+                            className='rounded-lg border border-red-200 bg-red-50 px-2 py-1 text-xs font-medium text-red-600 transition hover:bg-red-100'
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Footer */}
+            <div className='flex flex-col items-center justify-between gap-3 border-t border-gray-200 px-4 py-3 text-sm text-gray-600 sm:flex-row'>
+              <p>
+                Showing <strong>1</strong> to{" "}
+                <strong>{fieldAndBlockManagementData.fieldList.length}</strong>{" "}
+                of{" "}
+                <strong>{fieldAndBlockManagementData.fieldList.length}</strong>{" "}
+                entries
+              </p>
+
+              <div className='join'>
+                <button className='join-item btn btn-sm' disabled>
+                  Previous
+                </button>
+
+                <button className='join-item btn btn-sm btn-active'>1</button>
+
+                <button className='join-item btn btn-sm' disabled>
+                  Next
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
