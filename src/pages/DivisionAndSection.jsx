@@ -3,33 +3,46 @@ import EstateManagementTabs from "../components/EstateManagement/EstateManagemen
 import { X, RotateCcw, Save, Plus, Pencil, Trash2, Map } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { divisionSectionData } from "../data/divisionAndSectionData";
+import toast from "react-hot-toast";
 
 const DivisionAndSection = () => {
   const {
     register,
     handleSubmit,
     reset,
-    watch,
+    clearErrors,
     formState: { errors, isSubmitting },
   } = useForm();
   const {
     register: registerSection,
     handleSubmit: handleSubmitSection,
     reset: resetSection,
-    watch: watchSection,
+    clearErrors: clearSectionErrors,
     formState: { errors: sectionErrors, isSubmitting: sectionSubmitting },
   } = useForm();
   const onSubmitDivision = async (data) => {
     try {
       console.log(data);
+
+      toast.success("Division saved successfully!");
+
+      reset();
+      clearErrors();
     } catch (error) {
+      toast.error("Something went wrong!");
       console.error(error);
     }
   };
   const onSubmitSection = async (data) => {
     try {
       console.log(data);
+
+      toast.success("Section saved successfully!");
+
+      resetSection();
+      clearSectionErrors();
     } catch (error) {
+      toast.error("Something went wrong!");
       console.error(error);
     }
   };
@@ -90,10 +103,15 @@ const DivisionAndSection = () => {
 
                     <input
                       type='number'
+                      min={0}
                       step='0.01'
                       placeholder='1250.00'
                       {...register("totalArea", {
                         required: "Total Area is required",
+                        min: {
+                          value: 0.01,
+                          message: "Area must be greater than 0",
+                        },
                       })}
                       className='h-11 w-full rounded-lg border border-gray-300 px-4 outline-none transition focus:border-green-600'
                     />
@@ -136,9 +154,19 @@ const DivisionAndSection = () => {
                     <input
                       type='number'
                       placeholder='8'
-                      {...register("totalSection")}
+                      {...register("totalSection", {
+                        min: {
+                          value: 0,
+                          message: "Value cannot be negative",
+                        },
+                      })}
                       className='h-11 w-full rounded-lg border border-gray-300 px-4 outline-none transition focus:border-green-600'
                     />
+                    {errors.totalSection && (
+                      <p className='mt-1 text-xs text-red-500'>
+                        {errors.totalSection.message}
+                      </p>
+                    )}
                   </div>
 
                   {/* Division Code */}
@@ -152,6 +180,10 @@ const DivisionAndSection = () => {
                       placeholder='DIV-01'
                       {...register("divisionCode", {
                         required: "Division Code is required",
+                        pattern: {
+                          value: /^DIV-\d+$/,
+                          message: "Example: DIV-01",
+                        },
                       })}
                       className='h-11 w-full rounded-lg border border-gray-300 px-4 outline-none transition focus:border-green-600'
                     />
@@ -196,9 +228,19 @@ const DivisionAndSection = () => {
 
                   <textarea
                     placeholder='Write division description...'
-                    {...register("description")}
+                    {...register("description", {
+                      maxLength: {
+                        value: 250,
+                        message: "Maximum 250 characters",
+                      },
+                    })}
                     className='w-full resize-none rounded-lg border border-gray-300 p-4 outline-none transition focus:border-green-600'
                   />
+                  {errors.description && (
+                    <p className='mt-1 text-xs text-red-500'>
+                      {errors.description.message}
+                    </p>
+                  )}
                 </div>
 
                 {/* Footer */}
@@ -207,6 +249,10 @@ const DivisionAndSection = () => {
                     {/* Cancel */}
                     <button
                       type='button'
+                      onClick={() => {
+                        reset();
+                        clearErrors();
+                      }}
                       className='inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-5 text-sm font-medium text-gray-700 transition hover:bg-gray-100 sm:w-auto'
                     >
                       <X size={18} />
@@ -216,7 +262,10 @@ const DivisionAndSection = () => {
                     {/* Reset */}
                     <button
                       type='button'
-                      onClick={() => reset()}
+                      onClick={() => {
+                        reset();
+                        clearErrors();
+                      }}
                       className='inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg border border-green-200 bg-green-50 px-5 text-sm font-medium text-green-700 transition hover:bg-green-100 sm:w-auto'
                     >
                       <RotateCcw size={18} />
@@ -230,7 +279,7 @@ const DivisionAndSection = () => {
                       className='inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-green-700 px-5 text-sm font-semibold text-white transition hover:bg-green-800 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto'
                     >
                       <Save size={18} />
-                      Save Division
+                      {isSubmitting ? "Saving..." : "Save Division"}
                     </button>
                   </div>
                 </div>
@@ -332,6 +381,10 @@ const DivisionAndSection = () => {
                     placeholder='SEC-001'
                     {...registerSection("sectionCode", {
                       required: "Section Code is required",
+                      pattern: {
+                        value: /^SEC-\d+$/,
+                        message: "Example: SEC-001",
+                      },
                     })}
                     className='h-11 w-full rounded-lg border border-gray-300 px-4 outline-none transition focus:border-green-600'
                   />
@@ -351,9 +404,19 @@ const DivisionAndSection = () => {
                   <textarea
                     rows={3}
                     placeholder='Write section description...'
-                    {...registerSection("description")}
+                    {...registerSection("description", {
+                      maxLength: {
+                        value: 250,
+                        message: "Maximum 250 characters",
+                      },
+                    })}
                     className='w-full resize-none rounded-lg border border-gray-300 p-4 outline-none transition focus:border-green-600 h-11'
                   />
+                  {sectionErrors.description && (
+                    <p className='mt-1 text-xs text-red-500'>
+                      {sectionErrors.description.message}
+                    </p>
+                  )}
                 </div>
                 {/* Total Area */}
                 <div>
@@ -363,10 +426,15 @@ const DivisionAndSection = () => {
 
                   <input
                     type='number'
+                    min={0}
                     step='0.01'
                     placeholder='125.50'
                     {...registerSection("totalArea", {
                       required: "Total Area is required",
+                      min: {
+                        value: 0.01,
+                        message: "Area must be greater than 0",
+                      },
                     })}
                     className='h-11 w-full rounded-lg border border-gray-300 px-4 outline-none transition focus:border-green-600'
                   />
@@ -406,6 +474,10 @@ const DivisionAndSection = () => {
               <div className='mt-6 flex items-center justify-end gap-3 border-t pt-6'>
                 <button
                   type='button'
+                  onClick={() => {
+                    resetSection();
+                    clearSectionErrors();
+                  }}
                   className='inline-flex h-11 items-center gap-2 rounded-lg border border-gray-300 bg-white px-5 text-sm font-medium text-gray-700 hover:bg-gray-100'
                 >
                   <X size={18} />
@@ -414,7 +486,10 @@ const DivisionAndSection = () => {
 
                 <button
                   type='button'
-                  onClick={() => resetSection()}
+                  onClick={() => {
+                    resetSection();
+                    clearSectionErrors();
+                  }}
                   className='inline-flex h-11 items-center gap-2 rounded-lg border border-green-200 bg-green-50 px-5 text-sm font-medium text-green-700 hover:bg-green-100'
                 >
                   <RotateCcw size={18} />
@@ -427,7 +502,7 @@ const DivisionAndSection = () => {
                   className='inline-flex h-11 items-center gap-2 rounded-lg bg-green-700 px-5 text-sm font-semibold text-white hover:bg-green-800 disabled:cursor-not-allowed disabled:opacity-60'
                 >
                   <Save size={18} />
-                  Save Section
+                  {sectionSubmitting ? "Saving..." : "Save Section"}
                 </button>
               </div>
             </form>
