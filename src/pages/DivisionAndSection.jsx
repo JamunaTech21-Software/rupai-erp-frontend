@@ -253,7 +253,7 @@ const DivisionAndSection = () => {
                         reset();
                         clearErrors();
                       }}
-                      className='inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-5 text-sm font-medium text-gray-700 transition hover:bg-gray-100 sm:w-auto'
+                      className='inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-5 text-sm font-medium text-gray-700 transition hover:bg-gray-100 sm:w-auto cursor-pointer'
                     >
                       <X size={18} />
                       Cancel
@@ -266,7 +266,7 @@ const DivisionAndSection = () => {
                         reset();
                         clearErrors();
                       }}
-                      className='inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg border border-green-200 bg-green-50 px-5 text-sm font-medium text-green-700 transition hover:bg-green-100 sm:w-auto'
+                      className='inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg border border-green-200 bg-green-50 px-5 text-sm font-medium text-green-700 transition hover:bg-green-100 sm:w-auto cursor-pointer'
                     >
                       <RotateCcw size={18} />
                       Reset
@@ -276,7 +276,7 @@ const DivisionAndSection = () => {
                     <button
                       type='submit'
                       disabled={isSubmitting}
-                      className='inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-green-700 px-5 text-sm font-semibold text-white transition hover:bg-green-800 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto'
+                      className='inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-green-700 px-5 text-sm font-semibold text-white transition hover:bg-green-800 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto cursor-pointer'
                     >
                       <Save size={18} />
                       {isSubmitting ? "Saving..." : "Save Division"}
@@ -478,7 +478,7 @@ const DivisionAndSection = () => {
                     resetSection();
                     clearSectionErrors();
                   }}
-                  className='inline-flex h-11 items-center gap-2 rounded-lg border border-gray-300 bg-white px-5 text-sm font-medium text-gray-700 hover:bg-gray-100'
+                  className='inline-flex h-11 items-center gap-2 rounded-lg border border-gray-300 bg-white px-5 text-sm font-medium text-gray-700 hover:bg-gray-100 cursor-pointer'
                 >
                   <X size={18} />
                   Cancel
@@ -490,7 +490,7 @@ const DivisionAndSection = () => {
                     resetSection();
                     clearSectionErrors();
                   }}
-                  className='inline-flex h-11 items-center gap-2 rounded-lg border border-green-200 bg-green-50 px-5 text-sm font-medium text-green-700 hover:bg-green-100'
+                  className='inline-flex h-11 items-center gap-2 rounded-lg border border-green-200 bg-green-50 px-5 text-sm font-medium text-green-700 hover:bg-green-100 cursor-pointer'
                 >
                   <RotateCcw size={18} />
                   Reset
@@ -499,7 +499,7 @@ const DivisionAndSection = () => {
                 <button
                   type='submit'
                   disabled={sectionSubmitting}
-                  className='inline-flex h-11 items-center gap-2 rounded-lg bg-green-700 px-5 text-sm font-semibold text-white hover:bg-green-800 disabled:cursor-not-allowed disabled:opacity-60'
+                  className='inline-flex h-11 items-center gap-2 rounded-lg bg-green-700 px-5 text-sm font-semibold text-white hover:bg-green-800 disabled:cursor-not-allowed disabled:opacity-60 cursor-pointer'
                 >
                   <Save size={18} />
                   {sectionSubmitting ? "Saving..." : "Save Section"}
@@ -520,7 +520,7 @@ const DivisionAndSection = () => {
 
               <button
                 type='button'
-                className='inline-flex items-center gap-2 rounded-lg bg-green-700 px-4 py-2 text-sm font-medium text-white hover:bg-green-800'
+                className='inline-flex items-center gap-2 rounded-lg bg-green-700 px-4 py-2 text-sm font-medium text-white hover:bg-green-800 cursor-pointer'
               >
                 <Plus size={18} />
                 Add Division
@@ -588,14 +588,14 @@ const DivisionAndSection = () => {
                         <div className='flex items-center justify-center gap-3'>
                           <button
                             type='button'
-                            className='text-blue-600 transition-colors hover:text-blue-800'
+                            className='text-blue-600 transition-colors hover:text-blue-800 cursor-pointer'
                           >
                             <Pencil size={18} />
                           </button>
 
                           <button
                             type='button'
-                            className='text-red-600 transition-colors hover:text-red-800'
+                            className='text-red-600 transition-colors hover:text-red-800 cursor-pointer'
                           >
                             <Trash2 size={18} />
                           </button>
@@ -623,7 +623,7 @@ const DivisionAndSection = () => {
 
               <button
                 type='button'
-                className='inline-flex items-center gap-2 rounded-lg bg-green-700 px-2 py-1 text-sm font-medium text-white hover:bg-green-800'
+                className='inline-flex items-center gap-2 rounded-lg bg-green-700 px-2 py-1 text-sm font-medium text-white hover:bg-green-800 cursor-pointer'
               >
                 <Plus size={18} />
                 Add Section
@@ -696,14 +696,14 @@ const DivisionAndSection = () => {
                         <div className='flex items-center justify-center gap-3'>
                           <button
                             type='button'
-                            className='text-blue-600 hover:text-blue-800'
+                            className='text-blue-600 hover:text-blue-800 cursor-pointer'
                           >
                             <Pencil size={18} />
                           </button>
 
                           <button
                             type='button'
-                            className='text-red-600 hover:text-red-800'
+                            className='text-red-600 hover:text-red-800 cursor-pointer'
                           >
                             <Trash2 size={18} />
                           </button>
@@ -725,23 +725,24 @@ const DivisionAndSection = () => {
         </div>
       </div>
       {/* ================= Division & Section Summary ================= */}
-      <div className='rounded-xl border border-green-100 bg-gradient-to-r from-green-50 via-green-50 to-white shadow-sm'>
-        {/* Header */}
-        <div className='border-b border-green-100 px-6 py-4'>
-          <h2 className='text-lg font-semibold text-green-800'>
-            Division & Section Summary
-          </h2>
+      {/* Body */}
+      <div className='flex bg-green-100'>
+        {/* Left Icon - 1 Part */}
+        <div className='flex w-1/12 items-center justify-center border-r border-green-100 p-6 '>
+          <Map size={48} strokeWidth={1.8} className='text-green-700' />
         </div>
 
-        {/* Body */}
-        <div className='flex flex-col gap-6 p-6 lg:flex-row lg:items-center'>
-          {/* Icon */}
-          <div className='flex justify-center lg:w-24'>
-            <Map size={48} strokeWidth={1.8} className='text-green-700' />
+        {/* Right Content - 11 Parts */}
+        <div className='w-11/12 '>
+          {/* Header */}
+          <div className='border-b border-green-100 px-6 pt-3'>
+            <h2 className='text-sm font-semibold text-green-800'>
+              Division & Section Summary
+            </h2>
           </div>
 
           {/* Summary */}
-          <div className='grid flex-1 grid-cols-2 gap-6 sm:grid-cols-3 xl:grid-cols-6'>
+          <div className='grid grid-cols-2 gap-6 p-6 sm:grid-cols-3 xl:grid-cols-6'>
             <div>
               <p className='text-sm text-gray-500'>Total Division</p>
               <h3 className='mt-2 text-2xl font-bold text-green-700'>
