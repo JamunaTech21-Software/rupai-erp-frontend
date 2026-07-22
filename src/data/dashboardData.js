@@ -23,9 +23,9 @@ export const navSections = [
             path: "/division-&-section",
           },
           {
-            id: "fixed-or-block-management",
-            label: "Fixed/Block Management",
-            path: "/fixed-or-block-management",
+            id: "field-or-block-management",
+            label: "Field/Block Management",
+            path: "/field-or-block-management",
           },
           {
             id: "map-&-gis-tracking",

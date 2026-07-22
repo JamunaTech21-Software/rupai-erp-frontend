@@ -471,39 +471,41 @@ const DivisionAndSection = () => {
               </div>
               {/* Footer */}
 
-              <div className='mt-6 flex items-center justify-end gap-3 border-t pt-6'>
-                <button
-                  type='button'
-                  onClick={() => {
-                    resetSection();
-                    clearSectionErrors();
-                  }}
-                  className='inline-flex h-11 items-center gap-2 rounded-lg border border-gray-300 bg-white px-5 text-sm font-medium text-gray-700 hover:bg-gray-100 cursor-pointer'
-                >
-                  <X size={18} />
-                  Cancel
-                </button>
+              <div className='mt-6 border-t pt-6'>
+                <div className='flex flex-col-reverse gap-3 sm:flex-row sm:justify-end'>
+                  <button
+                    type='button'
+                    onClick={() => {
+                      resetSection();
+                      clearSectionErrors();
+                    }}
+                    className='inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-5 text-sm font-medium text-gray-700 transition hover:bg-gray-100 sm:w-auto cursor-pointer'
+                  >
+                    <X size={18} />
+                    Cancel
+                  </button>
 
-                <button
-                  type='button'
-                  onClick={() => {
-                    resetSection();
-                    clearSectionErrors();
-                  }}
-                  className='inline-flex h-11 items-center gap-2 rounded-lg border border-green-200 bg-green-50 px-5 text-sm font-medium text-green-700 hover:bg-green-100 cursor-pointer'
-                >
-                  <RotateCcw size={18} />
-                  Reset
-                </button>
+                  <button
+                    type='button'
+                    onClick={() => {
+                      resetSection();
+                      clearSectionErrors();
+                    }}
+                    className='inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg border border-green-200 bg-green-50 px-5 text-sm font-medium text-green-700 transition hover:bg-green-100 sm:w-auto cursor-pointer'
+                  >
+                    <RotateCcw size={18} />
+                    Reset
+                  </button>
 
-                <button
-                  type='submit'
-                  disabled={sectionSubmitting}
-                  className='inline-flex h-11 items-center gap-2 rounded-lg bg-green-700 px-5 text-sm font-semibold text-white hover:bg-green-800 disabled:cursor-not-allowed disabled:opacity-60 cursor-pointer'
-                >
-                  <Save size={18} />
-                  {sectionSubmitting ? "Saving..." : "Save Section"}
-                </button>
+                  <button
+                    type='submit'
+                    disabled={sectionSubmitting}
+                    className='inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-green-700 px-5 text-sm font-semibold text-white transition hover:bg-green-800 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto cursor-pointer'
+                  >
+                    <Save size={18} />
+                    {sectionSubmitting ? "Saving..." : "Save Section"}
+                  </button>
+                </div>
               </div>
             </form>
           </div>
@@ -728,12 +730,12 @@ const DivisionAndSection = () => {
       {/* Body */}
       <div className='flex bg-green-100'>
         {/* Left Icon - 1 Part */}
-        <div className='flex w-1/12 items-center justify-center border-r border-green-100 p-6 '>
+        <div className='flex w-1/12 items-center justify-center border-r border-green-100 p-6'>
           <Map size={48} strokeWidth={1.8} className='text-green-700' />
         </div>
 
         {/* Right Content - 11 Parts */}
-        <div className='w-11/12 '>
+        <div className='w-11/12'>
           {/* Header */}
           <div className='border-b border-green-100 px-6 pt-3'>
             <h2 className='text-sm font-semibold text-green-800'>
@@ -741,8 +743,8 @@ const DivisionAndSection = () => {
             </h2>
           </div>
 
-          {/* Summary */}
-          <div className='grid grid-cols-2 gap-6 p-6 sm:grid-cols-3 xl:grid-cols-6'>
+          {/* Desktop */}
+          <div className='hidden lg:grid lg:grid-cols-6 gap-6 p-6'>
             <div>
               <p className='text-sm text-gray-500'>Total Division</p>
               <h3 className='mt-2 text-2xl font-bold text-green-700'>
@@ -782,6 +784,52 @@ const DivisionAndSection = () => {
             <div>
               <p className='text-sm text-gray-500'>Active Section</p>
               <h3 className='mt-2 text-2xl font-bold text-green-700'>
+                {divisionSectionData.summary.activeSection}
+              </h3>
+            </div>
+          </div>
+
+          {/* Mobile */}
+          <div className='grid grid-cols-1 gap-3 p-4 lg:hidden'>
+            <div className='rounded-lg border border-green-200 bg-white p-4 shadow-sm'>
+              <p className='text-sm text-gray-500'>Total Division</p>
+              <h3 className='mt-1 text-xl font-bold text-green-700'>
+                {divisionSectionData.summary.totalDivision}
+              </h3>
+            </div>
+
+            <div className='rounded-lg border border-green-200 bg-white p-4 shadow-sm'>
+              <p className='text-sm text-gray-500'>Total Section</p>
+              <h3 className='mt-1 text-xl font-bold text-green-700'>
+                {divisionSectionData.summary.totalSection}
+              </h3>
+            </div>
+
+            <div className='rounded-lg border border-green-200 bg-white p-4 shadow-sm'>
+              <p className='text-sm text-gray-500'>Total Area (Acre)</p>
+              <h3 className='mt-1 text-xl font-bold text-green-700'>
+                {divisionSectionData.summary.totalArea.toFixed(2)}
+              </h3>
+            </div>
+
+            <div className='rounded-lg border border-green-200 bg-white p-4 shadow-sm'>
+              <p className='text-sm text-gray-500'>Average Section Area</p>
+              <h3 className='mt-1 text-xl font-bold text-green-700'>
+                {divisionSectionData.summary.averageSectionArea}
+                <span className='ml-1 text-base'> Acre</span>
+              </h3>
+            </div>
+
+            <div className='rounded-lg border border-green-200 bg-white p-4 shadow-sm'>
+              <p className='text-sm text-gray-500'>Active Division</p>
+              <h3 className='mt-1 text-xl font-bold text-green-700'>
+                {divisionSectionData.summary.activeDivision}
+              </h3>
+            </div>
+
+            <div className='rounded-lg border border-green-200 bg-white p-4 shadow-sm'>
+              <p className='text-sm text-gray-500'>Active Section</p>
+              <h3 className='mt-1 text-xl font-bold text-green-700'>
                 {divisionSectionData.summary.activeSection}
               </h3>
             </div>

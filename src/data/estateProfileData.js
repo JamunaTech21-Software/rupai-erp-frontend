@@ -18,7 +18,7 @@ export const estateProfileData = {
     {
       id: 3,
       title: "Field / Block Management",
-      path: "/fixed-or-block-management",
+      path: "/field-or-block-management",
     },
     {
       id: 4,

@@ -6,7 +6,7 @@ import EstateProfile from "./pages/EstateProfile";
 import DivisionAndSection from "./pages/DivisionAndSection";
 import MapAndGISTracking from "./pages/MapAndGISTracking";
 import LandAndLeaseManagement from "./pages/LandAndLeaseManagement";
-import FixedOrBlockManagement from "./pages/FixedOrBlockManagement";
+import FieldOrBlockManagement from "./pages/FieldOrBlockManagement";
 
 const router = createBrowserRouter([
   {
@@ -36,10 +36,10 @@ const router = createBrowserRouter([
         },
       },
       {
-        path: "fixed-or-block-management",
-        element: <FixedOrBlockManagement />,
+        path: "field-or-block-management",
+        element: <FieldOrBlockManagement />,
         handle: {
-          title: "Fixed/Block Management",
+          title: "Field/Block Management",
         },
       },
 
