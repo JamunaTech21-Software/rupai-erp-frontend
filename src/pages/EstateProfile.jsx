@@ -1,6 +1,8 @@
 import EstateManagementTabs from "../components/EstateManagement/EstateManagementTabs";
 import { estateProfileData } from "../data/estateProfileData";
 import { useForm } from "react-hook-form";
+import toast from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
 import {
   Map,
   Leaf,
@@ -28,14 +30,29 @@ const EstateProfile = () => {
   const {
     register,
     handleSubmit,
-    formState: { errors },
+    reset,
+    watch,
+    formState: { errors, isSubmitting },
   } = useForm();
+  // hooks
+  const navigate = useNavigate();
+  const latitude = watch("latitude");
+  const longitude = watch("longitude");
 
-  const onSubmit = (data) => {
-    console.log(data);
+  // onsubmit functionality
+  const estateProfileSubmit = async (data) => {
+    try {
+      console.log(data);
+
+      toast.success("Estate created");
+
+      reset();
+    } catch (error) {
+      toast.error("Something went wrong");
+    }
   };
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
+    <form onSubmit={handleSubmit(estateProfileSubmit)} className='space-y-6'>
       {/* Top Tabs */}
       <EstateManagementTabs />
 
@@ -873,7 +890,7 @@ const EstateProfile = () => {
                     <img
                       src={image.image}
                       alt={image.title}
-                      className='h-28 w-full object-cover transition duration-300 hover:scale-105'
+                      className='h-28 w-full object-cover transition duration-300 hover:scale-105 cursor-pointer'
                     />
                   </div>
                 ))}
@@ -881,7 +898,7 @@ const EstateProfile = () => {
                 {/* Add More */}
                 <button
                   type='button'
-                  className='flex h-28 flex-col items-center justify-center rounded-xl border-2 border-dashed border-gray-300 text-gray-500 transition hover:border-green-600 hover:text-green-600'
+                  className='flex h-28 flex-col items-center justify-center rounded-xl border-2 border-dashed border-gray-300 text-gray-500 transition hover:border-green-600 hover:text-green-600 cursor-pointer'
                 >
                   <span className='text-3xl font-light'>+</span>
                   <span className='mt-2 text-sm font-medium'>Add More</span>
@@ -1008,7 +1025,7 @@ const EstateProfile = () => {
               <div className='overflow-hidden rounded-xl border border-gray-200'>
                 <iframe
                   title='Estate Location'
-                  src='https://maps.google.com/maps?q=26.3417,88.0008&z=14&output=embed'
+                  src={`https://maps.google.com/maps?q=${latitude || 26.3417},${longitude || 88.0008}&z=14&output=embed`}
                   className='h-64 w-full'
                   loading='lazy'
                 />
@@ -1043,17 +1060,17 @@ const EstateProfile = () => {
         </div>
       </div>
       {/* Footer */}
-      {/* Footer */}
-      <div className=' rounded-xl border border-gray-200 bg-white p-4 shadow-sm'>
+
+      <div className='rounded-xl border border-gray-200 bg-white p-4 shadow-sm'>
         <div className='flex flex-col justify-between gap-4 md:flex-row md:items-center'>
           <p className='text-sm text-red-500'>* Mandatory Field</p>
 
-          <div className='flex items-center justify-end gap-3'>
+          <div className='flex items-center gap-3'>
             {/* Cancel */}
             <button
               type='button'
               onClick={() => navigate(-1)}
-              className='flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-100'
+              className='inline-flex h-11 items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-6 text-sm font-medium text-gray-700 transition-all duration-200 hover:bg-gray-100 hover:border-gray-400 cursor-pointer'
             >
               <X size={18} />
               Cancel
@@ -1063,19 +1080,23 @@ const EstateProfile = () => {
             <button
               type='button'
               onClick={() => reset()}
-              className='flex items-center gap-2 rounded-lg border border-green-200 bg-green-50 px-5 py-2.5 text-sm font-medium text-green-700 transition hover:bg-green-100'
+              className='inline-flex h-11 items-center justify-center gap-2 rounded-lg border border-green-200 bg-green-50 px-6 text-sm font-medium text-green-700 transition-all duration-200 hover:bg-green-100 hover:border-green-300 cursor-pointer'
             >
-              <RotateCcw size={18} />
+              <RotateCcw
+                size={18}
+                className={isSubmitting ? "animate-spin" : ""}
+              />
               Reset
             </button>
 
             {/* Save */}
             <button
               type='submit'
-              className='flex items-center gap-2 rounded-lg bg-green-700 px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-green-800'
+              disabled={isSubmitting}
+              className='inline-flex h-11 min-w-[120px] items-center justify-center gap-2 rounded-lg bg-green-700 px-6 text-sm font-semibold text-white transition-all duration-200 hover:bg-green-800 disabled:cursor-not-allowed disabled:opacity-70 cursor-pointer'
             >
               <Save size={18} />
-              Save
+              {isSubmitting ? "Saving..." : "Save"}
             </button>
           </div>
         </div>
