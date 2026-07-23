@@ -1,11 +1,15 @@
-import React from "react";
+import React, { useState } from "react";
 import EstateManagementTabs from "../components/EstateManagement/EstateManagementTabs";
 import { useForm } from "react-hook-form";
 import L from "leaflet";
+import toast from "react-hot-toast";
+
 import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
 import markerIcon from "leaflet/dist/images/marker-icon.png";
 import markerShadow from "leaflet/dist/images/marker-shadow.png";
+
 import { fieldAndBlockManagementData } from "../data/FieldAndBlockManagementData";
+
 import {
   RotateCcw,
   Save,
@@ -19,6 +23,14 @@ import {
   Layers3,
   Expand,
   MapPin,
+  Leaf,
+  Sprout,
+  Trees,
+  Building2,
+  Waves,
+  SquareDashed,
+  CheckCircle2,
+  XCircle,
 } from "lucide-react";
 import {
   MapContainer,
@@ -26,6 +38,7 @@ import {
   Marker,
   Polygon,
   ZoomControl,
+  Popup,
 } from "react-leaflet";
 delete L.Icon.Default.prototype._getIconUrl;
 
@@ -34,6 +47,14 @@ L.Icon.Default.mergeOptions({
   iconUrl: markerIcon,
   shadowUrl: markerShadow,
 });
+const blueMarker = new L.Icon({
+  iconUrl: markerIcon,
+  iconRetinaUrl: markerIcon2x,
+  shadowUrl: markerShadow,
+  iconSize: [28, 45],
+  iconAnchor: [14, 45],
+  popupAnchor: [0, -40],
+});
 const FieldOrBlockManagement = () => {
   const {
     register,
@@ -41,10 +62,19 @@ const FieldOrBlockManagement = () => {
     reset,
     formState: { errors },
   } = useForm();
-  const FieldOrBlockManagementonSubmit = (data) => {
-    console.log(data);
+  const FieldOrBlockManagementonSubmit = async (data) => {
+    try {
+      await axios.post("/field-block", data);
+
+      toast.success("Field / Block saved successfully.");
+
+      reset();
+    } catch (error) {
+      toast.error("Failed to save Field / Block.");
+    }
   };
 
+  const [mapType, setMapType] = useState("street");
   return (
     <div>
       <EstateManagementTabs />
@@ -521,7 +551,7 @@ const FieldOrBlockManagement = () => {
                       {/* Cancel */}
                       <button
                         type='button'
-                        className='btn flex items-center gap-2 h-11 w-full rounded-lg border border-gray-300 bg-white px-6 text-gray-700 shadow-sm transition-all hover:bg-gray-50 sm:w-auto'
+                        className='btn flex items-center gap-2 h-11 w-full rounded-lg border border-gray-300 bg-white px-6 text-gray-700 shadow-sm transition-all hover:bg-gray-50 sm:w-auto  cursor-pointer'
                       >
                         <X size={18} />
                         Cancel
@@ -531,7 +561,7 @@ const FieldOrBlockManagement = () => {
                       <button
                         type='button'
                         onClick={() => reset()}
-                        className='btn flex items-center gap-2  h-11 w-full rounded-lg border-0 bg-green-500 px-6 text-white shadow-sm transition-all hover:bg-amber-600 sm:w-auto'
+                        className=' cursor-pointer flex items-center gap-2  h-11 w-full rounded-lg border-0 bg-green-500 px-6 text-white shadow-sm transition-all hover:bg-amber-600 sm:w-auto cursor-pointer'
                       >
                         <RotateCcw size={18} />
                         Reset
@@ -540,7 +570,7 @@ const FieldOrBlockManagement = () => {
                       {/* Save */}
                       <button
                         type='submit'
-                        className='btn flex items-center gap-2 h-11 w-full rounded-lg border-0 bg-green-900 px-6 text-white shadow-sm transition-all hover:bg-green-800 sm:w-auto'
+                        className='btn flex items-center gap-2 h-11 w-full rounded-lg border-0 bg-green-900 px-6 text-white shadow-sm transition-all hover:bg-green-800 sm:w-auto cursor-pointer'
                       >
                         <Save size={18} />
                         Save Field
@@ -605,7 +635,7 @@ const FieldOrBlockManagement = () => {
 
         {/* Right */}
         <div className='self-start xl:col-span-7'>
-          <div className='h-fit w-full rounded-xl border border-gray-200 bg-white shadow-sm'>
+          <div className='h-fit w-full rounded-xl border border-gray-200 bg-white shadow-sm '>
             {/* Header */}
             <div className='flex flex-col gap-3 border-b border-gray-200 p-4 lg:flex-row lg:items-center lg:justify-between'>
               <h2 className='text-lg font-semibold text-green-800'>
@@ -617,7 +647,7 @@ const FieldOrBlockManagement = () => {
 
               <button
                 type='button'
-                className='btn h-10 border-0 bg-green-700 px-4 text-white hover:bg-green-800'
+                className='btn h-10 border-0 bg-green-700 px-4 text-white hover:bg-green-800 cursor-pointer'
               >
                 + Add Field / Block
               </button>
@@ -746,7 +776,7 @@ const FieldOrBlockManagement = () => {
             </div>
 
             {/* Footer */}
-            <div className='flex flex-col items-center justify-between gap-3 border-t border-gray-200 px-4 py-3 text-sm text-gray-600 sm:flex-row'>
+            <div className='flex flex-col items-center justify-between gap-3 border-t border-gray-200 px-4 py-3 text-sm text-gray-600 sm:flex-row mb-24'>
               <p>
                 Showing <strong>1</strong> to{" "}
                 <strong>{fieldAndBlockManagementData.fieldList.length}</strong>{" "}
@@ -779,8 +809,21 @@ const FieldOrBlockManagement = () => {
             </div>
 
             {/* Map */}
+            <div className='relative h-[320px] w-full'>
+              {/* Layer Switch Button */}
+              <div className='absolute left-4 top-4 z-[1000]'>
+                <button
+                  type='button'
+                  onClick={() =>
+                    setMapType(mapType === "street" ? "satellite" : "street")
+                  }
+                  className='flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2 shadow-lg hover:bg-gray-100'
+                >
+                  <Layers3 size={18} />
+                  {mapType === "street" ? "Satellite" : "Street"}
+                </button>
+              </div>
 
-            <div className='relative h-[200px] w-full'>
               <MapContainer
                 center={[
                   Number(fieldAndBlockManagementData.map.latitude),
@@ -790,10 +833,17 @@ const FieldOrBlockManagement = () => {
                 zoomControl={false}
                 className='h-full w-full'
               >
-                <TileLayer
-                  attribution='&copy; OpenStreetMap contributors'
-                  url='https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
-                />
+                {mapType === "street" ? (
+                  <TileLayer
+                    attribution='&copy; OpenStreetMap contributors'
+                    url='https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
+                  />
+                ) : (
+                  <TileLayer
+                    attribution='&copy; Esri'
+                    url='https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
+                  />
+                )}
 
                 <ZoomControl position='topleft' />
 
@@ -802,15 +852,50 @@ const FieldOrBlockManagement = () => {
                     Number(fieldAndBlockManagementData.map.latitude),
                     Number(fieldAndBlockManagementData.map.longitude),
                   ]}
-                />
+                  icon={blueMarker}
+                >
+                  <Popup>
+                    <div className='space-y-2'>
+                      <h3 className='font-semibold'>
+                        {fieldAndBlockManagementData.details.fieldName}
+                      </h3>
+
+                      <p>
+                        Area: {fieldAndBlockManagementData.details.totalArea}
+                      </p>
+
+                      <p>
+                        Division: {fieldAndBlockManagementData.details.division}
+                      </p>
+
+                      <p>
+                        Status: {fieldAndBlockManagementData.details.status}
+                      </p>
+                    </div>
+                  </Popup>
+                </Marker>
 
                 <Polygon
                   positions={fieldAndBlockManagementData.map.polygon}
                   pathOptions={{
-                    color: "#0B6B2A",
-                    fillColor: "#16A34A",
+                    color: "#0d7d2f",
+                    fillColor: "#20c05a",
                     fillOpacity: 0.45,
                     weight: 3,
+                  }}
+                  eventHandlers={{
+                    mouseover: (e) => {
+                      e.target.setStyle({
+                        fillOpacity: 0.7,
+                        weight: 5,
+                      });
+                    },
+                    mouseout: (e) => {
+                      e.target.setStyle({
+                        fillOpacity: 0.45,
+                        weight: 3,
+                      });
+                    },
                   }}
                 />
               </MapContainer>
@@ -842,11 +927,105 @@ const FieldOrBlockManagement = () => {
                   </strong>
                 </span>
               </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      {/* ===================== Summary ===================== */}
 
-              <button className='btn flex gap-2 items-center  border border-gray-300 bg-white hover:bg-gray-100'>
-                View in Full Screen
-                <Expand size={18} />
-              </button>
+      <div className='mt-4 bg-green-50 rounded-xl   p-5 shadow-sm'>
+        <div className='grid grid-cols-12 gap-6 '>
+          {/* Left (1 Column) */}
+          <div className='col-span-12 lg:col-span-1'>
+            <div className='flex h-full items-center justify-center'>
+              <div className='flex h-20 w-20 items-center justify-center rounded-full border-2 border-green-700'>
+                <Leaf className='h-10 w-10 text-green-700' />
+              </div>
+            </div>
+          </div>
+
+          {/* Right (11 Column) */}
+          <div className='col-span-12 lg:col-span-11'>
+            {/* Header */}
+            <div className='mb-5  border-green-700 pb-3'>
+              <h2 className='text-sm font-regular text-green-900'>
+                Field / Block Summary
+              </h2>
+            </div>
+
+            {/* Summary Items */}
+            <div className='flex flex-wrap justify-between'>
+              {/* Tea */}
+              <div className='text-center'>
+                <p className='text-sm text-gray-500'>Tea Field</p>
+                <h3 className='mt-2 text-2xl font-bold text-green-700'>
+                  {fieldAndBlockManagementData.summary.teaField}
+                </h3>
+              </div>
+
+              {/* Nursery */}
+              <div className='text-center'>
+                <p className='text-sm text-gray-500'>Nursery</p>
+                <h3 className='mt-2 text-2xl font-bold text-green-700'>
+                  {fieldAndBlockManagementData.summary.nursery}
+                </h3>
+              </div>
+
+              {/* Extension */}
+              <div className='text-center'>
+                <p className='text-sm text-gray-500'>Extension</p>
+                <h3 className='mt-2 text-2xl font-bold text-green-700'>
+                  {fieldAndBlockManagementData.summary.extension}
+                </h3>
+              </div>
+
+              {/* Infrastructure */}
+              <div className='text-center'>
+                <p className='text-sm text-gray-500'>Infrastructure</p>
+                <h3 className='mt-2 text-2xl font-bold text-green-700'>
+                  {fieldAndBlockManagementData.summary.infrastructure}
+                </h3>
+              </div>
+
+              {/* Drain */}
+              <div className='text-center'>
+                <p className='text-sm text-gray-500'>Drain Area</p>
+                <h3 className='mt-2 text-2xl font-bold text-green-700'>
+                  {fieldAndBlockManagementData.summary.drainArea}
+                </h3>
+              </div>
+
+              {/* Total Area */}
+              <div className='text-center'>
+                <p className='text-sm text-gray-500'>Total Area (Acre)</p>
+                <h3 className='mt-2 text-2xl font-bold text-green-700'>
+                  {fieldAndBlockManagementData.summary.totalArea}
+                </h3>
+              </div>
+
+              {/* Planted */}
+              <div className='text-center'>
+                <p className='text-sm text-gray-500'>Planted Area (Acre)</p>
+                <h3 className='mt-2 text-2xl font-bold text-green-700'>
+                  {fieldAndBlockManagementData.summary.plantedArea}
+                </h3>
+              </div>
+
+              {/* Active */}
+              <div className='text-center'>
+                <p className='text-sm text-gray-500'>Active Field</p>
+                <h3 className='mt-2 text-2xl font-bold text-green-700'>
+                  {fieldAndBlockManagementData.summary.activeField}
+                </h3>
+              </div>
+
+              {/* Inactive */}
+              <div className='text-center'>
+                <p className='text-sm text-gray-500'>Inactive Field</p>
+                <h3 className='mt-2 text-2xl font-bold text-red-600'>
+                  {fieldAndBlockManagementData.summary.inactiveField}
+                </h3>
+              </div>
             </div>
           </div>
         </div>
