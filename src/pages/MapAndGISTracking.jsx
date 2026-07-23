@@ -1,7 +1,7 @@
 import React from "react";
 import EstateManagementTabs from "../components/EstateManagement/EstateManagementTabs";
 import { useForm } from "react-hook-form";
-import { mapAndGISTrackingData } from "../data/mapandGisTrackingData";
+import { mapAndGISTrackingData } from "../data/MapandGisTrackingData";
 const MapAndGISTracking = () => {
   const {
     register,
