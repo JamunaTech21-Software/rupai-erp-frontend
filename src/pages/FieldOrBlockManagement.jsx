@@ -1,8 +1,39 @@
 import React from "react";
 import EstateManagementTabs from "../components/EstateManagement/EstateManagementTabs";
 import { useForm } from "react-hook-form";
-import { RotateCcw, Save, X } from "lucide-react";
+import L from "leaflet";
+import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
+import markerIcon from "leaflet/dist/images/marker-icon.png";
+import markerShadow from "leaflet/dist/images/marker-shadow.png";
 import { fieldAndBlockManagementData } from "../data/FieldAndBlockManagementData";
+import {
+  RotateCcw,
+  Save,
+  X,
+  Pencil,
+  Trash2,
+  Search,
+  SlidersHorizontal,
+  Plus,
+  Minus,
+  Layers3,
+  Expand,
+  MapPin,
+} from "lucide-react";
+import {
+  MapContainer,
+  TileLayer,
+  Marker,
+  Polygon,
+  ZoomControl,
+} from "react-leaflet";
+delete L.Icon.Default.prototype._getIconUrl;
+
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: markerIcon2x,
+  iconUrl: markerIcon,
+  shadowUrl: markerShadow,
+});
 const FieldOrBlockManagement = () => {
   const {
     register,
@@ -17,9 +48,9 @@ const FieldOrBlockManagement = () => {
   return (
     <div>
       <EstateManagementTabs />
-      <div className='grid grid-cols-1 gap-2 xl:grid-cols-12'>
+      <div className='grid grid-cols-1 items-start gap-4 xl:grid-cols-12'>
         {/* Left */}
-        <div className='xl:col-span-5'>
+        <div className='self-start xl:col-span-5'>
           <form
             onSubmit={handleSubmit(FieldOrBlockManagementonSubmit)}
             className='rounded-xl border border-gray-200 bg-white shadow-sm'
@@ -573,8 +604,8 @@ const FieldOrBlockManagement = () => {
         </div>
 
         {/* Right */}
-        <div className='xl:col-span-7'>
-          <div className='rounded-xl border border-gray-200 bg-white shadow-sm'>
+        <div className='self-start xl:col-span-7'>
+          <div className='h-fit w-full rounded-xl border border-gray-200 bg-white shadow-sm'>
             {/* Header */}
             <div className='flex flex-col gap-3 border-b border-gray-200 p-4 lg:flex-row lg:items-center lg:justify-between'>
               <h2 className='text-lg font-semibold text-green-800'>
@@ -593,18 +624,25 @@ const FieldOrBlockManagement = () => {
             </div>
 
             {/* Search & Filter */}
-            <div className='grid grid-cols-1 gap-3 border-b border-gray-200 p-4 md:grid-cols-2 xl:grid-cols-4'>
+            <div className='grid grid-cols-1 gap-3 border-b border-gray-200 p-4 md:grid-cols-[2fr_1fr_1fr_auto]'>
               {/* Search */}
-              <input
-                type='text'
-                placeholder={
-                  fieldAndBlockManagementData.filters.searchPlaceholder
-                }
-                className='input input-bordered h-10 w-full'
-              />
+              <div className='relative'>
+                <Search
+                  size={18}
+                  className='absolute left-3 top-1/2 -translate-y-1/2 text-gray-400'
+                />
+
+                <input
+                  type='text'
+                  placeholder={
+                    fieldAndBlockManagementData.filters.searchPlaceholder
+                  }
+                  className='h-10 w-full rounded-md border border-gray-300 bg-white pl-10 pr-3 text-sm outline-none transition focus:border-green-600'
+                />
+              </div>
 
               {/* Field Type */}
-              <select className='select select-bordered h-10 w-full'>
+              <select className='h-10 w-full rounded-md border border-gray-300 bg-white px-3 text-sm outline-none transition focus:border-green-600'>
                 <option>{fieldAndBlockManagementData.filters.fieldType}</option>
 
                 {fieldAndBlockManagementData.fieldTypes.map((item) => (
@@ -613,7 +651,7 @@ const FieldOrBlockManagement = () => {
               </select>
 
               {/* Status */}
-              <select className='select select-bordered h-10 w-full'>
+              <select className='h-10 w-full rounded-md border border-gray-300 bg-white px-3 text-sm outline-none transition focus:border-green-600'>
                 <option>{fieldAndBlockManagementData.filters.status}</option>
 
                 {fieldAndBlockManagementData.statuses.map((item) => (
@@ -621,24 +659,24 @@ const FieldOrBlockManagement = () => {
                 ))}
               </select>
 
-              {/* Filter Button */}
+              {/* Filter Icon */}
               <button
-                className='btn h-10 border border-gray-300 bg-white hover:bg-gray-100'
                 type='button'
+                className='flex h-10 w-10 items-center justify-center rounded-md border border-gray-300 bg-white transition hover:bg-gray-100'
               >
-                Filter
+                <SlidersHorizontal size={18} className='text-gray-600' />
               </button>
             </div>
 
             {/* Table */}
             <div className='overflow-x-auto'>
-              <table className='table table-zebra'>
+              <table className='w-full min-w-[900px] border-collapse text-sm'>
                 <thead className='bg-gray-100'>
                   <tr>
                     {fieldAndBlockManagementData.tableHeaders.map((header) => (
                       <th
                         key={header}
-                        className='whitespace-nowrap text-xs font-semibold uppercase text-gray-700'
+                        className='border border-gray-200 px-1 py-3 text-center text-xs font-semibold whitespace-nowrap text-gray-700'
                       >
                         {header}
                       </th>
@@ -648,26 +686,33 @@ const FieldOrBlockManagement = () => {
 
                 <tbody>
                   {fieldAndBlockManagementData.fieldList.map((field, index) => (
-                    <tr key={field.id}>
-                      <td>{index + 1}</td>
+                    <tr key={field.id} className='hover:bg-gray-50'>
+                      <td className='border border-gray-200 px-1 py-2 text-center'>
+                        {index + 1}
+                      </td>
 
-                      <td className='font-normal whitespace-nowrap'>
+                      <td className='border border-gray-200 px-3 py-2 text-left whitespace-nowrap'>
                         {field.fieldName}
                       </td>
 
-                      <td>{field.code}</td>
+                      <td className='border border-gray-200 px-3 py-2 text-center'>
+                        {field.code}
+                      </td>
 
-                      <td>{field.fieldType}</td>
+                      <td className='border border-gray-200 px-3 py-2 text-center'>
+                        {field.fieldType}
+                      </td>
 
-                      <td>{field.totalArea}</td>
-
-                      <td>
+                      <td className='border border-gray-200 px-3 py-2 text-center whitespace-nowrap'>
+                        {field.totalArea}
+                      </td>
+                      <td className='border border-gray-200 px-3 py-2 text-center whitespace-nowrap'>
                         {field.plantedArea === 0 ? "-" : field.plantedArea}
                       </td>
 
-                      <td>
+                      <td className='border border-gray-200 px-3 py-2 text-center'>
                         <span
-                          className={`rounded-full px-3 py-1 text-xs font-medium ${
+                          className={`inline-flex rounded-full px-3 py-1 text-xs font-medium ${
                             field.status === "Active"
                               ? "bg-green-100 text-green-700"
                               : "bg-red-100 text-red-600"
@@ -677,20 +722,20 @@ const FieldOrBlockManagement = () => {
                         </span>
                       </td>
 
-                      <td>
+                      <td className='border border-gray-200 px-3 py-2'>
                         <div className='flex items-center justify-center gap-2'>
                           <button
                             type='button'
-                            className='rounded-lg border border-amber-200 bg-amber-50 px-2 py-1 text-xs font-medium text-amber-600 transition hover:bg-amber-100'
+                            className='text-blue-600 transition hover:text-blue-800'
                           >
-                            Edit
+                            <Pencil size={16} />
                           </button>
 
                           <button
                             type='button'
-                            className='rounded-lg border border-red-200 bg-red-50 px-2 py-1 text-xs font-medium text-red-600 transition hover:bg-red-100'
+                            className='text-red-500 transition hover:text-red-700'
                           >
-                            Delete
+                            <Trash2 size={16} />
                           </button>
                         </div>
                       </td>
@@ -721,6 +766,87 @@ const FieldOrBlockManagement = () => {
                   Next
                 </button>
               </div>
+            </div>
+          </div>
+          {/* Map section start from here */}
+          <div className='rounded-xl border border-gray-200 bg-white shadow-sm mt-4'>
+            {/* Header */}
+
+            <div className='border-b border-gray-200 px-5 py-4'>
+              <h2 className='text-lg font-semibold text-green-800'>
+                Field / Block Map View (Block 01)
+              </h2>
+            </div>
+
+            {/* Map */}
+
+            <div className='relative h-[200px] w-full'>
+              <MapContainer
+                center={[
+                  Number(fieldAndBlockManagementData.map.latitude),
+                  Number(fieldAndBlockManagementData.map.longitude),
+                ]}
+                zoom={16}
+                zoomControl={false}
+                className='h-full w-full'
+              >
+                <TileLayer
+                  attribution='&copy; OpenStreetMap contributors'
+                  url='https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
+                />
+
+                <ZoomControl position='topleft' />
+
+                <Marker
+                  position={[
+                    Number(fieldAndBlockManagementData.map.latitude),
+                    Number(fieldAndBlockManagementData.map.longitude),
+                  ]}
+                />
+
+                <Polygon
+                  positions={fieldAndBlockManagementData.map.polygon}
+                  pathOptions={{
+                    color: "#0B6B2A",
+                    fillColor: "#16A34A",
+                    fillOpacity: 0.45,
+                    weight: 3,
+                  }}
+                />
+              </MapContainer>
+            </div>
+
+            {/* Footer */}
+
+            <div className='flex flex-col gap-4 border-t border-gray-200 px-5 py-4 lg:flex-row lg:items-center lg:justify-between'>
+              <div className='flex flex-wrap items-center gap-5 text-sm'>
+                <span>
+                  Area:
+                  <strong className='ml-1'>
+                    {fieldAndBlockManagementData.map.totalArea}
+                  </strong>
+                </span>
+
+                <span>
+                  Perimeter:
+                  <strong className='ml-1'>
+                    {fieldAndBlockManagementData.map.perimeter}
+                  </strong>
+                </span>
+
+                <span>
+                  Coordinates:
+                  <strong className='ml-1'>
+                    {fieldAndBlockManagementData.map.latitude},
+                    {fieldAndBlockManagementData.map.longitude}
+                  </strong>
+                </span>
+              </div>
+
+              <button className='btn flex gap-2 items-center  border border-gray-300 bg-white hover:bg-gray-100'>
+                View in Full Screen
+                <Expand size={18} />
+              </button>
             </div>
           </div>
         </div>
