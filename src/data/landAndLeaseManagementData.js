@@ -794,5 +794,7 @@ export const landLeaseManagementData = {
     showingFrom: 1,
     showingTo: 10,
     pageSize: 10,
+
+    pages: [1, 2, 3, 4, 5],
   },
 };

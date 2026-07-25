@@ -1,10 +1,9 @@
 import React from "react";
 import { useForm } from "react-hook-form";
-import { Toaster } from "react-hot-toast";
+import toast, { Toaster } from "react-hot-toast";
 import EstateManagementTabs from "../components/EstateManagement/EstateManagementTabs";
 import { landLeaseManagementData } from "../data/landAndLeaseManagementData";
-import { X, RotateCcw, Save } from "lucide-react";
-
+import { X, RotateCcw, Save, Download, Trash2, Plus } from "lucide-react";
 const LandAndLeaseManagement = () => {
   const {
     register,
@@ -480,7 +479,7 @@ const LandAndLeaseManagement = () => {
                   </div>
 
                   {/* Buttons */}
-                  <div className='col-span-full flex flex-wrap justify-end gap-3 pt-2'>
+                  <div className='col-span-full flex flex-wrap justify-center gap-3 pt-2 sm:justify-end'>
                     {/* Cancel */}
                     <button
                       type='button'
@@ -660,7 +659,7 @@ const LandAndLeaseManagement = () => {
         </div>
 
         {/* ================= Row 02 ================= */}
-        <div className='grid grid-cols-12 gap-6'>
+        <div className='grid grid-cols-12 gap-2'>
           {/* Payment */}
           <div className='col-span-12 xl:col-span-7'>
             <div className='rounded-xl border border-gray-200 bg-white p-5 shadow-sm'>
@@ -668,10 +667,110 @@ const LandAndLeaseManagement = () => {
                 Lease Payment Information
               </h2>
 
-              <div className='flex h-[260px] items-center justify-center rounded-lg border-2 border-dashed border-gray-300'>
-                <p className='text-xl font-semibold text-gray-400'>
-                  PAYMENT TABLE
-                </p>
+              <div className='overflow-x-auto rounded-lg border border-gray-200'>
+                <table className='min-w-full text-sm'>
+                  <thead className='bg-gray-50'>
+                    <tr>
+                      {landLeaseManagementData.paymentTableHeaders.map(
+                        (header) => (
+                          <th
+                            key={header}
+                            className='border border-gray-200 px-3 py-3 text-center text-xs font-semibold whitespace-nowrap text-gray-700'
+                          >
+                            {header}
+                          </th>
+                        ),
+                      )}
+                    </tr>
+                  </thead>
+
+                  <tbody className='bg-white'>
+                    {landLeaseManagementData.paymentList.map((payment) => (
+                      <tr
+                        key={payment.id}
+                        className='hover:bg-gray-50 transition-colors'
+                      >
+                        {/* SL */}
+                        <td className='border border-gray-200 px-3 py-2 text-center'>
+                          {payment.id}
+                        </td>
+
+                        {/* Payment Year */}
+                        <td className='border border-gray-200 px-3 py-2'>
+                          {payment.year}
+                        </td>
+
+                        {/* Due Date */}
+                        <td className='border border-gray-200 px-3 py-2'>
+                          {payment.dueDate}
+                        </td>
+
+                        {/* Amount */}
+                        <td className='border border-gray-200 px-3 py-2'>
+                          {payment.amount}
+                        </td>
+
+                        {/* Paid Amount */}
+                        <td className='border border-gray-200 px-3 py-2'>
+                          {payment.paidAmount}
+                        </td>
+
+                        {/* Payment Date */}
+                        <td className='border border-gray-200 px-3 py-2'>
+                          {payment.paymentDate}
+                        </td>
+
+                        {/* Status */}
+                        <td className='border border-gray-200 px-3 py-2'>
+                          <span className='rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-700'>
+                            {payment.status}
+                          </span>
+                        </td>
+
+                        {/* Payment Method */}
+                        <td className='border border-gray-200 px-3 py-2'>
+                          {payment.paymentMethod}
+                        </td>
+
+                        {/* Action */}
+                        <td className='border border-gray-200 px-3 py-2 text-center'>
+                          <button
+                            type='button'
+                            className='text-blue-600 transition hover:text-blue-800'
+                          >
+                            👁
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                <div className='flex flex-col items-center justify-between gap-3 border border-t-0 border-gray-200 bg-white px-4 py-3 sm:flex-row'>
+                  {/* Left */}
+                  <p className='text-xs text-gray-600'>
+                    Showing{" "}
+                    <span className='font-semibold'>
+                      {landLeaseManagementData.paymentPagination.showingFrom}
+                    </span>{" "}
+                    to{" "}
+                    <span className='font-semibold'>
+                      {landLeaseManagementData.paymentPagination.showingTo}
+                    </span>{" "}
+                    of{" "}
+                    <span className='font-semibold'>
+                      {landLeaseManagementData.paymentPagination.totalRecords}
+                    </span>{" "}
+                    entries
+                  </p>
+
+                  {/* Right */}
+                  <button
+                    type='button'
+                    className='rounded-md border border-gray-300 bg-white px-4 py-2 text-xs font-medium text-gray-700 transition hover:bg-gray-50'
+                  >
+                    View All Payments
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -679,14 +778,90 @@ const LandAndLeaseManagement = () => {
           {/* Documents */}
           <div className='col-span-12 xl:col-span-5'>
             <div className='rounded-xl border border-gray-200 bg-white p-5 shadow-sm'>
-              <h2 className='mb-4 text-lg font-semibold text-green-800'>
-                Land / Lease Documents
-              </h2>
+              {/* Top Header */}
+              <div className='mb-4 flex items-center justify-between'>
+                <h2 className='text-lg font-semibold text-green-800'>
+                  Land / Lease Documents
+                </h2>
 
-              <div className='flex h-[260px] items-center justify-center rounded-lg border-2 border-dashed border-gray-300'>
-                <p className='text-xl font-semibold text-gray-400'>
-                  DOCUMENT TABLE
-                </p>
+                <button
+                  type='button'
+                  className='flex cursor-pointer items-center gap-2 rounded-md bg-green-700 px-3 py-2 text-xs font-medium text-white transition hover:bg-green-800'
+                >
+                  <Plus size={14} />
+                  Add Document
+                </button>
+              </div>
+
+              {/* Table */}
+              <div className='overflow-x-auto rounded-lg border border-gray-200'>
+                <table className='min-w-full text-sm'>
+                  {/* Table Header */}
+                  <thead className='bg-gray-50'>
+                    <tr>
+                      {landLeaseManagementData.documentTableHeaders.map(
+                        (header) => (
+                          <th
+                            key={header}
+                            className='border border-gray-200 px-3 py-3 text-center text-xs font-semibold whitespace-nowrap text-gray-700'
+                          >
+                            {header}
+                          </th>
+                        ),
+                      )}
+                    </tr>
+                  </thead>
+
+                  {/* Table Body */}
+                  <tbody className='bg-white'>
+                    {landLeaseManagementData.documentList.map((doc) => (
+                      <tr
+                        key={doc.id}
+                        className='transition-colors hover:bg-gray-50'
+                      >
+                        <td className='border border-gray-200 px-3 py-2 text-center text-xs'>
+                          {doc.id}
+                        </td>
+
+                        <td className='border border-gray-200 px-3 py-2 text-xs'>
+                          {doc.documentName}
+                        </td>
+
+                        <td className='border border-gray-200 px-3 py-2 text-center text-xs'>
+                          {doc.type}
+                        </td>
+
+                        <td className='border border-gray-200 px-3 py-2 text-xs'>
+                          {doc.file}
+                        </td>
+
+                        <td className='border border-gray-200 px-3 py-2 text-center text-xs whitespace-nowrap'>
+                          {doc.uploadedOn}
+                        </td>
+
+                        <td className='border border-gray-200 px-3 py-2'>
+                          <div className='flex items-center justify-center gap-2'>
+                            <button
+                              type='button'
+                              title='Download'
+                              className='cursor-pointer rounded-md p-1.5 text-blue-600 transition hover:bg-blue-50 hover:text-blue-700'
+                            >
+                              <Download size={16} />
+                            </button>
+
+                            <button
+                              type='button'
+                              title='Delete'
+                              className='cursor-pointer rounded-md p-1.5 text-red-500 transition hover:bg-red-50 hover:text-red-700'
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             </div>
           </div>
@@ -698,10 +873,156 @@ const LandAndLeaseManagement = () => {
             Land / Lease List (Summary)
           </h2>
 
-          <div className='flex h-[420px] items-center justify-center rounded-lg border-2 border-dashed border-gray-300'>
-            <p className='text-xl font-semibold text-gray-400'>
-              LAND / LEASE SUMMARY TABLE
-            </p>
+          <div className='overflow-x-auto rounded-lg border border-gray-200'>
+            <table className='min-w-full text-sm'>
+              {/* Table Header */}
+              <thead className='bg-gray-50'>
+                <tr>
+                  {landLeaseManagementData.summaryTableHeaders.map((header) => (
+                    <th
+                      key={header}
+                      className='border border-gray-200 px-3 py-3 text-center text-xs font-semibold whitespace-nowrap text-gray-700'
+                    >
+                      {header}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+
+              {/* Table Body */}
+              <tbody className='bg-white'>
+                {landLeaseManagementData.landLeaseList.map((land) => (
+                  <tr
+                    key={land.id}
+                    className='transition-colors hover:bg-gray-50'
+                  >
+                    {/* SL */}
+                    <td className='border border-gray-200 px-3 py-2 text-center text-xs'>
+                      {land.id}
+                    </td>
+
+                    {/* Land Name */}
+                    <td className='border border-gray-200 px-3 py-2 text-xs whitespace-nowrap'>
+                      {land.landName}
+                    </td>
+
+                    {/* Estate */}
+                    <td className='border border-gray-200 px-3 py-2 text-xs whitespace-nowrap'>
+                      {land.estate}
+                    </td>
+
+                    {/* Type */}
+                    <td className='border border-gray-200 px-3 py-2 text-center text-xs'>
+                      {land.type}
+                    </td>
+
+                    {/* Category */}
+                    <td className='border border-gray-200 px-3 py-2 text-xs whitespace-nowrap'>
+                      {land.category}
+                    </td>
+
+                    {/* Owner */}
+                    <td className='border border-gray-200 px-3 py-2 text-xs whitespace-nowrap'>
+                      {land.owner}
+                    </td>
+
+                    {/* Area */}
+                    <td className='border border-gray-200 px-3 py-2 text-center text-xs'>
+                      {land.area}
+                    </td>
+
+                    {/* Lease Term */}
+                    <td className='border border-gray-200 px-3 py-2 text-center text-xs'>
+                      {land.leaseTerm}
+                    </td>
+
+                    {/* Status */}
+                    <td className='border border-gray-200 px-3 py-2 text-center'>
+                      <span
+                        className={`inline-flex rounded-full px-3 py-1 text-xs font-medium ${
+                          land.status === "Active"
+                            ? "bg-green-100 text-green-700"
+                            : land.status === "Inactive"
+                              ? "bg-gray-100 text-gray-700"
+                              : "bg-yellow-100 text-yellow-700"
+                        }`}
+                      >
+                        {land.status}
+                      </span>
+                    </td>
+
+                    {/* Action */}
+                    <td className='border border-gray-200 px-3 py-2'>
+                      <div className='flex items-center justify-center gap-2'>
+                        <button
+                          type='button'
+                          title='Edit'
+                          className='cursor-pointer rounded-md p-1.5 text-blue-600 transition hover:bg-blue-50 hover:text-blue-700'
+                        >
+                          ✏️
+                        </button>
+
+                        <button
+                          type='button'
+                          title='Delete'
+                          className='cursor-pointer rounded-md p-1.5 text-red-500 transition hover:bg-red-50 hover:text-red-700'
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <div className='flex flex-col gap-3 border border-t-0 border-gray-200 bg-white px-4 py-3 md:flex-row md:items-center md:justify-between'>
+              {/* Left */}
+              <p className='text-xs text-gray-600'>
+                Showing{" "}
+                <span className='font-semibold'>
+                  {landLeaseManagementData.summaryPagination.showingFrom}
+                </span>{" "}
+                to{" "}
+                <span className='font-semibold'>
+                  {landLeaseManagementData.summaryPagination.showingTo}
+                </span>{" "}
+                of{" "}
+                <span className='font-semibold'>
+                  {landLeaseManagementData.summaryPagination.totalRecords}
+                </span>{" "}
+                entries
+              </p>
+
+              {/* Right */}
+              <div className='flex flex-wrap items-center gap-3'>
+                {/* Pagination */}
+                <div className='flex items-center gap-2'>
+                  {landLeaseManagementData.summaryPagination.pages.map(
+                    (page) => (
+                      <button
+                        key={page}
+                        type='button'
+                        className={`flex h-8 w-8 cursor-pointer items-center justify-center rounded-md border text-sm transition ${
+                          page ===
+                          landLeaseManagementData.summaryPagination.currentPage
+                            ? "border-green-700 bg-green-700 text-white"
+                            : "border-gray-300 bg-white text-gray-700 hover:bg-gray-100"
+                        }`}
+                      >
+                        {page}
+                      </button>
+                    ),
+                  )}
+
+                  <button
+                    type='button'
+                    className='flex h-8 w-8 cursor-pointer items-center justify-center rounded-md border border-gray-300 bg-white text-gray-700 transition hover:bg-gray-100'
+                  >
+                    ›
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
