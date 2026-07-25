@@ -28,7 +28,7 @@ const LandAndLeaseManagement = () => {
       <EstateManagementTabs />
       <div className='space-y-6'>
         {/* ================= Row 01 ================= */}
-        <div className='grid grid-cols-12 gap-6'>
+        <div className='grid grid-cols-12 gap-2'>
           {/* ================= Basic Information ================= */}
           {/* Form */}
           <div className='col-span-12 xl:col-span-7'>
