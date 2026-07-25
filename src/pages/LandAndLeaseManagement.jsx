@@ -3,6 +3,7 @@ import { useForm } from "react-hook-form";
 import { Toaster } from "react-hot-toast";
 import EstateManagementTabs from "../components/EstateManagement/EstateManagementTabs";
 import { X, RotateCcw, Save } from "lucide-react";
+
 const LandAndLeaseManagement = () => {
   const {
     register,
@@ -520,8 +521,107 @@ const LandAndLeaseManagement = () => {
                 Land / Lease Map View
               </h2>
 
-              <div className='flex h-[490px] items-center justify-center rounded-lg border-2 border-dashed border-gray-300'>
-                <p className='text-lg font-semibold text-gray-400'>MAP VIEW</p>
+              {/* ================= Map UI ================= */}
+              <div className='relative overflow-hidden rounded-lg border border-gray-200'>
+                {/* Dummy Map */}
+                <div
+                  className='relative h-[420px] overflow-hidden rounded-lg bg-cover bg-center'
+                  style={{
+                    backgroundImage: "url('/land-lease-map.png')",
+                  }}
+                >
+                  {/* Dummy Satellite Pattern */}
+                  <div className='absolute inset-0 opacity-20'>
+                    <div className='h-full w-full bg-[radial-gradient(circle,#ffffff_1px,transparent_1px)] [background-size:20px_20px]' />
+                  </div>
+
+                  {/* Left Toolbar */}
+                  <div className='absolute left-3 top-3 flex flex-col gap-2'>
+                    <button
+                      type='button'
+                      className='flex h-10 w-10 items-center justify-center rounded-md border border-gray-200 bg-white shadow hover:bg-gray-100'
+                    >
+                      +
+                    </button>
+
+                    <button
+                      type='button'
+                      className='flex h-10 w-10 items-center justify-center rounded-md border border-gray-200 bg-white shadow hover:bg-gray-100'
+                    >
+                      −
+                    </button>
+
+                    <button
+                      type='button'
+                      className='flex h-10 w-10 items-center justify-center rounded-md border border-gray-200 bg-white shadow hover:bg-gray-100'
+                    >
+                      🗂
+                    </button>
+
+                    <button
+                      type='button'
+                      className='flex h-10 w-10 items-center justify-center rounded-md border border-gray-200 bg-white shadow hover:bg-gray-100'
+                    >
+                      ⛶
+                    </button>
+                  </div>
+
+                  {/* Dummy Marker */}
+                  <div className='absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2'>
+                    <div className='flex h-6 w-6 items-center justify-center rounded-full bg-blue-600 ring-4 ring-white' />
+                  </div>
+
+                  {/* Polygon */}
+                  <svg
+                    className='absolute inset-0 h-full w-full'
+                    viewBox='0 0 100 100'
+                    preserveAspectRatio='none'
+                  >
+                    <polygon
+                      points='25,20 70,10 82,52 66,82 30,75 18,42'
+                      fill='rgba(34,197,94,.35)'
+                      stroke='white'
+                      strokeWidth='0.7'
+                      strokeDasharray='2'
+                    />
+                  </svg>
+
+                  {/* Legend */}
+                  <div className='absolute bottom-4 right-4 rounded-md bg-white px-4 py-2 shadow'>
+                    <div className='flex items-center gap-2 text-sm'>
+                      <span className='h-3 w-3 rounded bg-green-500'></span>
+                      Selected Land
+                    </div>
+                  </div>
+                </div>
+
+                {/* Footer */}
+                <div className='flex flex-col gap-1 border-t bg-white p-2 md:flex-row md:items-center md:justify-between'>
+                  <div className='flex flex-wrap gap-x-6 gap-y-2 text-sm text-gray-700'>
+                    <p>
+                      <span className='font-semibold'>Area:</span> 125.50 Acre
+                    </p>
+
+                    <p>
+                      <span className='font-semibold'>Perimeter:</span> 2.85 Km
+                    </p>
+
+                    <p>
+                      <span className='font-semibold'>Latitude:</span> 25.7456
+                    </p>
+
+                    <p>
+                      <span className='font-semibold'>Longitude:</span> 89.2741
+                    </p>
+                  </div>
+
+                  <button
+                    type='button'
+                    className='rounded-md border border-gray-300 bg-white px-1 py-1 text-sm hover:bg-gray-50'
+                  >
+                    View in Full Screen
+                  </button>
+                </div>
               </div>
             </div>
 
