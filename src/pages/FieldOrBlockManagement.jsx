@@ -193,11 +193,11 @@ const FieldOrBlockManagement = () => {
 
                   <input
                     type='text'
-                    placeholder='Enter field / block name'
+                    placeholder='Enter field / block name '
                     {...register("fieldName", {
                       required: "Field / Block Name is required",
                     })}
-                    className={`input h-11 w-full rounded-lg border bg-white ${
+                    className={`input h-11 w-full p-2 rounded-lg border bg-white ${
                       errors.fieldName
                         ? "border-red-500"
                         : "border-gray-300 focus:border-green-600"
@@ -223,7 +223,7 @@ const FieldOrBlockManagement = () => {
                     {...register("fieldCode", {
                       required: "Field / Block Code is required",
                     })}
-                    className={`input h-11 w-full rounded-lg border bg-white ${
+                    className={`input h-11 w-full rounded-lg border p-2 bg-white ${
                       errors.fieldCode
                         ? "border-red-500"
                         : "border-gray-300 focus:border-green-600"
@@ -302,7 +302,7 @@ const FieldOrBlockManagement = () => {
                         message: "Area must be greater than 0",
                       },
                     })}
-                    className={`input h-11 w-full rounded-lg border bg-white ${
+                    className={`input h-11 p-2 w-full rounded-lg border bg-white ${
                       errors.totalArea
                         ? "border-red-500"
                         : "border-gray-300 focus:border-green-600"
@@ -333,7 +333,7 @@ const FieldOrBlockManagement = () => {
                         message: "Area must be greater than 0",
                       },
                     })}
-                    className={`input h-11 w-full rounded-lg border bg-white ${
+                    className={`input p-2 h-11 w-full rounded-lg border bg-white ${
                       errors.plantedArea
                         ? "border-red-500"
                         : "border-gray-300 focus:border-green-600"
@@ -367,7 +367,7 @@ const FieldOrBlockManagement = () => {
                         message: "Year cannot be in the future",
                       },
                     })}
-                    className={`input h-11 w-full rounded-lg border bg-white ${
+                    className={`input h-11 w-full rounded-lg border p-2 bg-white ${
                       errors.plantingYear
                         ? "border-red-500"
                         : "border-gray-300 focus:border-green-600"
@@ -391,7 +391,7 @@ const FieldOrBlockManagement = () => {
                     {...register("bushType", {
                       required: "Bush Type is required",
                     })}
-                    className={`select h-11 w-full rounded-lg border bg-white ${
+                    className={`select h-11 w-full p-2 rounded-lg border bg-white ${
                       errors.bushType
                         ? "border-red-500"
                         : "border-gray-300 focus:border-green-600"
@@ -424,7 +424,7 @@ const FieldOrBlockManagement = () => {
                     {...register("spacing", {
                       required: "Spacing is required",
                     })}
-                    className={`input h-11 w-full rounded-lg border bg-white ${
+                    className={`input h-11 p-2 w-full rounded-lg border bg-white ${
                       errors.spacing
                         ? "border-red-500"
                         : "border-gray-300 focus:border-green-600"
@@ -452,7 +452,7 @@ const FieldOrBlockManagement = () => {
                         message: "Altitude cannot be negative",
                       },
                     })}
-                    className={`input h-11 w-full rounded-lg border bg-white ${
+                    className={`input p-2 h-11 w-full rounded-lg border bg-white ${
                       errors.altitude
                         ? "border-red-500"
                         : "border-gray-300 focus:border-green-600"
@@ -486,7 +486,7 @@ const FieldOrBlockManagement = () => {
                         message: "Slope cannot exceed 100%",
                       },
                     })}
-                    className={`input h-11 w-full rounded-lg border bg-white ${
+                    className={`input h-11 p-2 w-full rounded-lg border bg-white ${
                       errors.averageSlope
                         ? "border-red-500"
                         : "border-gray-300 focus:border-green-600"
@@ -510,7 +510,7 @@ const FieldOrBlockManagement = () => {
                     {...register("status", {
                       required: "Status is required",
                     })}
-                    className={`select h-11 w-full rounded-lg border bg-white ${
+                    className={`select p-2 h-11 w-full rounded-lg border bg-white ${
                       errors.status
                         ? "border-red-500"
                         : "border-gray-300 focus:border-green-600"
@@ -539,7 +539,7 @@ const FieldOrBlockManagement = () => {
                     rows={3}
                     placeholder='Enter description or remarks...'
                     {...register("description")}
-                    className='textarea w-full rounded-lg border border-gray-300 bg-white focus:border-green-600 focus:outline-none'
+                    className='textarea w-full rounded-lg border border-gray-300 bg-white p-2 focus:border-green-600 focus:outline-none'
                   />
                 </div>
 
