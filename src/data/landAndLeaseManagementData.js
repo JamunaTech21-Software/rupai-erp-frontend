@@ -298,23 +298,40 @@ export const landLeaseManagementData = {
   // Ownership Details
   // =========================
 
-  ownershipDetails: {
-    ownershipStatus: "Leased In",
-
-    landOwner: "Md. Abul Kalam",
-
-    fatherCompanyName: "Late Hossain Ali",
-
-    address: "Madhabpur, Rangpur Sadar, Rangpur",
-
-    mobile: "+8801712345678",
-
-    email: "abulkalam@gmail.com",
-
-    nidTin: "1234567890",
-
-    relationRemarks: "Long term lease for tea cultivation.",
-  },
+  ownershipDetails: [
+    {
+      label: "Ownership Status",
+      value: "Leased In",
+    },
+    {
+      label: "Land Owner / Lessor",
+      value: "Md. Abul Kalam",
+    },
+    {
+      label: "Father's / Company Name",
+      value: "Late Hossain Ali",
+    },
+    {
+      label: "Address",
+      value: "Madhabpur, Rangpur Sadar, Rangpur",
+    },
+    {
+      label: "Mobile",
+      value: "+8801712345678",
+    },
+    {
+      label: "Email",
+      value: "abulkalam@gmail.com",
+    },
+    {
+      label: "NID / TIN",
+      value: "1234567890",
+    },
+    {
+      label: "Relation / Remarks",
+      value: "Long term lease for tea cultivation.",
+    },
+  ],
 
   // =========================
   // Sidebar Summary

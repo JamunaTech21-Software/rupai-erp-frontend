@@ -2,6 +2,7 @@ import React from "react";
 import { useForm } from "react-hook-form";
 import { Toaster } from "react-hot-toast";
 import EstateManagementTabs from "../components/EstateManagement/EstateManagementTabs";
+import { landLeaseManagementData } from "../data/landAndLeaseManagementData";
 import { X, RotateCcw, Save } from "lucide-react";
 
 const LandAndLeaseManagement = () => {
@@ -525,7 +526,7 @@ const LandAndLeaseManagement = () => {
               <div className='relative overflow-hidden rounded-lg border border-gray-200'>
                 {/* Dummy Map */}
                 <div
-                  className='relative h-[420px] overflow-hidden rounded-lg bg-cover bg-center'
+                  className='relative h-[360px] overflow-hidden rounded-lg bg-cover bg-center'
                   style={{
                     backgroundImage: "url('/land-lease-map.png')",
                   }}
@@ -596,7 +597,7 @@ const LandAndLeaseManagement = () => {
                 </div>
 
                 {/* Footer */}
-                <div className='flex flex-col gap-1 border-t bg-white p-2 md:flex-row md:items-center md:justify-between'>
+                <div className='flex flex-col gap-1 border-t bg-white p-1 md:flex-row md:items-center md:justify-between'>
                   <div className='flex flex-wrap gap-x-6 gap-y-2 text-sm text-gray-700'>
                     <p>
                       <span className='font-semibold'>Area:</span> 125.50 Acre
@@ -617,7 +618,7 @@ const LandAndLeaseManagement = () => {
 
                   <button
                     type='button'
-                    className='rounded-md border border-gray-300 bg-white px-1 py-1 text-sm hover:bg-gray-50'
+                    className='rounded-md border border-gray-300 bg-white  text-sm hover:bg-gray-50'
                   >
                     View in Full Screen
                   </button>
@@ -631,10 +632,28 @@ const LandAndLeaseManagement = () => {
                 Land Ownership & Lease Details
               </h2>
 
-              <div className='flex h-[220px] items-center justify-center rounded-lg border-2 border-dashed border-gray-300'>
-                <p className='text-lg font-semibold text-gray-400'>
-                  OWNERSHIP DETAILS
-                </p>
+              <div className='rounded-lg border border-gray-200 bg-white p-4'>
+                <div className='space-y-2'>
+                  {landLeaseManagementData.ownershipDetails.map((item) => (
+                    <div
+                      key={item.label}
+                      className='grid grid-cols-12 items-start gap-2 text-sm'
+                    >
+                      {/* Label */}
+                      <p className='col-span-5 font-medium text-gray-700'>
+                        {item.label}
+                      </p>
+
+                      {/* Colon */}
+                      <p className='col-span-1 text-center text-gray-500'>:</p>
+
+                      {/* Value */}
+                      <p className='col-span-6 text-gray-600 break-words'>
+                        {item.value}
+                      </p>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
