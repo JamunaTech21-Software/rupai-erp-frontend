@@ -18,7 +18,7 @@ export default function EstateMap() {
       </div>
 
       <div className='flex min-h-0 flex-1 flex-col gap-3 lg:flex-row'>
-        <div className='relative min-h-[160px] flex-1 overflow-hidden rounded-lg sm:min-h-[180px]'>
+        <div className='relative min-h-40 flex-1 overflow-hidden rounded-lg sm:min-h-45'>
           <img
             src={MAP_IMG}
             alt='Estate satellite view'
