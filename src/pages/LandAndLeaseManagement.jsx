@@ -308,7 +308,7 @@ const LandAndLeaseManagement = () => {
                         {...register("gpsArea", {
                           valueAsNumber: true,
                         })}
-                        className='h-11 flex-1 rounded-lg border border-gray-300 px-3 text-sm outline-none focus:border-green-600'
+                        className='h-11 min-w-6 p-2 flex-1 rounded-lg border border-gray-300 px-3 text-sm outline-none focus:border-green-600'
                       />
 
                       <button
@@ -474,7 +474,7 @@ const LandAndLeaseManagement = () => {
                     <input
                       type='file'
                       {...register("documents")}
-                      className='file:mr-3 file:rounded-md file:border-0 file:bg-gray-100 file:px-3 file:py-2 file:text-sm h-11 w-full rounded-lg border border-gray-300 text-sm'
+                      className='file:mr-3 file-input cursor-pointer file:rounded-md file:border-0 file:bg-gray-100 file:px-3 file:py-2 file:text-sm h-11 w-full rounded-lg border border-gray-300 text-sm'
                     />
                   </div>
 

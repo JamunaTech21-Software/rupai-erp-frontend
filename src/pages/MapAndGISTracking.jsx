@@ -226,7 +226,7 @@ const MapAndGISTracking = () => {
                   <div className='grid grid-cols-2 gap-3 pt-2'>
                     <button
                       type='submit'
-                      className='btn h-11 border-0 bg-green-700 text-white hover:bg-green-800'
+                      className='btn cursor-pointer h-11 border-0 bg-green-700 text-white hover:bg-green-800'
                     >
                       Search
                     </button>
@@ -234,7 +234,7 @@ const MapAndGISTracking = () => {
                     <button
                       type='button'
                       onClick={() => reset()}
-                      className='btn h-11 border border-gray-300 bg-white text-gray-700 hover:bg-gray-50'
+                      className='btn cursor-pointer h-11 border border-gray-300 bg-white text-gray-700 hover:bg-gray-50'
                     >
                       Reset
                     </button>
@@ -326,7 +326,7 @@ const MapAndGISTracking = () => {
                     onClick={() =>
                       setMapType(mapType === "street" ? "satellite" : "street")
                     }
-                    className='flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2 shadow-lg hover:bg-gray-100'
+                    className='flex cursor-pointer items-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2 shadow-lg hover:bg-gray-100'
                   >
                     {mapType === "street" ? "🛰 Satellite" : "🗺 Street"}
                   </button>
@@ -510,7 +510,7 @@ const MapAndGISTracking = () => {
                   <button
                     key={button.id}
                     type='button'
-                    className={`inline-flex h-9 items-center gap-2 rounded-md px-4 text-sm font-medium transition ${
+                    className={`inline-flex cursor-pointer h-9 items-center gap-2 rounded-md px-4 text-sm font-medium transition ${
                       button.color === "primary"
                         ? "bg-green-700 text-white hover:bg-green-800"
                         : "border border-gray-300 bg-white text-gray-700 hover:bg-gray-100"
@@ -612,14 +612,14 @@ const MapAndGISTracking = () => {
 
                             <button
                               type='button'
-                              className='flex h-8 w-8 items-center justify-center rounded-lg bg-amber-50 text-amber-600 transition hover:bg-amber-100'
+                              className='flex cursor-pointer h-8 w-8 items-center justify-center rounded-lg bg-amber-50 text-amber-600 transition hover:bg-amber-100'
                             >
                               <Pencil size={16} />
                             </button>
 
                             <button
                               type='button'
-                              className='flex h-8 w-8 items-center justify-center rounded-lg bg-red-50 text-red-600 transition hover:bg-red-100'
+                              className='flex cursor-pointer h-8 w-8 items-center justify-center rounded-lg bg-red-50 text-red-600 transition hover:bg-red-100'
                             >
                               <Trash2 size={16} />
                             </button>
