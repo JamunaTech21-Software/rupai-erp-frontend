@@ -226,7 +226,7 @@ const MapAndGISTracking = () => {
                   <div className='grid grid-cols-2 gap-3 pt-2'>
                     <button
                       type='submit'
-                      className='btn cursor-pointer h-11 border-0 bg-green-700 text-white hover:bg-green-800'
+                      className='btn rounded-sm cursor-pointer h-11 border-0 bg-green-700 text-white hover:bg-green-800'
                     >
                       Search
                     </button>
@@ -234,7 +234,7 @@ const MapAndGISTracking = () => {
                     <button
                       type='button'
                       onClick={() => reset()}
-                      className='btn cursor-pointer h-11 border border-gray-300 bg-white text-gray-700 hover:bg-gray-50'
+                      className='btn rounded-sm cursor-pointer h-11 border border-gray-300 bg-white text-gray-700 hover:bg-gray-50'
                     >
                       Reset
                     </button>

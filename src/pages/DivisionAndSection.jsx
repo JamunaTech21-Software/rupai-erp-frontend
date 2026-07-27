@@ -515,7 +515,7 @@ const DivisionAndSection = () => {
         <div className='col-span-12 space-y-6 xl:col-span-7'>
           {/* Division List */}
           <div className='rounded-xl bg-white shadow-sm'>
-            <div className='flex items-center justify-between border-b bg-green-50 px-6 py-4'>
+            <div className='flex items-center justify-between border-b bg-green-50 px-6 py-3'>
               <h2 className='text-lg font-semibold text-green-800'>
                 Division List
               </h2>
@@ -625,7 +625,7 @@ const DivisionAndSection = () => {
 
               <button
                 type='button'
-                className='inline-flex items-center gap-2 rounded-lg bg-green-700 px-2 py-1 text-sm font-medium text-white hover:bg-green-800 cursor-pointer'
+                className='inline-flex items-center gap-2 rounded-lg bg-green-700 px-4 py-2 text-sm font-medium text-white hover:bg-green-800 cursor-pointer'
               >
                 <Plus size={18} />
                 Add Section

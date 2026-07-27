@@ -64,8 +64,8 @@ const EstateProfile = () => {
 
           <div className='rounded-xl  shadow-sm  '>
             {/* Header */}
-            <div className='border-b px-6 py-4'>
-              <h2 className='text-lg font-semibold bg-green-50 text-green-800 '>
+            <div className='border-b bg-green-50 px-6 py-4'>
+              <h2 className='text-lg font-semibold  text-green-800 '>
                 Estate Basic Information
               </h2>
             </div>
@@ -566,7 +566,7 @@ const EstateProfile = () => {
           {/* Manager / In-charge Information */}
           <div className='rounded-xl bg-white shadow-sm'>
             {/* Header */}
-            <div className='border-b px-6 py-4'>
+            <div className='border-b bg-green-50 px-6 py-4'>
               <h2 className='text-lg font-semibold bg-green-50 text-green-800'>
                 Manager / In-charge Information
               </h2>
@@ -721,7 +721,7 @@ const EstateProfile = () => {
           {/* Facilities / Amenities */}
           <div className='rounded-xl bg-white shadow-sm'>
             {/* Header */}
-            <div className='border-b px-6 py-4'>
+            <div className='border-b bg-green-50 px-6 py-4'>
               <h2 className='text-lg font-semibold bg-green-50 text-green-800'>
                 Facilities / Amenities
               </h2>

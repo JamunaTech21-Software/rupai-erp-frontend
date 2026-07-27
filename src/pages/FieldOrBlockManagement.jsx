@@ -647,7 +647,7 @@ const FieldOrBlockManagement = () => {
 
               <button
                 type='button'
-                className='btn h-10 border-0 bg-green-700 px-4 text-white hover:bg-green-800 cursor-pointer'
+                className='btn h-10 border-0 rounded-sm bg-green-700 px-4 text-white hover:bg-green-800 cursor-pointer'
               >
                 + Add Field / Block
               </button>
