@@ -7,6 +7,11 @@ import DivisionAndSection from "./pages/DivisionAndSection";
 import MapAndGISTracking from "./pages/MapAndGISTracking";
 import LandAndLeaseManagement from "./pages/LandAndLeaseManagement";
 import FieldOrBlockManagement from "./pages/FieldOrBlockManagement";
+import NurseryManagement from "./pages/PlantationManagement/NurseryManagement";
+import FieldManagement from "./pages/PlantationManagement/FieldManagement";
+import ReplantingAndGapFilling from "./pages/PlantationManagement/ReplantingAndGapFilling";
+import PlantCensus from "./pages/PlantationManagement/PlantCensus";
+import BushRegister from "./pages/PlantationManagement/BushRegister";
 
 const router = createBrowserRouter([
   {
@@ -55,6 +60,43 @@ const router = createBrowserRouter([
         element: <LandAndLeaseManagement />,
         handle: {
           title: "Land & Lease Management",
+        },
+      },
+
+      // Plantation Management
+      {
+        path: "nursery-management",
+        element: <NurseryManagement />,
+        handle: {
+          title: "Nursery Management",
+        },
+      },
+      {
+        path: "field-management",
+        element: <FieldManagement />,
+        handle: {
+          title: "Field Management",
+        },
+      },
+      {
+        path: "replanting-&-gap-filling",
+        element: <ReplantingAndGapFilling />,
+        handle: {
+          title: "Replanting & Gap Filling",
+        },
+      },
+      {
+        path: "plant-census",
+        element: <PlantCensus />,
+        handle: {
+          title: "Plant Census",
+        },
+      },
+      {
+        path: "bush-register",
+        element: <BushRegister />,
+        handle: {
+          title: "Bush register",
         },
       },
 

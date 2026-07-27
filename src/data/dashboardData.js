@@ -40,14 +40,36 @@ export const navSections = [
         ],
       },
       {
-        id: "field-mgmt",
-        label: "Field Management",
+        id: "Plantation-mgmt",
+        label: "Plantation Management",
         icon: "Layers",
         expandable: true,
         children: [
-          { id: "field-list", label: "Field List" },
-          { id: "add-field", label: "Add Field" },
-          { id: "field-types", label: "Field Types" },
+          {
+            id: "nursery-management",
+            label: "Nursery Management",
+            path: "/nursery-management",
+          },
+          {
+            id: "field-management",
+            label: "Field Management",
+            path: "/field-management",
+          },
+          {
+            id: "replantin-&-gap-filling",
+            label: "Replanting & Gap Filling",
+            path: "/replantin-&-gap-filling",
+          },
+          {
+            id: "plant-census",
+            label: "Plant Census",
+            path: "/plant-census",
+          },
+          {
+            id: "bush-register",
+            label: "Bush Register",
+            path: "/bush-register",
+          },
         ],
       },
       {
