@@ -1,6 +1,28 @@
 import PlantationManagementTabs from "../../components/plantationManagementTab/PlantationManagementTabs";
 import { nurseryManagementData } from "../../data/PlantationManagementData/nurseryManagementData";
-import { RotateCcw, Save, Plus, SquarePen, Trash2 } from "lucide-react";
+import {
+  RotateCcw,
+  Save,
+  Plus,
+  SquarePen,
+  Trash2,
+  Map,
+  MapPinned,
+  LayoutGrid,
+  Sprout,
+  Leaf,
+  Truck,
+  Minus,
+  Expand,
+} from "lucide-react";
+const summaryIconMap = {
+  Map,
+  MapPinned,
+  LayoutGrid,
+  Sprout,
+  Leaf,
+  Truck,
+};
 const NurseryManagement = () => {
   return (
     <div className='space-y-6'>
@@ -184,11 +206,48 @@ const NurseryManagement = () => {
             </div>
           </div>
 
-          {/* Nursery Summary */}
-          <div className='flex h-[220px] items-center justify-center rounded-xl border-2 border-dashed border-yellow-300 bg-yellow-50'>
-            <h2 className='text-xl font-semibold text-yellow-700'>
-              Nursery Production Summary
-            </h2>
+          {/* Nursery Production Summary */}
+
+          <div className='rounded-xl border border-gray-200 bg-white shadow-sm'>
+            {/* Header */}
+            <div className='border-b border-gray-200 px-5 py-4'>
+              <h2 className='text-base font-semibold text-green-700'>
+                Nursery Production Summary
+              </h2>
+            </div>
+
+            {/* Body */}
+            <div className='grid grid-cols-1 gap-2 md:grid-cols-2 xl:grid-cols-3 p-4'>
+              {nurseryManagementData.nurserySummary.map((item) => {
+                const Icon = summaryIconMap[item.icon];
+
+                return (
+                  <div
+                    key={item.id}
+                    className='flex items-center gap-3 rounded-lg border border-gray-200 bg-white p-4 transition-all duration-200 hover:border-green-300 hover:shadow-md'
+                  >
+                    {/* Icon */}
+                    <div className='rounded-lg bg-green-100 p-1'>
+                      <Icon size={22} className='text-green-700' />
+                    </div>
+
+                    {/* Content */}
+                    <div>
+                      <p className='text-xs text-gray-500'>{item.title}</p>
+
+                      <h3 className='mt-1 text-xl font-bold text-green-700'>
+                        {item.value}
+                        {item.unit && (
+                          <span className='ml-1 text-sm font-medium text-gray-500'>
+                            {item.unit}
+                          </span>
+                        )}
+                      </h3>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         </div>
 
@@ -323,10 +382,72 @@ const NurseryManagement = () => {
           </div>
 
           {/* Nursery Map */}
-          <div className='flex h-[460px] items-center justify-center rounded-xl border-2 border-dashed border-purple-300 bg-purple-50'>
-            <h2 className='text-xl font-semibold text-purple-700'>
-              Nursery Map / Layout
-            </h2>
+
+          <div className='overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm'>
+            {/* Header */}
+
+            <div className='border-b border-gray-200 px-5 py-4'>
+              <h2 className='text-base font-semibold text-green-700'>
+                Nursery Map / Layout
+              </h2>
+            </div>
+
+            {/* Body */}
+            <div className='relative max-h-[450px]'>
+              <img
+                src='/land-lease-map.png'
+                alt='Nursery Map Layout'
+                className='h-full w-full object-cover'
+              />
+              {/* Map Legend */}
+
+              <div className='absolute right-20 top-5 w-56 rounded-xl border border-gray-200 bg-white p-5 shadow-lg'>
+                <h3 className='mb-4 text-base font-semibold text-gray-800'>
+                  Map Legend
+                </h3>
+                {/* Map Controls */}
+
+                <div className='space-y-3'>
+                  {nurseryManagementData.mapLegend.map((item) => (
+                    <div key={item.id} className='flex items-center gap-3'>
+                      <span
+                        className='h-4 w-4 rounded border border-gray-300'
+                        style={{ backgroundColor: item.color }}
+                      />
+
+                      <span className='text-sm font-medium text-gray-700'>
+                        {item.title}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div className='absolute right-5 top-20 flex -translate-y-1/2 flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-lg'>
+                {/* Zoom In */}
+                <button
+                  type='button'
+                  className='flex h-11 w-11 items-center justify-center border-b border-gray-200 text-gray-700 transition hover:bg-gray-100'
+                >
+                  <Plus size={18} />
+                </button>
+
+                {/* Zoom Out */}
+                <button
+                  type='button'
+                  className='flex h-11 w-11 items-center justify-center border-b border-gray-200 text-gray-700 transition hover:bg-gray-100'
+                >
+                  <Minus size={18} />
+                </button>
+
+                {/* Full Screen */}
+                <button
+                  type='button'
+                  className='flex h-11 w-11 items-center justify-center text-gray-700 transition hover:bg-gray-100'
+                >
+                  <Expand size={18} />
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
