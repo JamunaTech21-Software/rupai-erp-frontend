@@ -51,9 +51,9 @@ export const navSections = [
             path: "/nursery-management",
           },
           {
-            id: "field-management",
-            label: "Field Management",
-            path: "/field-management",
+            id: "field-planting",
+            label: "Field Planting",
+            path: "/field-planting",
           },
           {
             id: "replantin-&-gap-filling",

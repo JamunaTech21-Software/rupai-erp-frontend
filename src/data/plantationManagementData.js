@@ -6,8 +6,8 @@ export const plantationManagementTabs = [
   },
   {
     id: 2,
-    label: "Field Management",
-    path: "/field-management",
+    label: "Field Planting",
+    path: "/field-planting",
   },
   {
     id: 3,

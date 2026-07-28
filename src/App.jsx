@@ -8,10 +8,10 @@ import MapAndGISTracking from "./pages/MapAndGISTracking";
 import LandAndLeaseManagement from "./pages/LandAndLeaseManagement";
 import FieldOrBlockManagement from "./pages/FieldOrBlockManagement";
 import NurseryManagement from "./pages/PlantationManagement/NurseryManagement";
-import FieldManagement from "./pages/PlantationManagement/FieldManagement";
 import ReplantingAndGapFilling from "./pages/PlantationManagement/ReplantingAndGapFilling";
 import PlantCensus from "./pages/PlantationManagement/PlantCensus";
 import BushRegister from "./pages/PlantationManagement/BushRegister";
+import FieldPlanting from "./pages/PlantationManagement/FieldPlanting";
 
 const router = createBrowserRouter([
   {
@@ -72,10 +72,10 @@ const router = createBrowserRouter([
         },
       },
       {
-        path: "field-management",
-        element: <FieldManagement />,
+        path: "field-planting",
+        element: <FieldPlanting />,
         handle: {
-          title: "Field Management",
+          title: "Field Planting",
         },
       },
       {
