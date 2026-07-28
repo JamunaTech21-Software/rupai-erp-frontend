@@ -309,6 +309,17 @@ export const nurseryManagementData = {
       unit: "Nos",
     },
   ],
+  stockInventoryTotal: [
+    {
+      id: 1,
+      label: "Total",
+      totalPlants: "2,10,000",
+      availablePlants: "66,500",
+      reservedPlants: "11,000",
+      distributedPlants: "1,32,500",
+      unit: "Nos",
+    },
+  ],
 
   recentActivities: [
     {

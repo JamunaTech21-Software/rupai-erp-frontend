@@ -687,7 +687,6 @@ const NurseryManagement = () => {
         <div className='col-span-12 xl:col-span-7'>
           <div className='rounded-xl border border-gray-200 bg-white shadow-sm'>
             {/* Header */}
-
             <div className='flex items-center justify-between border-b border-gray-200 px-6 py-4'>
               <h2 className='text-base font-semibold text-green-700'>
                 Plant Stock / Inventory
@@ -695,7 +694,7 @@ const NurseryManagement = () => {
 
               <button
                 type='button'
-                className='flex items-center gap-2 rounded-lg bg-green-700 px-4 py-2 text-sm font-medium text-white'
+                className='flex items-center gap-2 rounded-lg bg-green-700 px-4 py-2 text-sm font-medium text-white transition hover:bg-green-800'
               >
                 <Plus size={16} />
                 Add Stock
@@ -703,17 +702,15 @@ const NurseryManagement = () => {
             </div>
 
             {/* Table */}
-
             <div className='overflow-x-auto'>
-              <table className='min-w-full border-collapse'>
+              <table className='min-w-full border-collapse border border-gray-200'>
                 {/* Table Header */}
-
                 <thead>
                   <tr className='bg-gray-50'>
                     {nurseryManagementData.stockTableHeaders.map((header) => (
                       <th
                         key={header}
-                        className='border-b border-gray-200 px-4 py-3 text-left text-sm font-semibold text-gray-700'
+                        className='border border-gray-200 px-2 py-2 text-left text-sm font-normal text-gray-700'
                       >
                         {header}
                       </th>
@@ -722,59 +719,57 @@ const NurseryManagement = () => {
                 </thead>
 
                 {/* Table Body */}
-
                 <tbody>
                   {nurseryManagementData.stockInventory.map((item, index) => (
                     <tr
                       key={item.id}
-                      className='border-b border-gray-200 transition hover:bg-gray-50'
+                      className='transition duration-200 hover:bg-gray-50'
                     >
                       {/* SL */}
-                      <td className='px-4 py-3 text-sm text-gray-700'>
+                      <td className='border border-gray-200 px-3 py-2 text-sm text-gray-700'>
                         {index + 1}
                       </td>
 
                       {/* Clone / Seed */}
-                      <td className='px-4 py-3 text-sm text-gray-700'>
+                      <td className='border border-gray-200 px-4 py-2 text-sm text-gray-700'>
                         {item.clone}
                       </td>
 
                       {/* Type */}
-                      <td className='px-4 py-3 text-sm text-gray-700'>
+                      <td className='border border-gray-200 px-4 py-2 text-sm text-gray-700'>
                         {item.type}
                       </td>
 
                       {/* Total Plants */}
-                      <td className='px-4 py-3 text-sm text-gray-700'>
+                      <td className='border border-gray-200 px-4 py-2 text-sm text-gray-700'>
                         {item.totalPlants}
                       </td>
 
                       {/* Available Plants */}
-                      <td className='px-4 py-3 text-sm text-gray-700'>
+                      <td className='border border-gray-200 px-4 py-2 text-sm text-gray-700'>
                         {item.availablePlants}
                       </td>
 
                       {/* Reserved Plants */}
-                      <td className='px-4 py-3 text-sm text-gray-700'>
+                      <td className='border border-gray-200 px-4 py-2 text-sm text-gray-700'>
                         {item.reservedPlants}
                       </td>
 
                       {/* Distributed Plants */}
-                      <td className='px-4 py-3 text-sm text-gray-700'>
+                      <td className='border border-gray-200 px-4 py-2 text-sm text-gray-700'>
                         {item.distributedPlants}
                       </td>
 
                       {/* Unit */}
-                      <td className='px-4 py-3 text-sm text-gray-700'>
+                      <td className='border border-gray-200 px-4 py-2 text-sm text-gray-700'>
                         {item.unit}
                       </td>
 
                       {/* Action */}
-                      {/* Action */}
-                      <td className='px-4 py-3 text-center'>
+                      <td className='border border-gray-200 px-4 py-2 text-center'>
                         <button
                           type='button'
-                          className='rounded-md p-2 text-blue-600 transition duration-200 hover:bg-blue-100 hover:text-blue-700'
+                          className='rounded-md  text-blue-600 transition hover:bg-blue-100 hover:text-blue-700'
                           title='View Details'
                         >
                           <Eye size={18} />
@@ -782,37 +777,113 @@ const NurseryManagement = () => {
                       </td>
                     </tr>
                   ))}
+                  {nurseryManagementData.stockInventoryTotal.map((total) => (
+                    <tr key={total.id} className='bg-gray-50 font-semibold'>
+                      <td className='border border-gray-200 px-3 py-2'></td>
+
+                      <td
+                        colSpan={2}
+                        className='border border-gray-200 px-4 py-2 text-center text-sm text-gray-700'
+                      >
+                        {total.label}
+                      </td>
+
+                      <td className='border border-gray-200 px-4 py-2'>
+                        {total.totalPlants}
+                      </td>
+
+                      <td className='border border-gray-200 px-4 py-2'>
+                        {total.availablePlants}
+                      </td>
+
+                      <td className='border border-gray-200 px-4 py-2'>
+                        {total.reservedPlants}
+                      </td>
+
+                      <td className='border border-gray-200 px-4 py-2'>
+                        {total.distributedPlants}
+                      </td>
+
+                      <td className='border border-gray-200 px-4 py-2'>
+                        {total.unit}
+                      </td>
+
+                      <td className='border border-gray-200 px-4 py-2'></td>
+                    </tr>
+                  ))}
                 </tbody>
               </table>
             </div>
 
             {/* Footer */}
+            <div className='flex items-center justify-between border-t border-gray-200 px-6 py-4'>
+              <p className='text-sm text-gray-600'>
+                Showing 1 to {nurseryManagementData.stockInventory.length} of{" "}
+                {nurseryManagementData.stockInventory.length} entries
+              </p>
 
-            <div></div>
+              <button
+                type='button'
+                className='rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-100'
+              >
+                View Stock Details
+              </button>
+            </div>
           </div>
         </div>
 
         {/* Activity */}
 
         <div className='col-span-12 xl:col-span-5'>
-          <div className='flex h-[300px] items-center justify-center rounded-xl border-2 border-dashed border-cyan-300 bg-cyan-50'>
-            <h2 className='text-xl font-semibold text-cyan-700'>
-              Recent Activities
-            </h2>
+          <div className='rounded-xl border border-gray-200 bg-white shadow-sm'>
+            {/* Header */}
+            <div className='border-b border-gray-200 px-5 py-6'>
+              <h2 className='text-base font-semibold text-green-700'>
+                Recent Activities
+              </h2>
+            </div>
+
+            {/* Body */}
+            <div>
+              {nurseryManagementData.recentActivities.map((item, index) => (
+                <div
+                  key={item.id}
+                  className={`flex items-center justify-between px-5 py-3 ${
+                    index !== nurseryManagementData.recentActivities.length - 1
+                      ? "border-b border-gray-200"
+                      : ""
+                  }`}
+                >
+                  <p className='text-sm text-gray-700'>{item.activity}</p>
+
+                  <span className='ml-4 shrink-0 text-xs text-gray-500'>
+                    {item.date}
+                  </span>
+                </div>
+              ))}
+            </div>
+            {/* Footer */}
+            <div className='flex flex-col-reverse gap-3 rounded-xl border border-gray-200 px-4 py-5 sm:flex-row sm:justify-end sm:px-6'>
+              {/* Cancel */}
+              <button
+                type='button'
+                className='flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-6 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-100 sm:w-auto'
+              >
+                <RotateCcw size={16} />
+                Cancel
+              </button>
+
+              {/* Save */}
+              <button
+                type='submit'
+                className='flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg bg-green-700 px-6 py-2.5 text-sm font-medium text-white transition hover:bg-green-800 sm:w-auto'
+              >
+                <Save size={16} />
+                Save All Changes
+              </button>
+            </div>
           </div>
         </div>
-      </section>
-
-      {/* Footer */}
-
-      <section className='flex justify-end gap-3 rounded-xl border bg-white p-4'>
-        <button className='rounded-lg border cursor-pointer border-gray-300 px-6 py-2'>
-          Cancel
-        </button>
-
-        <button className='rounded-lg cursor-pointer bg-green-600 px-6 py-2 text-white'>
-          Save All Changes
-        </button>
       </section>
     </div>
   );
