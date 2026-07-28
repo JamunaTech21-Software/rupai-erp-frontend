@@ -323,7 +323,7 @@ export const fieldPlantingData = {
 
     longitude: "89.2741",
 
-    image: "/field-map.png",
+    image: "/field-map-img.png",
 
     legend: [
       {
@@ -355,16 +355,35 @@ export const fieldPlantingData = {
 
   plantingProgress: {
     percentage: 45,
+    status: "Completed",
 
-    completedArea: "11.52 Acre",
-
-    plantsPlanted: "11,160",
-
-    remainingArea: "13.28 Acre",
-
-    remainingPlants: "13,440",
+    stats: [
+      {
+        id: 1,
+        title: "Area Completed",
+        value: "11.52 Acre",
+        color: "bg-green-600",
+      },
+      {
+        id: 2,
+        title: "Plants Planted",
+        value: "11,160",
+        color: "bg-green-600",
+      },
+      {
+        id: 3,
+        title: "Remaining Area",
+        value: "13.28 Acre",
+        color: "bg-sky-500",
+      },
+      {
+        id: 4,
+        title: "Remaining Plants",
+        value: "13,440",
+        color: "bg-green-700",
+      },
+    ],
   },
-
   // ==========================================
   // Quick Summary
   // ==========================================

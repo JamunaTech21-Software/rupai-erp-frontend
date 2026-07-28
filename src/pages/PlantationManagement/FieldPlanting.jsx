@@ -1,9 +1,38 @@
 import React from "react";
 import { useForm } from "react-hook-form";
-
+const { fieldMap } = fieldPlantingData;
+const { plantingProgress } = fieldPlantingData;
+const { quickSummary } = fieldPlantingData;
 import PlantationManagementTabs from "../../components/plantationManagementTab/PlantationManagementTabs";
 
 import { fieldPlantingData } from "../../data/PlantationManagementData/fieldPlantingData";
+
+import {
+  Upload,
+  RotateCcw,
+  X,
+  Save,
+  Send,
+  Printer,
+  Plus,
+  Minus,
+  Layers,
+  Expand,
+  Map,
+  Leaf,
+  Target,
+  TrendingUp,
+  Sprout,
+  CirclePercent,
+} from "lucide-react";
+const summaryIconMap = {
+  Map,
+  Leaf,
+  Target,
+  TrendingUp,
+  Sprout,
+  CirclePercent,
+};
 const FieldPlanting = () => {
   const {
     register,
@@ -27,7 +56,7 @@ const FieldPlanting = () => {
           Field Planting Form
       =========================== */}
       <form onSubmit={handleSubmit(onSubmit)}>
-        <div className='grid grid-cols-12 gap-6'>
+        <div className='grid grid-cols-12 gap-2'>
           {/* ===========================
               Left Section
           =========================== */}
@@ -991,10 +1020,10 @@ const FieldPlanting = () => {
             </div>
 
             {/* Field Officer + Labour */}
-            <div className='grid grid-cols-1 xl:grid-cols-2 gap-6'>
+            <div className='grid grid-cols-1 xl:grid-cols-2 gap-2'>
               {/* ===========================
-    Field Officer
-=========================== */}
+                      Field Officer
+                  =========================== */}
               <div className='rounded-xl border border-gray-200 bg-white shadow-sm'>
                 {/* Header */}
                 <div className='border-b border-gray-200 px-6 py-4'>
@@ -1004,18 +1033,50 @@ const FieldPlanting = () => {
                 </div>
 
                 {/* Body */}
-                <div className='space-y-5 p-6'>
+                <div className='space-y-5 p-2'>
                   <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-                    <div></div>
+                    {/* Field Officer */}
+                    <div className='space-y-1.5'>
+                      <label className='text-sm font-medium text-gray-700'>
+                        Field Officer
+                      </label>
 
-                    <div></div>
+                      <select
+                        {...register("fieldOfficer")}
+                        className='h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm outline-none transition-colors focus:border-green-600'
+                      >
+                        <option value=''>Select Field Officer</option>
+                        <option value='faruk'>Md. Faruk Hossain</option>
+                        <option value='kamrul'>Md. Kamrul Hasan</option>
+                        <option value='rakib'>Md. Rakib Hasan</option>
+                        <option value='saiful'>Md. Saiful Islam</option>
+                      </select>
+                    </div>
+
+                    {/* Assistant / Supervisor */}
+                    <div className='space-y-1.5'>
+                      <label className='text-sm font-medium text-gray-700'>
+                        Assistant / Supervisor
+                      </label>
+
+                      <select
+                        {...register("assistantSupervisor")}
+                        className='h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm outline-none transition-colors focus:border-green-600'
+                      >
+                        <option value=''>Select Assistant</option>
+                        <option value='kamrul'>Md. Kamrul Hasan</option>
+                        <option value='faruk'>Md. Faruk Hossain</option>
+                        <option value='rakib'>Md. Rakib Hasan</option>
+                        <option value='saiful'>Md. Saiful Islam</option>
+                      </select>
+                    </div>
                   </div>
                 </div>
               </div>
 
               {/* ===========================
-    Labour Allocation
-=========================== */}
+                Labour Allocation
+            =========================== */}
               <div className='rounded-xl border border-gray-200 bg-white shadow-sm'>
                 {/* Header */}
                 <div className='border-b border-gray-200 px-6 py-4'>
@@ -1025,27 +1086,79 @@ const FieldPlanting = () => {
                 </div>
 
                 {/* Body */}
-                <div className='space-y-5 p-6'>
-                  <div className='grid grid-cols-2 gap-4 xl:grid-cols-4'>
-                    <div></div>
+                <div className='space-y-5 p-2'>
+                  <div className='grid grid-cols-2 gap-2 xl:grid-cols-4'>
+                    {/* Total Labour Required */}
+                    <div className='space-y-1.5'>
+                      <label className='text-sm font-normal text-gray-700'>
+                        Total Required
+                      </label>
 
-                    <div></div>
+                      <input
+                        type='number'
+                        placeholder='120'
+                        {...register("totalLabour")}
+                        className='h-10 w-full rounded-lg border border-gray-300 px-3 text-sm outline-none transition-colors focus:border-green-600'
+                      />
+                    </div>
 
-                    <div></div>
+                    {/* Male Labour */}
+                    <div className='space-y-1.5'>
+                      <label className='text-sm font-normal text-gray-700'>
+                        Male Labour
+                      </label>
 
-                    <div></div>
+                      <input
+                        type='number'
+                        placeholder='80'
+                        {...register("maleLabour")}
+                        className='h-10 w-full rounded-lg border border-gray-300 px-3 text-sm outline-none transition-colors focus:border-green-600'
+                      />
+                    </div>
+
+                    {/* Female Labour */}
+                    <div className='space-y-1.5'>
+                      <label className='text-sm font-normal text-gray-700'>
+                        Female Labour
+                      </label>
+
+                      <input
+                        type='number'
+                        placeholder='40'
+                        {...register("femaleLabour")}
+                        className='h-10 w-full rounded-lg border border-gray-300 px-3 text-sm outline-none transition-colors focus:border-green-600'
+                      />
+                    </div>
+
+                    {/* Labour Source */}
+                    <div className='space-y-1.5'>
+                      <label className='text-sm font-normal text-gray-700'>
+                        Labour Source
+                      </label>
+
+                      <select
+                        {...register("labourSource")}
+                        className='h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm outline-none transition-colors focus:border-green-600'
+                      >
+                        <option value=''>Select Source</option>
+                        <option value='local'>Local</option>
+                        <option value='permanent'>Permanent</option>
+                        <option value='seasonal'>Seasonal</option>
+                        <option value='contract'>Contract</option>
+                      </select>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
 
             {/* Remarks + Documents + Photos */}
-            <div className='grid grid-cols-12 gap-6'>
+            <div className='grid grid-cols-12 gap-2'>
               <div className='col-span-12 xl:col-span-6'>
                 {/* ===========================
-    Remarks
-=========================== */}
-                <div className='rounded-xl border border-gray-200 bg-white shadow-sm h-full'>
+                    Remarks
+                =========================== */}
+                <div className='rounded-xl border border-gray-200 bg-white shadow-sm '>
                   {/* Header */}
                   <div className='border-b border-gray-200 px-6 py-4'>
                     <h2 className='text-lg font-semibold text-green-700'>
@@ -1054,17 +1167,28 @@ const FieldPlanting = () => {
                   </div>
 
                   {/* Body */}
-                  <div className='p-6'>
-                    <div className='min-h-[120px]'></div>
+                  <div className='p-2'>
+                    {/* Body */}
+                    <div className='p-2'>
+                      <div className='space-y-1.5'>
+                        <textarea
+                          rows={2}
+                          placeholder='Enter remarks...'
+                          {...register("remarks")}
+                          className='w-full resize-none rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none transition-colors focus:border-green-600'
+                          defaultValue='Replanting with high yielding clone TV-23. Land prepared well. Drainage improved.'
+                        ></textarea>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
 
               <div className='col-span-12 xl:col-span-3'>
                 {/* ===========================
-    Documents
-=========================== */}
-                <div className='rounded-xl border border-gray-200 bg-white shadow-sm h-full'>
+                  Documents
+              =========================== */}
+                <div className='rounded-xl border border-gray-200 bg-white shadow-sm '>
                   {/* Header */}
                   <div className='border-b border-gray-200 px-6 py-4'>
                     <h2 className='text-lg font-semibold text-green-700'>
@@ -1073,27 +1197,115 @@ const FieldPlanting = () => {
                   </div>
 
                   {/* Body */}
-                  <div className='p-6'>
-                    <div className='min-h-[120px]'></div>
+                  <div className='p-2'>
+                    {/* Body */}
+                    <div className='p-2'>
+                      <div className='space-y-1.5'>
+                        <label className='text-sm font-medium text-gray-700'>
+                          Upload Documents
+                        </label>
+
+                        <div className='flex items-center justify-between rounded-lg border border-gray-300  '>
+                          <input
+                            type='file'
+                            id='documents'
+                            multiple
+                            hidden
+                            {...register("documents")}
+                          />
+
+                          <label
+                            htmlFor='documents'
+                            className='cursor-pointer rounded-md border border-gray-300  py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-200'
+                          >
+                            Choose Files
+                          </label>
+
+                          <span className='text-xs text-gray-500'>
+                            3 files uploaded
+                          </span>
+
+                          <button
+                            type='button'
+                            className='text-gray-500 hover:text-green-600'
+                          >
+                            <Upload size={18} />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
 
               <div className='col-span-12 xl:col-span-3'>
                 {/* ===========================
-    Photos
-=========================== */}
+                      Photos
+                  =========================== */}
                 <div className='rounded-xl border border-gray-200 bg-white shadow-sm h-full'>
                   {/* Header */}
-                  <div className='border-b border-gray-200 px-6 py-4'>
+                  <div className='border-b border-gray-200 px-1 py-4'>
                     <h2 className='text-lg font-semibold text-green-700'>
-                      Photos
+                      Photo Before Planting
                     </h2>
                   </div>
 
                   {/* Body */}
-                  <div className='p-6'>
-                    <div className='min-h-[120px]'></div>
+                  <div className='p-1'>
+                    {/* Body */}
+                    <div className='p-1'>
+                      <div className='space-y-1.5'>
+                        <div className='grid grid-cols-4 gap-1'>
+                          {/* Photo 01 */}
+                          <div className='h-16 overflow-hidden rounded-lg border border-gray-300'>
+                            <img
+                              src='https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=300'
+                              alt='Plantation'
+                              className='h-full w-full object-cover'
+                            />
+                          </div>
+
+                          {/* Photo 02 */}
+                          <div className='h-16 overflow-hidden rounded-lg border border-gray-300'>
+                            <img
+                              src='https://images.unsplash.com/photo-1464226184884-fa280b87c399?w=300'
+                              alt='Plantation'
+                              className='h-full w-full object-cover'
+                            />
+                          </div>
+
+                          {/* Photo 03 */}
+                          <div className='h-16 overflow-hidden rounded-lg border border-gray-300'>
+                            <img
+                              src='https://images.unsplash.com/photo-1472396961693-142e6e269027?w=300'
+                              alt='Plantation'
+                              className='h-full w-full object-cover'
+                            />
+                          </div>
+
+                          {/* Add More */}
+                          <label
+                            htmlFor='photos'
+                            className='flex  cursor-pointer flex-col items-center justify-center rounded-lg border border-dashed border-gray-300 text-gray-500 transition-colors hover:border-green-600 hover:text-green-600'
+                          >
+                            <input
+                              id='photos'
+                              type='file'
+                              multiple
+                              hidden
+                              {...register("photos")}
+                            />
+
+                            <span className='text-xl font-semibold leading-none'>
+                              +
+                            </span>
+                            <span className='mt-1 text-center text-[10px] font-medium'>
+                              Add More
+                            </span>
+                          </label>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -1104,10 +1316,9 @@ const FieldPlanting = () => {
               Right Section
           =========================== */}
           <div className='col-span-12 lg:col-span-4 space-y-6'>
-            {/* Field Map */}
             {/* ===========================
-    Field Map
-=========================== */}
+                    Field Map
+                =========================== */}
             <div className='rounded-xl border border-gray-200 bg-white shadow-sm'>
               {/* Header */}
               <div className='border-b border-gray-200 px-6 py-4'>
@@ -1117,16 +1328,92 @@ const FieldPlanting = () => {
               </div>
 
               {/* Body */}
-              <div className='p-6'>
-                <div className='min-h-[350px]'></div>
+              <div className='space-y-4 p-4'>
+                {/* Map */}
+                <div className='relative overflow-hidden rounded-lg border border-gray-300'>
+                  <img
+                    src={fieldMap.image}
+                    alt={fieldMap.title}
+                    className='h-64 w-full object-cover'
+                  />
+
+                  {/* Controls */}
+                  <div className='absolute left-3 top-3 flex flex-col gap-2'>
+                    <button
+                      type='button'
+                      className='flex h-9 w-9 items-center justify-center rounded-md bg-white shadow transition hover:bg-gray-100'
+                    >
+                      <Plus size={18} />
+                    </button>
+
+                    <button
+                      type='button'
+                      className='flex h-9 w-9 items-center justify-center rounded-md bg-white shadow transition hover:bg-gray-100'
+                    >
+                      <Minus size={18} />
+                    </button>
+
+                    <button
+                      type='button'
+                      className='flex h-9 w-9 items-center justify-center rounded-md bg-white shadow transition hover:bg-gray-100'
+                    >
+                      <Layers size={18} />
+                    </button>
+
+                    <button
+                      type='button'
+                      className='flex h-9 w-9 items-center justify-center rounded-md bg-white shadow transition hover:bg-gray-100'
+                    >
+                      <Expand size={18} />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Legend */}
+                <div className='flex flex-wrap items-center justify-center gap-5'>
+                  {fieldMap.legend.map((item) => (
+                    <div
+                      key={item.id}
+                      className='flex items-center gap-2 text-xs text-gray-600'
+                    >
+                      <span
+                        className='h-2.5 w-5 rounded'
+                        style={{ backgroundColor: item.color }}
+                      />
+
+                      {item.title}
+                    </div>
+                  ))}
+                </div>
+
+                {/* Footer */}
+                <div className='flex items-center justify-between border-t border-gray-200 pt-3'>
+                  <div className='text-xs text-gray-600'>
+                    Latitude:
+                    <span className='ml-1 font-medium'>
+                      {fieldMap.latitude}
+                    </span>
+                    <span className='mx-2'>|</span>
+                    Longitude:
+                    <span className='ml-1 font-medium'>
+                      {fieldMap.longitude}
+                    </span>
+                  </div>
+
+                  <button
+                    type='button'
+                    className='rounded-md border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium transition hover:bg-gray-50'
+                  >
+                    View Full Screen
+                  </button>
+                </div>
               </div>
             </div>
 
-            {/* Planting Progress */}
             {/* ===========================
-    Planting Progress
-=========================== */}
-            <div className='rounded-xl border border-gray-200 bg-white shadow-sm'>
+                    Planting Progress
+                =========================== */}
+            <div className='rounded-xl border py-6 border-gray-200 bg-white shadow-sm'>
               {/* Header */}
               <div className='border-b border-gray-200 px-6 py-4'>
                 <h2 className='text-lg font-semibold text-green-700'>
@@ -1135,22 +1422,63 @@ const FieldPlanting = () => {
               </div>
 
               {/* Body */}
-              <div className='space-y-5 p-6'>
-                <div></div>
+              <div className='space-y-5 p-2'>
+                <div className='grid grid-cols-12 gap-2'>
+                  {/* Progress Circle */}
+                  <div className='col-span-5 flex items-center justify-center'>
+                    <div className='relative flex h-40 w-40 items-center justify-center rounded-full border-[10px] border-gray-200'>
+                      <div
+                        className='absolute inset-0 rounded-full'
+                        style={{
+                          background:
+                            "conic-gradient(#15803d 45%, transparent 45%)",
+                          mask: "radial-gradient(circle, transparent 58%, black 60%)",
+                          WebkitMask:
+                            "radial-gradient(circle, transparent 58%, black 60%)",
+                        }}
+                      />
 
-                <div></div>
+                      <div className='z-10 text-center'>
+                        <h3 className='text-3xl  font-bold text-gray-800'>
+                          {plantingProgress.percentage}%
+                        </h3>
 
-                <div></div>
+                        <p className='text-xs text-gray-500'>
+                          {plantingProgress.status}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
 
-                <div></div>
+                  {/* Statistics */}
+                  <div className='col-span-7 flex flex-col justify-center gap-2'>
+                    {plantingProgress.stats.map((item) => (
+                      <div
+                        key={item.id}
+                        className='flex items-center justify-between'
+                      >
+                        <div className='flex items-center gap-3'>
+                          <span
+                            className={`h-2.5 w-2.5 rounded-full ${item.color}`}
+                          />
+
+                          <p className='text-sm text-gray-600'>{item.title}</p>
+                        </div>
+
+                        <p className='text-sm py-4 font-semibold text-gray-800'>
+                          {item.value}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
             </div>
 
-            {/* Quick Summary */}
             {/* ===========================
-    Quick Summary
-=========================== */}
-            <div className='rounded-xl border border-gray-200 bg-white shadow-sm'>
+                    Quick Summary
+                =========================== */}
+            <div className='rounded-xl border py-6 border-gray-200 bg-white shadow-sm'>
               {/* Header */}
               <div className='border-b border-gray-200 px-6 py-4'>
                 <h2 className='text-lg font-semibold text-green-700'>
@@ -1160,15 +1488,32 @@ const FieldPlanting = () => {
 
               {/* Body */}
               <div className='space-y-4 p-6'>
-                <div></div>
+                <div className='grid grid-cols-2 py-4 gap-5'>
+                  {quickSummary.map((item) => {
+                    const Icon = summaryIconMap[item.icon];
 
-                <div></div>
+                    return (
+                      <div
+                        key={item.id}
+                        className='flex py-2 items-center gap-3'
+                      >
+                        {/* Icon */}
+                        <div className='flex h-10 w-10 items-center justify-center rounded-lg bg-green-50 text-green-700'>
+                          <Icon size={22} />
+                        </div>
 
-                <div></div>
+                        {/* Content */}
+                        <div>
+                          <p className='text-xs text-gray-500'>{item.title}</p>
 
-                <div></div>
-
-                <div></div>
+                          <h4 className='mt-1 text-xl font-bold text-green-700'>
+                            {item.value}
+                          </h4>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             </div>
           </div>
@@ -1177,18 +1522,48 @@ const FieldPlanting = () => {
         {/* ===========================
             Action Buttons
         =========================== */}
-        {/* ===========================
-    Action Buttons
-=========================== */}
+
         <div className='mt-6 rounded-xl border border-gray-200 bg-white shadow-sm'>
-          <div className='flex flex-wrap items-center justify-end gap-3 p-5'>
-            <div> btn</div>
+          <div className='flex flex-wrap items-center justify-center gap-3 p-5'>
+            <button
+              type='reset'
+              className='flex h-10 items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 text-sm font-medium text-gray-700 transition-all hover:bg-gray-50'
+            >
+              <RotateCcw size={16} />
+              Reset
+            </button>
 
-            <div>btn</div>
+            <button
+              type='button'
+              className='flex h-10 items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 text-sm font-medium text-gray-700 transition-all hover:bg-red-50 hover:text-red-600'
+            >
+              <X size={16} />
+              Cancel
+            </button>
 
-            <div>btn</div>
+            <button
+              type='button'
+              className='flex h-10 items-center gap-2 rounded-lg bg-green-700 px-4 text-sm font-medium text-white transition-all hover:bg-green-800'
+            >
+              <Save size={16} />
+              Save as Draft
+            </button>
 
-            <div></div>
+            <button
+              type='submit'
+              className='flex h-10 items-center gap-2 rounded-lg bg-green-700 px-4 text-sm font-medium text-white transition-all hover:bg-green-800'
+            >
+              <Send size={16} />
+              Submit for Approval
+            </button>
+
+            <button
+              type='button'
+              className='flex h-10 items-center gap-2 rounded-lg bg-green-700 px-4 text-sm font-medium text-white transition-all hover:bg-green-800'
+            >
+              <Printer size={16} />
+              Save & Print
+            </button>
           </div>
         </div>
       </form>
