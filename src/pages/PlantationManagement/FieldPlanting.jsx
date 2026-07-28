@@ -1,11 +1,20 @@
 import React from "react";
 import { useForm } from "react-hook-form";
-const { fieldMap } = fieldPlantingData;
-const { plantingProgress } = fieldPlantingData;
-const { quickSummary } = fieldPlantingData;
+// const { fieldMap } = fieldPlantingData;
+// const { plantingProgress } = fieldPlantingData;
+// const { quickSummary } = fieldPlantingData;
 import PlantationManagementTabs from "../../components/plantationManagementTab/PlantationManagementTabs";
 
 import { fieldPlantingData } from "../../data/PlantationManagementData/fieldPlantingData";
+// const { plantingProgress } = fieldPlantingData;
+const {
+  historyTableHeaders,
+  historyTableData,
+  fieldMap,
+  quickSummary,
+  plantingProgress,
+  pagination,
+} = fieldPlantingData;
 
 import {
   Upload,
@@ -24,6 +33,7 @@ import {
   TrendingUp,
   Sprout,
   CirclePercent,
+  Download,
 } from "lucide-react";
 const summaryIconMap = {
   Map,
@@ -51,7 +61,6 @@ const FieldPlanting = () => {
     <div className='space-y-6'>
       {/* Plantation Tabs */}
       <PlantationManagementTabs tabs={fieldPlantingData.tabs} />
-
       {/* ===========================
           Field Planting Form
       =========================== */}
@@ -1527,7 +1536,7 @@ const FieldPlanting = () => {
           <div className='flex flex-wrap items-center justify-center gap-3 p-5'>
             <button
               type='reset'
-              className='flex h-10 items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 text-sm font-medium text-gray-700 transition-all hover:bg-gray-50'
+              className='flex cursor-pointer h-10 items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 text-sm font-medium text-gray-700 transition-all hover:bg-gray-50'
             >
               <RotateCcw size={16} />
               Reset
@@ -1535,7 +1544,7 @@ const FieldPlanting = () => {
 
             <button
               type='button'
-              className='flex h-10 items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 text-sm font-medium text-gray-700 transition-all hover:bg-red-50 hover:text-red-600'
+              className='flex cursor-pointer h-10 items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 text-sm font-medium text-gray-700 transition-all hover:bg-red-50 hover:text-red-600'
             >
               <X size={16} />
               Cancel
@@ -1543,7 +1552,7 @@ const FieldPlanting = () => {
 
             <button
               type='button'
-              className='flex h-10 items-center gap-2 rounded-lg bg-green-700 px-4 text-sm font-medium text-white transition-all hover:bg-green-800'
+              className='flex cursor-pointer h-10 items-center gap-2 rounded-lg bg-green-700 px-4 text-sm font-medium text-white transition-all hover:bg-green-800'
             >
               <Save size={16} />
               Save as Draft
@@ -1551,7 +1560,7 @@ const FieldPlanting = () => {
 
             <button
               type='submit'
-              className='flex h-10 items-center gap-2 rounded-lg bg-green-700 px-4 text-sm font-medium text-white transition-all hover:bg-green-800'
+              className='flex cursor-pointer h-10 items-center gap-2 rounded-lg bg-green-700 px-4 text-sm font-medium text-white transition-all hover:bg-green-800'
             >
               <Send size={16} />
               Submit for Approval
@@ -1559,7 +1568,7 @@ const FieldPlanting = () => {
 
             <button
               type='button'
-              className='flex h-10 items-center gap-2 rounded-lg bg-green-700 px-4 text-sm font-medium text-white transition-all hover:bg-green-800'
+              className='flex cursor-pointer h-10 items-center gap-2 rounded-lg bg-green-700 px-4 text-sm font-medium text-white transition-all hover:bg-green-800'
             >
               <Printer size={16} />
               Save & Print
@@ -1567,12 +1576,9 @@ const FieldPlanting = () => {
           </div>
         </div>
       </form>
-
       {/* ===========================
-          History Section
-      ==========={/* ===========================
-    History Section
-=========================== */}
+            History Section
+        =========================== */}
       <div className='rounded-xl border border-gray-200 bg-white shadow-sm'>
         {/* Header */}
         <div className='border-b border-gray-200 px-6 py-4'>
@@ -1583,20 +1589,119 @@ const FieldPlanting = () => {
 
         {/* Body */}
         <div className='p-6'>
-          {/* Search */}
-
-          <div></div>
-
           {/* Table */}
+          {/* Table */}
+          <div className='overflow-x-auto rounded-lg border border-gray-200'>
+            <table className='w-full border-collapse text-sm'>
+              {/* Table Header */}
+              <thead className='bg-gray-50'>
+                <tr>
+                  {historyTableHeaders.map((header, index) => (
+                    <th
+                      key={index}
+                      className='border-b border-r border-gray-200 px-4 py-3 text-center text-xs font-semibold whitespace-nowrap text-gray-700 last:border-r-0'
+                    >
+                      {header}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
 
-          <div></div>
+              {/* Table Body */}
+              <tbody>
+                {historyTableData.map((item, index) => (
+                  <tr key={item.id} className='hover:bg-gray-50'>
+                    <td className='border-b border-r border-gray-200 px-4 py-3 text-center'>
+                      {index + 1}
+                    </td>
 
-          {/* Pagination */}
+                    <td className='border-b border-r border-gray-200 px-4 py-3 text-center'>
+                      {item.plantingYear}
+                    </td>
 
-          <div></div>
+                    <td className='border-b border-r border-gray-200 px-4 py-3 text-center'>
+                      {item.fieldBlock}
+                    </td>
+
+                    <td className='border-b border-r border-gray-200 px-4 py-3 text-center'>
+                      {item.area}
+                    </td>
+
+                    <td className='border-b border-r border-gray-200 px-4 py-3 text-center'>
+                      {item.clone}
+                    </td>
+
+                    <td className='border-b border-r border-gray-200 px-4 py-3 text-center whitespace-nowrap'>
+                      {item.plantingDate}
+                    </td>
+
+                    <td className='border-b border-r border-gray-200 px-4 py-3 text-center'>
+                      {item.method}
+                    </td>
+
+                    <td className='border-b border-r border-gray-200 px-4 py-3 text-center'>
+                      {item.expectedPlants}
+                    </td>
+
+                    <td className='border-b border-r border-gray-200 px-4 py-3 text-center'>
+                      {item.plantedPlants}
+                    </td>
+
+                    <td className='border-b border-r border-gray-200 px-4 py-3 text-center'>
+                      {item.completion}
+                    </td>
+
+                    {/* Status */}
+                    <td className='border-b border-r border-gray-200 px-4 py-3 text-center'>
+                      status
+                    </td>
+
+                    {/* Action */}
+                    <td className='border-b border-gray-200 px-4 py-3 text-center'>
+                      action
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Footer */}
+          <div className='mt-5 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between'>
+            {/* Left */}
+            <p className='text-sm text-gray-600'>
+              Showing 1 to 5 of 28 entries
+            </p>
+
+            {/* Right */}
+            <div className='flex flex-wrap items-center justify-end gap-2'>
+              <button
+                type='button'
+                className='flex h-9 items-center gap-2 rounded-lg border border-gray-300 bg-white px-3 text-sm hover:bg-gray-50'
+              >
+                <Download size={16} />
+                Export
+              </button>
+
+              <div className='flex items-center gap-1'>
+                {pagination.pages.map((page, index) => (
+                  <button
+                    key={index}
+                    className={`flex h-8 w-8 items-center justify-center rounded-md text-sm
+          ${
+            page === pagination.currentPage
+              ? "bg-green-700 text-white"
+              : "border border-gray-300 hover:bg-gray-50"
+          }`}
+                  >
+                    {page}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
         </div>
       </div>
-      <div></div>
     </div>
   );
 };
