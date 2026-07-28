@@ -709,61 +709,178 @@ const FieldPlanting = () => {
             </div>
 
             {/* Fertilizer + Shade Tree */}
-            <div className='grid grid-cols-1 xl:grid-cols-2 gap-6'>
+            <div className='grid grid-cols-1 xl:grid-cols-2 gap-2'>
               {/* ===========================
-    Fertilizer Schedule
-=========================== */}
+                  Fertilizer Schedule
+              =========================== */}
               <div className='rounded-xl border border-gray-200 bg-white shadow-sm'>
                 {/* Header */}
                 <div className='border-b border-gray-200 px-6 py-4'>
                   <h2 className='text-lg font-semibold text-green-700'>
-                    Fertilizer Schedule
+                    Fertilizer Schedule (At Planting Time)
                   </h2>
                 </div>
 
                 {/* Body */}
-                <div className='space-y-5 p-6'>
+                <div className='space-y-3 p-6'>
+                  {/* Column Header */}
+                  <div className='grid grid-cols-12 gap-3'>
+                    <div className='col-span-5'>
+                      <label className='text-sm font-semibold text-gray-700'>
+                        Fertilizer / Material
+                      </label>
+                    </div>
+
+                    <div className='col-span-4'>
+                      <label className='text-sm font-semibold text-gray-700'>
+                        Amount (Per Acre)
+                      </label>
+                    </div>
+
+                    <div className='col-span-3'>
+                      <label className='text-sm font-semibold text-gray-700'>
+                        Unit
+                      </label>
+                    </div>
+                  </div>
+
                   {/* Row 01 */}
-                  <div className='grid grid-cols-12 gap-4'>
-                    <div className='col-span-5'></div>
+                  <div className='grid grid-cols-12 gap-3'>
+                    <div className='col-span-5'>
+                      <input
+                        type='text'
+                        defaultValue='NPK (15:15:15)'
+                        readOnly
+                        className='h-10 w-full rounded-lg border border-gray-300 bg-gray-50 px-3 text-sm'
+                      />
+                    </div>
 
-                    <div className='col-span-4'></div>
+                    <div className='col-span-4'>
+                      <input
+                        type='number'
+                        defaultValue='50'
+                        {...register("npkAmount")}
+                        className='h-10 w-full rounded-lg border border-gray-300 px-3 text-sm outline-none focus:border-green-600'
+                      />
+                    </div>
 
-                    <div className='col-span-3'></div>
+                    <div className='col-span-3'>
+                      <select
+                        {...register("npkUnit")}
+                        className='h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm outline-none focus:border-green-600'
+                      >
+                        <option>Kg</option>
+                        <option>Gram</option>
+                        <option>Ton</option>
+                        <option>Bag</option>
+                      </select>
+                    </div>
                   </div>
 
                   {/* Row 02 */}
-                  <div className='grid grid-cols-12 gap-4'>
-                    <div className='col-span-5'></div>
+                  <div className='grid grid-cols-12 gap-3'>
+                    <div className='col-span-5'>
+                      <input
+                        type='text'
+                        defaultValue='TSP'
+                        readOnly
+                        className='h-10 w-full rounded-lg border border-gray-300 bg-gray-50 px-3 text-sm'
+                      />
+                    </div>
 
-                    <div className='col-span-4'></div>
+                    <div className='col-span-4'>
+                      <input
+                        type='number'
+                        defaultValue='25'
+                        {...register("tspAmount")}
+                        className='h-10 w-full rounded-lg border border-gray-300 px-3 text-sm outline-none focus:border-green-600'
+                      />
+                    </div>
 
-                    <div className='col-span-3'></div>
+                    <div className='col-span-3'>
+                      <select
+                        {...register("tspUnit")}
+                        className='h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm outline-none focus:border-green-600'
+                      >
+                        <option>Kg</option>
+                        <option>Gram</option>
+                        <option>Ton</option>
+                        <option>Bag</option>
+                      </select>
+                    </div>
                   </div>
 
                   {/* Row 03 */}
-                  <div className='grid grid-cols-12 gap-4'>
-                    <div className='col-span-5'></div>
+                  <div className='grid grid-cols-12 gap-3'>
+                    <div className='col-span-5'>
+                      <input
+                        type='text'
+                        defaultValue='MOP'
+                        readOnly
+                        className='h-10 w-full rounded-lg border border-gray-300 bg-gray-50 px-3 text-sm'
+                      />
+                    </div>
 
-                    <div className='col-span-4'></div>
+                    <div className='col-span-4'>
+                      <input
+                        type='number'
+                        defaultValue='25'
+                        {...register("mopAmount")}
+                        className='h-10 w-full rounded-lg border border-gray-300 px-3 text-sm outline-none focus:border-green-600'
+                      />
+                    </div>
 
-                    <div className='col-span-3'></div>
+                    <div className='col-span-3'>
+                      <select
+                        {...register("mopUnit")}
+                        className='h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm outline-none focus:border-green-600'
+                      >
+                        <option>Kg</option>
+                        <option>Gram</option>
+                        <option>Ton</option>
+                        <option>Bag</option>
+                      </select>
+                    </div>
                   </div>
 
                   {/* Row 04 */}
-                  <div className='grid grid-cols-12 gap-4'>
-                    <div className='col-span-5'></div>
+                  <div className='grid grid-cols-12 gap-3'>
+                    <div className='col-span-5'>
+                      <input
+                        type='text'
+                        defaultValue='FYM'
+                        readOnly
+                        className='h-10 w-full rounded-lg border border-gray-300 bg-gray-50 px-3 text-sm'
+                      />
+                    </div>
 
-                    <div className='col-span-4'></div>
+                    <div className='col-span-4'>
+                      <input
+                        type='number'
+                        defaultValue='1000'
+                        {...register("fymAmount")}
+                        className='h-10 w-full rounded-lg border border-gray-300 px-3 text-sm outline-none focus:border-green-600'
+                      />
+                    </div>
 
-                    <div className='col-span-3'></div>
+                    <div className='col-span-3'>
+                      <select
+                        {...register("fymUnit")}
+                        className='h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm outline-none focus:border-green-600'
+                      >
+                        <option>Kg</option>
+                        <option>Gram</option>
+                        <option>Ton</option>
+                        <option>Bag</option>
+                      </select>
+                    </div>
                   </div>
                 </div>
               </div>
 
               {/* ===========================
-    Shade Tree Information
-=========================== */}
+                      Shade Tree Information
+                  =========================== */}
               <div className='rounded-xl border border-gray-200 bg-white shadow-sm'>
                 {/* Header */}
                 <div className='border-b border-gray-200 px-6 py-4'>
@@ -773,23 +890,101 @@ const FieldPlanting = () => {
                 </div>
 
                 {/* Body */}
-                <div className='space-y-5 p-6'>
-                  {/* Row 01 */}
-                  <div className='grid grid-cols-12 gap-4'>
-                    <div className='col-span-6'></div>
+                <div className='space-y-4 p-2 pt-6'>
+                  {/* ---------------- Row 01 ---------------- */}
+                  <div className='grid grid-cols-12 gap-3'>
+                    {/* Shade Tree Species */}
+                    <div className='col-span-4 space-y-1.5'>
+                      <label className='text-sm font-medium text-gray-700'>
+                        Shade Species
+                      </label>
 
-                    <div className='col-span-3'></div>
+                      <select
+                        {...register("shadeTreeSpecies")}
+                        className='h-14 w-full rounded-lg border border-gray-300 bg-white px-1 text-sm outline-none focus:border-green-600'
+                      >
+                        <option value=''>Select Species</option>
+                        <option value='grevillea'>Grevillea Robusta</option>
+                        <option value='albizia'>Albizia</option>
+                        <option value='acacia'>Acacia</option>
+                        <option value='gliricidia'>Gliricidia</option>
+                      </select>
+                    </div>
 
-                    <div className='col-span-3'></div>
+                    {/* Spacing */}
+                    <div className='col-span-3 space-y-1.5'>
+                      <label className='text-sm font-medium text-gray-700'>
+                        Spacing
+                      </label>
+
+                      <select
+                        {...register("shadeTreeSpacing")}
+                        className='h-14 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm outline-none focus:border-green-600'
+                      >
+                        <option value=''>Select</option>
+                        <option>20 × 20 ft</option>
+                        <option>25 × 25 ft</option>
+                        <option>30 × 30 ft</option>
+                      </select>
+                    </div>
+
+                    {/* No of Shade Trees */}
+                    <div className='col-span-5 space-y-1.5'>
+                      <label className='text-sm font-medium text-gray-700'>
+                        No. of shade tr (PA)
+                      </label>
+
+                      <input
+                        type='number'
+                        placeholder='25'
+                        {...register("shadeTreeCount")}
+                        className='h-14 w-full rounded-lg border border-gray-300 px-3 text-sm outline-none focus:border-green-600'
+                      />
+                    </div>
                   </div>
 
-                  {/* Row 02 */}
-                  <div className='grid grid-cols-12 gap-4'>
-                    <div className='col-span-6'></div>
+                  {/* ---------------- Row 02 ---------------- */}
+                  <div className='grid grid-cols-12 gap-3 pt-6'>
+                    {/* Purpose */}
+                    <div className='col-span-4 space-y-1.5'>
+                      <label className='text-sm font-medium text-gray-700'>
+                        Purpose
+                      </label>
 
-                    <div className='col-span-3'></div>
+                      <input
+                        type='text'
+                        placeholder='Shade & Wind Break'
+                        {...register("shadePurpose")}
+                        className='h-14 w-full rounded-lg border border-gray-300 px-3 text-sm outline-none focus:border-green-600'
+                      />
+                    </div>
 
-                    <div className='col-span-3'></div>
+                    {/* Planting Date */}
+                    <div className='col-span-4 space-y-1.5'>
+                      <label className='text-sm font-medium text-gray-700'>
+                        Planting Date
+                      </label>
+
+                      <input
+                        type='date'
+                        {...register("shadePlantingDate")}
+                        className='h-14 w-full rounded-lg border border-gray-300 px-1 text-sm outline-none focus:border-green-600'
+                      />
+                    </div>
+
+                    {/* Remarks */}
+                    <div className='col-span-4 space-y-1.5'>
+                      <label className='text-sm font-medium text-gray-700'>
+                        Remarks
+                      </label>
+
+                      <input
+                        type='text'
+                        placeholder='Planned along boundary'
+                        {...register("shadeRemarks")}
+                        className='h-14 w-full rounded-lg border border-gray-300 px-3 text-sm outline-none focus:border-green-600'
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
