@@ -26,6 +26,7 @@ import {
   censusHistory,
   approvalStatus,
   documentTableHeaders,
+  censusHistoryTableHeaders,
 } from "../../data/PlantationManagementData/plantCensusData";
 
 import {
@@ -50,6 +51,9 @@ import {
   Plus,
   Upload,
   Download,
+  RotateCcw,
+  X,
+  Save,
 } from "lucide-react";
 const colorMap = {
   green: "bg-green-100 text-green-600",
@@ -1314,21 +1318,128 @@ const PlantCensus = () => {
           </div>
 
           {/* Census History */}
-          <div className='col-span-12 md:col-span-6 xl:col-span-4 rounded-xl border border-gray-200 bg-white p-6 shadow-sm'>
-            Census History
+          <div className='col-span-12 md:col-span-6 xl:col-span-3 rounded-xl border border-gray-200 bg-white p-2 shadow-sm'>
+            {/* Header */}
+            <div className='border-b border-gray-200 px-2 py-3'>
+              <h2 className='text-lg font-semibold text-green-700'>
+                Census History
+              </h2>
+            </div>
+
+            {/* Table */}
+            <div className='overflow-x-auto'>
+              <table className='min-w-full text-xs'>
+                <thead className='bg-gray-50'>
+                  <tr>
+                    {censusHistoryTableHeaders.map((header) => (
+                      <th
+                        key={header.id}
+                        className='border border-gray-200 px-2 py-2 text-left font-semibold'
+                      >
+                        {header.label}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+
+                <tbody>
+                  {censusHistory.map((item) => (
+                    <tr key={item.id} className='hover:bg-green-50'>
+                      {censusHistoryTableHeaders.map((header) => (
+                        <td
+                          key={header.id}
+                          className='border border-gray-200 px-2 py-2'
+                        >
+                          {item[header.key]}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
 
           {/* Approval Status */}
-          <div className='col-span-12 md:col-span-6 xl:col-span-2 rounded-xl border border-gray-200 bg-white p-6 shadow-sm'>
-            Approval Status
+          <div className='col-span-12 md:col-span-6 xl:col-span-3 rounded-xl border border-gray-200 bg-white p-2 shadow-sm'>
+            {/* Header */}
+            <div className='border-b border-gray-200 px-2 py-3'>
+              <h2 className='text-lg font-semibold text-green-700'>
+                Approval Status
+              </h2>
+            </div>
+
+            {/* Body */}
+            <div className='space-y-3 p-3'>
+              {approvalStatus.workflow.map((item, index) => (
+                <div key={item.id} className='flex items-start gap-3'>
+                  {/* Step Number */}
+                  <div className='flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-green-600 text-xs font-semibold text-white'>
+                    {index + 1}
+                  </div>
+
+                  {/* Details */}
+                  <div className='flex-1'>
+                    <h4 className='text-sm font-normal text-gray-800'>
+                      {item.actionBy}
+                    </h4>
+
+                    <p className='text-xs text-gray-500'>{item.designation}</p>
+                  </div>
+
+                  {/* Right */}
+                  <div className='text-right'>
+                    <span
+                      className={`mt-1 inline-flex rounded-full px-2 py-1 text-[10px] font-medium ${
+                        item.status === "Approved"
+                          ? "bg-green-100 text-green-700"
+                          : ""
+                      }`}
+                    >
+                      {item.status}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
 
         {/* ================================================= */}
         {/* Footer Buttons */}
         {/* ================================================= */}
-        <div className='rounded-xl border border-gray-200 bg-white p-6 shadow-sm'>
-          Footer Buttons
+        <div className='mt-4 rounded-xl border border-gray-200 bg-white px-6 py-4 shadow-sm'>
+          <div className='flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-end'>
+            {/* Buttons Here */}
+            <button
+              type='button'
+              className='flex items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-6 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-100'
+            >
+              <RotateCcw size={18} />
+              Reset
+            </button>
+            <button
+              type='button'
+              className='flex items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-6 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-red-50 hover:text-red-600'
+            >
+              <X size={18} />
+              Cancel
+            </button>
+            <button
+              type='button'
+              className='flex items-center justify-center gap-2 rounded-lg bg-green-700 px-6 py-2.5 text-sm font-medium text-white transition hover:bg-green-800'
+            >
+              <Save size={18} />
+              Save as Draft
+            </button>
+            <button
+              type='submit'
+              className='flex items-center justify-center gap-2 rounded-lg bg-green-600 px-6 py-2.5 text-sm font-medium text-white transition hover:bg-green-700'
+            >
+              <CheckCircle2 size={18} />
+              Submit for Approval
+            </button>
+          </div>
         </div>
       </div>
     </div>
