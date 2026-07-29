@@ -3,6 +3,18 @@ import { useForm } from "react-hook-form";
 import { MapContainer, TileLayer, Polygon } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import PlantationManagementTabs from "../../components/plantationManagementTab/PlantationManagementTabs";
+import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
+import {
+  ComposedChart,
+  Bar,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+} from "recharts";
+
 import {
   fieldMap,
   censusSummary,
@@ -31,6 +43,10 @@ import {
   ShieldX,
   CircleDot,
   UsersRound,
+  Eye,
+  Pencil,
+  Trash2,
+  Plus,
 } from "lucide-react";
 const colorMap = {
   green: "bg-green-100 text-green-600",
@@ -63,6 +79,12 @@ const summaryCardIconMap = {
   CircleDot,
   UsersRound,
   Sprout,
+};
+const statusColor = {
+  Excellent: "bg-green-100 text-green-700",
+  Healthy: "bg-emerald-100 text-emerald-700",
+  Moderate: "bg-yellow-100 text-yellow-700",
+  Critical: "bg-red-100 text-red-700",
 };
 const PlantCensus = () => {
   const {
@@ -811,12 +833,12 @@ const PlantCensus = () => {
                   key={item.id}
                   className='rounded-xl border border-gray-200 bg-gray-50 p-3 transition-all hover:shadow-md'
                 >
-                  <div className='flex items-center gap-3'>
+                  <div className='flex items-center gap-1'>
                     {/* Icon */}
                     <div
                       className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full ${item.iconColor}`}
                     >
-                      <Icon size={22} />
+                      <Icon size={16} />
                     </div>
 
                     {/* Content */}
@@ -826,13 +848,13 @@ const PlantCensus = () => {
                       </p>
 
                       <div className='mt-1 flex items-center justify-between'>
-                        <h3 className='text-2xl font-bold text-green-800'>
+                        <h3 className='text-sm font-semibold text-green-800'>
                           {item.value}
                         </h3>
 
                         {item.badge && (
                           <span
-                            className={`rounded-md px-2 py-1 text-xs font-semibold ${item.badgeColor}`}
+                            className={`rounded-md px-1 py-1 text-xs font-semibold ${item.badgeColor}`}
                           >
                             {item.badge}
                           </span>
@@ -850,18 +872,323 @@ const PlantCensus = () => {
         {/* ================================================= */}
         <div className='grid grid-cols-12 gap-2'>
           {/* Row-wise Census Details */}
-          <div className='col-span-12 xl:col-span-7 rounded-xl border border-gray-200 bg-white p-6 shadow-sm'>
-            Row-wise Census Details
+
+          <div className='col-span-12 xl:col-span-6 rounded-xl border border-gray-200 bg-white shadow-sm'>
+            {/* Header */}
+            <div className='flex items-center justify-between border-b border-gray-200 px-4 py-2'>
+              <h2 className='text-lg font-semibold text-green-700'>
+                Row-wise Census Details
+              </h2>
+            </div>
+
+            {/* Table */}
+            <div className='max-h-[500px] overflow-auto'>
+              <table className='min-w-full border-collapse'>
+                {/* Table Header */}
+                <thead className='sticky top-0 z-10 bg-gray-100'>
+                  <tr>
+                    <th className='border border-gray-200 px-1 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-700'>
+                      SL
+                    </th>
+
+                    {rowWiseTable.headers.map((header) => (
+                      <th
+                        key={header.id}
+                        className='border border-gray-200 px-1 py-3 text-center text-xs font-normal uppercase tracking-wide text-gray-700 whitespace-nowrap'
+                      >
+                        {header.label}
+                      </th>
+                    ))}
+
+                    <th className='border border-gray-200 px-3 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-700'>
+                      Action
+                    </th>
+                  </tr>
+                </thead>
+
+                {/* Table Body */}
+                <tbody>
+                  {rowWiseTable.rows.map((row, index) => (
+                    <tr
+                      key={row.id}
+                      className={`transition-colors hover:bg-green-50 ${
+                        index % 2 === 0 ? "bg-white" : "bg-gray-50"
+                      }`}
+                    >
+                      {/* SL */}
+                      <td className='border border-gray-200 px-1 py-1 text-center text-sm'>
+                        {index + 1}
+                      </td>
+
+                      {/* Dynamic Data */}
+                      {rowWiseTable.headers.map((header) => (
+                        <td
+                          key={header.id}
+                          className='border border-gray-200 px-1 py-1 text-center text-sm whitespace-nowrap'
+                        >
+                          {header.key === "status" ? (
+                            <span
+                              className={`inline-flex rounded-full px-1 py-1 text-xs font-medium ${
+                                statusColor[row.status]
+                              }`}
+                            >
+                              {row.status}
+                            </span>
+                          ) : (
+                            row[header.key]
+                          )}
+                        </td>
+                      ))}
+
+                      {/* Actions */}
+                      <td className='border border-gray-200 px-3 py-1'>
+                        <div className='flex items-center justify-center gap-2'>
+                          <button
+                            type='button'
+                            title='View'
+                            className='rounded-md p-2 text-blue-600 transition hover:bg-blue-100'
+                          >
+                            <Eye size={16} />
+                          </button>
+
+                          <button
+                            type='button'
+                            title='Edit'
+                            className='rounded-md p-2 text-amber-600 transition hover:bg-amber-100'
+                          >
+                            <Pencil size={16} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+                {/* Total / Average Row */}
+                <tr className='bg-gray-100 font-semibold text-gray-800'>
+                  <td className='border border-gray-200 px-1 py-2 text-center'>
+                    -
+                  </td>
+
+                  <td className='border border-gray-200 px-3 py-2 whitespace-nowrap'>
+                    Total / Average
+                  </td>
+
+                  <td className='border border-gray-200 px-3 py-2 text-center'>
+                    4,999.00
+                  </td>
+
+                  <td className='border border-gray-200 px-3 py-2 text-center'>
+                    2.10
+                  </td>
+
+                  <td className='border border-gray-200 px-3 py-2 text-center'>
+                    10,250
+                  </td>
+
+                  <td className='border border-gray-200 px-3 py-2 text-center'>
+                    9,678
+                  </td>
+
+                  <td className='border border-gray-200 px-3 py-2 text-center'>
+                    567
+                  </td>
+
+                  <td className='border border-gray-200 px-3 py-2 text-center'>
+                    5
+                  </td>
+
+                  <td className='border border-gray-200 px-3 py-2 text-center'>
+                    5.53
+                  </td>
+
+                  <td className='border border-gray-200 px-3 py-2'></td>
+                </tr>
+              </table>
+            </div>
+
+            {/* Footer */}
+
+            <div className='flex flex-col gap-3 border-t border-gray-200 px-4 py-3 sm:flex-row sm:items-center sm:justify-between'>
+              {/* Left */}
+              <p className='text-sm text-gray-500'>
+                Showing <span className='font-semibold text-gray-700'>1</span>{" "}
+                to{" "}
+                <span className='font-semibold text-gray-700'>
+                  {rowWiseTable.rows.length}
+                </span>{" "}
+                of{" "}
+                <span className='font-semibold text-gray-700'>
+                  {rowWiseTable.rows.length}
+                </span>{" "}
+                rows
+              </p>
+
+              {/* Right */}
+              <button
+                type='button'
+                className='inline-flex items-center justify-center gap-2 rounded-lg border border-green-600 bg-white px-4 py-2 text-sm font-medium text-green-700 transition hover:bg-green-50'
+              >
+                <Plus size={16} />
+                Add Row
+              </button>
+            </div>
           </div>
 
           {/* Live vs Dead Plants */}
-          <div className='col-span-12 md:col-span-6 xl:col-span-2 rounded-xl border border-gray-200 bg-white p-6 shadow-sm'>
-            Live vs Dead Plants
+          <div className='col-span-12 md:col-span-6 xl:col-span-3 rounded-xl border border-gray-200 bg-white shadow-sm'>
+            {/* Header */}
+
+            <div className='border-b border-gray-200 px-2 py-4'>
+              <h2 className='text-xl font-semibold text-green-700'>
+                {charts.liveVsDeadChart.title}
+              </h2>
+            </div>
+
+            {/* Body */}
+
+            {/* Body */}
+            <div className='grid grid-cols-12 items-center gap-2 px-2 py-10'>
+              {/* Donut Chart */}
+              <div className='col-span-7 flex justify-center'>
+                <div className='relative h-50 w-50'>
+                  <ResponsiveContainer width='100%' height='100%'>
+                    <PieChart>
+                      <Pie
+                        data={charts.liveVsDeadChart.data}
+                        dataKey='value'
+                        innerRadius={55}
+                        outerRadius={75}
+                        paddingAngle={2}
+                        stroke='none'
+                      >
+                        {charts.liveVsDeadChart.data.map((item) => (
+                          <Cell key={item.id} fill={item.color} />
+                        ))}
+                      </Pie>
+                    </PieChart>
+                  </ResponsiveContainer>
+
+                  {/* Center Text */}
+                  <div className='absolute inset-0 flex flex-col items-center justify-center'>
+                    <p className='text-[11px] text-gray-500'>Total</p>
+
+                    <h3 className='text-base font-bold text-gray-800'>
+                      {charts.liveVsDeadChart.total.toLocaleString()}
+                    </h3>
+                  </div>
+                </div>
+              </div>
+
+              {/* Legend */}
+              <div className='col-span-5 space-y-3'>
+                {charts.liveVsDeadChart.data.map((item) => (
+                  <div key={item.id} className='flex items-center gap-2'>
+                    <span
+                      className='h-3 w-3 rounded-full flex-shrink-0'
+                      style={{ backgroundColor: item.color }}
+                    />
+
+                    <div>
+                      <p className='text-xs font-medium text-gray-700'>
+                        {item.name}
+                      </p>
+
+                      <p className='text-[11px] text-gray-500'>
+                        {item.value.toLocaleString()} ({item.percentage}%)
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
 
           {/* Plant Distribution */}
-          <div className='col-span-12 md:col-span-6 xl:col-span-3 rounded-xl border border-gray-200 bg-white p-6 shadow-sm'>
-            Plant Distribution
+          <div className='col-span-12 md:col-span-6 xl:col-span-3 rounded-xl border border-gray-200 bg-white shadow-sm'>
+            {/* Header */}
+            <div className='border-b border-gray-200 px-4 py-3'>
+              <h2 className='text-sm font-semibold text-green-700'>
+                {charts.plantDistributionChart.title}
+              </h2>
+            </div>
+
+            {/* Chart */}
+            <div className='h-64 p-2 '>
+              <ResponsiveContainer width='100%' height='100%'>
+                <ComposedChart
+                  data={charts.plantDistributionChart.data}
+                  margin={{
+                    top: 5,
+                    right: 5,
+                    left: -20,
+                    bottom: 5,
+                  }}
+                >
+                  <CartesianGrid vertical={false} stroke='#f1f5f9' />
+
+                  <XAxis
+                    dataKey='row'
+                    tick={{ fontSize: 10 }}
+                    axisLine={false}
+                    tickLine={false}
+                  />
+
+                  <YAxis
+                    yAxisId='left'
+                    width={28}
+                    tick={{ fontSize: 10 }}
+                    axisLine={false}
+                    tickLine={false}
+                  />
+
+                  <YAxis
+                    yAxisId='right'
+                    orientation='right'
+                    width={28}
+                    tick={{ fontSize: 10 }}
+                    axisLine={false}
+                    tickLine={false}
+                  />
+
+                  <Tooltip />
+
+                  <Legend
+                    verticalAlign='bottom'
+                    height={20}
+                    iconSize={10}
+                    wrapperStyle={{
+                      fontSize: "11px",
+                      paddingTop: "8px",
+                    }}
+                  />
+                  <Bar
+                    yAxisId='left'
+                    dataKey='livePlants'
+                    fill='#16A34A'
+                    radius={[2, 2, 0, 0]}
+                    name='Live Plants'
+                  />
+
+                  <Bar
+                    yAxisId='left'
+                    dataKey='deadPlants'
+                    fill='#EF4444'
+                    radius={[2, 2, 0, 0]}
+                    name='Dead Plants'
+                  />
+
+                  <Line
+                    yAxisId='right'
+                    type='monotone'
+                    dataKey='gap'
+                    stroke='#F59E0B'
+                    strokeWidth={2}
+                    dot={{ r: 3 }}
+                    name='Gap (%)'
+                  />
+                </ComposedChart>
+              </ResponsiveContainer>
+            </div>
           </div>
         </div>
 
