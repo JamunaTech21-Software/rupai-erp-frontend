@@ -25,6 +25,7 @@ import {
   documents,
   censusHistory,
   approvalStatus,
+  documentTableHeaders,
 } from "../../data/PlantationManagementData/plantCensusData";
 
 import {
@@ -47,6 +48,8 @@ import {
   Pencil,
   Trash2,
   Plus,
+  Upload,
+  Download,
 } from "lucide-react";
 const colorMap = {
   green: "bg-green-100 text-green-600",
@@ -1045,8 +1048,6 @@ const PlantCensus = () => {
             </div>
 
             {/* Body */}
-
-            {/* Body */}
             <div className='grid grid-cols-12 items-center gap-2 px-2 py-10'>
               {/* Donut Chart */}
               <div className='col-span-7 flex justify-center'>
@@ -1197,22 +1198,128 @@ const PlantCensus = () => {
         {/* ================================================= */}
         <div className='grid grid-cols-12 gap-2'>
           {/* Field Photos */}
-          <div className='col-span-12 md:col-span-6 xl:col-span-3 rounded-xl border border-gray-200 bg-white p-6 shadow-sm'>
-            Field Photos
+          <div className='col-span-12 md:col-span-6 xl:col-span-2 rounded-xl border border-gray-200 bg-white p-2 shadow-sm'>
+            <div>
+              {/* Header */}
+              <div className='border-b border-gray-200 px-2 py-3'>
+                <h2 className='text-lg font-semibold text-green-700'>
+                  Field Photos
+                </h2>
+              </div>
+
+              {/* Body */}
+
+              <div className='grid grid-cols-3 gap-1 p-1'>
+                {fieldPhotos.slice(0, 3).map((photo) => (
+                  <div
+                    key={photo.id}
+                    className='overflow-hidden rounded-lg border border-gray-200 bg-white'
+                  >
+                    {/* Title */}
+                    <div className='border-b border-gray-100 px-1 py-2'>
+                      <h3 className='truncate text-center text-[11px] font-semibold text-gray-700'>
+                        {photo.title}
+                      </h3>
+                    </div>
+
+                    {/* Image */}
+                    <img
+                      src={photo.image}
+                      alt={photo.title}
+                      className='h-24 w-full object-cover'
+                    />
+
+                    {/* Footer */}
+                    <div className='border-t border-gray-100 py-2'>
+                      <button
+                        type='button'
+                        className='flex w-full items-center justify-center gap-1 text-xs font-medium text-gray-600 transition hover:text-green-700'
+                      >
+                        <Upload size={14} />
+                        Upload
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
 
           {/* Documents */}
-          <div className='col-span-12 md:col-span-6 xl:col-span-3 rounded-xl border border-gray-200 bg-white p-6 shadow-sm'>
-            Documents
+          <div className='col-span-12 md:col-span-6 xl:col-span-4 rounded-xl border border-gray-200 bg-white p-2 shadow-sm'>
+            {/* Header */}
+            <div className='border-b border-gray-200 px-2 py-3'>
+              <h2 className='text-lg font-semibold text-green-700'>
+                Documents
+              </h2>
+            </div>
+
+            {/* Table */}
+            <div className='overflow-x-auto'>
+              <table className='min-w-full text-xs'>
+                <thead className='bg-gray-50'>
+                  <tr>
+                    {documentTableHeaders.map((header) => (
+                      <th
+                        key={header.id}
+                        className='border border-gray-200 px-2 py-2 text-center text-xs font-semibold'
+                      >
+                        {header.label}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+
+                <tbody>
+                  {documents.map((doc, index) => (
+                    <tr key={doc.id}>
+                      {documentTableHeaders.map((header) => (
+                        <td
+                          key={header.id}
+                          className='border border-gray-200 px-2 py-2 text-center'
+                        >
+                          {header.key === "sl" ? (
+                            index + 1
+                          ) : header.key === "action" ? (
+                            <div className='flex justify-center gap-2'>
+                              <button>
+                                <Download size={14} />
+                              </button>
+
+                              <button>
+                                <Trash2 size={14} />
+                              </button>
+                            </div>
+                          ) : (
+                            doc[header.key]
+                          )}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Footer */}
+            <div className='border-t border-gray-200 p-2'>
+              <button
+                type='button'
+                className='flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 py-1 text-sm font-medium hover:bg-gray-50'
+              >
+                <Upload size={16} />
+                Upload More Document
+              </button>
+            </div>
           </div>
 
           {/* Census History */}
-          <div className='col-span-12 md:col-span-6 xl:col-span-3 rounded-xl border border-gray-200 bg-white p-6 shadow-sm'>
+          <div className='col-span-12 md:col-span-6 xl:col-span-4 rounded-xl border border-gray-200 bg-white p-6 shadow-sm'>
             Census History
           </div>
 
           {/* Approval Status */}
-          <div className='col-span-12 md:col-span-6 xl:col-span-3 rounded-xl border border-gray-200 bg-white p-6 shadow-sm'>
+          <div className='col-span-12 md:col-span-6 xl:col-span-2 rounded-xl border border-gray-200 bg-white p-6 shadow-sm'>
             Approval Status
           </div>
         </div>
