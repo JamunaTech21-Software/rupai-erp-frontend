@@ -1,12 +1,8 @@
 import React from "react";
 import { useForm } from "react-hook-form";
-// const { fieldMap } = fieldPlantingData;
-// const { plantingProgress } = fieldPlantingData;
-// const { quickSummary } = fieldPlantingData;
 import PlantationManagementTabs from "../../components/plantationManagementTab/PlantationManagementTabs";
 
 import { fieldPlantingData } from "../../data/PlantationManagementData/fieldPlantingData";
-// const { plantingProgress } = fieldPlantingData;
 const {
   historyTableHeaders,
   historyTableData,
@@ -34,6 +30,10 @@ import {
   Sprout,
   CirclePercent,
   Download,
+  Eye,
+  Pencil,
+  Copy,
+  Trash2,
 } from "lucide-react";
 const summaryIconMap = {
   Map,
@@ -1590,7 +1590,6 @@ const FieldPlanting = () => {
         {/* Body */}
         <div className='p-6'>
           {/* Table */}
-          {/* Table */}
           <div className='overflow-x-auto rounded-lg border border-gray-200'>
             <table className='w-full border-collapse text-sm'>
               {/* Table Header */}
@@ -1648,17 +1647,57 @@ const FieldPlanting = () => {
                     </td>
 
                     <td className='border-b border-r border-gray-200 px-4 py-3 text-center'>
-                      {item.completion}
+                      <span
+                        className={`font-semibold ${
+                          item.completion === "100%"
+                            ? "text-green-600"
+                            : "text-amber-500"
+                        }`}
+                      >
+                        {item.completion}
+                      </span>
                     </td>
 
                     {/* Status */}
                     <td className='border-b border-r border-gray-200 px-4 py-3 text-center'>
-                      status
+                      <span
+                        className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${item.statusColor}`}
+                      >
+                        {item.status}
+                      </span>
                     </td>
 
                     {/* Action */}
-                    <td className='border-b border-gray-200 px-4 py-3 text-center'>
-                      action
+                    {/* Action */}
+                    <td className='border-b border-gray-200 px-4 py-3'>
+                      <div className='flex items-center justify-center gap-2'>
+                        {/* View */}
+                        <button
+                          type='button'
+                          className='rounded p-1 text-sky-500 transition hover:bg-sky-50 hover:text-sky-600'
+                          title='View'
+                        >
+                          <Eye size={16} />
+                        </button>
+
+                        {/* Edit */}
+                        <button
+                          type='button'
+                          className='rounded p-1 text-blue-500 transition hover:bg-blue-50 hover:text-blue-600'
+                          title='Edit'
+                        >
+                          <Pencil size={16} />
+                        </button>
+
+                        {/* Delete */}
+                        <button
+                          type='button'
+                          className='rounded p-1 text-red-500 transition hover:bg-red-50 hover:text-red-600'
+                          title='Delete'
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
