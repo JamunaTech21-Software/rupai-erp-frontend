@@ -1232,13 +1232,12 @@ const BushRegister = () => {
         </div>
 
         {/* Footer */}
-        {/* Footer */}
         <div className='rounded-xl border border-gray-200 bg-white shadow-sm'>
-          <div className='flex flex-wrap items-center justify-end gap-3 p-4'>
+          <div className='flex flex-col gap-3 p-4 sm:flex-row sm:flex-wrap sm:justify-end'>
             {/* Cancel */}
             <button
               type='button'
-              className='flex cursor-pointer items-center gap-2 rounded-lg border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-100'
+              className='flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-100 sm:w-auto'
             >
               <X size={18} />
               Cancel
@@ -1247,7 +1246,7 @@ const BushRegister = () => {
             {/* Save as Draft */}
             <button
               type='button'
-              className='flex cursor-pointer items-center gap-2 rounded-lg bg-green-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-green-700'
+              className='flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg bg-green-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-green-700 sm:w-auto'
             >
               <Save size={18} />
               Save as Draft
@@ -1256,7 +1255,7 @@ const BushRegister = () => {
             {/* Submit for Approval */}
             <button
               type='button'
-              className='flex cursor-pointer items-center gap-2 rounded-lg bg-green-700 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-green-800'
+              className='flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg bg-green-700 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-green-800 sm:w-auto'
             >
               <Send size={18} />
               Submit for Approval
@@ -1265,7 +1264,7 @@ const BushRegister = () => {
             {/* Save & Print */}
             <button
               type='button'
-              className='flex cursor-pointer items-center gap-2 rounded-lg bg-green-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-green-700'
+              className='flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg bg-green-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-green-700 sm:w-auto'
             >
               <Printer size={18} />
               Save & Print
