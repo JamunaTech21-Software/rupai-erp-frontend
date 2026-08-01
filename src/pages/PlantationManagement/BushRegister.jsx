@@ -2,8 +2,16 @@ import React from "react";
 import { useForm } from "react-hook-form";
 import PlantationManagementTabs from "../../components/plantationManagementTab/PlantationManagementTabs";
 import { bushRegisterData } from "../../data/PlantationManagementData/bushRegisterData";
+const { gapSummary, gapSizeDetails, healthDistribution } = bushRegisterData;
 
 import {
+  FilePlus2,
+  X,
+  Save,
+  Send,
+  Printer,
+  FileSpreadsheet,
+  Download,
   RotateCcw,
   Upload,
   Eye,
@@ -25,8 +33,18 @@ import {
   Layers,
   Minus,
   Plus,
+  MapPinned,
+  RefreshCcw,
+  CalendarClock,
 } from "lucide-react";
-
+const gapSummaryIconMap = {
+  totalGap: Trees,
+  gapArea: MapPinned,
+  replantRequired: Sprout,
+  suggestedAction: RefreshCcw,
+  recommendedClone: Leaf,
+  bestTime: CalendarClock,
+};
 const summaryIconMap = {
   Map,
   Rows: Grid2x2,
@@ -65,11 +83,65 @@ const BushRegister = () => {
   const onSubmit = (data) => {
     console.log(data);
   };
+  const gapSummaryItems = [
+    {
+      key: "totalGap",
+      title: "Total Gaps Identified",
+      value: gapSummary.totalGap,
+    },
+    {
+      key: "gapArea",
+      title: "Gap Area",
+      value: `${gapSummary.gapArea} Acre`,
+    },
+    {
+      key: "replantRequired",
+      title: "Replanting Required",
+      value: `${gapSummary.replantRequired} Bushes`,
+    },
+    {
+      key: "suggestedAction",
+      title: "Suggested Action",
+      value: gapSummary.suggestedAction,
+    },
+    {
+      key: "recommendedClone",
+      title: "Recommended Clone",
+      value: gapSummary.recommendedClone,
+    },
+    {
+      key: "bestTime",
+      title: "Best Time",
+      value: gapSummary.bestTime,
+    },
+  ];
   const ageProfileData = bushRegisterData.bushAgeProfile.map((item) => ({
     name: item.age,
     value: item.area,
     color: item.color,
   }));
+  const totalGapCount = gapSizeDetails.reduce(
+    (sum, item) => sum + item.count,
+    0,
+  );
+
+  const totalGapPercentage = gapSizeDetails.reduce(
+    (sum, item) => sum + item.percentage,
+    0,
+  );
+
+  const totalReplant = gapSizeDetails.reduce(
+    (sum, item) => sum + item.replant,
+    0,
+  );
+
+  const quickActionIconMap = {
+    "survey-entry": FilePlus2,
+    "mark-replanting": MapPinned,
+    "print-report": Printer,
+    "export-excel": FileSpreadsheet,
+    "export-survey": Download,
+  };
   return (
     <div className='space-y-6'>
       <PlantationManagementTabs />
@@ -889,7 +961,6 @@ const BushRegister = () => {
           </div>
 
           {/* Chart */}
-          {/* Chart */}
           <div className='col-span-12 xl:col-span-3 rounded-xl border border-gray-200 bg-white shadow-sm'>
             {/* Header */}
             <div className='border-b border-gray-200 px-4 py-3'>
@@ -961,24 +1032,245 @@ const BushRegister = () => {
         {/* Bottom Section */}
         <div className='grid grid-cols-12 gap-2'>
           {/* Gap Summary */}
-          <div className='col-span-12 xl:col-span-5 rounded-xl border border-gray-200 bg-white p-2'>
-            GAP SUMMARY
+          <div className='col-span-12 xl:col-span-3 rounded-xl border border-gray-200 bg-white p-1'>
+            <div className='col-span-4 rounded-xl '>
+              <div className='border-b px-2 py-3'>
+                <h2 className='text-sm font-semibold text-green-700'>
+                  Gap Summary & Recommendation
+                </h2>
+              </div>
+
+              <div className='grid grid-cols-2 gap-1 p-2'>
+                {gapSummaryItems.map((item) => {
+                  const Icon = gapSummaryIconMap[item.key];
+
+                  return (
+                    <div
+                      key={item.key}
+                      className='flex items-center gap-3 rounded-lg border border-gray-200 p-3'
+                    >
+                      <div className='rounded-lg bg-green-100 p-2'>
+                        <Icon size={18} className='text-green-700' />
+                      </div>
+
+                      <div>
+                        <p className='text-xs text-gray-500'>{item.title}</p>
+
+                        <h4 className='text-sm font-semibold'>{item.value}</h4>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
           </div>
 
-          {/* Health Distribution */}
-          <div className='col-span-12 xl:col-span-4 rounded-xl border border-gray-200 bg-white p-2'>
-            HEALTH DISTRIBUTION
+          {/* Gap Size Wise Details */}
+          <div className='col-span-12 xl:col-span-4 rounded-xl border border-gray-200 bg-white shadow-sm'>
+            {/* Header */}
+            <div className='border-b border-gray-200 px-4 py-3'>
+              <h2 className='text-sm font-semibold text-green-700'>
+                Gap Size Wise Details
+              </h2>
+            </div>
+
+            {/* Table */}
+            <div className='overflow-x-auto p-3'>
+              <table className='w-full border-collapse text-xs'>
+                <thead>
+                  <tr className='bg-gray-50'>
+                    <th className='border border-gray-200 px-2 py-2 text-left font-semibold'>
+                      Gap Size
+                    </th>
+
+                    <th className='border border-gray-200 px-2 py-2 text-center font-semibold'>
+                      No. of Gaps
+                    </th>
+
+                    <th className='border border-gray-200 px-2 py-2 text-center font-semibold'>
+                      Total Gaps (%)
+                    </th>
+
+                    <th className='border border-gray-200 px-2 py-2 text-center font-semibold whitespace-nowrap'>
+                      Replanting Required (Bush)
+                    </th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  {gapSizeDetails.map((item) => (
+                    <tr key={item.id} className='hover:bg-gray-50'>
+                      <td className='border border-gray-200 px-2 py-2'>
+                        {item.size}
+                      </td>
+
+                      <td className='border border-gray-200 px-2 py-2 text-center'>
+                        {item.count.toLocaleString()}
+                      </td>
+
+                      <td className='border border-gray-200 px-2 py-2 text-center'>
+                        {item.percentage.toFixed(2)}%
+                      </td>
+
+                      <td className='border border-gray-200 px-2 py-2 text-center'>
+                        {item.replant.toLocaleString()}
+                      </td>
+                    </tr>
+                  ))}
+
+                  {/* Total */}
+                  <tr className='bg-gray-50 font-semibold'>
+                    <td className='border border-gray-200 px-2 py-2'>Total</td>
+
+                    <td className='border border-gray-200 px-2 py-2 text-center'>
+                      {totalGapCount.toLocaleString()}
+                    </td>
+
+                    <td className='border border-gray-200 px-2 py-2 text-center'>
+                      {totalGapPercentage.toFixed(2)}%
+                    </td>
+
+                    <td className='border border-gray-200 px-2 py-2 text-center'>
+                      {totalReplant.toLocaleString()}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Bush Health Distribution */}
+          <div className='col-span-12 xl:col-span-3 rounded-xl border border-gray-200 bg-white shadow-sm'>
+            {/* Header */}
+            <div className='border-b border-gray-200 px-4 py-3'>
+              <h2 className='text-sm font-semibold text-green-700'>
+                Bush Health Distribution
+              </h2>
+            </div>
+
+            {/* Body */}
+            <div className='space-y-4 p-4'>
+              {healthDistribution.map((item) => (
+                <div
+                  key={item.id}
+                  className='grid grid-cols-12 items-center gap-2'
+                >
+                  {/* Health Name */}
+                  <div className='col-span-3'>
+                    <span className='text-xs text-gray-600'>{item.name}</span>
+                  </div>
+
+                  {/* Progress */}
+                  <div className='col-span-7'>
+                    <div className='h-2 w-full overflow-hidden rounded-full bg-gray-200'>
+                      <div
+                        className='h-full rounded-full'
+                        style={{
+                          width: `${item.percentage}%`,
+                          backgroundColor: item.color,
+                        }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Percentage */}
+                  <div className='col-span-2 text-right'>
+                    <span className='text-xs font-medium text-gray-700'>
+                      {item.percentage.toFixed(2)}%
+                    </span>
+                  </div>
+                </div>
+              ))}
+
+              {/* Total */}
+              <div className='grid grid-cols-12 items-center border-t border-gray-200 pt-3'>
+                <div className='col-span-3'>
+                  <span className='text-sm font-semibold'>Total</span>
+                </div>
+
+                <div className='col-span-7'></div>
+
+                <div className='col-span-2 text-right'>
+                  <span className='text-sm font-semibold'>100%</span>
+                </div>
+              </div>
+            </div>
           </div>
 
           {/* Quick Action */}
-          <div className='col-span-12 xl:col-span-3 rounded-xl border border-gray-200 bg-white p-2'>
-            QUICK ACTION
+          <div className='col-span-12 xl:col-span-2 rounded-xl border border-gray-200 bg-white shadow-sm'>
+            {/* Header */}
+            <div className='border-b border-gray-200 px-4 py-3'>
+              <h2 className='text-sm font-semibold text-green-700'>
+                Quick Actions
+              </h2>
+            </div>
+
+            {/* Body */}
+            <div className='space-y-2 p-3'>
+              {bushRegisterData.quickActions.map((item) => {
+                const Icon = quickActionIconMap[item.value];
+
+                return (
+                  <button
+                    key={item.id}
+                    type='button'
+                    className='flex w-full cursor-pointer items-center gap-3 rounded-lg border border-gray-200 bg-white px-3 py-2 text-left transition-all duration-200 hover:border-green-300 hover:bg-green-50'
+                  >
+                    <div className='rounded-md bg-green-100 p-1.5'>
+                      <Icon size={16} className='text-green-700' />
+                    </div>
+
+                    <span className='text-xs font-medium text-gray-700'>
+                      {item.title}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </div>
 
         {/* Footer */}
-        <div className='rounded-xl border border-gray-200 bg-white p-2'>
-          FOOTER BUTTONS
+        {/* Footer */}
+        <div className='rounded-xl border border-gray-200 bg-white shadow-sm'>
+          <div className='flex flex-wrap items-center justify-end gap-3 p-4'>
+            {/* Cancel */}
+            <button
+              type='button'
+              className='flex cursor-pointer items-center gap-2 rounded-lg border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-100'
+            >
+              <X size={18} />
+              Cancel
+            </button>
+
+            {/* Save as Draft */}
+            <button
+              type='button'
+              className='flex cursor-pointer items-center gap-2 rounded-lg bg-green-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-green-700'
+            >
+              <Save size={18} />
+              Save as Draft
+            </button>
+
+            {/* Submit for Approval */}
+            <button
+              type='button'
+              className='flex cursor-pointer items-center gap-2 rounded-lg bg-green-700 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-green-800'
+            >
+              <Send size={18} />
+              Submit for Approval
+            </button>
+
+            {/* Save & Print */}
+            <button
+              type='button'
+              className='flex cursor-pointer items-center gap-2 rounded-lg bg-green-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-green-700'
+            >
+              <Printer size={18} />
+              Save & Print
+            </button>
+          </div>
         </div>
       </div>
     </div>

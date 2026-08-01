@@ -58,7 +58,7 @@ export const navSections = [
           {
             id: "replantin-&-gap-filling",
             label: "Replanting & Gap Filling",
-            path: "/replantin-&-gap-filling",
+            path: "/replanting-&-gap-filling",
           },
           {
             id: "plant-census",
