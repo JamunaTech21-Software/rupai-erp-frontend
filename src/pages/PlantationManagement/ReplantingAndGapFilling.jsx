@@ -2,8 +2,8 @@ import React from "react";
 import PlantationManagementTabs from "../../components/plantationManagementTab/PlantationManagementTabs";
 import { replantingAndGapFillingData } from "../../data/PlantationManagementData/replantingAndGapFillingData";
 const ReplantingAndGapFilling = () => {
-  const { steps, stepForms } = replantingAndGapFillingData;
-
+  const { steps, stepForms, databaseTables, userRoles, approvalFlow, reports } =
+    replantingAndGapFillingData;
   const renderStepBody = (step) => {
     switch (step.formKey) {
       case "projectInformation": {
@@ -789,9 +789,10 @@ const ReplantingAndGapFilling = () => {
         </div>
 
         {/* ================= Database + User Flow ================= */}
-        <div className='mt-12 grid grid-cols-12 gap-6'>
+        <div className='mt-12 grid grid-cols-12 gap-1'>
           {/* Left Side */}
-          <section className='col-span-12 lg:col-span-7'>
+          <section className='col-span-12  lg:col-span-8'>
+            {/* Header */}
             <div className='mb-6 flex justify-center'>
               <div className='rounded-md bg-green-700 px-10 py-2 font-semibold text-white'>
                 Database Tables Overview
@@ -799,10 +800,72 @@ const ReplantingAndGapFilling = () => {
             </div>
 
             {/* Database Area */}
-          </section>
+            <div className='grid grid-cols-1  gap-1 md:grid-cols-2  xl:grid-cols-4'>
+              {databaseTables.map((table) => (
+                <div
+                  key={table.id}
+                  className='overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm transition-all duration-200 hover:shadow-md mb-4'
+                >
+                  {/* Card Header */}
+                  <div className='bg-green-700 p-1  py-2'>
+                    <h3 className='text-sm font-normal text-white'>
+                      {table.title}
+                    </h3>
+                  </div>
 
+                  {/* Card Body */}
+                  <div className='space-y-3 p-1'>
+                    {/* Primary Key */}
+                    <div>
+                      <p className='mb-1 text-[11px] font-semibold text-gray-700'>
+                        Primary Key
+                      </p>
+
+                      <div className='rounded border border-gray-200 bg-gray-50 px-2 py-1 text-[11px] text-gray-700'>
+                        {table.primaryKey}
+                      </div>
+                    </div>
+
+                    {/* Foreign Key */}
+                    {table.foreignKey && (
+                      <div>
+                        <p className='mb-1 text-[11px] font-semibold text-gray-700'>
+                          Foreign Key
+                        </p>
+
+                        <div className='rounded border border-gray-200 bg-gray-50 px-2 py-1 text-[11px] text-gray-700'>
+                          {table.foreignKey}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Fields */}
+                    <div>
+                      <p className='mb-2 text-[11px] font-semibold text-gray-700'>
+                        Fields
+                      </p>
+
+                      <div className='rounded border border-gray-200 bg-gray-50 p-2'>
+                        <ul className='space-y-1'>
+                          {table.fields.map((field) => (
+                            <li
+                              key={field}
+                              className='flex items-center gap-2 text-[11px] text-gray-700'
+                            >
+                              <span className='h-1.5 w-1.5 rounded-full bg-green-600'></span>
+                              {field}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
           {/* Right Side */}
-          <section className='col-span-12 lg:col-span-5'>
+          <section className='col-span-12 lg:col-span-4'>
             <div className='mb-6 flex justify-center'>
               <div className='rounded-md bg-green-700 px-10 py-2 font-semibold text-white'>
                 User Role & Approval Flow

@@ -1133,119 +1133,147 @@ export const replantingAndGapFillingData = {
   },
   // ======================================================
   // DATABASE TABLES OVERVIEW
-  // Paste Below dropdownOptions
   // ======================================================
+
   databaseTables: [
     {
       id: 1,
+      title: "1. replanting_master",
       tableName: "replanting_master",
-      primaryKey: "replanting_id",
-      relatedStep: "Project Information",
-      description: "Stores master project information.",
-      totalFields: 18,
-      relationship: "One-to-Many",
-      status: "Active",
+      primaryKey: "replant_id (PK)",
+      foreignKey: null,
+
+      fields: [
+        "estate_id",
+        "division_id",
+        "section_id",
+        "field_id",
+        "replant_type",
+        "season",
+        "survey_date",
+        "target_date",
+        "supervisor_id",
+        "status",
+      ],
     },
 
     {
       id: 2,
+      title: "2. replanting_gap_details",
       tableName: "replanting_gap_details",
-      primaryKey: "gap_id",
-      relatedStep: "Gap Survey Entry",
-      description: "Stores gap survey details.",
-      totalFields: 22,
-      relationship: "Many-to-One",
-      status: "Active",
+      primaryKey: "gap_id (PK)",
+      foreignKey: "replant_id (FK)",
+
+      fields: ["gap_size", "gap_type", "no_of_plants", "location", "status"],
     },
 
     {
       id: 3,
+      title: "3. replanting_preparation",
       tableName: "replanting_land_preparation",
-      primaryKey: "land_preparation_id",
-      relatedStep: "Land Preparation",
-      description: "Stores land preparation activities.",
-      totalFields: 15,
-      relationship: "Many-to-One",
-      status: "Active",
+      primaryKey: "land_preparation_id (PK)",
+      foreignKey: "replant_id (FK)",
+
+      fields: ["activity", "start_date", "end_date", "status"],
     },
 
     {
       id: 4,
-      tableName: "replanting_materials",
-      primaryKey: "material_id",
-      relatedStep: "Material Planning",
-      description: "Stores materials and seedlings.",
-      totalFields: 20,
-      relationship: "Many-to-One",
-      status: "Active",
+      title: "4. replanting_material",
+      tableName: "replanting_material",
+      primaryKey: "material_id (PK)",
+      foreignKey: "replant_id (FK)",
+
+      fields: [
+        "material_name",
+        "unit",
+        "required_qty",
+        "unit_cost",
+        "total_cost",
+      ],
     },
 
     {
       id: 5,
+      title: "5. replanting_labour",
       tableName: "replanting_labour",
-      primaryKey: "labour_id",
-      relatedStep: "Labour Allocation",
-      description: "Stores labour allocation.",
-      totalFields: 14,
-      relationship: "Many-to-One",
-      status: "Active",
+      primaryKey: "labour_id (PK)",
+      foreignKey: "replant_id (FK)",
+
+      fields: [
+        "labour_type",
+        "male_qty",
+        "female_qty",
+        "rate",
+        "amount",
+        "labour_source",
+      ],
     },
 
     {
       id: 6,
-      tableName: "replanting_execution",
-      primaryKey: "execution_id",
-      relatedStep: "Planting Execution",
-      description: "Stores execution records.",
-      totalFields: 19,
-      relationship: "Many-to-One",
-      status: "Active",
+      title: "6. replanting_schedule",
+      tableName: "replanting_schedule",
+      primaryKey: "schedule_id (PK)",
+      foreignKey: "replant_id (FK)",
+
+      fields: ["activity_name", "start_date", "end_date", "status"],
     },
 
     {
       id: 7,
-      tableName: "replanting_progress",
-      primaryKey: "progress_id",
-      relatedStep: "Progress Monitoring",
-      description: "Stores progress updates.",
-      totalFields: 17,
-      relationship: "Many-to-One",
-      status: "Active",
+      title: "7. replanting_photo",
+      tableName: "replanting_photo",
+      primaryKey: "photo_id (PK)",
+      foreignKey: "replant_id (FK)",
+
+      fields: ["photo_type", "photo_path", "caption", "upload_date"],
     },
 
     {
       id: 8,
-      tableName: "replanting_approval",
-      primaryKey: "approval_id",
-      relatedStep: "Approval & Completion",
-      description: "Stores approval information.",
-      totalFields: 12,
-      relationship: "Many-to-One",
-      status: "Active",
+      title: "8. replanting_document",
+      tableName: "replanting_document",
+      primaryKey: "doc_id (PK)",
+      foreignKey: "replant_id (FK)",
+
+      fields: ["doc_type", "file_name", "file_path", "upload_date"],
     },
 
     {
       id: 9,
-      tableName: "replanting_documents",
-      primaryKey: "document_id",
-      relatedStep: "Documents",
-      description: "Stores uploaded documents.",
-      totalFields: 10,
-      relationship: "Many-to-One",
-      status: "Active",
+      title: "9. replanting_progress",
+      tableName: "replanting_progress",
+      primaryKey: "progress_id (PK)",
+      foreignKey: "replant_id (FK)",
+
+      fields: [
+        "progress_date",
+        "area_completed",
+        "plants_planted",
+        "survival_percent",
+        "remarks",
+      ],
     },
 
     {
       id: 10,
-      tableName: "replanting_photos",
-      primaryKey: "photo_id",
-      relatedStep: "Photos",
-      description: "Stores field photos.",
-      totalFields: 9,
-      relationship: "Many-to-One",
-      status: "Active",
+      title: "10. replanting_approval",
+      tableName: "replanting_approval",
+      primaryKey: "approval_id (PK)",
+      foreignKey: "replant_id (FK)",
+
+      fields: [
+        "level",
+        "approved_by",
+        "approved_date",
+        "status",
+        "signature_path",
+        "remarks",
+      ],
     },
   ],
+
   // ======================================================
   // USER ROLES
   // Paste Below databaseTables
