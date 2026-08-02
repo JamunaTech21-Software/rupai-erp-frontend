@@ -1,9 +1,33 @@
 import React from "react";
+
+import {
+  User,
+  UserCheck,
+  ShieldCheck,
+  Building2,
+  ArrowRight,
+  Check,
+} from "lucide-react";
+
 import PlantationManagementTabs from "../../components/plantationManagementTab/PlantationManagementTabs";
 import { replantingAndGapFillingData } from "../../data/PlantationManagementData/replantingAndGapFillingData";
 const ReplantingAndGapFilling = () => {
   const { steps, stepForms, databaseTables, userRoles, approvalFlow, reports } =
     replantingAndGapFillingData;
+
+  const approvalIconMap = {
+    User: User,
+    UserCheck: UserCheck,
+    ShieldCheck: ShieldCheck,
+    Building2: Building2,
+  };
+
+  const approvalColorMap = {
+    green: "bg-green-600",
+    blue: "bg-blue-600",
+    purple: "bg-purple-600",
+    orange: "bg-orange-500",
+  };
   const renderStepBody = (step) => {
     switch (step.formKey) {
       case "projectInformation": {
@@ -791,7 +815,7 @@ const ReplantingAndGapFilling = () => {
         {/* ================= Database + User Flow ================= */}
         <div className='mt-12 grid grid-cols-12 gap-1'>
           {/* Left Side */}
-          <section className='col-span-12  lg:col-span-8'>
+          <section className='col-span-12  lg:col-span-7'>
             {/* Header */}
             <div className='mb-6 flex justify-center'>
               <div className='rounded-md bg-green-700 px-10 py-2 font-semibold text-white'>
@@ -865,22 +889,74 @@ const ReplantingAndGapFilling = () => {
             </div>
           </section>
           {/* Right Side */}
-          <section className='col-span-12 lg:col-span-4'>
+          <section className='col-span-12 lg:col-span-5'>
             <div className='mb-6 flex justify-center'>
               <div className='rounded-md bg-green-700 px-10 py-2 font-semibold text-white'>
                 User Role & Approval Flow
               </div>
             </div>
 
-            {/* User Role Area */}
+            <div className='rounded-xl border border-gray-200 bg-white p-5 shadow-sm'>
+              <div className='flex items-start justify-between'>
+                {approvalFlow.map((item, index) => {
+                  const Icon = approvalIconMap[item.icon];
 
-            <div className='mt-10 flex justify-center'>
-              <div className='rounded-md bg-green-700 px-10 py-2 font-semibold text-white'>
-                Final Output / Reports
+                  return (
+                    <div key={item.id} className='flex flex-1 items-center'>
+                      {/* Role */}
+                      <div className='flex flex-col items-center text-center'>
+                        <div
+                          className={`flex h-14 w-14 items-center justify-center rounded-full ${approvalColorMap[item.color]} text-white shadow-md`}
+                        >
+                          <Icon size={28} />
+                        </div>
+
+                        <h4 className='mt-2 text-xs font-semibold text-gray-800'>
+                          {item.role}
+                        </h4>
+
+                        <ul className='mt-2 space-y-1 text-left text-[11px] text-gray-600'>
+                          {item.tasks.map((task) => (
+                            <li key={task}>• {task}</li>
+                          ))}
+                        </ul>
+                      </div>
+
+                      {/* Arrow */}
+                      {index < approvalFlow.length - 1 && (
+                        <div className='mx-3'>
+                          <ArrowRight size={22} className='text-green-700' />
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+              {/* Reports Area */}
+              <div className='mt-4 rounded-xl   bg-amber-50  p-1 shadow-sm'>
+                <div className='mt-2 '>
+                  <div className='rounded-md text-green-700  py-2 font-semibold '>
+                    Final Output / Reports
+                  </div>
+                </div>
+                <div className='grid grid-cols-2 gap-x-2 gap-y-3  p-3 rounded-xl'>
+                  {reports.map((report) => (
+                    <div
+                      key={report.id}
+                      className='flex items-center gap-2 text-[12px] text-gray-700'
+                    >
+                      <Check
+                        size={14}
+                        className='shrink-0 text-green-600'
+                        strokeWidth={3}
+                      />
+
+                      <span className='leading-5'>{report.title}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
-
-            {/* Reports Area */}
           </section>
         </div>
       </div>
