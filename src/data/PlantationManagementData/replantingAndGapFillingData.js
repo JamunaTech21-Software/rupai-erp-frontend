@@ -769,10 +769,6 @@ export const replantingAndGapFillingData = {
         },
       ],
 
-      // summary: {
-      //   totalMaterials: 6,
-      //   estimatedCost: 69945,
-      // },
       summary: {
         label: "Total Estimated Cost",
         value: "69,945",
@@ -829,8 +825,11 @@ export const replantingAndGapFillingData = {
       ],
 
       summary: {
-        totalLabour: 100,
-        totalCost: 35400,
+        label: "Total Labour",
+        male: 100,
+        female: 0,
+        rate: "",
+        value: "35,400",
       },
     },
 
@@ -925,7 +924,7 @@ export const replantingAndGapFillingData = {
         },
       ],
 
-      summary: [
+      summaryCards: [
         {
           id: 1,
           title: "Total Area (Acre)",
@@ -939,15 +938,10 @@ export const replantingAndGapFillingData = {
         {
           id: 3,
           title: "Planted Plants",
-          value: "2,100",
-        },
-        {
-          id: 4,
-          title: "Remaining Plants",
           value: "3,150",
         },
         {
-          id: 5,
+          id: 4,
           title: "Progress (%)",
           value: "40%",
         },
@@ -987,10 +981,6 @@ export const replantingAndGapFillingData = {
           remarks: "Planting Completed",
         },
       ],
-
-      actionButton: {
-        text: "Add Progress",
-      },
     },
 
     // ======================================================
@@ -999,38 +989,17 @@ export const replantingAndGapFillingData = {
     approvalCompletion: {
       title: "Approval",
 
-      fields: [
-        {
-          id: 1,
-          label: "Completion Date",
-          value: "20/07/2026",
-          type: "date",
-        },
-        {
-          id: 2,
-          label: "Survival % (90 Days)",
-          value: "92%",
-          type: "text",
-        },
-        {
-          id: 3,
-          label: "Remarks",
-          value: "Replanting completed successfully.",
-          type: "textarea",
-        },
-      ],
-
       columns: ["Level", "Name", "Designation", "Status", "Date", "Signature"],
 
       rows: [
         {
           id: 1,
           level: "Field Officer",
-          name: "Faruk Hossain",
+          name: "Fazlu Hossain",
           designation: "FO",
           status: "Approved",
-          date: "02/06/2026",
-          signature: "✍️",
+          date: "01/06/2026",
+          signature: "✍",
         },
         {
           id: 2,
@@ -1039,7 +1008,7 @@ export const replantingAndGapFillingData = {
           designation: "EM",
           status: "Approved",
           date: "03/06/2026",
-          signature: "✍️",
+          signature: "✍",
         },
         {
           id: 3,
@@ -1048,7 +1017,7 @@ export const replantingAndGapFillingData = {
           designation: "GM",
           status: "Pending",
           date: "-",
-          signature: "",
+          signature: "○",
         },
         {
           id: 4,
@@ -1057,12 +1026,37 @@ export const replantingAndGapFillingData = {
           designation: "Director",
           status: "Pending",
           date: "-",
-          signature: "",
+          signature: "○",
         },
       ],
 
-      actionButton: {
-        text: "Finish & Save",
+      completion: {
+        title: "Completion",
+
+        fields: [
+          {
+            id: 1,
+            label: "Completion Date",
+            value: "20/07/2026",
+            type: "date",
+          },
+          {
+            id: 2,
+            label: "Survival % (90 Days)",
+            value: "92%",
+            type: "text",
+          },
+          {
+            id: 3,
+            label: "Remarks",
+            value: "Replanting completed successfully.",
+            type: "textarea",
+          },
+        ],
+
+        button: {
+          text: "Finish & Save",
+        },
       },
     },
   },
