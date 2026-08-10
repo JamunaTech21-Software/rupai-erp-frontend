@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { NavLink, useLocation } from "react-router-dom";
+import { Link, NavLink, useLocation } from "react-router-dom";
 import {
   Home,
   Map,
@@ -87,7 +87,8 @@ export default function Sidebar({ collapsed, mobileOpen, onCloseMobile }) {
       } ${mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}
     >
       {/* Fixed top logo */}
-      <div
+      <Link
+        to='/'
         className={`flex h-14 shrink-0 items-center gap-2.5 border-b border-slate-100 px-4 sm:h-16 ${
           collapsed ? "lg:justify-center lg:px-2 lg:gap-0" : ""
         }`}
@@ -117,7 +118,7 @@ export default function Sidebar({ collapsed, mobileOpen, onCloseMobile }) {
             <X className='h-5 w-5' />
           </button>
         )}
-      </div>
+      </Link>
 
       {/* Scrollable menu items */}
       <nav className='min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-2 py-3'>

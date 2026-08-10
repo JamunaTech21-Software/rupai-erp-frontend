@@ -1668,7 +1668,6 @@ const FieldPlanting = () => {
                     </td>
 
                     {/* Action */}
-                    {/* Action */}
                     <td className='border-b border-gray-200 px-4 py-3'>
                       <div className='flex items-center justify-center gap-2'>
                         {/* View */}
@@ -1688,7 +1687,6 @@ const FieldPlanting = () => {
                         >
                           <Pencil size={16} />
                         </button>
-
                         {/* Delete */}
                         <button
                           type='button'

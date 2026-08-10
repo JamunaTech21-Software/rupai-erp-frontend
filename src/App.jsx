@@ -12,6 +12,7 @@ import ReplantingAndGapFilling from "./pages/PlantationManagement/ReplantingAndG
 import PlantCensus from "./pages/PlantationManagement/PlantCensus";
 import BushRegister from "./pages/PlantationManagement/BushRegister";
 import FieldPlanting from "./pages/PlantationManagement/FieldPlanting";
+import NotFound from "./components/plantationManagementTab/404Page/NotFound";
 
 const router = createBrowserRouter([
   {
@@ -109,6 +110,10 @@ const router = createBrowserRouter([
         },
       },
     ],
+  },
+  {
+    path: "*",
+    element: <NotFound />,
   },
 ]);
 

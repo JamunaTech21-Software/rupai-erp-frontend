@@ -1,5 +1,6 @@
 import React from "react";
-
+import PlantationManagementTabs from "../../components/plantationManagementTab/PlantationManagementTabs";
+import { replantingAndGapFillingData } from "../../data/PlantationManagementData/replantingAndGapFillingData";
 import {
   User,
   UserCheck,
@@ -9,8 +10,6 @@ import {
   Check,
 } from "lucide-react";
 
-import PlantationManagementTabs from "../../components/plantationManagementTab/PlantationManagementTabs";
-import { replantingAndGapFillingData } from "../../data/PlantationManagementData/replantingAndGapFillingData";
 const ReplantingAndGapFilling = () => {
   const { steps, stepForms, databaseTables, userRoles, approvalFlow, reports } =
     replantingAndGapFillingData;
