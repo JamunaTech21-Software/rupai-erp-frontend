@@ -37,57 +37,85 @@ export const contractorManagementData = {
   ],
 
   // =========================
-  // Contractor Form
+  // 🔥 MAP READY FIELDS
   // =========================
-  contractorForm: {
-    basicInformation: {
-      contractorId: "AUTO",
-      contractorType: "",
-      tradeCategory: "",
-      contractorName: "",
-      shortName: "",
-      legalStatus: "",
-      registrationType: "",
-      contractorSince: "",
-      description: "",
+  basicInformationFields: [
+    {
+      name: "contractorId",
+      label: "Contractor ID",
+      type: "text",
+      disabled: true,
+      defaultValue: "Auto Generate",
+      required: true,
     },
-
-    contactInformation: {
-      mobile: "",
-      alternateMobile: "",
-      email: "",
-      address: "",
-      district: "",
-      upazila: "",
-      postalCode: "",
+    {
+      name: "contractorType",
+      label: "Contractor Type",
+      type: "select",
+      required: true,
+      options: [
+        { value: "individual", label: "Individual" },
+        { value: "company", label: "Company" },
+        { value: "supplier", label: "Supplier" },
+      ],
     },
-
-    contractInformation: {
-      contractRef: "",
-      startDate: "",
-      endDate: "",
-      duration: "",
-      paymentTerms: "",
-      contractValue: "",
+    {
+      name: "tradeCategory",
+      label: "Trade / Work Category",
+      type: "select",
+      required: true,
+      options: [
+        { value: "construction", label: "Construction" },
+        { value: "electrical", label: "Electrical" },
+        { value: "mechanical", label: "Mechanical" },
+        { value: "transport", label: "Transport" },
+      ],
     },
-
-    bankingInformation: {
-      bankName: "",
-      branchName: "",
-      accountName: "",
-      accountNumber: "",
+    {
+      name: "contractorName",
+      label: "Contractor Name",
+      type: "text",
+      placeholder: "Enter Contractor / Company Name",
+      required: true,
+      colSpan: "md:col-span-8",
     },
-
-    emergencyContact: {
-      name: "",
-      relation: "",
-      mobile: "",
-      address: "",
+    {
+      name: "shortName",
+      label: "Short Name",
+      type: "text",
+      placeholder: "Enter Short Name",
+      colSpan: "md:col-span-4",
     },
-  },
+    {
+      name: "legalStatus",
+      label: "Legal Status",
+      type: "select",
+      options: [
+        { value: "proprietorship", label: "Proprietorship" },
+        { value: "partnership", label: "Partnership" },
+        { value: "private-ltd", label: "Private Limited" },
+      ],
+    },
+    {
+      name: "registrationType",
+      label: "Registration Type",
+      type: "text",
+    },
+    {
+      name: "contractorSince",
+      label: "Contractor Since",
+      type: "date",
+    },
+    {
+      name: "description",
+      label: "Description / Nature of Work",
+      type: "textarea",
+      colSpan: "col-span-12",
+    },
+  ],
 
   // =========================
-  // Contractor Table Headers
+  // Contractor Table
   // =========================
   contractorTableHeaders: [
     "SL",
@@ -99,9 +127,6 @@ export const contractorManagementData = {
     "Action",
   ],
 
-  // =========================
-  // Contractor List (Dummy Data)
-  // =========================
   contractorList: [
     {
       id: 1,
@@ -129,9 +154,6 @@ export const contractorManagementData = {
     },
   ],
 
-  // =========================
-  // Summary Data
-  // =========================
   summary: {
     totalContractor: 25,
     activeContractor: 20,

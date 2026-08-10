@@ -8,10 +8,7 @@ const AddNewContractor = () => {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm({
-    defaultValues: contractorManagementData.contractorForm.basicInformation,
-  });
-
+  } = useForm();
   const onSubmit = (data) => {
     console.log("FORM DATA:", data);
   };
@@ -34,133 +31,68 @@ const AddNewContractor = () => {
               </h3>
 
               <div className='grid grid-cols-12 gap-3'>
-                {/* Contractor ID */}
-                <div className='col-span-12 md:col-span-4'>
-                  <label className='text-xs font-medium'>
-                    Contractor ID <span className='text-red-500'>*</span>
-                  </label>
-                  <input
-                    value='Auto Generate'
-                    disabled
-                    className='w-full border border-gray-300 rounded-md px-3 py-2 bg-gray-100 text-sm'
-                  />
-                </div>
+                {contractorManagementData.basicInformationFields.map(
+                  (field, index) => (
+                    <div
+                      key={index}
+                      className={`col-span-12 ${field.colSpan || "md:col-span-4"}`}
+                    >
+                      <label className='text-xs font-medium'>
+                        {field.label}
+                        {field.required && (
+                          <span className='text-red-500'> *</span>
+                        )}
+                      </label>
 
-                {/* Contractor Type */}
-                <div className='col-span-12 md:col-span-4'>
-                  <label className='text-xs font-medium'>
-                    Contractor Type <span className='text-red-500'>*</span>
-                  </label>
-                  <select
-                    {...register("contractorType", { required: "Required" })}
-                    className='w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:border-green-500 focus:ring-1 focus:ring-green-500'
-                  >
-                    <option value=''>Select Type</option>
-                    {contractorManagementData.contractorTypeOptions.map(
-                      (item) => (
-                        <option key={item.id} value={item.value}>
-                          {item.label}
-                        </option>
-                      ),
-                    )}
-                  </select>
-                </div>
+                      {/* TEXT / DATE */}
+                      {(field.type === "text" || field.type === "date") && (
+                        <input
+                          type={field.type}
+                          defaultValue={field.defaultValue}
+                          disabled={field.disabled}
+                          {...register(field.name, {
+                            required: field.required ? "Required" : false,
+                          })}
+                          placeholder={field.placeholder}
+                          className='w-full border border-gray-300 rounded-md px-3 py-2 text-sm'
+                        />
+                      )}
 
-                {/* Trade Category */}
-                <div className='col-span-12 md:col-span-4'>
-                  <label className='text-xs font-medium'>
-                    Trade / Work Category{" "}
-                    <span className='text-red-500'>*</span>
-                  </label>
-                  <select
-                    {...register("tradeCategory", { required: "Required" })}
-                    className='w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:border-green-500 focus:ring-1 focus:ring-green-500'
-                  >
-                    <option value=''>Select Category</option>
-                    {contractorManagementData.tradeCategoryOptions.map(
-                      (item) => (
-                        <option key={item.id} value={item.value}>
-                          {item.label}
-                        </option>
-                      ),
-                    )}
-                  </select>
-                </div>
+                      {/* SELECT */}
+                      {field.type === "select" && (
+                        <select
+                          {...register(field.name, {
+                            required: field.required ? "Required" : false,
+                          })}
+                          className='w-full border border-gray-300 rounded-md px-3 py-2 text-sm'
+                        >
+                          <option value=''>Select {field.label}</option>
+                          {field.options?.map((opt, i) => (
+                            <option key={i} value={opt.value}>
+                              {opt.label}
+                            </option>
+                          ))}
+                        </select>
+                      )}
 
-                {/* Contractor Name */}
-                <div className='col-span-12 md:col-span-8'>
-                  <label className='text-xs font-medium'>
-                    Contractor Name <span className='text-red-500'>*</span>
-                  </label>
-                  <input
-                    {...register("contractorName", { required: "Required" })}
-                    placeholder='Enter Contractor / Company Name'
-                    className='w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:border-green-500 focus:ring-1 focus:ring-green-500'
-                  />
-                </div>
+                      {/* TEXTAREA */}
+                      {field.type === "textarea" && (
+                        <textarea
+                          {...register(field.name)}
+                          rows='4'
+                          className='w-full border border-gray-300 rounded-md px-3 py-2 text-sm resize-none'
+                        />
+                      )}
 
-                {/* Short Name */}
-                <div className='col-span-12 md:col-span-4'>
-                  <label className='text-xs font-medium'>Short Name</label>
-                  <input
-                    {...register("shortName")}
-                    placeholder='Enter Short Name'
-                    className='w-full border border-gray-300 rounded-md px-3 py-2 text-sm'
-                  />
-                </div>
-
-                {/* Legal Status */}
-                <div className='col-span-12 md:col-span-4'>
-                  <label className='text-xs font-medium'>Legal Status</label>
-                  <select
-                    {...register("legalStatus")}
-                    className='w-full border border-gray-300 rounded-md px-3 py-2 text-sm'
-                  >
-                    <option value=''>Select Legal Status</option>
-                    {contractorManagementData.legalStatusOptions.map((item) => (
-                      <option key={item.id} value={item.value}>
-                        {item.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* Registration Type */}
-                <div className='col-span-12 md:col-span-4'>
-                  <label className='text-xs font-medium'>
-                    Registration Type
-                  </label>
-                  <input
-                    {...register("registrationType")}
-                    placeholder='Select Registration Type'
-                    className='w-full border border-gray-300 rounded-md px-3 py-2 text-sm'
-                  />
-                </div>
-
-                {/* Contractor Since */}
-                <div className='col-span-12 md:col-span-4'>
-                  <label className='text-xs font-medium'>
-                    Contractor Since
-                  </label>
-                  <input
-                    type='date'
-                    {...register("contractorSince")}
-                    className='w-full border border-gray-300 rounded-md px-3 py-2 text-sm'
-                  />
-                </div>
-
-                {/* Description */}
-                <div className='col-span-12'>
-                  <label className='text-xs font-medium'>
-                    Description / Nature of Work
-                  </label>
-                  <textarea
-                    {...register("description")}
-                    rows='4'
-                    placeholder='Enter description of work / services'
-                    className='w-full border border-gray-300 rounded-md px-3 py-2 text-sm resize-none'
-                  ></textarea>
-                </div>
+                      {/* ERROR */}
+                      {errors?.[field.name] && (
+                        <p className='text-red-500 text-xs mt-1'>
+                          {errors[field.name]?.message}
+                        </p>
+                      )}
+                    </div>
+                  ),
+                )}
               </div>
             </div>
 
