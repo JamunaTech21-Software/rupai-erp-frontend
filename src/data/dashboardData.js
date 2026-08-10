@@ -4,7 +4,6 @@ export const navSections = [
     items: [{ id: "dashboard", label: "Dashboard", icon: "Home", path: "/" }],
   },
   {
-    label: "Plantation Management",
     items: [
       {
         id: "estate-mgmt",
@@ -73,13 +72,41 @@ export const navSections = [
         ],
       },
       {
-        id: "field-planting",
-        label: "Field Planting",
-        icon: "Sprout",
+        id: "hr-&-workforce-management",
+        label: "HR & Workforce Management",
+        icon: "Users",
         expandable: true,
         children: [
-          { id: "planting-entry", label: "Planting Entry" },
-          { id: "planting-schedule", label: "Planting Schedule" },
+          {
+            id: "add-new-contractor",
+            label: "Add New Contractor",
+            path: "/add-new-contractor",
+          },
+          {
+            id: "add-new-employee",
+            label: "Add New Employee",
+            path: "/add-new-employee",
+          },
+          {
+            id: "add-new-worker",
+            label: "Add New Worker",
+            path: "/add-new-worker",
+          },
+          {
+            id: "attendance-and-face-recognition",
+            label: "Attendance (Face ID)",
+            path: "/attendance-and-face-recognition",
+          },
+          {
+            id: "contractor-management",
+            label: "Contractor Management",
+            path: "/contractor-management",
+          },
+          {
+            id: "worker-management",
+            label: "Worker Management",
+            path: "/worker-management",
+          },
         ],
       },
       {

@@ -12,7 +12,13 @@ import ReplantingAndGapFilling from "./pages/PlantationManagement/ReplantingAndG
 import PlantCensus from "./pages/PlantationManagement/PlantCensus";
 import BushRegister from "./pages/PlantationManagement/BushRegister";
 import FieldPlanting from "./pages/PlantationManagement/FieldPlanting";
-import NotFound from "./components/plantationManagementTab/404Page/NotFound";
+import NotFound from "./components/404Page/NotFound";
+import AddNewContractor from "./pages/HrAndWorkforcedManagement/AddNewContractor";
+import AddNewEmployee from "./pages/HrAndWorkforcedManagement/AddNewEmployee";
+import AddNewWorker from "./pages/HrAndWorkforcedManagement/AddNewWorker";
+import AttendenceAndFaceRecognition from "./pages/HrAndWorkforcedManagement/AttendenceAndFaceRecognition";
+import ContractorManagement from "./pages/HrAndWorkforcedManagement/ContractorManagement";
+import WorkerManagement from "./pages/HrAndWorkforcedManagement/WorkerManagement";
 
 const router = createBrowserRouter([
   {
@@ -98,6 +104,50 @@ const router = createBrowserRouter([
         element: <BushRegister />,
         handle: {
           title: "Bush register",
+        },
+      },
+
+      // HR AND WORKFORCE MANAGEMENT
+      {
+        path: "add-new-contractor",
+        element: <AddNewContractor />,
+        handle: {
+          title: "Add New Contractor",
+        },
+      },
+      {
+        path: "add-new-employee",
+        element: <AddNewEmployee />,
+        handle: {
+          title: "Add New Employee",
+        },
+      },
+      {
+        path: "add-new-worker",
+        element: <AddNewWorker />,
+        handle: {
+          title: "Add New Worker",
+        },
+      },
+      {
+        path: "attendance-and-face-recognition",
+        element: <AttendenceAndFaceRecognition />,
+        handle: {
+          title: "Attendance ( Face  ID)",
+        },
+      },
+      {
+        path: "contractor-management",
+        element: <ContractorManagement />,
+        handle: {
+          title: "Contractor Management",
+        },
+      },
+      {
+        path: "worker-management",
+        element: <WorkerManagement />,
+        handle: {
+          title: "Worker Management",
         },
       },
 
