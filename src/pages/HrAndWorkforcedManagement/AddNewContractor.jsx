@@ -3,12 +3,21 @@ import { useForm } from "react-hook-form";
 import { contractorManagementData } from "../../data/HrWorkforceData/addNewContractorData";
 import HrWorkforceTabs from "../../components/HrWorkforceTabs/HrWorkforceTabs";
 
-import { Upload, UserRound, Sprout } from "lucide-react";
+import {
+  Upload,
+  UserRound,
+  Sprout,
+  RotateCcw,
+  FileText,
+  CheckCircle,
+} from "lucide-react";
 
 const AddNewContractor = () => {
   const {
     register,
     handleSubmit,
+    reset,
+    watch,
     formState: { errors },
   } = useForm();
   const onSubmit = (data) => {
@@ -27,20 +36,29 @@ const AddNewContractor = () => {
           {/* ===== LEFT SIDE (2 CARD SAME ROW) ===== */}
           <div className='col-span-12 xl:col-span-8 grid grid-cols-12 gap-2'>
             {/* BASIC INFO */}
-            <div className='col-span-12 lg:col-span-6 border rounded-xl p-2'>
+            {/* ================= BASIC INFORMATION ================= */}
+            <div className='col-span-12 lg:col-span-6 border rounded-xl p-4'>
+              {/* HEADER */}
               <h3 className='font-semibold mb-4 text-green-700 flex items-center gap-2'>
                 1. Basic Information
               </h3>
 
+              {/* FORM FIELDS */}
               <div className='grid grid-cols-12 gap-3'>
                 {contractorManagementData.basicInformationFields.map(
-                  (field, index) => (
+                  (field) => (
                     <div
-                      key={index}
-                      className={`col-span-12 ${field.colSpan || "md:col-span-4"}`}
+                      key={field.name}
+                      className={`col-span-12 ${
+                        field.type === "textarea"
+                          ? "md:col-span-12"
+                          : field.colSpan || "md:col-span-4"
+                      }`}
                     >
-                      <label className='text-xs font-medium'>
+                      {/* LABEL */}
+                      <label className='block text-xs font-medium text-gray-700 mb-1'>
                         {field.label}
+
                         {field.required && (
                           <span className='text-red-500'> *</span>
                         )}
@@ -52,11 +70,11 @@ const AddNewContractor = () => {
                           type={field.type}
                           defaultValue={field.defaultValue}
                           disabled={field.disabled}
+                          placeholder={field.placeholder}
                           {...register(field.name, {
                             required: field.required ? "Required" : false,
                           })}
-                          placeholder={field.placeholder}
-                          className='w-full border border-gray-300 rounded-md px-3 py-2 text-sm'
+                          className='w-full border border-gray-300 rounded-md px-3 py-2 text-xs outline-none focus:border-green-500 focus:ring-1 focus:ring-green-100 disabled:bg-gray-100 disabled:text-gray-500'
                         />
                       )}
 
@@ -66,12 +84,13 @@ const AddNewContractor = () => {
                           {...register(field.name, {
                             required: field.required ? "Required" : false,
                           })}
-                          className='w-full border border-gray-300 rounded-md px-3 py-2 text-sm'
+                          className='w-full border border-gray-300 rounded-md px-3 py-2 text-xs bg-white outline-none focus:border-green-500 focus:ring-1 focus:ring-green-100'
                         >
                           <option value=''>Select {field.label}</option>
-                          {field.options?.map((opt, i) => (
-                            <option key={i} value={opt.value}>
-                              {opt.label}
+
+                          {field.options?.map((option) => (
+                            <option key={option.value} value={option.value}>
+                              {option.label}
                             </option>
                           ))}
                         </select>
@@ -80,15 +99,18 @@ const AddNewContractor = () => {
                       {/* TEXTAREA */}
                       {field.type === "textarea" && (
                         <textarea
-                          {...register(field.name)}
-                          rows='4'
-                          className='w-full border border-gray-300 rounded-md px-3 py-2 text-sm resize-none'
+                          rows='8'
+                          placeholder={field.placeholder}
+                          {...register(field.name, {
+                            required: field.required ? "Required" : false,
+                          })}
+                          className='w-full border border-gray-300 rounded-md px-3 py-2 text-xs resize-none outline-none focus:border-green-500 focus:ring-1 focus:ring-green-100'
                         />
                       )}
 
                       {/* ERROR */}
                       {errors?.[field.name] && (
-                        <p className='text-red-500 text-xs mt-1'>
+                        <p className='text-red-500 text-[10px] mt-1'>
                           {errors[field.name]?.message}
                         </p>
                       )}
@@ -99,28 +121,34 @@ const AddNewContractor = () => {
             </div>
 
             {/* CONTACT INFO */}
+            {/* ================= CONTACT & ADDRESS INFORMATION ================= */}
             <div className='col-span-12 lg:col-span-6 border rounded-xl p-4'>
-              {/* ================= HEADER ================= */}
-              <h3 className='font-semibold mb-4 text-green-700'>
+              {/* HEADER */}
+              <h3 className='font-semibold mb-4 text-green-700 flex items-center gap-2'>
                 2. Contact & Address Information
               </h3>
 
               {/* ================= CONTACT INFORMATION ================= */}
               <div className='grid grid-cols-12 gap-3'>
                 {contractorManagementData.contactInformationFields
-                  .slice(0, 3)
-                  .map((field, index) => (
-                    <div
-                      key={index}
-                      className={`col-span-12 ${field.colSpan || "md:col-span-4"}`}
-                    >
+                  .filter(
+                    (field) =>
+                      field.name === "mobileNo" ||
+                      field.name === "alternateMobile" ||
+                      field.name === "email",
+                  )
+                  .map((field) => (
+                    <div key={field.name} className='col-span-12 md:col-span-4'>
+                      {/* LABEL */}
                       <label className='block text-xs font-medium text-gray-700 mb-1'>
                         {field.label}
+
                         {field.required && (
                           <span className='text-red-500'> *</span>
                         )}
                       </label>
 
+                      {/* INPUT */}
                       <input
                         type={field.type}
                         placeholder={field.placeholder}
@@ -130,6 +158,7 @@ const AddNewContractor = () => {
                         className='w-full border border-gray-300 rounded-md px-3 py-2 text-xs outline-none focus:border-green-500 focus:ring-1 focus:ring-green-100'
                       />
 
+                      {/* ERROR */}
                       {errors?.[field.name] && (
                         <p className='text-red-500 text-[10px] mt-1'>
                           {errors[field.name]?.message}
@@ -141,6 +170,10 @@ const AddNewContractor = () => {
 
               {/* ================= PRESENT ADDRESS ================= */}
               <div className='mt-4'>
+                <h4 className='text-xs font-semibold text-gray-700 mb-2'>
+                  Present Address
+                </h4>
+
                 <div className='grid grid-cols-12 gap-3'>
                   {/* ADDRESS */}
                   <div className='col-span-12 md:col-span-6'>
@@ -258,13 +291,17 @@ const AddNewContractor = () => {
 
               {/* ================= PERMANENT ADDRESS ================= */}
               <div className='mt-4'>
-                <p className='text-xs font-semibold text-gray-700 mb-2'>
+                <h4 className='text-xs font-semibold text-gray-700 mb-2'>
                   Permanent Address
-                </p>
+                </h4>
 
                 <div className='grid grid-cols-12 gap-3'>
                   {/* ADDRESS */}
                   <div className='col-span-12 md:col-span-6'>
+                    <label className='block text-xs font-medium text-gray-700 mb-1'>
+                      Address
+                    </label>
+
                     <textarea
                       rows='2'
                       placeholder='Enter Permanent Address'
@@ -405,9 +442,10 @@ const AddNewContractor = () => {
 
             {/* CONTACT PERSON */}
             {/* ================= CONTACT PERSON ================= */}
+            {/* ================= CONTACT PERSON / PROPRIETOR ================= */}
             <div className='border rounded-xl p-4'>
               {/* HEADER */}
-              <h3 className='font-semibold mb-4 text-green-700'>
+              <h3 className='font-semibold mb-4 text-green-700 flex items-center gap-2'>
                 4. Contact Person / Proprietor Information
               </h3>
 
@@ -415,12 +453,7 @@ const AddNewContractor = () => {
               <div className='grid grid-cols-12 gap-3'>
                 {contractorManagementData.contactPersonInformationFields.map(
                   (field) => (
-                    <div
-                      key={field.name}
-                      className={`col-span-12 ${
-                        field.colSpan || "md:col-span-6"
-                      }`}
-                    >
+                    <div key={field.name} className='col-span-12 md:col-span-6'>
                       {/* LABEL */}
                       <label className='block text-xs font-medium text-gray-700 mb-1'>
                         {field.label}
@@ -455,40 +488,505 @@ const AddNewContractor = () => {
         </div>
 
         {/* ================= ROW 2 ================= */}
-        <div className='grid grid-cols-12 gap-4 mt-4'>
-          <div className='col-span-12 xl:col-span-4 border rounded-xl p-4'>
-            <h3 className='font-semibold'>5. Business Info</h3>
+        <div className='grid grid-cols-12 gap-2 mt-4'>
+          {/* ================= BUSINESS / REGISTRATION INFO ================= */}
+          <div className='col-span-12 xl:col-span-4 border rounded-xl p-2'>
+            {/* HEADER */}
+            <h3 className='font-semibold mb-4 text-green-700 flex items-center gap-2'>
+              5. Business / Registration Information
+            </h3>
+
+            {/* FORM FIELDS */}
+            <div className='grid grid-cols-12 gap-3'>
+              {contractorManagementData.businessRegistrationFields.map(
+                (field) => (
+                  <div key={field.name} className='col-span-12 md:col-span-4'>
+                    {/* LABEL */}
+                    <label className='block text-xs font-medium text-gray-700 mb-1'>
+                      {field.label}
+
+                      {field.required && (
+                        <span className='text-red-500'> *</span>
+                      )}
+                    </label>
+
+                    {/* INPUT */}
+                    <input
+                      type={field.type}
+                      placeholder={field.placeholder}
+                      {...register(field.name, {
+                        required: field.required ? "Required" : false,
+                      })}
+                      className='w-full border border-gray-300 rounded-md px-3 py-2 text-xs outline-none focus:border-green-500 focus:ring-1 focus:ring-green-100'
+                    />
+
+                    {/* ERROR */}
+                    {errors?.[field.name] && (
+                      <p className='text-red-500 text-[10px] mt-1'>
+                        {errors[field.name]?.message}
+                      </p>
+                    )}
+                  </div>
+                ),
+              )}
+            </div>
           </div>
 
-          <div className='col-span-12 xl:col-span-4 border rounded-xl p-4'>
-            <h3 className='font-semibold'>6. Contract Info</h3>
+          {/* ================= CONTRACT INFORMATION ================= */}
+          <div className='col-span-12 xl:col-span-4 border rounded-xl p-2'>
+            {/* HEADER */}
+            <h3 className='font-semibold mb-4 text-green-700 flex items-center gap-2'>
+              6. Contract Information
+            </h3>
+
+            {/* FORM FIELDS */}
+            <div className='grid grid-cols-12 gap-2'>
+              {contractorManagementData.contractInformationFields?.map(
+                (field) => (
+                  <div key={field.name} className='col-span-12 md:col-span-4'>
+                    {/* LABEL */}
+                    <label className='block text-xs font-medium text-gray-700 mb-1'>
+                      {field.label}
+
+                      {field.required && (
+                        <span className='text-red-500'> *</span>
+                      )}
+                    </label>
+
+                    {/* TEXT / DATE / NUMBER */}
+                    {(field.type === "text" ||
+                      field.type === "date" ||
+                      field.type === "number") && (
+                      <input
+                        type={field.type}
+                        defaultValue={field.defaultValue}
+                        placeholder={field.placeholder}
+                        {...register(field.name, {
+                          required: field.required ? "Required" : false,
+                        })}
+                        className='w-full border border-gray-300 rounded-md px-3 py-2 text-xs outline-none focus:border-green-500 focus:ring-1 focus:ring-green-100'
+                      />
+                    )}
+
+                    {/* SELECT */}
+                    {field.type === "select" && (
+                      <select
+                        {...register(field.name, {
+                          required: field.required ? "Required" : false,
+                        })}
+                        className='w-full border border-gray-300 rounded-md px-3 py-2 text-xs bg-white outline-none focus:border-green-500 focus:ring-1 focus:ring-green-100'
+                      >
+                        <option value=''>Select {field.label}</option>
+
+                        {field.optionsKey &&
+                          contractorManagementData[field.optionsKey]?.map(
+                            (option) => (
+                              <option key={option.id} value={option.value}>
+                                {option.label}
+                              </option>
+                            ),
+                          )}
+                      </select>
+                    )}
+
+                    {/* ERROR */}
+                    {errors?.[field.name] && (
+                      <p className='text-red-500 text-[10px] mt-1'>
+                        {errors[field.name]?.message}
+                      </p>
+                    )}
+                  </div>
+                ),
+              )}
+            </div>
           </div>
 
-          <div className='col-span-12 xl:col-span-4 border rounded-xl p-4'>
-            <h3 className='font-semibold'>7. Banking Info</h3>
+          {/* ================= BANKING INFORMATION ================= */}
+          <div className='col-span-12 xl:col-span-4 border rounded-xl p-2'>
+            {/* HEADER */}
+            <h3 className='font-semibold mb-3 text-green-700 flex items-center gap-2'>
+              7. Banking Information
+            </h3>
+
+            {/* FORM FIELDS */}
+            <div className='grid grid-cols-12 gap-2'>
+              {contractorManagementData.bankingInformationFields.map(
+                (field) => (
+                  <div key={field.name} className='col-span-12 md:col-span-6'>
+                    {/* LABEL */}
+                    <label className='block text-xs font-medium text-gray-700 mb-1'>
+                      {field.label}
+
+                      {field.required && (
+                        <span className='text-red-500'> *</span>
+                      )}
+                    </label>
+
+                    {/* TEXT / NUMBER */}
+                    {(field.type === "text" || field.type === "number") && (
+                      <input
+                        type={field.type}
+                        defaultValue={field.defaultValue}
+                        placeholder={field.placeholder}
+                        {...register(field.name, {
+                          required: field.required ? "Required" : false,
+                        })}
+                        className='w-full border border-gray-300 rounded-md px-3 py-2 text-xs outline-none focus:border-green-500 focus:ring-1 focus:ring-green-100'
+                      />
+                    )}
+
+                    {/* SELECT */}
+                    {field.type === "select" && (
+                      <select
+                        {...register(field.name, {
+                          required: field.required ? "Required" : false,
+                        })}
+                        className='w-full border border-gray-300 rounded-md px-3 py-2 text-xs bg-white outline-none focus:border-green-500 focus:ring-1 focus:ring-green-100'
+                      >
+                        <option value=''>Select {field.label}</option>
+
+                        {contractorManagementData[field.optionsKey]?.map(
+                          (option) => (
+                            <option key={option.id} value={option.value}>
+                              {option.label}
+                            </option>
+                          ),
+                        )}
+                      </select>
+                    )}
+
+                    {/* ERROR */}
+                    {errors?.[field.name] && (
+                      <p className='text-red-500 text-[10px] mt-1'>
+                        {errors[field.name]?.message}
+                      </p>
+                    )}
+                  </div>
+                ),
+              )}
+            </div>
           </div>
         </div>
 
         {/* ================= ROW 3 ================= */}
-        <div className='grid grid-cols-12 gap-4 mt-4'>
-          <div className='col-span-12 xl:col-span-4 border rounded-xl p-4'>
-            <h3 className='font-semibold'>8. Documents</h3>
+        <div className='grid grid-cols-12 gap-2 mt-4'>
+          {/* ================= DOCUMENTS & FILES ================= */}
+          <div className='col-span-12 xl:col-span-4 border rounded-xl p-2'>
+            {/* HEADER */}
+            <h3 className='font-semibold mb-3 text-green-700 flex items-center gap-2'>
+              8. Documents & Files
+            </h3>
+
+            {/* DOCUMENT GRID */}
+            <div className='grid grid-cols-2 md:grid-cols-5 gap-2'>
+              {contractorManagementData.documentFields.map((field) => (
+                <div
+                  key={field.name}
+                  className='border border-gray-200 rounded-md p-2 flex flex-col items-center justify-center text-center min-h-[72px]'
+                >
+                  {/* DOCUMENT NAME */}
+                  <p className='text-[9px] font-medium text-gray-700 mb-2 leading-tight'>
+                    {field.label}
+                  </p>
+
+                  {/* UPLOAD */}
+                  <label
+                    htmlFor={field.name}
+                    className='cursor-pointer flex flex-col items-center justify-center'
+                  >
+                    <Upload size={14} className='text-gray-500 mb-1' />
+
+                    <span className='text-[9px] text-gray-600'>Upload</span>
+                  </label>
+
+                  {/* FILE INPUT */}
+                  <input
+                    id={field.name}
+                    type='file'
+                    accept={field.accept}
+                    className='hidden'
+                    {...register(field.name, {
+                      validate: (files) => {
+                        if (!files || files.length === 0) {
+                          return true;
+                        }
+
+                        const file = files[0];
+
+                        const maxSize = field.maxSize * 1024 * 1024;
+
+                        if (file.size > maxSize) {
+                          return `Maximum file size is ${field.maxSize}MB`;
+                        }
+
+                        return true;
+                      },
+                    })}
+                  />
+
+                  {/* ERROR */}
+                  {errors?.[field.name] && (
+                    <p className='text-red-500 text-[8px] mt-1'>
+                      {errors[field.name]?.message}
+                    </p>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            {/* NOTE */}
+            <p className='text-[9px] text-gray-500 mt-3'>
+              Note: {contractorManagementData.documentUploadNote}
+            </p>
           </div>
 
-          <div className='col-span-12 xl:col-span-4 border rounded-xl p-4'>
-            <h3 className='font-semibold'>9. Additional Info</h3>
+          {/* ================= ADDITIONAL IMPORTANT INFORMATION ================= */}
+          {/* ================= ADDITIONAL IMPORTANT INFORMATION ================= */}
+          <div className='col-span-12 xl:col-span-4 border rounded-xl p-2'>
+            {/* HEADER */}
+            <h3 className='font-semibold mb-3 text-green-700'>
+              9. Additional Important Information
+            </h3>
+
+            {/* FORM FIELDS */}
+            <div className='grid grid-cols-12 gap-2'>
+              {contractorManagementData.additionalInformationFields.map(
+                (field, index) => (
+                  <div
+                    key={field.name}
+                    className={`
+            col-span-12
+            ${
+              index === 0
+                ? "md:col-span-4"
+                : index === 1
+                  ? "md:col-span-5"
+                  : index === 2
+                    ? "md:col-span-3"
+                    : index === 3
+                      ? "md:col-span-6"
+                      : index === 4
+                        ? "md:col-span-6"
+                        : "md:col-span-12"
+            }
+          `}
+                  >
+                    <label className='block text-xs font-medium text-gray-700 mb-1'>
+                      {field.label}
+
+                      {field.required && (
+                        <span className='text-red-500'> *</span>
+                      )}
+                    </label>
+
+                    {/* TEXT / NUMBER */}
+                    {(field.type === "text" || field.type === "number") && (
+                      <input
+                        type={field.type}
+                        defaultValue={field.defaultValue}
+                        placeholder={field.placeholder}
+                        {...register(field.name, {
+                          required: field.required ? "Required" : false,
+                        })}
+                        className='w-full border border-gray-300 rounded-md px-3 py-2 text-xs outline-none focus:border-green-500 focus:ring-1 focus:ring-green-100'
+                      />
+                    )}
+
+                    {/* SELECT */}
+                    {field.type === "select" && (
+                      <select
+                        {...register(field.name, {
+                          required: field.required ? "Required" : false,
+                        })}
+                        className='w-full border border-gray-300 rounded-md px-3 py-2 text-xs bg-white outline-none focus:border-green-500 focus:ring-1 focus:ring-green-100'
+                      >
+                        <option value=''>Select {field.label}</option>
+
+                        {contractorManagementData[field.optionsKey]?.map(
+                          (option) => (
+                            <option key={option.id} value={option.value}>
+                              {option.label}
+                            </option>
+                          ),
+                        )}
+                      </select>
+                    )}
+
+                    {/* TEXTAREA */}
+                    {field.type === "textarea" && (
+                      <textarea
+                        rows='2'
+                        placeholder={field.placeholder}
+                        {...register(field.name, {
+                          required: field.required ? "Required" : false,
+                        })}
+                        className='w-full border border-gray-300 rounded-md px-3 py-2 text-xs resize-none outline-none focus:border-green-500 focus:ring-1 focus:ring-green-100'
+                      />
+                    )}
+
+                    {/* ERROR */}
+                    {errors?.[field.name] && (
+                      <p className='text-red-500 text-[10px] mt-1'>
+                        {errors[field.name]?.message}
+                      </p>
+                    )}
+                  </div>
+                ),
+              )}
+            </div>
           </div>
 
-          <div className='col-span-12 xl:col-span-4 border rounded-xl p-4'>
-            <h3 className='font-semibold'>10. Emergency</h3>
+          {/* ================= EMERGENCY CONTACT ================= */}
+          <div className='col-span-12 xl:col-span-4 border rounded-xl p-2'>
+            {/* HEADER */}
+            <h3 className='font-semibold mb-3 text-green-700 flex items-center gap-2'>
+              10. Emergency Contact
+            </h3>
+
+            {/* FORM FIELDS */}
+            <div className='grid grid-cols-12 gap-2'>
+              {/* Emergency Contact Name */}
+              <div className='col-span-12 md:col-span-6'>
+                <label className='block text-xs font-medium text-gray-700 mb-1'>
+                  Emergency Contact Name
+                  <span className='text-red-500'> *</span>
+                </label>
+
+                <input
+                  type='text'
+                  placeholder='Enter Name'
+                  {...register("emergencyContactName", {
+                    required: "Required",
+                  })}
+                  className='w-full border border-gray-300 rounded-md px-3 py-2 text-xs outline-none focus:border-green-500 focus:ring-1 focus:ring-green-100'
+                />
+
+                {errors?.emergencyContactName && (
+                  <p className='text-red-500 text-[10px] mt-1'>
+                    {errors.emergencyContactName.message}
+                  </p>
+                )}
+              </div>
+
+              {/* Relation */}
+              <div className='col-span-12 md:col-span-6'>
+                <label className='block text-xs font-medium text-gray-700 mb-1'>
+                  Relation
+                  <span className='text-red-500'> *</span>
+                </label>
+
+                <select
+                  {...register("emergencyRelation", {
+                    required: "Required",
+                  })}
+                  className='w-full border border-gray-300 rounded-md px-3 py-2 text-xs bg-white outline-none focus:border-green-500 focus:ring-1 focus:ring-green-100'
+                >
+                  <option value=''>Select Relation</option>
+
+                  {contractorManagementData.relationOptions?.map((option) => (
+                    <option key={option.id} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+
+                {errors?.emergencyRelation && (
+                  <p className='text-red-500 text-[10px] mt-1'>
+                    {errors.emergencyRelation.message}
+                  </p>
+                )}
+              </div>
+
+              {/* Mobile No. */}
+              <div className='col-span-12 md:col-span-6'>
+                <label className='block text-xs font-medium text-gray-700 mb-1'>
+                  Mobile No.
+                  <span className='text-red-500'> *</span>
+                </label>
+
+                <input
+                  type='text'
+                  placeholder='01XXXXXXXXX'
+                  {...register("emergencyMobile", {
+                    required: "Required",
+                  })}
+                  className='w-full border border-gray-300 rounded-md px-3 py-2 text-xs outline-none focus:border-green-500 focus:ring-1 focus:ring-green-100'
+                />
+
+                {errors?.emergencyMobile && (
+                  <p className='text-red-500 text-[10px] mt-1'>
+                    {errors.emergencyMobile.message}
+                  </p>
+                )}
+              </div>
+
+              {/* Alternate Mobile */}
+              <div className='col-span-12 md:col-span-6'>
+                <label className='block text-xs font-medium text-gray-700 mb-1'>
+                  Alternate Mobile
+                </label>
+
+                <input
+                  type='text'
+                  placeholder='01XXXXXXXXX'
+                  {...register("emergencyAlternateMobile")}
+                  className='w-full border border-gray-300 rounded-md px-3 py-2 text-xs outline-none focus:border-green-500 focus:ring-1 focus:ring-green-100'
+                />
+              </div>
+
+              {/* Address */}
+              <div className='col-span-12'>
+                <label className='block text-xs font-medium text-gray-700 mb-1'>
+                  Address
+                </label>
+
+                <textarea
+                  rows='2'
+                  placeholder='Enter Address'
+                  {...register("emergencyAddress")}
+                  className='w-full border border-gray-300 rounded-md px-3 py-2 text-xs resize-none outline-none focus:border-green-500 focus:ring-1 focus:ring-green-100'
+                />
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* ================= SUBMIT ================= */}
-        <div className='flex justify-end mt-4'>
-          <button type='submit' className='btn btn-success'>
-            Save & Submit
-          </button>
+        {/* ================= FORM ACTIONS ================= */}
+        {/* ================= FORM ACTIONS ================= */}
+        <div className='border-t border-gray-200 mt-3 pt-2'>
+          <div className='flex flex-wrap items-center justify-end gap-2'>
+            {/* RESET */}
+            <button
+              type='button'
+              onClick={() => reset()}
+              className='flex items-center justify-center gap-1.5 border border-gray-300 bg-white text-gray-700 rounded-md px-4 py-2 text-xs font-medium hover:bg-gray-50 transition'
+            >
+              <RotateCcw size={14} />
+              <span>Reset</span>
+            </button>
+
+            {/* SAVE AS DRAFT */}
+            <button
+              type='button'
+              onClick={() => {
+                const data = watch();
+                console.log("SAVE AS DRAFT:", data);
+              }}
+              className='flex items-center justify-center gap-1.5 border border-gray-300 bg-white text-gray-700 rounded-md px-4 py-2 text-xs font-medium hover:bg-gray-50 transition'
+            >
+              <FileText size={14} />
+              <span>Save as Draft</span>
+            </button>
+
+            {/* SAVE & SUBMIT */}
+            <button
+              type='submit'
+              className='flex items-center justify-center gap-1.5 bg-green-700 hover:bg-green-800 text-white rounded-md px-4 py-2 text-xs font-medium transition'
+            >
+              <CheckCircle size={14} />
+              <span>Save & Submit</span>
+            </button>
+          </div>
         </div>
       </form>
     </div>

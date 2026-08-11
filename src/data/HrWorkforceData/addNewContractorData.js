@@ -1,42 +1,89 @@
 export const contractorManagementData = {
   // =========================
-  // Dropdown Options
+  // Contract Information Options
   // =========================
 
-  contractorTypeOptions: [
-    { id: 1, value: "individual", label: "Individual" },
-    { id: 2, value: "company", label: "Company" },
-    { id: 3, value: "supplier", label: "Supplier" },
+  contractDurationOptions: [
+    { id: 1, value: "3-months", label: "3 Months" },
+    { id: 2, value: "6-months", label: "6 Months" },
+    { id: 3, value: "1-year", label: "1 Year" },
+    { id: 4, value: "2-years", label: "2 Years" },
   ],
-
-  tradeCategoryOptions: [
-    { id: 1, value: "construction", label: "Construction" },
-    { id: 2, value: "electrical", label: "Electrical" },
-    { id: 3, value: "mechanical", label: "Mechanical" },
-    { id: 4, value: "transport", label: "Transport" },
-  ],
-
-  legalStatusOptions: [
-    { id: 1, value: "proprietorship", label: "Proprietorship" },
-    { id: 2, value: "partnership", label: "Partnership" },
-    { id: 3, value: "private-ltd", label: "Private Limited" },
-  ],
-
   districtOptions: [
     { id: 1, value: "dhaka", label: "Dhaka" },
     { id: 2, value: "chattogram", label: "Chattogram" },
   ],
-
-  bankOptions: [
-    { id: 1, value: "dbbl", label: "DBBL" },
-    { id: 2, value: "brac", label: "BRAC Bank" },
+  paymentTermsOptions: [
+    { id: 1, value: "advance", label: "Advance Payment" },
+    { id: 2, value: "monthly", label: "Monthly" },
+    { id: 3, value: "quarterly", label: "Quarterly" },
+    { id: 4, value: "milestone", label: "Milestone Based" },
   ],
 
-  relationOptions: [
-    { id: 1, value: "father", label: "Father" },
-    { id: 2, value: "mother", label: "Mother" },
+  workLocationOptions: [
+    { id: 1, value: "estate", label: "Estate" },
+    { id: 2, value: "factory", label: "Factory" },
+    { id: 3, value: "office", label: "Office" },
+    { id: 4, value: "field", label: "Field / Block" },
   ],
 
+  reportingToOptions: [
+    { id: 1, value: "estate-manager", label: "Estate Manager" },
+    { id: 2, value: "hr-manager", label: "HR Manager" },
+    { id: 3, value: "admin-manager", label: "Admin Manager" },
+    { id: 4, value: "project-manager", label: "Project Manager" },
+  ],
+
+  contractStatusOptions: [
+    { id: 1, value: "active", label: "Active" },
+    { id: 2, value: "pending", label: "Pending" },
+    { id: 3, value: "completed", label: "Completed" },
+    { id: 4, value: "terminated", label: "Terminated" },
+  ],
+  // =========================
+  // Additional Information Options
+  // =========================
+
+  safetyComplianceOptions: [
+    {
+      id: 1,
+      value: "compliant",
+      label: "Compliant",
+    },
+    {
+      id: 2,
+      value: "partially-compliant",
+      label: "Partially Compliant",
+    },
+    {
+      id: 3,
+      value: "non-compliant",
+      label: "Non-Compliant",
+    },
+  ],
+
+  qualityRatingOptions: [
+    {
+      id: 1,
+      value: "excellent",
+      label: "Excellent",
+    },
+    {
+      id: 2,
+      value: "good",
+      label: "Good",
+    },
+    {
+      id: 3,
+      value: "average",
+      label: "Average",
+    },
+    {
+      id: 4,
+      value: "poor",
+      label: "Poor",
+    },
+  ],
   // =========================
   // Basic Information
   // =========================
@@ -73,6 +120,8 @@ export const contractorManagementData = {
         { value: "transport", label: "Transport" },
       ],
     },
+
+    // Special layout: 8 columns
     {
       name: "contractorName",
       label: "Contractor Name",
@@ -81,6 +130,8 @@ export const contractorManagementData = {
       required: true,
       colSpan: "md:col-span-8",
     },
+
+    // Special layout: 4 columns
     {
       name: "shortName",
       label: "Short Name",
@@ -88,6 +139,7 @@ export const contractorManagementData = {
       placeholder: "Enter Short Name",
       colSpan: "md:col-span-4",
     },
+
     {
       name: "legalStatus",
       label: "Legal Status",
@@ -112,7 +164,6 @@ export const contractorManagementData = {
       name: "description",
       label: "Description / Nature of Work",
       type: "textarea",
-      colSpan: "col-span-12",
     },
   ],
 
@@ -121,44 +172,44 @@ export const contractorManagementData = {
   // =========================
 
   contactInformationFields: [
+    // =========================
+    // Contact Information
+    // =========================
     {
       name: "mobileNo",
       label: "Mobile No.",
       type: "text",
       placeholder: "01XXXXXXXXX",
       required: true,
-      colSpan: "md:col-span-4",
     },
     {
       name: "alternateMobile",
       label: "Alternate Mobile",
       type: "text",
       placeholder: "01XXXXXXXXX",
-      colSpan: "md:col-span-4",
     },
     {
       name: "email",
       label: "Email",
       type: "email",
       placeholder: "example@email.com",
-      colSpan: "md:col-span-4",
     },
 
+    // =========================
     // Present Address
+    // =========================
     {
       name: "presentAddress",
       label: "Address",
       type: "textarea",
       placeholder: "Enter Present Address",
       required: true,
-      colSpan: "md:col-span-6",
     },
     {
       name: "presentDistrict",
       label: "District",
       type: "select",
       required: true,
-      colSpan: "md:col-span-3",
       options: [
         { value: "dhaka", label: "Dhaka" },
         { value: "chattogram", label: "Chattogram" },
@@ -169,12 +220,9 @@ export const contractorManagementData = {
       label: "Upazila",
       type: "select",
       required: true,
-      colSpan: "md:col-span-3",
       options: [
         { value: "savar", label: "Savar" },
         { value: "dhamrai", label: "Dhamrai" },
-        { value: "kotwali", label: "Kotwali" },
-        { value: "kotwali", label: "Kotwali" },
         { value: "kotwali", label: "Kotwali" },
       ],
     },
@@ -183,22 +231,21 @@ export const contractorManagementData = {
       label: "Postal Code",
       type: "text",
       placeholder: "Enter Postal Code",
-      colSpan: "md:col-span-4",
     },
 
+    // =========================
     // Permanent Address
+    // =========================
     {
       name: "permanentAddress",
       label: "Address",
       type: "textarea",
       placeholder: "Enter Permanent Address",
-      colSpan: "md:col-span-6",
     },
     {
       name: "permanentDistrict",
       label: "District",
       type: "select",
-      colSpan: "md:col-span-3",
       options: [
         { value: "dhaka", label: "Dhaka" },
         { value: "chattogram", label: "Chattogram" },
@@ -208,12 +255,9 @@ export const contractorManagementData = {
       name: "permanentUpazila",
       label: "Upazila",
       type: "select",
-      colSpan: "md:col-span-3",
       options: [
         { value: "savar", label: "Savar" },
         { value: "dhamrai", label: "Dhamrai" },
-        { value: "kotwali", label: "Kotwali" },
-        { value: "kotwali", label: "Kotwali" },
         { value: "kotwali", label: "Kotwali" },
       ],
     },
@@ -222,7 +266,6 @@ export const contractorManagementData = {
       label: "Postal Code",
       type: "text",
       placeholder: "Enter Postal Code",
-      colSpan: "md:col-span-4",
     },
   ],
   // =========================
@@ -249,6 +292,7 @@ export const contractorManagementData = {
       required: false,
     },
   ],
+
   // =========================
   // Contact Person / Proprietor Information
   // =========================
@@ -260,14 +304,12 @@ export const contractorManagementData = {
       type: "text",
       placeholder: "Enter Name",
       required: true,
-      colSpan: "md:col-span-6",
     },
     {
       name: "designation",
       label: "Designation",
       type: "text",
       placeholder: "Enter Designation",
-      colSpan: "md:col-span-6",
     },
     {
       name: "contactPersonMobile",
@@ -275,14 +317,362 @@ export const contractorManagementData = {
       type: "text",
       placeholder: "01XXXXXXXXX",
       required: true,
-      colSpan: "md:col-span-6",
     },
     {
       name: "contactPersonEmail",
       label: "Email",
       type: "email",
       placeholder: "example@email.com",
-      colSpan: "md:col-span-6",
+    },
+  ],
+
+  // =========================
+  // Business / Registration Information
+  // =========================
+
+  businessRegistrationFields: [
+    {
+      name: "nationalIdNo",
+      label: "National ID No.",
+      type: "text",
+      placeholder: "Enter National ID",
+    },
+    {
+      name: "tradeLicenseNo",
+      label: "Trade License No.",
+      type: "text",
+      placeholder: "Enter Trade License No.",
+      required: true,
+    },
+    {
+      name: "tradeLicenseExpiry",
+      label: "Trade License Expiry",
+      type: "date",
+    },
+    {
+      name: "binNo",
+      label: "BIN No.",
+      type: "text",
+      placeholder: "Enter BIN No.",
+    },
+    {
+      name: "tinNo",
+      label: "TIN No.",
+      type: "text",
+      placeholder: "Enter TIN No.",
+    },
+    {
+      name: "vatRegistrationNo",
+      label: "VAT Registration No.",
+      type: "text",
+      placeholder: "Enter VAT Reg. No.",
+    },
+    {
+      name: "companyRegistrationNo",
+      label: "Company Registration No.",
+      type: "text",
+      placeholder: "Enter Reg. No.",
+    },
+    {
+      name: "registrationDate",
+      label: "Registration Date",
+      type: "date",
+    },
+    {
+      name: "renewalDate",
+      label: "Renewal Date",
+      type: "date",
+    },
+  ],
+
+  // =========================
+  // Contract Information
+  // =========================
+
+  contractInformationFields: [
+    {
+      name: "contractReferenceNo",
+      label: "Contract Reference No.",
+      type: "text",
+      placeholder: "Enter Contract Ref. No.",
+      required: true,
+    },
+    {
+      name: "contractStartDate",
+      label: "Contract Start Date",
+      type: "date",
+      required: true,
+    },
+    {
+      name: "contractEndDate",
+      label: "Contract End Date",
+      type: "date",
+      required: true,
+    },
+    {
+      name: "contractDuration",
+      label: "Contract Duration",
+      type: "select",
+      optionsKey: "contractDurationOptions",
+      required: true,
+    },
+    {
+      name: "paymentTerms",
+      label: "Payment Terms",
+      type: "select",
+      optionsKey: "paymentTermsOptions",
+      required: true,
+    },
+    {
+      name: "contractValue",
+      label: "Contract Value (৳)",
+      type: "number",
+      placeholder: "Enter Amount",
+    },
+    {
+      name: "workLocation",
+      label: "Work Location / Area",
+      type: "select",
+      optionsKey: "workLocationOptions",
+      required: true,
+    },
+    {
+      name: "reportingTo",
+      label: "Reporting To",
+      type: "select",
+      optionsKey: "reportingToOptions",
+      required: true,
+    },
+    {
+      name: "contractStatus",
+      label: "Contract Status",
+      type: "select",
+      optionsKey: "contractStatusOptions",
+      defaultValue: "active",
+      required: true,
+    },
+  ],
+  // =========================
+  // Banking Information Options
+  // =========================
+
+  bankOptions: [
+    {
+      id: 1,
+      value: "dbbl",
+      label: "Dutch-Bangla Bank",
+    },
+    {
+      id: 2,
+      value: "brac",
+      label: "BRAC Bank",
+    },
+    {
+      id: 3,
+      value: "city",
+      label: "City Bank",
+    },
+    {
+      id: 4,
+      value: "prime",
+      label: "Prime Bank",
+    },
+  ],
+  // =========================
+  // Banking Information
+  // =========================
+
+  bankingInformationFields: [
+    {
+      name: "bankName",
+      label: "Bank Name",
+      type: "select",
+      optionsKey: "bankOptions",
+      required: true,
+    },
+    {
+      name: "branchName",
+      label: "Branch Name",
+      type: "text",
+      placeholder: "Enter Branch Name",
+      required: true,
+    },
+    {
+      name: "accountName",
+      label: "Account Name",
+      type: "text",
+      placeholder: "Enter Account Name",
+      required: true,
+    },
+    {
+      name: "accountNo",
+      label: "Account No.",
+      type: "text",
+      placeholder: "Enter Account No.",
+      required: true,
+    },
+    {
+      name: "routingNo",
+      label: "Routing No.",
+      type: "text",
+      placeholder: "Enter Routing No.",
+    },
+    {
+      name: "mobileBanking",
+      label: "Mobile Banking (Bkash / Nagad)",
+      type: "text",
+      placeholder: "01XXXXXXXXX",
+    },
+  ],
+  // =========================
+  // Documents & Files
+  // =========================
+
+  documentFields: [
+    {
+      name: "tradeLicense",
+      label: "Trade License",
+      type: "file",
+      accept: ".pdf,.jpg,.jpeg,.png",
+      maxSize: 2,
+    },
+    {
+      name: "tinCertificate",
+      label: "TIN Certificate",
+      type: "file",
+      accept: ".pdf,.jpg,.jpeg,.png",
+      maxSize: 2,
+    },
+    {
+      name: "vatCertificate",
+      label: "VAT Certificate",
+      type: "file",
+      accept: ".pdf,.jpg,.jpeg,.png",
+      maxSize: 2,
+    },
+    {
+      name: "bankDocument",
+      label: "Bank Document",
+      type: "file",
+      accept: ".pdf,.jpg,.jpeg,.png",
+      maxSize: 2,
+    },
+    {
+      name: "contractAgreement",
+      label: "Contract Agreement",
+      type: "file",
+      accept: ".pdf,.jpg,.jpeg,.png",
+      maxSize: 2,
+    },
+    {
+      name: "insurance",
+      label: "Insurance",
+      type: "file",
+      accept: ".pdf,.jpg,.jpeg,.png",
+      maxSize: 2,
+    },
+    {
+      name: "workPermit",
+      label: "Work Permit",
+      type: "file",
+      accept: ".pdf,.jpg,.jpeg,.png",
+      maxSize: 2,
+    },
+    {
+      name: "otherDocument1",
+      label: "Other Document 1",
+      type: "file",
+      accept: ".pdf,.jpg,.jpeg,.png",
+      maxSize: 2,
+    },
+    {
+      name: "otherDocument2",
+      label: "Other Document 2",
+      type: "file",
+      accept: ".pdf,.jpg,.jpeg,.png",
+      maxSize: 2,
+    },
+  ],
+  // =========================
+  // Additional Important Information
+  // =========================
+
+  additionalInformationFields: [
+    {
+      name: "numberOfWorkers",
+      label: "No. of Workers",
+      type: "number",
+      placeholder: "Enter Number",
+    },
+    {
+      name: "equipmentToolsOwned",
+      label: "Equipment / Tools Owned",
+      type: "textarea",
+      placeholder: "Enter details of equipment / tools",
+    },
+    {
+      name: "yearsOfExperience",
+      label: "Years of Experience",
+      type: "number",
+      placeholder: "Enter Years",
+    },
+    {
+      name: "safetyCompliance",
+      label: "Safety Compliance",
+      type: "select",
+      optionsKey: "safetyComplianceOptions",
+    },
+    {
+      name: "qualityRating",
+      label: "Quality Rating (If Any)",
+      type: "select",
+      optionsKey: "qualityRatingOptions",
+    },
+    {
+      name: "remarks",
+      label: "Remarks",
+      type: "textarea",
+      placeholder: "Enter any remarks",
+    },
+  ],
+
+  // =========================
+  // Emergency Contact
+  // =========================
+
+  emergencyContactFields: [
+    {
+      name: "emergencyContactName",
+      label: "Emergency Contact Name",
+      type: "text",
+      placeholder: "Enter Name",
+      required: true,
+    },
+    {
+      name: "emergencyRelation",
+      label: "Relation",
+      type: "select",
+      required: true,
+      optionsKey: "relationOptions",
+    },
+    {
+      name: "emergencyMobile",
+      label: "Mobile No.",
+      type: "text",
+      placeholder: "01XXXXXXXXX",
+      required: true,
+    },
+    {
+      name: "emergencyAlternateMobile",
+      label: "Alternate Mobile",
+      type: "text",
+      placeholder: "01XXXXXXXXX",
+    },
+    {
+      name: "emergencyAddress",
+      label: "Address",
+      type: "textarea",
+      placeholder: "Enter Address",
     },
   ],
   // =========================
