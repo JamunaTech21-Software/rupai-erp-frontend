@@ -12,6 +12,11 @@ import {
   Upload,
   Camera,
   Fingerprint,
+  PhoneCall,
+  UserRoundCheck,
+  RotateCcw,
+  Save,
+  CheckCircle,
 } from "lucide-react";
 
 const AddNewEmployee = () => {
@@ -51,7 +56,7 @@ const AddNewEmployee = () => {
               {/* 1. BASIC INFORMATION */}
               {/* ================================= */}
 
-              <div className='col-span-12 lg:col-span-6 border rounded-xl p-2'>
+              <div className='col-span-12 lg:col-span-6  border border-gray-200 rounded-xl p-2.5 bg-white p-2'>
                 <h3 className='font-semibold text-green-700 mb-3'>
                   1. Basic Information
                 </h3>
@@ -132,7 +137,7 @@ const AddNewEmployee = () => {
               {/* 2. EMPLOYMENT INFORMATION */}
               {/* ================================= */}
 
-              <div className='col-span-12 lg:col-span-6 border rounded-xl p-2'>
+              <div className='col-span-12 lg:col-span-6 border border-gray-200 rounded-xl p-2.5 bg-white p-2'>
                 {/* HEADER */}
                 <h3 className='font-semibold text-green-700 mb-3'>
                   2. Employment Information
@@ -530,8 +535,8 @@ const AddNewEmployee = () => {
 
           <div className='col-span-12 xl:col-span-3 space-y-2'>
             {/* =====================================================
-    7. PHOTO & BIOMETRICS
-===================================================== */}
+                7. PHOTO & BIOMETRICS
+            ===================================================== */}
 
             <div className='col-span-12 lg:col-span-5 border border-gray-200 rounded-xl p-2.5 bg-white'>
               {/* ================= HEADER ================= */}
@@ -576,8 +581,8 @@ const AddNewEmployee = () => {
                 </div>
 
                 {/* =================================================
-        BIOMETRIC ACTIONS
-    ================================================= */}
+                  BIOMETRIC ACTIONS
+              ================================================= */}
                 <div className='col-span-12 md:col-span-7 flex flex-col justify-between'>
                   {/* EMPLOYEE FACE */}
                   <div>
@@ -627,24 +632,207 @@ const AddNewEmployee = () => {
               </div>
             </div>
 
-            {/* EMERGENCY CONTACT */}
+            {/* =====================================================
+                8. EMERGENCY CONTACT
+            ===================================================== */}
 
-            <div className='border rounded-xl p-2'>
-              <h3 className='font-semibold text-green-700 mb-3'>
-                Emergency Contact
-              </h3>
+            <div className='col-span-12 lg:col-span-5 border border-gray-200 rounded-xl p-2.5 bg-white'>
+              {/* ================= HEADER ================= */}
+              <div className='flex items-center gap-2 mb-2.5'>
+                <div className='flex items-center justify-center w-5 h-5 rounded-md bg-green-50 text-green-700'>
+                  <PhoneCall size={13} />
+                </div>
 
-              {/* Fields will be added later */}
+                <h3 className='font-semibold text-green-700 text-[12px]'>
+                  Emergency Contact
+                </h3>
+              </div>
+
+              {/* ================= FORM FIELDS ================= */}
+              <div className='grid grid-cols-12 gap-x-2.5 gap-y-2'>
+                {employeeManagementData.emergencyContactFields.map((field) => {
+                  const options =
+                    employeeManagementData[field.optionsKey] || [];
+
+                  return (
+                    <div
+                      key={field.name}
+                      className={
+                        field.type === "textarea"
+                          ? "col-span-12"
+                          : "col-span-12 md:col-span-6"
+                      }
+                    >
+                      {/* ================= LABEL ================= */}
+                      <label className='block text-[10px] font-medium text-gray-700 mb-1'>
+                        {field.label}
+
+                        {field.required && (
+                          <span className='text-red-500 ml-0.5'>*</span>
+                        )}
+                      </label>
+
+                      {/* ================= INPUT ================= */}
+                      {(field.type === "text" ||
+                        field.type === "email" ||
+                        field.type === "date" ||
+                        field.type === "number") && (
+                        <input
+                          type={field.type}
+                          defaultValue={field.defaultValue}
+                          placeholder={field.placeholder}
+                          disabled={field.disabled}
+                          {...register(field.name, {
+                            required: field.required ? "Required" : false,
+                          })}
+                          className='w-full h-[34px] border border-gray-300 rounded-md px-2.5 text-[10px] text-gray-700 bg-white outline-none placeholder:text-gray-400 focus:border-green-500 focus:ring-1 focus:ring-green-100 disabled:bg-gray-100 disabled:text-gray-500'
+                        />
+                      )}
+
+                      {/* ================= SELECT ================= */}
+                      {field.type === "select" && (
+                        <select
+                          defaultValue={field.defaultValue || ""}
+                          {...register(field.name, {
+                            required: field.required ? "Required" : false,
+                          })}
+                          className='w-full h-[34px] border border-gray-300 rounded-md px-2.5 text-[10px] text-gray-700 bg-white outline-none focus:border-green-500 focus:ring-1 focus:ring-green-100'
+                        >
+                          <option value=''>Select {field.label}</option>
+
+                          {options.map((option) => (
+                            <option key={option.id} value={option.value}>
+                              {option.label}
+                            </option>
+                          ))}
+                        </select>
+                      )}
+
+                      {/* ================= TEXTAREA ================= */}
+                      {field.type === "textarea" && (
+                        <textarea
+                          rows={2}
+                          placeholder={field.placeholder}
+                          {...register(field.name, {
+                            required: field.required ? "Required" : false,
+                          })}
+                          className='w-full h-[46px] min-h-[46px] border border-gray-300 rounded-md px-2.5 py-1.5 text-[10px] text-gray-700 bg-white resize-none outline-none placeholder:text-gray-400 focus:border-green-500 focus:ring-1 focus:ring-green-100'
+                        />
+                      )}
+
+                      {/* ================= ERROR ================= */}
+                      {errors?.[field.name] && (
+                        <p className='text-red-500 text-[8px] mt-0.5'>
+                          {errors[field.name]?.message}
+                        </p>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
             </div>
 
-            {/* NOMINEE INFORMATION */}
+            {/* =====================================================
+              9. NOMINEE INFORMATION
+          ===================================================== */}
 
-            <div className='border rounded-xl p-2'>
-              <h3 className='font-semibold text-green-700 mb-3'>
-                Nominee Information (For PF/Gratuity)
-              </h3>
+            <div className='col-span-12 lg:col-span-5 border border-gray-200 rounded-xl p-2.5 bg-white'>
+              {/* ================= HEADER ================= */}
+              <div className='flex items-center gap-2 mb-2.5'>
+                <div className='flex items-center justify-center w-5 h-5 rounded-md bg-green-50 text-green-700'>
+                  <UserRoundCheck size={13} />
+                </div>
 
-              {/* Fields will be added later */}
+                <h3 className='font-semibold text-green-700 text-[12px]'>
+                  Nominee Information{" "}
+                  <span className='text-gray-600'>(For PF/Gratuity)</span>
+                </h3>
+              </div>
+
+              {/* ================= FORM FIELDS ================= */}
+              <div className='grid grid-cols-12 gap-x-2.5 gap-y-2'>
+                {employeeManagementData.nomineeInformationFields.map(
+                  (field) => {
+                    const options =
+                      employeeManagementData[field.optionsKey] || [];
+
+                    return (
+                      <div
+                        key={field.name}
+                        className={
+                          field.type === "textarea"
+                            ? "col-span-12"
+                            : "col-span-12 md:col-span-6"
+                        }
+                      >
+                        {/* ================= LABEL ================= */}
+                        <label className='block text-[10px] font-medium text-gray-700 mb-1'>
+                          {field.label}
+
+                          {field.required && (
+                            <span className='text-red-500 ml-0.5'>*</span>
+                          )}
+                        </label>
+
+                        {/* ================= INPUT ================= */}
+                        {(field.type === "text" ||
+                          field.type === "email" ||
+                          field.type === "date" ||
+                          field.type === "number") && (
+                          <input
+                            type={field.type}
+                            defaultValue={field.defaultValue}
+                            placeholder={field.placeholder}
+                            disabled={field.disabled}
+                            {...register(field.name, {
+                              required: field.required ? "Required" : false,
+                            })}
+                            className='w-full h-[34px] border border-gray-300 rounded-md px-2.5 text-[10px] text-gray-700 bg-white outline-none placeholder:text-gray-400 focus:border-green-500 focus:ring-1 focus:ring-green-100 disabled:bg-gray-100 disabled:text-gray-500'
+                          />
+                        )}
+
+                        {/* ================= SELECT ================= */}
+                        {field.type === "select" && (
+                          <select
+                            defaultValue={field.defaultValue || ""}
+                            {...register(field.name, {
+                              required: field.required ? "Required" : false,
+                            })}
+                            className='w-full h-[34px] border border-gray-300 rounded-md px-2.5 text-[10px] text-gray-700 bg-white outline-none focus:border-green-500 focus:ring-1 focus:ring-green-100'
+                          >
+                            <option value=''>Select {field.label}</option>
+
+                            {options.map((option) => (
+                              <option key={option.id} value={option.value}>
+                                {option.label}
+                              </option>
+                            ))}
+                          </select>
+                        )}
+
+                        {/* ================= TEXTAREA ================= */}
+                        {field.type === "textarea" && (
+                          <textarea
+                            rows={2}
+                            placeholder={field.placeholder}
+                            {...register(field.name, {
+                              required: field.required ? "Required" : false,
+                            })}
+                            className='w-full h-[46px] min-h-[46px] border border-gray-300 rounded-md px-2.5 py-1.5 text-[10px] text-gray-700 bg-white resize-none outline-none placeholder:text-gray-400 focus:border-green-500 focus:ring-1 focus:ring-green-100'
+                          />
+                        )}
+
+                        {/* ================= ERROR ================= */}
+                        {errors?.[field.name] && (
+                          <p className='text-red-500 text-[8px] mt-0.5'>
+                            {errors[field.name]?.message}
+                          </p>
+                        )}
+                      </div>
+                    );
+                  },
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -655,31 +843,31 @@ const AddNewEmployee = () => {
 
         <div className='flex justify-end gap-2 mt-3'>
           {/* RESET */}
-
           <button
             type='button'
             onClick={() => reset()}
-            className='border border-gray-300 rounded-md px-5 py-2 text-xs hover:bg-gray-50'
+            className='flex items-center justify-center gap-1.5 border border-gray-300 rounded-md px-5 py-2 text-xs text-gray-700 hover:bg-gray-50 transition-colors'
           >
-            Reset
+            <RotateCcw size={13} />
+            <span>Reset</span>
           </button>
 
           {/* SAVE AS DRAFT */}
-
           <button
             type='button'
-            className='border border-gray-300 rounded-md px-5 py-2 text-xs hover:bg-gray-50'
+            className='flex items-center justify-center gap-1.5 border border-gray-300 rounded-md px-5 py-2 text-xs text-gray-700 hover:bg-gray-50 transition-colors'
           >
-            Save as Draft
+            <Save size={13} />
+            <span>Save as Draft</span>
           </button>
 
           {/* SAVE & SUBMIT */}
-
           <button
             type='submit'
-            className='bg-green-700 text-white rounded-md px-5 py-2 text-xs hover:bg-green-800'
+            className='flex items-center justify-center gap-1.5 bg-green-700 text-white rounded-md px-5 py-2 text-xs hover:bg-green-800 transition-colors'
           >
-            Save & Submit
+            <CheckCircle size={13} />
+            <span>Save & Submit</span>
           </button>
         </div>
       </form>
