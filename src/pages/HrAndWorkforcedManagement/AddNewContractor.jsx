@@ -1,4 +1,5 @@
 import React from "react";
+import { toast } from "react-hot-toast";
 import { useForm } from "react-hook-form";
 import { contractorManagementData } from "../../data/HrWorkforceData/addNewContractorData";
 import HrWorkforceTabs from "../../components/HrWorkforceTabs/HrWorkforceTabs";
@@ -22,6 +23,8 @@ const AddNewContractor = () => {
   } = useForm();
   const onSubmit = (data) => {
     console.log("FORM DATA:", data);
+
+    toast.success("Contractor information saved successfully!");
   };
 
   return (
@@ -952,14 +955,13 @@ const AddNewContractor = () => {
         </div>
 
         {/* ================= FORM ACTIONS ================= */}
-        {/* ================= FORM ACTIONS ================= */}
         <div className='border-t border-gray-200 mt-3 pt-2'>
           <div className='flex flex-wrap items-center justify-end gap-2'>
             {/* RESET */}
             <button
               type='button'
               onClick={() => reset()}
-              className='flex items-center justify-center gap-1.5 border border-gray-300 bg-white text-gray-700 rounded-md px-4 py-2 text-xs font-medium hover:bg-gray-50 transition'
+              className='flex items-center cursor-pointer justify-center gap-1.5 border border-gray-300 bg-white text-gray-700 rounded-md px-4 py-2 text-xs font-medium hover:bg-gray-50 transition'
             >
               <RotateCcw size={14} />
               <span>Reset</span>
@@ -972,7 +974,7 @@ const AddNewContractor = () => {
                 const data = watch();
                 console.log("SAVE AS DRAFT:", data);
               }}
-              className='flex items-center justify-center gap-1.5 border border-gray-300 bg-white text-gray-700 rounded-md px-4 py-2 text-xs font-medium hover:bg-gray-50 transition'
+              className='flex items-center cursor-pointer justify-center gap-1.5 border border-gray-300 bg-white text-gray-700 rounded-md px-4 py-2 text-xs font-medium hover:bg-gray-50 transition'
             >
               <FileText size={14} />
               <span>Save as Draft</span>
@@ -981,7 +983,7 @@ const AddNewContractor = () => {
             {/* SAVE & SUBMIT */}
             <button
               type='submit'
-              className='flex items-center justify-center gap-1.5 bg-green-700 hover:bg-green-800 text-white rounded-md px-4 py-2 text-xs font-medium transition'
+              className='flex cursor-pointer items-center justify-center gap-1.5 bg-green-700 hover:bg-green-800 text-white rounded-md px-4 py-2 text-xs font-medium transition'
             >
               <CheckCircle size={14} />
               <span>Save & Submit</span>
