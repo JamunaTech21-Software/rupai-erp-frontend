@@ -56,7 +56,7 @@ const AddNewEmployee = () => {
               {/* 1. BASIC INFORMATION */}
               {/* ================================= */}
 
-              <div className='col-span-12 lg:col-span-6  border border-gray-200 rounded-xl p-2.5 bg-white p-2'>
+              <div className='col-span-12 lg:col-span-6  border border-gray-200 rounded-xl p-2 bg-white '>
                 <h3 className='font-semibold text-green-700 mb-3'>
                   1. Basic Information
                 </h3>
@@ -137,7 +137,7 @@ const AddNewEmployee = () => {
               {/* 2. EMPLOYMENT INFORMATION */}
               {/* ================================= */}
 
-              <div className='col-span-12 lg:col-span-6 border border-gray-200 rounded-xl p-2.5 bg-white p-2'>
+              <div className='col-span-12 lg:col-span-6 border border-gray-200 rounded-xl  bg-white p-2'>
                 {/* HEADER */}
                 <h3 className='font-semibold text-green-700 mb-3'>
                   2. Employment Information
