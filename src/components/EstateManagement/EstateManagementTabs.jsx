@@ -1,5 +1,5 @@
 import { NavLink } from "react-router-dom";
-import { estateProfileData } from "../../data/estateProfileData";
+import { estateProfileData } from "../../data/EstateManagementData/estateProfileData";
 
 const EstateManagementTabs = () => {
   return (

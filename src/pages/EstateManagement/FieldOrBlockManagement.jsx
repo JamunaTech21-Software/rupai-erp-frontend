@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import EstateManagementTabs from "../components/EstateManagement/EstateManagementTabs";
+import EstateManagementTabs from "../../components/EstateManagement/EstateManagementTabs";
 import { useForm } from "react-hook-form";
 import L from "leaflet";
 import toast from "react-hot-toast";
@@ -8,7 +8,7 @@ import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
 import markerIcon from "leaflet/dist/images/marker-icon.png";
 import markerShadow from "leaflet/dist/images/marker-shadow.png";
 
-import { fieldAndBlockManagementData } from "../data/FieldAndBlockManagementData";
+import { fieldAndBlockManagementData } from "../../data/EstateManagementData/FieldAndBlockManagementData";
 
 import {
   RotateCcw,

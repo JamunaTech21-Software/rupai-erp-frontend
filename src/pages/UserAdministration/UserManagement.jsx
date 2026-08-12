@@ -1,4 +1,7 @@
 import { useState } from "react";
+import { userManagementData } from "../../data/UserAdministrationData/userManagementData";
+import { NavLink } from "react-router-dom";
+import AddUserForm from "../../components/UserAdminitration/AddUserForm";
 import DatePicker from "react-datepicker";
 import { format } from "date-fns";
 import { PieChart, Pie, Cell, Tooltip } from "recharts";
@@ -24,10 +27,6 @@ import {
   FileDown,
   CircleCheck,
 } from "lucide-react";
-
-import { userManagementData } from "../data/userManagementData";
-import { NavLink } from "react-router-dom";
-import AddUserForm from "../components/UserAdminitration/AddUserForm";
 
 const iconMap = {
   Users,

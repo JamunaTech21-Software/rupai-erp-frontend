@@ -1010,25 +1010,281 @@ export const addNewWorkerData = {
     ],
 
     // =========================================================
-    // EMPLOYMENT OPTIONS
+    // EMPLOYMENT INFORMATION OPTIONS
     // =========================================================
 
-    gardenUnits: [],
-    sections: [],
-    jobTasks: [],
-    workerStatuses: [],
-    employmentTypes: [],
-    jobNatures: [],
-    reportingManagers: [],
-    workingLocations: [],
-    employmentStatuses: [],
+    gardenUnits: [
+      {
+        label: "Rupai Tea Estate",
+        value: "rupai-tea-estate",
+      },
+      {
+        label: "Jamuna Tea Estate",
+        value: "jamuna-tea-estate",
+      },
+      {
+        label: "Fultali Tea Estate",
+        value: "fultali-tea-estate",
+      },
+      {
+        label: "Madhabpur Tea Estate",
+        value: "madhabpur-tea-estate",
+      },
+    ],
+
+    sections: [
+      {
+        label: "Section A",
+        value: "section-a",
+      },
+      {
+        label: "Section B",
+        value: "section-b",
+      },
+      {
+        label: "Section C",
+        value: "section-c",
+      },
+      {
+        label: "Section D",
+        value: "section-d",
+      },
+    ],
+
+    jobTasks: [
+      {
+        label: "Tea Plucking",
+        value: "tea-plucking",
+      },
+      {
+        label: "Pruning",
+        value: "pruning",
+      },
+      {
+        label: "Weeding",
+        value: "weeding",
+      },
+      {
+        label: "Plantation",
+        value: "plantation",
+      },
+      {
+        label: "Fertilizer Application",
+        value: "fertilizer-application",
+      },
+      {
+        label: "Pesticide Application",
+        value: "pesticide-application",
+      },
+      {
+        label: "Field Maintenance",
+        value: "field-maintenance",
+      },
+      {
+        label: "Factory Worker",
+        value: "factory-worker",
+      },
+    ],
+
+    workerStatuses: [
+      {
+        label: "Active",
+        value: "active",
+      },
+      {
+        label: "Inactive",
+        value: "inactive",
+      },
+      {
+        label: "On Leave",
+        value: "on-leave",
+      },
+      {
+        label: "Suspended",
+        value: "suspended",
+      },
+      {
+        label: "Retired",
+        value: "retired",
+      },
+    ],
+
+    employmentTypes: [
+      {
+        label: "Permanent",
+        value: "permanent",
+      },
+      {
+        label: "Temporary",
+        value: "temporary",
+      },
+      {
+        label: "Contractual",
+        value: "contractual",
+      },
+      {
+        label: "Seasonal",
+        value: "seasonal",
+      },
+    ],
+
+    jobNatures: [
+      {
+        label: "Field Work",
+        value: "field-work",
+      },
+      {
+        label: "Factory Work",
+        value: "factory-work",
+      },
+      {
+        label: "Office Work",
+        value: "office-work",
+      },
+      {
+        label: "Technical Work",
+        value: "technical-work",
+      },
+      {
+        label: "Supervisory",
+        value: "supervisory",
+      },
+    ],
+
+    reportingManagers: [
+      {
+        label: "Estate Manager",
+        value: "estate-manager",
+      },
+      {
+        label: "Assistant Manager",
+        value: "assistant-manager",
+      },
+      {
+        label: "Field Manager",
+        value: "field-manager",
+      },
+      {
+        label: "Section Manager",
+        value: "section-manager",
+      },
+      {
+        label: "HR Manager",
+        value: "hr-manager",
+      },
+    ],
+
+    workingLocations: [
+      {
+        label: "Field",
+        value: "field",
+      },
+      {
+        label: "Factory",
+        value: "factory",
+      },
+      {
+        label: "Office",
+        value: "office",
+      },
+      {
+        label: "Warehouse",
+        value: "warehouse",
+      },
+      {
+        label: "Nursery",
+        value: "nursery",
+      },
+    ],
+
+    employmentStatuses: [
+      {
+        label: "Active",
+        value: "active",
+      },
+      {
+        label: "On Probation",
+        value: "on-probation",
+      },
+      {
+        label: "On Leave",
+        value: "on-leave",
+      },
+      {
+        label: "Inactive",
+        value: "inactive",
+      },
+      {
+        label: "Terminated",
+        value: "terminated",
+      },
+    ],
 
     // =========================================================
     // CONTACT & ADDRESS OPTIONS
     // =========================================================
 
-    districts: [],
-    upazilas: [],
+    districts: [
+      {
+        label: "Sylhet",
+        value: "sylhet",
+      },
+      {
+        label: "Moulvibazar",
+        value: "moulvibazar",
+      },
+      {
+        label: "Habiganj",
+        value: "habiganj",
+      },
+      {
+        label: "Sunamganj",
+        value: "sunamganj",
+      },
+      {
+        label: "Dhaka",
+        value: "dhaka",
+      },
+      {
+        label: "Chattogram",
+        value: "chattogram",
+      },
+    ],
+
+    upazilas: [
+      {
+        label: "Sreemangal",
+        value: "sreemangal",
+      },
+      {
+        label: "Kamalganj",
+        value: "kamalganj",
+      },
+      {
+        label: "Kulaura",
+        value: "kulaura",
+      },
+      {
+        label: "Barlekha",
+        value: "barlekha",
+      },
+      {
+        label: "Moulvibazar Sadar",
+        value: "moulvibazar-sadar",
+      },
+      {
+        label: "Sylhet Sadar",
+        value: "sylhet-sadar",
+      },
+      {
+        label: "Beanibazar",
+        value: "beanibazar",
+      },
+      {
+        label: "Golapganj",
+        value: "golapganj",
+      },
+    ],
 
     // =========================================================
     // DISTRIBUTED AGRI LAND OPTIONS
@@ -1068,98 +1324,159 @@ export const addNewWorkerData = {
     // ADDITIONAL INFORMATION OPTIONS
     // =========================================================
 
-    educationLevels: [],
-    skills: [],
-    languages: [],
+    educationLevels: [
+      {
+        label: "Primary",
+        value: "primary",
+      },
+      {
+        label: "Secondary",
+        value: "secondary",
+      },
+      {
+        label: "Higher Secondary",
+        value: "higher-secondary",
+      },
+      {
+        label: "Graduate",
+        value: "graduate",
+      },
+      {
+        label: "Post Graduate",
+        value: "post-graduate",
+      },
+    ],
+
+    skills: [
+      {
+        label: "Tea Plucking",
+        value: "tea-plucking",
+      },
+      {
+        label: "Machine Operation",
+        value: "machine-operation",
+      },
+      {
+        label: "Gardening",
+        value: "gardening",
+      },
+      {
+        label: "Driving",
+        value: "driving",
+      },
+      {
+        label: "Electrical Work",
+        value: "electrical-work",
+      },
+      {
+        label: "Mechanical Work",
+        value: "mechanical-work",
+      },
+    ],
+
+    languages: [
+      {
+        label: "Bangla",
+        value: "bangla",
+      },
+      {
+        label: "English",
+        value: "english",
+      },
+      {
+        label: "Hindi",
+        value: "hindi",
+      },
+    ],
   },
 
   // =========================================================
   // INITIAL FORM DATA
   // =========================================================
 
-  initialData: {
-    workerId: "",
-    workerType: "",
-    category: "",
-    title: "",
-    firstName: "",
-    middleName: "",
-    lastName: "",
-    fathersName: "",
-    mothersName: "",
-    dateOfBirth: "",
-    gender: "",
-    bloodGroup: "",
-    maritalStatus: "",
-    nationality: "bangladeshi",
-    religion: "",
-    tinNo: "",
+  // initialData: {
+  //   workerId: "",
+  //   workerType: "",
+  //   category: "",
+  //   title: "",
+  //   firstName: "",
+  //   middleName: "",
+  //   lastName: "",
+  //   fathersName: "",
+  //   mothersName: "",
+  //   dateOfBirth: "",
+  //   gender: "",
+  //   bloodGroup: "",
+  //   maritalStatus: "",
+  //   nationality: "bangladeshi",
+  //   religion: "",
+  //   tinNo: "",
 
-    gardenUnit: "",
-    section: "",
-    jobTask: "",
-    workerStatus: "",
-    joinDate: "",
-    employmentType: "",
-    jobNature: "",
-    numberOfDependents: 0,
-    reportingTo: "",
-    workingLocation: "",
-    employmentStatus: "",
-    probationEndDate: "",
+  //   gardenUnit: "",
+  //   section: "",
+  //   jobTask: "",
+  //   workerStatus: "",
+  //   joinDate: "",
+  //   employmentType: "",
+  //   jobNature: "",
+  //   numberOfDependents: 0,
+  //   reportingTo: "",
+  //   workingLocation: "",
+  //   employmentStatus: "",
+  //   probationEndDate: "",
 
-    mobileNo: "",
-    alternateMobile: "",
-    personalEmail: "",
-    presentAddress: "",
-    permanentAddress: "",
-    sameAsPresentAddress: false,
-    district: "",
-    upazila: "",
-    postalCode: "",
+  //   mobileNo: "",
+  //   alternateMobile: "",
+  //   personalEmail: "",
+  //   presentAddress: "",
+  //   permanentAddress: "",
+  //   sameAsPresentAddress: false,
+  //   district: "",
+  //   upazila: "",
+  //   postalCode: "",
 
-    workerPhoto: null,
-    face: null,
-    rightThumb: null,
-    leftThumb: null,
+  //   workerPhoto: null,
+  //   face: null,
+  //   rightThumb: null,
+  //   leftThumb: null,
 
-    landDistributed: "no",
-    landType: "",
-    totalLand: 0,
+  //   landDistributed: "no",
+  //   landType: "",
+  //   totalLand: 0,
 
-    landDetails: [],
-    dependents: [],
+  //   landDetails: [],
+  //   dependents: [],
 
-    resonCardNo: "",
-    issueDate: "",
-    validTill: "",
-    reasonDealerOffice: "",
-    resonCardFile: null,
+  //   resonCardNo: "",
+  //   issueDate: "",
+  //   validTill: "",
+  //   reasonDealerOffice: "",
+  //   resonCardFile: null,
 
-    educationLevel: "",
-    skillTraining: "",
-    languageKnown: "",
-    experienceYear: 0,
-    emergencyContactName: "",
-    emergencyContactNo: "",
-    bankName: "",
-    accountNo: "",
-    mobileBanking: "",
+  //   educationLevel: "",
+  //   skillTraining: "",
+  //   languageKnown: "",
+  //   experienceYear: 0,
+  //   emergencyContactName: "",
+  //   emergencyContactNo: "",
+  //   bankName: "",
+  //   accountNo: "",
+  //   mobileBanking: "",
 
-    documents: {
-      nidFront: null,
-      nidBack: null,
-      birthCertificate: null,
-      nomineeIdCard: null,
-      trainingCertificate: null,
-      otherDocument: null,
-    },
+  //   documents: {
+  //     nidFront: null,
+  //     nidBack: null,
+  //     birthCertificate: null,
+  //     nomineeIdCard: null,
+  //     trainingCertificate: null,
+  //     otherDocument: null,
+  //   },
 
-    systemInformation: {
-      createdBy: "",
-      createdDate: "",
-      updatedBy: "",
-      updatedDate: "",
-    },
-  },
+  //   systemInformation: {
+  //     createdBy: "",
+  //     createdDate: "",
+  //     updatedBy: "",
+  //     updatedDate: "",
+  //   },
+  // },
 };

@@ -1,7 +1,7 @@
 import React from "react";
-import EstateManagementTabs from "../components/EstateManagement/EstateManagementTabs";
+import EstateManagementTabs from "../../components/EstateManagement/EstateManagementTabs";
 import { useForm } from "react-hook-form";
-import { mapAndGISTrackingData } from "../data/MapAndGISTrackingData";
+import { mapAndGISTrackingData } from "../../data/EstateManagementData/MapAndGISTrackingData";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";

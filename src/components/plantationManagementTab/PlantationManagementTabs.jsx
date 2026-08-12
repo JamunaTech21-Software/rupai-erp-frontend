@@ -1,5 +1,5 @@
 import { NavLink } from "react-router-dom";
-import { plantationManagementTabs } from "../../data/plantationManagementData";
+import { plantationManagementTabs } from "../../data/PlantationManagementData/plantationManagementTabsData";
 
 const PlantationManagementTabs = () => {
   return (

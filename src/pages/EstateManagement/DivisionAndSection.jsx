@@ -1,8 +1,8 @@
 import React from "react";
-import EstateManagementTabs from "../components/EstateManagement/EstateManagementTabs";
+import EstateManagementTabs from "../../components/EstateManagement/EstateManagementTabs";
 import { X, RotateCcw, Save, Plus, Pencil, Trash2, Map } from "lucide-react";
 import { useForm } from "react-hook-form";
-import { divisionSectionData } from "../data/divisionAndSectionData";
+import { divisionSectionData } from "../../data/EstateManagementData/divisionAndSectionData";
 import toast from "react-hot-toast";
 
 const DivisionAndSection = () => {

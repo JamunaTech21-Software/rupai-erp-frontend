@@ -1,8 +1,8 @@
 import React from "react";
 import { useForm } from "react-hook-form";
 import toast, { Toaster } from "react-hot-toast";
-import EstateManagementTabs from "../components/EstateManagement/EstateManagementTabs";
-import { landLeaseManagementData } from "../data/landAndLeaseManagementData";
+import EstateManagementTabs from "../../components/EstateManagement/EstateManagementTabs";
+import { landLeaseManagementData } from "../../data/EstateManagementData/landAndLeaseManagementData";
 import { X, RotateCcw, Save, Download, Trash2, Plus } from "lucide-react";
 const LandAndLeaseManagement = () => {
   const {

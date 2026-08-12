@@ -1,5 +1,5 @@
-import EstateManagementTabs from "../components/EstateManagement/EstateManagementTabs";
-import { estateProfileData } from "../data/estateProfileData";
+import EstateManagementTabs from "../../components/EstateManagement/EstateManagementTabs";
+import { estateProfileData } from "../../data/EstateManagementData/estateProfileData";
 import { useForm } from "react-hook-form";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
