@@ -6,6 +6,9 @@ import HrWorkforceTabs from "../../components/HrWorkforceTabs/HrWorkforceTabs";
 import { attendanceAndFaceRecognitionData } from "../../data/HrWorkforceData/attendenceAndFaceRecognitionData";
 
 import {
+  LogOut,
+  ChartNoAxesColumnIncreasing,
+  Timer,
   Monitor,
   Search,
   Camera,
@@ -23,7 +26,16 @@ import {
   XCircle,
   Clock3,
 } from "lucide-react";
-
+import {
+  ResponsiveContainer,
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  LabelList,
+} from "recharts";
 const AttendenceAndFaceRecognition = () => {
   // =====================================================
   // DATA
@@ -37,6 +49,10 @@ const AttendenceAndFaceRecognition = () => {
     attendanceTable,
     liveCameraFeed,
     attendanceByStatus,
+    attendanceTrend,
+    deviceStatus,
+    recentAttendanceLogs,
+    todaySummary,
   } = attendanceAndFaceRecognitionData;
 
   // =====================================================
@@ -1010,77 +1026,331 @@ const AttendenceAndFaceRecognition = () => {
             4. BOTTOM SECTION
         ==================================================== */}
 
-        <div className='grid grid-cols-1 gap-4 lg:grid-cols-2 xl:grid-cols-4'>
+        <div className='grid grid-cols-1 gap-4 lg:grid-cols-2 xl:grid-cols-[1.35fr_0.8fr_1fr_1.05fr]'>
           {/* ATTENDANCE TREND */}
 
+          {/* ===================================================
+                ATTENDANCE TREND
+            =================================================== */}
+
           <div className='rounded-xl border border-gray-200 bg-white p-4 shadow-sm'>
+            {/* HEADER */}
+
             <h3 className='text-sm font-semibold text-green-700'>
-              Attendance Trend (This Week)
+              {attendanceTrend.title}
             </h3>
 
-            <div className='mt-4 h-40 rounded-lg bg-gray-50' />
+            {/* CHART */}
+
+            <div className='mt-3 h-[175px] w-full'>
+              <ResponsiveContainer width='100%' height='100%'>
+                <LineChart
+                  data={attendanceTrend.data}
+                  margin={{
+                    top: 18,
+                    right: 8,
+                    left: -18,
+                    bottom: 5,
+                  }}
+                >
+                  {/* GRID */}
+
+                  <CartesianGrid
+                    stroke='#e5e7eb'
+                    strokeDasharray='2 2'
+                    vertical={false}
+                  />
+
+                  {/* Y AXIS */}
+
+                  <YAxis
+                    domain={[0, 100]}
+                    ticks={[0, 25, 50, 75, 100]}
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{
+                      fontSize: 9,
+                      fill: "#6b7280",
+                    }}
+                    tickFormatter={(value) => `${value}%`}
+                  />
+
+                  {/* X AXIS */}
+
+                  <XAxis
+                    dataKey='day'
+                    axisLine={false}
+                    tickLine={false}
+                    height={35}
+                    tick={(props) => {
+                      const { x, y, payload } = props;
+
+                      const currentItem = attendanceTrend.data.find(
+                        (item) => item.day === payload.value,
+                      );
+
+                      return (
+                        <g>
+                          {/* DAY */}
+
+                          <text
+                            x={x}
+                            y={y + 8}
+                            textAnchor='middle'
+                            fill='#4b5563'
+                            fontSize='9'
+                            fontWeight='500'
+                          >
+                            {currentItem?.day}
+                          </text>
+
+                          {/* DATE */}
+
+                          <text
+                            x={x}
+                            y={y + 20}
+                            textAnchor='middle'
+                            fill='#9ca3af'
+                            fontSize='8'
+                          >
+                            {currentItem?.date}
+                          </text>
+                        </g>
+                      );
+                    }}
+                  />
+
+                  {/* TOOLTIP */}
+
+                  <Tooltip
+                    formatter={(value) => [`${value}%`, "Attendance"]}
+                    labelFormatter={(label) => {
+                      const item = attendanceTrend.data.find(
+                        (data) => data.day === label,
+                      );
+
+                      return item ? `${item.day} ${item.date}` : label;
+                    }}
+                    contentStyle={{
+                      borderRadius: "8px",
+                      border: "1px solid #e5e7eb",
+                      fontSize: "10px",
+                      padding: "6px 8px",
+                    }}
+                  />
+
+                  {/* LINE */}
+
+                  <Line
+                    type='monotone'
+                    dataKey='value'
+                    stroke='#15803d'
+                    strokeWidth={2}
+                    dot={{
+                      r: 3.5,
+                      fill: "#15803d",
+                      stroke: "#ffffff",
+                      strokeWidth: 2,
+                    }}
+                    activeDot={{
+                      r: 5,
+                    }}
+                  >
+                    {/* VALUE LABEL */}
+
+                    <LabelList
+                      dataKey='value'
+                      position='top'
+                      formatter={(value) => `${value}%`}
+                      style={{
+                        fontSize: 8,
+                        fontWeight: 600,
+                        fill: "#166534",
+                      }}
+                    />
+                  </Line>
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
           </div>
 
-          {/* DEVICE STATUS */}
+          {/* ===================================================
+                  DEVICE STATUS
+              =================================================== */}
 
           <div className='rounded-xl border border-gray-200 bg-white p-4 shadow-sm'>
+            {/* HEADER */}
+
             <h3 className='text-sm font-semibold text-green-700'>
-              Device Status
+              {deviceStatus.title}
             </h3>
 
-            <div className='mt-4 space-y-4'>
-              {[1, 2, 3, 4, 5].map((item) => (
-                <div key={item} className='flex items-center justify-between'>
-                  <div className='h-3 w-28 rounded bg-gray-100' />
+            {/* DEVICE LIST */}
 
-                  <div className='h-5 w-14 rounded-full bg-gray-100' />
-                </div>
-              ))}
+            <div className='mt-4 space-y-3'>
+              {deviceStatus.devices.map((device) => {
+                const isOnline = device.status === "Online";
+
+                return (
+                  <div
+                    key={device.id}
+                    className='flex items-center justify-between gap-2'
+                  >
+                    {/* DEVICE INFO */}
+
+                    <div className='flex min-w-0 items-center gap-2'>
+                      {/* DEVICE ICON */}
+
+                      <div className='flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-green-100 bg-green-50'>
+                        <Monitor size={14} className='text-green-700' />
+                      </div>
+
+                      {/* DEVICE NAME */}
+
+                      <span className='truncate text-[10px] font-medium text-gray-600'>
+                        {device.name}
+                      </span>
+                    </div>
+
+                    {/* STATUS */}
+
+                    <span
+                      className={`shrink-0 rounded-md px-2 py-1 text-[9px] font-medium ${
+                        isOnline
+                          ? "bg-green-50 text-green-700"
+                          : "bg-red-50 text-red-500"
+                      }`}
+                    >
+                      {device.status}
+                    </span>
+                  </div>
+                );
+              })}
             </div>
           </div>
 
           {/* RECENT LOGS */}
 
+          {/* ===================================================
+              RECENT ATTENDANCE LOGS
+          =================================================== */}
+
           <div className='rounded-xl border border-gray-200 bg-white p-4 shadow-sm'>
+            {/* HEADER */}
+
             <h3 className='text-sm font-semibold text-green-700'>
-              Recent Attendance Logs
+              {recentAttendanceLogs.title}
             </h3>
 
-            <div className='mt-4 space-y-4'>
-              {[1, 2, 3, 4, 5].map((item) => (
-                <div key={item} className='flex items-center justify-between'>
-                  <div className='flex items-center gap-2'>
-                    <div className='h-8 w-8 rounded-full bg-gray-100' />
+            {/* LOG LIST */}
 
-                    <div className='space-y-1'>
-                      <div className='h-3 w-24 rounded bg-gray-100' />
+            <div className='mt-4 space-y-3'>
+              {recentAttendanceLogs.logs.map((log) => (
+                <div key={log.id} className='flex items-center gap-2'>
+                  {/* WORKER IMAGE */}
 
-                      <div className='h-2.5 w-16 rounded bg-gray-100' />
-                    </div>
+                  <div className='h-8 w-8 shrink-0 overflow-hidden rounded-full border border-gray-200 bg-gray-100'>
+                    {log.workerPhoto ? (
+                      <img
+                        src={log.workerPhoto}
+                        alt={log.workerName}
+                        className='h-full w-full object-cover'
+                      />
+                    ) : (
+                      <div className='flex h-full w-full items-center justify-center text-[9px] font-semibold text-gray-400'>
+                        {log.workerName?.charAt(0)}
+                      </div>
+                    )}
                   </div>
 
-                  <div className='h-3 w-14 rounded bg-gray-100' />
+                  {/* WORKER INFO */}
+
+                  <div className='min-w-0 flex-1'>
+                    <p className='truncate text-[10px] font-semibold text-gray-700'>
+                      {log.workerName}
+                    </p>
+
+                    <p className='text-[9px] text-gray-400'>{log.workerId}</p>
+                  </div>
+
+                  {/* TIME */}
+
+                  <span className='shrink-0 text-[9px] text-gray-500'>
+                    {log.time}
+                  </span>
+
+                  {/* STATUS */}
+
+                  <span
+                    className={`shrink-0 rounded-md px-2 py-1 text-[9px] font-medium ${
+                      log.status === "Present"
+                        ? "bg-green-50 text-green-700"
+                        : log.status === "Late"
+                          ? "bg-orange-50 text-orange-600"
+                          : log.status === "Check Out"
+                            ? "bg-gray-100 text-gray-600"
+                            : "bg-blue-50 text-blue-600"
+                    }`}
+                  >
+                    {log.status}
+                  </span>
                 </div>
               ))}
             </div>
           </div>
 
-          {/* TODAY'S SUMMARY */}
+          {/* ===================================================
+                  TODAY'S SUMMARY
+              =================================================== */}
 
           <div className='rounded-xl border border-gray-200 bg-white p-4 shadow-sm'>
+            {/* HEADER */}
+
             <h3 className='text-sm font-semibold text-green-700'>
-              Today's Summary
+              {todaySummary.title}
             </h3>
 
-            <div className='mt-4 space-y-3'>
-              {[1, 2, 3, 4].map((item) => (
-                <div
-                  key={item}
-                  className='flex items-center justify-between rounded-lg border border-gray-100 p-3'
-                >
-                  <div className='h-3 w-28 rounded bg-gray-100' />
+            {/* SUMMARY ITEMS */}
 
-                  <div className='h-3 w-14 rounded bg-gray-100' />
+            <div className='mt-4 space-y-2.5'>
+              {todaySummary.items.map((item) => (
+                <div
+                  key={item.id}
+                  className='flex items-center justify-between gap-3 rounded-lg border border-gray-100 bg-white px-3 py-2.5'
+                >
+                  {/* LEFT SIDE */}
+
+                  <div className='flex min-w-0 items-center gap-2'>
+                    {/* ICON */}
+
+                    <div className='flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-green-50'>
+                      {item.type === "time" &&
+                      item.id === "average-check-in" ? (
+                        <Clock3 size={14} className='text-green-700' />
+                      ) : item.type === "time" ? (
+                        <LogOut size={14} className='text-green-700' />
+                      ) : item.type === "percentage" ? (
+                        <ChartNoAxesColumnIncreasing
+                          size={14}
+                          className='text-green-700'
+                        />
+                      ) : (
+                        <Timer size={14} className='text-green-700' />
+                      )}
+                    </div>
+
+                    {/* LABEL */}
+
+                    <span className='truncate text-[10px] font-medium text-gray-600'>
+                      {item.label}
+                    </span>
+                  </div>
+
+                  {/* VALUE */}
+
+                  <span className='shrink-0 text-[11px] font-semibold text-gray-700'>
+                    {item.value}
+                  </span>
                 </div>
               ))}
             </div>

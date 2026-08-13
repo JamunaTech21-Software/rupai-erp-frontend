@@ -642,46 +642,55 @@ export const attendanceAndFaceRecognitionData = {
   attendanceTrend: {
     title: "Attendance Trend (This Week)",
 
-    period: "This Week",
-
     data: [
       {
+        id: 1,
         day: "Mon",
         date: "26 May",
-        attendanceRate: 68.2,
+        value: 68.2,
       },
       {
+        id: 2,
         day: "Tue",
         date: "27 May",
-        attendanceRate: 71.4,
+        value: 71.4,
       },
       {
+        id: 3,
         day: "Wed",
         date: "28 May",
-        attendanceRate: 74.8,
+        value: 74.8,
       },
       {
+        id: 4,
         day: "Thu",
         date: "29 May",
-        attendanceRate: 72.6,
+        value: 72.6,
       },
       {
+        id: 5,
         day: "Fri",
         date: "30 May",
-        attendanceRate: 76.1,
+        value: 76.1,
       },
       {
+        id: 6,
         day: "Sat",
         date: "31 May",
-        attendanceRate: 60.3,
+        value: 60.3,
       },
       {
+        id: 7,
         day: "Sun",
         date: "01 Jun",
-        attendanceRate: 75.6,
+        value: 75.6,
       },
     ],
   },
+
+  // =====================================================
+  // DEVICE STATUS
+  // =====================================================
 
   // =====================================================
   // DEVICE STATUS
@@ -694,50 +703,34 @@ export const attendanceAndFaceRecognitionData = {
       {
         id: "device-001",
         name: "Main Gate Device",
-        deviceCode: "DEV-MG-001",
-        location: "Main Gate",
-        type: "Face Recognition",
         status: "Online",
-        lastSync: "Just Now",
       },
       {
         id: "device-002",
         name: "Factory Gate Device",
-        deviceCode: "DEV-FG-001",
-        location: "Factory Gate",
-        type: "Face Recognition",
         status: "Online",
-        lastSync: "1 min ago",
       },
       {
         id: "device-003",
         name: "South Section Device",
-        deviceCode: "DEV-SS-001",
-        location: "South Section",
-        type: "Face Recognition",
         status: "Online",
-        lastSync: "2 min ago",
       },
       {
         id: "device-004",
         name: "West Section Device",
-        deviceCode: "DEV-WS-001",
-        location: "West Section",
-        type: "Face Recognition",
         status: "Offline",
-        lastSync: "25 min ago",
       },
       {
         id: "device-005",
         name: "North Section Device",
-        deviceCode: "DEV-NS-001",
-        location: "North Section",
-        type: "Face Recognition",
         status: "Online",
-        lastSync: "1 min ago",
       },
     ],
   },
+
+  // =====================================================
+  // RECENT ATTENDANCE LOGS
+  // =====================================================
 
   // =====================================================
   // RECENT ATTENDANCE LOGS
@@ -751,7 +744,7 @@ export const attendanceAndFaceRecognitionData = {
         id: "log-001",
         workerId: "WRK-10001",
         workerName: "Rupa Rani Tanti",
-        workerPhoto: "/workers/worker-01.jpg",
+        workerPhoto: "https://randomuser.me/api/portraits/women/44.jpg",
         time: "07:12 AM",
         status: "Present",
         method: "Face Recognition",
@@ -761,7 +754,7 @@ export const attendanceAndFaceRecognitionData = {
         id: "log-002",
         workerId: "WRK-10002",
         workerName: "Maya Barman",
-        workerPhoto: "/workers/worker-02.jpg",
+        workerPhoto: "https://randomuser.me/api/portraits/women/68.jpg",
         time: "07:18 AM",
         status: "Present",
         method: "Face Recognition",
@@ -771,7 +764,7 @@ export const attendanceAndFaceRecognitionData = {
         id: "log-003",
         workerId: "WRK-10007",
         workerName: "Ratan Tanti",
-        workerPhoto: "/workers/worker-07.jpg",
+        workerPhoto: "https://randomuser.me/api/portraits/men/52.jpg",
         time: "07:08 AM",
         status: "Present",
         method: "Face Recognition",
@@ -781,7 +774,7 @@ export const attendanceAndFaceRecognitionData = {
         id: "log-004",
         workerId: "WRK-10004",
         workerName: "Jhana Das",
-        workerPhoto: "/workers/worker-04.jpg",
+        workerPhoto: "https://randomuser.me/api/portraits/women/65.jpg",
         time: "07:45 AM",
         status: "Late",
         method: "Face Recognition",
@@ -791,7 +784,7 @@ export const attendanceAndFaceRecognitionData = {
         id: "log-005",
         workerId: "WRK-10005",
         workerName: "Babul Sutradhar",
-        workerPhoto: "/workers/worker-05.jpg",
+        workerPhoto: "https://randomuser.me/api/portraits/men/45.jpg",
         time: "06:58 PM",
         status: "Check Out",
         method: "Face Recognition",
