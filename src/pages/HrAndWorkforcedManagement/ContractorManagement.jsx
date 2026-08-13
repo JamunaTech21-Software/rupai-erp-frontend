@@ -11,9 +11,16 @@ const {
   tradeWorkWise,
   contractStatus,
   topContractors,
+  expiryAlerts,
+  documents,
+  performance,
+  actionShortcuts,
 } = contractorManagementData;
 import {
   Leaf,
+  Save,
+  CheckCircle2,
+  RotateCcw,
   UserRound,
   UserCheck,
   UserX,
@@ -1185,56 +1192,283 @@ const ContractorManagement = () => {
         </div>
 
         {/* ===================================================
-            4. BOTTOM INFORMATION SECTION
-        ==================================================== */}
-        <div className='grid grid-cols-1 gap-4 lg:grid-cols-2 xl:grid-cols-4'>
-          {Array.from({ length: 4 }).map((_, index) => (
-            <div
-              key={index}
-              className='rounded-xl border border-gray-200 bg-white p-4 shadow-sm'
-            >
-              {/* SECTION TITLE */}
-              <div className='h-5 w-36 rounded bg-gray-100' />
+                4. BOTTOM INFORMATION SECTION
+            ==================================================== */}
+        <div className='grid grid-cols-1 gap-2 lg:grid-cols-2 xl:grid-cols-4'>
+          {/* =================================================
+                  1. CONTRACT EXPIRY ALERT
+              ================================================== */}
+          {/* =================================================
+                  CONTRACT EXPIRY ALERT
+              ================================================= */}
+          <div className='rounded-xl border border-gray-200 bg-white p-2 shadow-sm'>
+            {/* TITLE */}
+            <h3 className='text-sm font-semibold text-green-700'>
+              Contract Expiry Alert
+            </h3>
 
-              {/* SECTION DESCRIPTION */}
-              <div className='mt-2 h-3 w-44 rounded bg-gray-100' />
+            {/* TABLE */}
+            <div className='mt-3 overflow-x-auto'>
+              <table className='w-full min-w-[500px] table-fixed'>
+                {/* TABLE HEADER */}
+                <thead>
+                  <tr className='border-b border-gray-200'>
+                    <th className='w-[18%] pb-2 text-left text-[8px] font-semibold text-gray-600'>
+                      Contractor ID
+                    </th>
 
-              {/* SECTION CONTENT */}
-              <div className='mt-5 space-y-4'>
-                {Array.from({ length: 3 }).map((_, itemIndex) => (
-                  <div key={itemIndex} className='rounded-lg bg-gray-50 p-3'>
-                    <div className='h-3 w-32 rounded bg-gray-100' />
+                    <th className='w-[30%] pb-2 text-left text-[8px] font-semibold text-gray-600'>
+                      Contractor Name
+                    </th>
 
-                    <div className='mt-2 h-3 w-24 rounded bg-gray-100' />
+                    <th className='w-[18%] pb-2 text-center text-[8px] font-semibold text-gray-600'>
+                      End Date
+                    </th>
+
+                    <th className='w-[15%] pb-2 text-center text-[8px] font-semibold text-gray-600'>
+                      Days Left
+                    </th>
+
+                    <th className='w-[19%] pb-2 text-center text-[8px] font-semibold text-gray-600'>
+                      Status
+                    </th>
+                  </tr>
+                </thead>
+
+                {/* TABLE BODY */}
+                <tbody>
+                  {expiryAlerts.map((alert) => (
+                    <tr
+                      key={alert.contractorId}
+                      className='border-b border-gray-100 last:border-b-0'
+                    >
+                      {/* CONTRACTOR ID */}
+                      <td className='py-2 text-left text-[8px] text-gray-600'>
+                        {alert.contractorId}
+                      </td>
+
+                      {/* CONTRACTOR NAME */}
+                      <td className='truncate py-2 text-left text-[8px] font-medium text-gray-700'>
+                        {alert.contractorName}
+                      </td>
+
+                      {/* END DATE */}
+                      <td className='py-2 text-center text-[8px] text-gray-600'>
+                        {alert.endDate}
+                      </td>
+
+                      {/* DAYS LEFT */}
+                      <td className='py-2 text-center text-[8px] text-gray-600'>
+                        {alert.daysLeft}
+                      </td>
+
+                      {/* STATUS */}
+                      <td className='py-2 text-center'>
+                        <span
+                          className={`inline-flex rounded-full px-2 py-0.5 text-[7px] font-medium ${
+                            alert.status === "Expiring Soon"
+                              ? "bg-orange-50 text-orange-600"
+                              : "bg-green-50 text-green-700"
+                          }`}
+                        >
+                          {alert.status}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* VIEW ALL BUTTON */}
+            <div className='mt-3 flex justify-center'>
+              <button
+                type='button'
+                className='rounded-md border border-gray-200 px-8 py-2 text-[9px] font-medium text-gray-600 transition hover:border-green-600 hover:bg-green-50 hover:text-green-700'
+              >
+                View All Expiring Contracts
+              </button>
+            </div>
+          </div>
+
+          {/* =================================================
+                  2. DOCUMENTS
+              ================================================== */}
+          <div className='rounded-xl border border-gray-200 bg-white p-2 shadow-sm'>
+            <h3 className='text-sm font-semibold text-green-700'>Documents</h3>
+
+            <div className='mt-3 grid grid-cols-4 gap-2'>
+              {documents.map((document) => (
+                <div
+                  key={document.id}
+                  className='flex flex-col items-center justify-center rounded-lg border border-gray-100 bg-gray-50 p-3 text-center'
+                >
+                  <div className='flex h-7 w-7 items-center justify-center rounded-full bg-white text-gray-500'>
+                    📄
                   </div>
-                ))}
+
+                  <p className='mt-1 text-[9px] font-medium text-gray-600'>
+                    {document.name}
+                  </p>
+
+                  <span className='mt-1 text-[8px] text-green-600'>
+                    {document.status}
+                  </span>
+                </div>
+              ))}
+            </div>
+
+            <p className='mt-3 text-[8px] text-gray-400'>
+              Note: Maximum file size 2MB for each file.
+            </p>
+          </div>
+
+          {/* =================================================
+                  3. PERFORMANCE SUMMARY
+              ================================================== */}
+          <div className='rounded-xl border border-gray-200 bg-white p-4 shadow-sm'>
+            <h3 className='text-sm font-semibold text-green-700'>
+              Performance Summary (This Month)
+            </h3>
+
+            <div className='mt-5 space-y-5'>
+              {/* ON TIME WORK */}
+              <div>
+                <div className='mb-1 flex items-center justify-between'>
+                  <span className='text-[10px] text-gray-600'>
+                    On-Time Work Completion
+                  </span>
+
+                  <span className='text-[10px] font-semibold text-green-700'>
+                    {performance.onTimeWorkCompletion}%
+                  </span>
+                </div>
+
+                <div className='h-1.5 rounded-full bg-gray-100'>
+                  <div
+                    className='h-1.5 rounded-full bg-green-700'
+                    style={{
+                      width: `${performance.onTimeWorkCompletion}%`,
+                    }}
+                  />
+                </div>
+              </div>
+
+              {/* QUALITY */}
+              <div>
+                <div className='mb-1 flex items-center justify-between'>
+                  <span className='text-[10px] text-gray-600'>
+                    Quality Rating (Avg.)
+                  </span>
+
+                  <span className='text-[10px] font-semibold text-green-700'>
+                    {performance.qualityRating} / 5
+                  </span>
+                </div>
+
+                <div className='h-1.5 rounded-full bg-gray-100'>
+                  <div
+                    className='h-1.5 rounded-full bg-green-700'
+                    style={{
+                      width: `${(performance.qualityRating / 5) * 100}%`,
+                    }}
+                  />
+                </div>
+              </div>
+
+              {/* COMPLIANCE */}
+              <div>
+                <div className='mb-1 flex items-center justify-between'>
+                  <span className='text-[10px] text-gray-600'>Compliance</span>
+
+                  <span className='text-[10px] font-semibold text-green-700'>
+                    {performance.compliance}%
+                  </span>
+                </div>
+
+                <div className='h-1.5 rounded-full bg-gray-100'>
+                  <div
+                    className='h-1.5 rounded-full bg-green-700'
+                    style={{
+                      width: `${performance.compliance}%`,
+                    }}
+                  />
+                </div>
               </div>
             </div>
-          ))}
+
+            <button
+              type='button'
+              className='mt-4 w-full rounded-md border border-gray-200 py-2 text-[10px] font-medium text-gray-600 hover:bg-gray-50'
+            >
+              View Performance Report
+            </button>
+          </div>
+
+          {/* =================================================
+                  4. ACTION SHORTCUTS
+              ================================================== */}
+          <div className='rounded-xl border border-gray-200 bg-white p-4 shadow-sm'>
+            <h3 className='text-sm font-semibold text-green-700'>
+              Action Shortcuts
+            </h3>
+
+            <div className='mt-5 grid grid-cols-3 gap-3 sm:grid-cols-5'>
+              {actionShortcuts.map((action) => (
+                <button
+                  key={action.id}
+                  type='button'
+                  className='flex flex-col items-center gap-2 rounded-lg p-2 text-center transition hover:bg-green-50'
+                >
+                  <div className='flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 bg-white text-green-700'>
+                    {action.type === "renewal" && "↻"}
+                    {action.type === "payment" && "▣"}
+                    {action.type === "workOrder" && "▤"}
+                    {action.type === "document" && "▧"}
+                    {action.type === "blacklist" && "♙"}
+                    {action.type === "more" && "•••"}
+                  </div>
+
+                  <span className='text-[9px] font-medium leading-3 text-gray-600'>
+                    {action.name}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
 
         {/* ===================================================
             5. FORM FOOTER
         ==================================================== */}
-        <div className='flex flex-col gap-2 border-t border-gray-200 pt-4 sm:flex-row sm:justify-end'>
+        <div className='flex flex-col gap-2 border-t border-gray-200 pt-4 sm:flex-row sm:items-center sm:justify-end'>
           {/* RESET */}
           <button
             type='button'
             onClick={() => reset()}
-            className='h-10 w-full rounded-lg bg-gray-100 sm:w-24'
-          />
+            className='inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-5 text-xs font-medium text-gray-600 transition hover:bg-gray-50 sm:w-auto'
+          >
+            <RotateCcw size={15} strokeWidth={1.8} />
+            Reset
+          </button>
 
           {/* SAVE AS DRAFT */}
           <button
             type='button'
-            className='h-10 w-full rounded-lg bg-gray-100 sm:w-32'
-          />
+            className='inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-5 text-xs font-medium text-gray-700 transition hover:bg-gray-50 sm:w-auto'
+          >
+            <Save size={15} strokeWidth={1.8} />
+            Save as Draft
+          </button>
 
           {/* SAVE & SUBMIT */}
           <button
             type='submit'
-            className='h-10 w-full rounded-lg bg-gray-200 sm:w-32'
-          />
+            className='inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg bg-green-700 px-5 text-xs font-medium text-white transition hover:bg-green-800 sm:w-auto'
+          >
+            <CheckCircle2 size={15} strokeWidth={1.8} />
+            Save & Submit
+          </button>
         </div>
       </form>
     </div>

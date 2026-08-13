@@ -329,14 +329,35 @@ export const contractorManagementData = {
       contractorId: "CON-1004",
       contractorName: "M/S Safety First",
       endDate: "04-01-2027",
-      daysLeft: 20,
-      status: "Expiring Soon",
+      daysLeft: 216,
+      status: "Safe",
     },
     {
       contractorId: "CON-1006",
       contractorName: "M/S Road Master",
       endDate: "09-01-2027",
-      daysLeft: 28,
+      daysLeft: 221,
+      status: "Safe",
+    },
+    {
+      contractorId: "CON-1008",
+      contractorName: "M/S Water Supply Co.",
+      endDate: "19-02-2027",
+      daysLeft: 262,
+      status: "Safe",
+    },
+    {
+      contractorId: "CON-1005",
+      contractorName: "M/S Clean & Care",
+      endDate: "31-05-2026",
+      daysLeft: 29,
+      status: "Expiring Soon",
+    },
+    {
+      contractorId: "CON-1003",
+      contractorName: "M/S Hasan & Sons",
+      endDate: "31-01-2027",
+      daysLeft: 212,
       status: "Safe",
     },
   ],
@@ -372,6 +393,16 @@ export const contractorManagementData = {
       name: "Insurance",
       status: "Uploaded",
     },
+    {
+      id: 7,
+      name: "Work Permit",
+      status: "Uploaded",
+    },
+    {
+      id: 8,
+      name: "Other Document",
+      status: "Uploaded",
+    },
   ],
 
   performance: {
@@ -405,6 +436,11 @@ export const contractorManagementData = {
       id: 5,
       name: "Blacklist Contractor",
       type: "blacklist",
+    },
+    {
+      id: 6,
+      name: "More Actions",
+      type: "more",
     },
   ],
 };
