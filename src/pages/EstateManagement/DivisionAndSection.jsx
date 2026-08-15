@@ -56,7 +56,9 @@ const DivisionAndSection = () => {
       <div className='grid grid-cols-12 gap-3'>
         {/* ================= Left Side ================= */}
         <div className='col-span-12 space-y-6 xl:col-span-5'>
-          {/* Division Information */}
+          {/* =========================================================
+                  Division Information
+              ========================================================= */}
           <div className='rounded-xl bg-white shadow-sm'>
             <div className='border-b bg-green-50 px-6 py-4'>
               <h2 className='text-lg font-semibold text-green-800'>
@@ -70,7 +72,9 @@ const DivisionAndSection = () => {
             >
               <div className='p-6'>
                 <div className='grid grid-cols-1 gap-5 md:grid-cols-2'>
-                  {/* Estate */}
+                  {/* =====================================================
+                          Estate
+                      ===================================================== */}
                   <div>
                     <label className='mb-1.5 block text-sm font-medium text-gray-700'>
                       Estate <span className='text-red-500'>*</span>
@@ -83,9 +87,12 @@ const DivisionAndSection = () => {
                       className='h-11 w-full rounded-lg border border-gray-300 bg-white px-4 outline-none transition focus:border-green-600'
                     >
                       <option value=''>Select Estate</option>
-                      <option value='Jamuna Tea Estate'>
-                        Jamuna Tea Estate
-                      </option>
+
+                      {divisionSectionData.estateOptions.map((estate) => (
+                        <option key={estate.id} value={estate.value}>
+                          {estate.label}
+                        </option>
+                      ))}
                     </select>
 
                     {errors.estate && (
@@ -95,7 +102,9 @@ const DivisionAndSection = () => {
                     )}
                   </div>
 
-                  {/* Total Area */}
+                  {/* =====================================================
+                          Total Area
+                      ===================================================== */}
                   <div>
                     <label className='mb-1.5 block text-sm font-medium text-gray-700'>
                       Total Area (Acre) <span className='text-red-500'>*</span>
@@ -105,7 +114,7 @@ const DivisionAndSection = () => {
                       type='number'
                       min={0}
                       step='0.01'
-                      placeholder='1250.00'
+                      placeholder='Enter total area'
                       {...register("totalArea", {
                         required: "Total Area is required",
                         min: {
@@ -123,7 +132,9 @@ const DivisionAndSection = () => {
                     )}
                   </div>
 
-                  {/* Division Name */}
+                  {/* =====================================================
+                          Division Name
+                      ===================================================== */}
                   <div>
                     <label className='mb-1.5 block text-sm font-medium text-gray-700'>
                       Division Name <span className='text-red-500'>*</span>
@@ -131,7 +142,7 @@ const DivisionAndSection = () => {
 
                     <input
                       type='text'
-                      placeholder='Division Name'
+                      placeholder='Enter division name'
                       {...register("divisionName", {
                         required: "Division Name is required",
                       })}
@@ -145,7 +156,9 @@ const DivisionAndSection = () => {
                     )}
                   </div>
 
-                  {/* Total Section */}
+                  {/* =====================================================
+                          Total Section
+                      ===================================================== */}
                   <div>
                     <label className='mb-1.5 block text-sm font-medium text-gray-700'>
                       Total Section
@@ -153,7 +166,8 @@ const DivisionAndSection = () => {
 
                     <input
                       type='number'
-                      placeholder='8'
+                      min={0}
+                      placeholder='Enter total section'
                       {...register("totalSection", {
                         min: {
                           value: 0,
@@ -162,6 +176,7 @@ const DivisionAndSection = () => {
                       })}
                       className='h-11 w-full rounded-lg border border-gray-300 px-4 outline-none transition focus:border-green-600'
                     />
+
                     {errors.totalSection && (
                       <p className='mt-1 text-xs text-red-500'>
                         {errors.totalSection.message}
@@ -169,7 +184,9 @@ const DivisionAndSection = () => {
                     )}
                   </div>
 
-                  {/* Division Code */}
+                  {/* =====================================================
+                          Division Code
+                      ===================================================== */}
                   <div>
                     <label className='mb-1.5 block text-sm font-medium text-gray-700'>
                       Division Code <span className='text-red-500'>*</span>
@@ -177,7 +194,7 @@ const DivisionAndSection = () => {
 
                     <input
                       type='text'
-                      placeholder='DIV-01'
+                      placeholder='Enter division code'
                       {...register("divisionCode", {
                         required: "Division Code is required",
                         pattern: {
@@ -195,7 +212,9 @@ const DivisionAndSection = () => {
                     )}
                   </div>
 
-                  {/* Status */}
+                  {/* =====================================================
+                          Status
+                      ===================================================== */}
                   <div>
                     <label className='mb-1.5 block text-sm font-medium text-gray-700'>
                       Status <span className='text-red-500'>*</span>
@@ -208,8 +227,14 @@ const DivisionAndSection = () => {
                       className='h-11 w-full rounded-lg border border-gray-300 bg-white px-4 outline-none transition focus:border-green-600'
                     >
                       <option value=''>Select Status</option>
-                      <option value='Active'>Active</option>
-                      <option value='Inactive'>Inactive</option>
+
+                      {divisionSectionData.divisionStatusOptions.map(
+                        (status) => (
+                          <option key={status.id} value={status.value}>
+                            {status.label}
+                          </option>
+                        ),
+                      )}
                     </select>
 
                     {errors.status && (
@@ -220,7 +245,9 @@ const DivisionAndSection = () => {
                   </div>
                 </div>
 
-                {/* Description */}
+                {/* =======================================================
+                        Description
+                    ======================================================= */}
                 <div className='mt-5'>
                   <label className='mb-1.5 block text-sm font-medium text-gray-700'>
                     Description
@@ -236,6 +263,7 @@ const DivisionAndSection = () => {
                     })}
                     className='w-full resize-none rounded-lg border border-gray-300 p-4 outline-none transition focus:border-green-600'
                   />
+
                   {errors.description && (
                     <p className='mt-1 text-xs text-red-500'>
                       {errors.description.message}
@@ -243,7 +271,9 @@ const DivisionAndSection = () => {
                   )}
                 </div>
 
-                {/* Footer */}
+                {/* =======================================================
+                        Division Footer
+                    ======================================================= */}
                 <div className='mt-6 border-t pt-6'>
                   <div className='flex flex-col-reverse gap-3 sm:flex-row sm:justify-end'>
                     {/* Cancel */}
@@ -253,7 +283,7 @@ const DivisionAndSection = () => {
                         reset();
                         clearErrors();
                       }}
-                      className='inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-5 text-sm font-medium text-gray-700 transition hover:bg-gray-100 sm:w-auto cursor-pointer'
+                      className='inline-flex h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-5 text-sm font-medium text-gray-700 transition hover:bg-gray-100 sm:w-auto'
                     >
                       <X size={18} />
                       Cancel
@@ -266,7 +296,7 @@ const DivisionAndSection = () => {
                         reset();
                         clearErrors();
                       }}
-                      className='inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg border border-green-200 bg-green-50 px-5 text-sm font-medium text-green-700 transition hover:bg-green-100 sm:w-auto cursor-pointer'
+                      className='inline-flex h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-lg border border-green-200 bg-green-50 px-5 text-sm font-medium text-green-700 transition hover:bg-green-100 sm:w-auto'
                     >
                       <RotateCcw size={18} />
                       Reset
@@ -276,9 +306,10 @@ const DivisionAndSection = () => {
                     <button
                       type='submit'
                       disabled={isSubmitting}
-                      className='inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-green-700 px-5 text-sm font-semibold text-white transition hover:bg-green-800 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto cursor-pointer'
+                      className='inline-flex h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-lg bg-green-700 px-5 text-sm font-semibold text-white transition hover:bg-green-800 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto'
                     >
                       <Save size={18} />
+
                       {isSubmitting ? "Saving..." : "Save Division"}
                     </button>
                   </div>
@@ -287,7 +318,9 @@ const DivisionAndSection = () => {
             </form>
           </div>
 
-          {/* Section Information */}
+          {/* =========================================================
+                  Section Information
+              ========================================================= */}
           <div className='rounded-xl bg-white shadow-sm'>
             <div className='border-b bg-green-50 px-6 py-4'>
               <h2 className='text-lg font-semibold text-green-800'>
@@ -300,7 +333,9 @@ const DivisionAndSection = () => {
               className='p-6'
             >
               <div className='grid grid-cols-1 gap-5 md:grid-cols-2'>
-                {/* Division */}
+                {/* =====================================================
+                        Division
+                    ===================================================== */}
                 <div>
                   <label className='mb-1.5 block text-sm font-medium text-gray-700'>
                     Division <span className='text-red-500'>*</span>
@@ -313,7 +348,12 @@ const DivisionAndSection = () => {
                     className='h-11 w-full rounded-lg border border-gray-300 bg-white px-4 outline-none transition focus:border-green-600'
                   >
                     <option value=''>Select Division</option>
-                    <option value='Rangpur Division'>Rangpur Division</option>
+
+                    {divisionSectionData.divisionList.map((division) => (
+                      <option key={division.id} value={division.divisionCode}>
+                        {division.divisionName}
+                      </option>
+                    ))}
                   </select>
 
                   {sectionErrors.division && (
@@ -322,7 +362,10 @@ const DivisionAndSection = () => {
                     </p>
                   )}
                 </div>
-                {/* Parent Section */}
+
+                {/* =====================================================
+                        Parent Section
+                    ===================================================== */}
                 <div>
                   <label className='mb-1.5 block text-sm font-medium text-gray-700'>
                     Parent Section
@@ -332,10 +375,17 @@ const DivisionAndSection = () => {
                     {...registerSection("parentSection")}
                     className='h-11 w-full rounded-lg border border-gray-300 bg-white px-4 outline-none transition focus:border-green-600'
                   >
-                    <option value=''>Select (If any)</option>
+                    {divisionSectionData.parentSectionOptions.map((section) => (
+                      <option key={section.id} value={section.value}>
+                        {section.label}
+                      </option>
+                    ))}
                   </select>
                 </div>
-                {/* Section Name */}
+
+                {/* =====================================================
+                        Section Name
+                    ===================================================== */}
                 <div>
                   <label className='mb-1.5 block text-sm font-medium text-gray-700'>
                     Section Name <span className='text-red-500'>*</span>
@@ -343,7 +393,7 @@ const DivisionAndSection = () => {
 
                   <input
                     type='text'
-                    placeholder='Section Name'
+                    placeholder='Enter section name'
                     {...registerSection("sectionName", {
                       required: "Section Name is required",
                     })}
@@ -356,7 +406,10 @@ const DivisionAndSection = () => {
                     </p>
                   )}
                 </div>
-                {/* Manager / In-charge */}
+
+                {/* =====================================================
+                        Manager / In-charge
+                    ===================================================== */}
                 <div>
                   <label className='mb-1.5 block text-sm font-medium text-gray-700'>
                     Manager / In-charge
@@ -367,10 +420,18 @@ const DivisionAndSection = () => {
                     className='h-11 w-full rounded-lg border border-gray-300 bg-white px-4 outline-none transition focus:border-green-600'
                   >
                     <option value=''>Select Manager</option>
-                    <option value='Md. Faruk Hossain'>Md. Faruk Hossain</option>
+
+                    {divisionSectionData.managerOptions.map((manager) => (
+                      <option key={manager.id} value={manager.value}>
+                        {manager.label}
+                      </option>
+                    ))}
                   </select>
                 </div>
-                {/* Section Code */}
+
+                {/* =====================================================
+                      Section Code
+                  ===================================================== */}
                 <div>
                   <label className='mb-1.5 block text-sm font-medium text-gray-700'>
                     Section Code <span className='text-red-500'>*</span>
@@ -378,7 +439,7 @@ const DivisionAndSection = () => {
 
                   <input
                     type='text'
-                    placeholder='SEC-001'
+                    placeholder='Enter section code'
                     {...registerSection("sectionCode", {
                       required: "Section Code is required",
                       pattern: {
@@ -395,7 +456,10 @@ const DivisionAndSection = () => {
                     </p>
                   )}
                 </div>
-                {/* Description */}
+
+                {/* =====================================================
+                        Description
+                    ===================================================== */}
                 <div>
                   <label className='mb-1.5 block text-sm font-medium text-gray-700'>
                     Description
@@ -410,15 +474,19 @@ const DivisionAndSection = () => {
                         message: "Maximum 250 characters",
                       },
                     })}
-                    className='w-full resize-none rounded-lg border border-gray-300 p-4 outline-none transition focus:border-green-600 h-11'
+                    className='h-11 w-full resize-none rounded-lg border border-gray-300 p-4 outline-none transition focus:border-green-600'
                   />
+
                   {sectionErrors.description && (
                     <p className='mt-1 text-xs text-red-500'>
                       {sectionErrors.description.message}
                     </p>
                   )}
                 </div>
-                {/* Total Area */}
+
+                {/* =====================================================
+                        Total Area
+                    ===================================================== */}
                 <div>
                   <label className='mb-1.5 block text-sm font-medium text-gray-700'>
                     Total Area (Acre) <span className='text-red-500'>*</span>
@@ -428,7 +496,7 @@ const DivisionAndSection = () => {
                     type='number'
                     min={0}
                     step='0.01'
-                    placeholder='125.50'
+                    placeholder='Enter total area'
                     {...registerSection("totalArea", {
                       required: "Total Area is required",
                       min: {
@@ -445,7 +513,10 @@ const DivisionAndSection = () => {
                     </p>
                   )}
                 </div>
-                {/* Status */}
+
+                {/* =====================================================
+                        Status
+                    ===================================================== */}
                 <div>
                   <label className='mb-1.5 block text-sm font-medium text-gray-700'>
                     Status <span className='text-red-500'>*</span>
@@ -458,8 +529,12 @@ const DivisionAndSection = () => {
                     className='h-11 w-full rounded-lg border border-gray-300 bg-white px-4 outline-none transition focus:border-green-600'
                   >
                     <option value=''>Select Status</option>
-                    <option value='Active'>Active</option>
-                    <option value='Inactive'>Inactive</option>
+
+                    {divisionSectionData.sectionStatusOptions.map((status) => (
+                      <option key={status.id} value={status.value}>
+                        {status.label}
+                      </option>
+                    ))}
                   </select>
 
                   {sectionErrors.status && (
@@ -469,40 +544,46 @@ const DivisionAndSection = () => {
                   )}
                 </div>
               </div>
-              {/* Footer */}
 
+              {/* =======================================================
+                      Section Footer
+                  ======================================================= */}
               <div className='mt-6 border-t pt-6'>
                 <div className='flex flex-col-reverse gap-3 sm:flex-row sm:justify-end'>
+                  {/* Cancel */}
                   <button
                     type='button'
                     onClick={() => {
                       resetSection();
                       clearSectionErrors();
                     }}
-                    className='inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-5 text-sm font-medium text-gray-700 transition hover:bg-gray-100 sm:w-auto cursor-pointer'
+                    className='inline-flex h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-5 text-sm font-medium text-gray-700 transition hover:bg-gray-100 sm:w-auto'
                   >
                     <X size={18} />
                     Cancel
                   </button>
 
+                  {/* Reset */}
                   <button
                     type='button'
                     onClick={() => {
                       resetSection();
                       clearSectionErrors();
                     }}
-                    className='inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg border border-green-200 bg-green-50 px-5 text-sm font-medium text-green-700 transition hover:bg-green-100 sm:w-auto cursor-pointer'
+                    className='inline-flex h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-lg border border-green-200 bg-green-50 px-5 text-sm font-medium text-green-700 transition hover:bg-green-100 sm:w-auto'
                   >
                     <RotateCcw size={18} />
                     Reset
                   </button>
 
+                  {/* Save */}
                   <button
                     type='submit'
                     disabled={sectionSubmitting}
-                    className='inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-green-700 px-5 text-sm font-semibold text-white transition hover:bg-green-800 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto cursor-pointer'
+                    className='inline-flex h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-lg bg-green-700 px-5 text-sm font-semibold text-white transition hover:bg-green-800 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto'
                   >
                     <Save size={18} />
+
                     {sectionSubmitting ? "Saving..." : "Save Section"}
                   </button>
                 </div>

@@ -3,7 +3,18 @@ import { useForm } from "react-hook-form";
 import toast, { Toaster } from "react-hot-toast";
 import EstateManagementTabs from "../../components/EstateManagement/EstateManagementTabs";
 import { landLeaseManagementData } from "../../data/EstateManagementData/landAndLeaseManagementData";
-import { X, RotateCcw, Save, Download, Trash2, Plus } from "lucide-react";
+import {
+  Plus,
+  Minus,
+  Layers3,
+  Expand,
+  MapPin,
+  X,
+  RotateCcw,
+  Save,
+  Download,
+  Trash2,
+} from "lucide-react";
 const LandAndLeaseManagement = () => {
   const {
     register,
@@ -11,16 +22,12 @@ const LandAndLeaseManagement = () => {
     reset,
     formState: { errors },
   } = useForm();
-  const onSubmit = async (data) => {
-    try {
-      // await axios.post(...)
+  const FieldOrBlockManagementonSubmit = (data) => {
+    console.log("Field / Block Data:", data);
 
-      toast.success("Land / Lease saved successfully!");
+    toast.success("Field / Block saved successfully.");
 
-      reset();
-    } catch (error) {
-      toast.error("Failed to save Land / Lease.");
-    }
+    reset();
   };
   return (
     <div>
@@ -31,14 +38,16 @@ const LandAndLeaseManagement = () => {
           {/* ================= Basic Information ================= */}
           {/* Form */}
           <div className='col-span-12 xl:col-span-7'>
-            <form onSubmit={handleSubmit(onSubmit)}>
+            <form onSubmit={handleSubmit(FieldOrBlockManagementonSubmit)}>
               <div className='rounded-xl border border-gray-200 bg-white p-5 shadow-sm'>
                 <h2 className='mb-5 text-lg font-semibold text-green-800'>
                   Land / Lease Information
                 </h2>
 
                 <div className='grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3'>
-                  {/* Estate */}
+                  {/* =====================================================
+                          Estate
+                      ====================================================== */}
                   <div>
                     <label className='mb-2 block text-sm font-medium text-gray-700'>
                       Estate <span className='text-red-500'>*</span>
@@ -48,20 +57,19 @@ const LandAndLeaseManagement = () => {
                       {...register("estate", {
                         required: "Estate is required",
                       })}
-                      className='h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm outline-none focus:border-green-600'
+                      className={`h-11 w-full rounded-lg border bg-white px-3 text-sm outline-none ${
+                        errors.estate
+                          ? "border-red-500"
+                          : "border-gray-300 focus:border-green-600"
+                      }`}
                     >
                       <option value=''>Select Estate</option>
-                      <option value='Jamuna Tea Estate'>
-                        Jamuna Tea Estate
-                      </option>
-                      <option value='Rupai Tea Estate'>Rupai Tea Estate</option>
-                      <option value='Karatoa Tea Estate'>
-                        Karatoa Tea Estate
-                      </option>
-                      <option value='Green Valley Tea Estate'>
-                        Green Valley Tea Estate
-                      </option>
-                      <option value='Surma Tea Estate'>Surma Tea Estate</option>
+
+                      {landLeaseManagementData.estates.map((estate) => (
+                        <option key={estate.id} value={estate.value}>
+                          {estate.label}
+                        </option>
+                      ))}
                     </select>
 
                     {errors.estate && (
@@ -71,7 +79,9 @@ const LandAndLeaseManagement = () => {
                     )}
                   </div>
 
-                  {/* Land Type */}
+                  {/* =====================================================
+                          Land / Lease Type
+                      ====================================================== */}
                   <div>
                     <label className='mb-2 block text-sm font-medium text-gray-700'>
                       Land / Lease Type <span className='text-red-500'>*</span>
@@ -81,13 +91,19 @@ const LandAndLeaseManagement = () => {
                       {...register("landLeaseType", {
                         required: "Land / Lease Type is required",
                       })}
-                      className='h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm outline-none focus:border-green-600'
+                      className={`h-11 w-full rounded-lg border bg-white px-3 text-sm outline-none ${
+                        errors.landLeaseType
+                          ? "border-red-500"
+                          : "border-gray-300 focus:border-green-600"
+                      }`}
                     >
                       <option value=''>Select Type</option>
-                      <option value='Leased In'>Leased In</option>
-                      <option value='Leased Out'>Leased Out</option>
-                      <option value='Owned'>Owned</option>
-                      <option value='Disputed'>Disputed</option>
+
+                      {landLeaseManagementData.landLeaseTypes.map((type) => (
+                        <option key={type.id} value={type.value}>
+                          {type.label}
+                        </option>
+                      ))}
                     </select>
 
                     {errors.landLeaseType && (
@@ -97,7 +113,9 @@ const LandAndLeaseManagement = () => {
                     )}
                   </div>
 
-                  {/* Category */}
+                  {/* =====================================================
+                          Land Category
+                      ====================================================== */}
                   <div>
                     <label className='mb-2 block text-sm font-medium text-gray-700'>
                       Land Category <span className='text-red-500'>*</span>
@@ -107,16 +125,21 @@ const LandAndLeaseManagement = () => {
                       {...register("landCategory", {
                         required: "Land Category is required",
                       })}
-                      className='h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm outline-none focus:border-green-600'
+                      className={`h-11 w-full rounded-lg border bg-white px-3 text-sm outline-none ${
+                        errors.landCategory
+                          ? "border-red-500"
+                          : "border-gray-300 focus:border-green-600"
+                      }`}
                     >
                       <option value=''>Select Category</option>
-                      <option value='Tea Garden Land'>Tea Garden Land</option>
-                      <option value='Factory Land'>Factory Land</option>
-                      <option value='Office Area'>Office Area</option>
-                      <option value='Residential Area'>Residential Area</option>
-                      <option value='Water Body'>Water Body</option>
-                      <option value='Road'>Road</option>
-                      <option value='Nursery'>Nursery</option>
+
+                      {landLeaseManagementData.landCategories.map(
+                        (category) => (
+                          <option key={category.id} value={category.value}>
+                            {category.label}
+                          </option>
+                        ),
+                      )}
                     </select>
 
                     {errors.landCategory && (
@@ -126,7 +149,9 @@ const LandAndLeaseManagement = () => {
                     )}
                   </div>
 
-                  {/* Land Name */}
+                  {/* =====================================================
+                          Land / Lease Name
+                      ====================================================== */}
                   <div>
                     <label className='mb-2 block text-sm font-medium text-gray-700'>
                       Land / Lease Name <span className='text-red-500'>*</span>
@@ -138,7 +163,11 @@ const LandAndLeaseManagement = () => {
                       {...register("landLeaseName", {
                         required: "Land / Lease Name is required",
                       })}
-                      className='h-11 w-full rounded-lg border border-gray-300 px-3 text-sm outline-none focus:border-green-600'
+                      className={`h-11 w-full rounded-lg border px-3 text-sm outline-none ${
+                        errors.landLeaseName
+                          ? "border-red-500"
+                          : "border-gray-300 focus:border-green-600"
+                      }`}
                     />
 
                     {errors.landLeaseName && (
@@ -148,7 +177,9 @@ const LandAndLeaseManagement = () => {
                     )}
                   </div>
 
-                  {/* Survey */}
+                  {/* =====================================================
+                          Survey / Khatian
+                      ====================================================== */}
                   <div>
                     <label className='mb-2 block text-sm font-medium text-gray-700'>
                       Survey / Khatian No.
@@ -157,12 +188,14 @@ const LandAndLeaseManagement = () => {
                     <input
                       type='text'
                       placeholder='Enter Survey / Khatian No.'
-                      {...register("surveyKhatianNo")}
+                      {...register("surveyNo")}
                       className='h-11 w-full rounded-lg border border-gray-300 px-3 text-sm outline-none focus:border-green-600'
                     />
                   </div>
 
-                  {/* Plot */}
+                  {/* =====================================================
+                          Plot / Dag
+                      ====================================================== */}
                   <div>
                     <label className='mb-2 block text-sm font-medium text-gray-700'>
                       Plot / Dag No.
@@ -171,26 +204,36 @@ const LandAndLeaseManagement = () => {
                     <input
                       type='text'
                       placeholder='Enter Plot / Dag No.'
-                      {...register("plotDagNo")}
+                      {...register("plotNo")}
                       className='h-11 w-full rounded-lg border border-gray-300 px-3 text-sm outline-none focus:border-green-600'
                     />
                   </div>
 
-                  {/* Mouza */}
+                  {/* =====================================================
+                          Mouza
+                      ====================================================== */}
                   <div>
                     <label className='mb-2 block text-sm font-medium text-gray-700'>
                       Mouza
                     </label>
 
-                    <input
-                      type='text'
-                      placeholder='Enter Mouza'
+                    <select
                       {...register("mouza")}
-                      className='h-11 w-full rounded-lg border border-gray-300 px-3 text-sm outline-none focus:border-green-600'
-                    />
+                      className='h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm outline-none focus:border-green-600'
+                    >
+                      <option value=''>Select Mouza</option>
+
+                      {landLeaseManagementData.mouzas.map((mouza) => (
+                        <option key={mouza.id} value={mouza.value}>
+                          {mouza.label}
+                        </option>
+                      ))}
+                    </select>
                   </div>
 
-                  {/* JL */}
+                  {/* =====================================================
+                          JL / LR No
+                      ====================================================== */}
                   <div>
                     <label className='mb-2 block text-sm font-medium text-gray-700'>
                       JL No. / LR No.
@@ -204,7 +247,9 @@ const LandAndLeaseManagement = () => {
                     />
                   </div>
 
-                  {/* Record */}
+                  {/* =====================================================
+                          Record Type
+                      ====================================================== */}
                   <div>
                     <label className='mb-2 block text-sm font-medium text-gray-700'>
                       Record Type
@@ -215,14 +260,18 @@ const LandAndLeaseManagement = () => {
                       className='h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm outline-none focus:border-green-600'
                     >
                       <option value=''>Select Record Type</option>
-                      <option value='C.S Record'>C.S Record</option>
-                      <option value='S.A Record'>S.A Record</option>
-                      <option value='R.S Record'>R.S Record</option>
-                      <option value='B.S Record'>B.S Record</option>
+
+                      {landLeaseManagementData.recordTypes.map((record) => (
+                        <option key={record.id} value={record.value}>
+                          {record.label}
+                        </option>
+                      ))}
                     </select>
                   </div>
 
-                  {/* Total Area */}
+                  {/* =====================================================
+                          Total Area
+                      ====================================================== */}
                   <div>
                     <label className='mb-2 block text-sm font-medium text-gray-700'>
                       Total Area (Acre) <span className='text-red-500'>*</span>
@@ -236,7 +285,11 @@ const LandAndLeaseManagement = () => {
                         required: "Total Area is required",
                         valueAsNumber: true,
                       })}
-                      className='h-11 w-full rounded-lg border border-gray-300 px-3 text-sm outline-none focus:border-green-600'
+                      className={`h-11 w-full rounded-lg border px-3 text-sm outline-none ${
+                        errors.totalArea
+                          ? "border-red-500"
+                          : "border-gray-300 focus:border-green-600"
+                      }`}
                     />
 
                     {errors.totalArea && (
@@ -246,7 +299,9 @@ const LandAndLeaseManagement = () => {
                     )}
                   </div>
 
-                  {/* Usable */}
+                  {/* =====================================================
+                          Usable Area
+                      ====================================================== */}
                   <div>
                     <label className='mb-2 block text-sm font-medium text-gray-700'>
                       Usable Area (Acre)
@@ -263,7 +318,9 @@ const LandAndLeaseManagement = () => {
                     />
                   </div>
 
-                  {/* Non Usable */}
+                  {/* =====================================================
+                          Non Usable Area
+                      ====================================================== */}
                   <div>
                     <label className='mb-2 block text-sm font-medium text-gray-700'>
                       Non Usable Area (Acre)
@@ -280,7 +337,9 @@ const LandAndLeaseManagement = () => {
                     />
                   </div>
 
-                  {/* Location */}
+                  {/* =====================================================
+                          Location
+                      ====================================================== */}
                   <div>
                     <label className='mb-2 block text-sm font-medium text-gray-700'>
                       Location
@@ -294,7 +353,9 @@ const LandAndLeaseManagement = () => {
                     />
                   </div>
 
-                  {/* GPS */}
+                  {/* =====================================================
+                          GPS Area
+                      ====================================================== */}
                   <div>
                     <label className='mb-2 block text-sm font-medium text-gray-700'>
                       GPS Area (Acre)
@@ -308,19 +369,21 @@ const LandAndLeaseManagement = () => {
                         {...register("gpsArea", {
                           valueAsNumber: true,
                         })}
-                        className='h-11 min-w-6 p-2 flex-1 rounded-lg border border-gray-300 px-3 text-sm outline-none focus:border-green-600'
+                        className='h-11 min-w-0 flex-1 rounded-lg border border-gray-300 px-3 text-sm outline-none focus:border-green-600'
                       />
 
                       <button
                         type='button'
-                        className='rounded-lg border border-gray-300 px-4 text-sm hover:bg-gray-50'
+                        className='rounded-lg border border-gray-300 px-4 text-sm transition hover:bg-gray-50'
                       >
                         Verify
                       </button>
                     </div>
                   </div>
 
-                  {/* Status */}
+                  {/* =====================================================
+                          Land Status
+                      ====================================================== */}
                   <div>
                     <label className='mb-2 block text-sm font-medium text-gray-700'>
                       Land Status
@@ -331,13 +394,18 @@ const LandAndLeaseManagement = () => {
                       className='h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm outline-none focus:border-green-600'
                     >
                       <option value=''>Select Status</option>
-                      <option value='Active'>Active</option>
-                      <option value='Inactive'>Inactive</option>
-                      <option value='Under Process'>Under Process</option>
-                      <option value='Expired'>Expired</option>
+
+                      {landLeaseManagementData.landStatuses.map((status) => (
+                        <option key={status.id} value={status.value}>
+                          {status.label}
+                        </option>
+                      ))}
                     </select>
                   </div>
-                  {/* Acquisition Date */}
+
+                  {/* =====================================================
+                          Acquisition / Lease Date
+                      ====================================================== */}
                   <div>
                     <label className='mb-2 block text-sm font-medium text-gray-700'>
                       Acquisition / Lease Date{" "}
@@ -349,7 +417,11 @@ const LandAndLeaseManagement = () => {
                       {...register("acquisitionDate", {
                         required: "Acquisition / Lease Date is required",
                       })}
-                      className='h-11 w-full rounded-lg border border-gray-300 px-3 text-sm outline-none focus:border-green-600'
+                      className={`h-11 w-full rounded-lg border px-3 text-sm outline-none ${
+                        errors.acquisitionDate
+                          ? "border-red-500"
+                          : "border-gray-300 focus:border-green-600"
+                      }`}
                     />
 
                     {errors.acquisitionDate && (
@@ -359,7 +431,9 @@ const LandAndLeaseManagement = () => {
                     )}
                   </div>
 
-                  {/* Start Date */}
+                  {/* =====================================================
+                          Start Date
+                      ====================================================== */}
                   <div>
                     <label className='mb-2 block text-sm font-medium text-gray-700'>
                       Start Date <span className='text-red-500'>*</span>
@@ -370,7 +444,11 @@ const LandAndLeaseManagement = () => {
                       {...register("startDate", {
                         required: "Start Date is required",
                       })}
-                      className='h-11 w-full rounded-lg border border-gray-300 px-3 text-sm outline-none focus:border-green-600'
+                      className={`h-11 w-full rounded-lg border px-3 text-sm outline-none ${
+                        errors.startDate
+                          ? "border-red-500"
+                          : "border-gray-300 focus:border-green-600"
+                      }`}
                     />
 
                     {errors.startDate && (
@@ -380,7 +458,9 @@ const LandAndLeaseManagement = () => {
                     )}
                   </div>
 
-                  {/* End Date */}
+                  {/* =====================================================
+                        End Date
+                    ====================================================== */}
                   <div>
                     <label className='mb-2 block text-sm font-medium text-gray-700'>
                       End Date <span className='text-red-500'>*</span>
@@ -391,7 +471,11 @@ const LandAndLeaseManagement = () => {
                       {...register("endDate", {
                         required: "End Date is required",
                       })}
-                      className='h-11 w-full rounded-lg border border-gray-300 px-3 text-sm outline-none focus:border-green-600'
+                      className={`h-11 w-full rounded-lg border px-3 text-sm outline-none ${
+                        errors.endDate
+                          ? "border-red-500"
+                          : "border-gray-300 focus:border-green-600"
+                      }`}
                     />
 
                     {errors.endDate && (
@@ -401,7 +485,9 @@ const LandAndLeaseManagement = () => {
                     )}
                   </div>
 
-                  {/* Lease Term */}
+                  {/* =====================================================
+                          Lease Term
+                      ====================================================== */}
                   <div>
                     <label className='mb-2 block text-sm font-medium text-gray-700'>
                       Lease Term (Year)
@@ -409,15 +495,17 @@ const LandAndLeaseManagement = () => {
 
                     <input
                       type='number'
+                      placeholder='Enter Lease Term'
                       {...register("leaseTerm", {
                         valueAsNumber: true,
                       })}
-                      placeholder='Enter Lease Term'
                       className='h-11 w-full rounded-lg border border-gray-300 px-3 text-sm outline-none focus:border-green-600'
                     />
                   </div>
 
-                  {/* Rent Amount */}
+                  {/* =====================================================
+                          Rent / Lease Amount
+                      ====================================================== */}
                   <div>
                     <label className='mb-2 block text-sm font-medium text-gray-700'>
                       Rent / Lease Amount (BDT)
@@ -426,15 +514,17 @@ const LandAndLeaseManagement = () => {
                     <input
                       type='number'
                       step='0.01'
+                      placeholder='Enter Rent Amount'
                       {...register("rentAmount", {
                         valueAsNumber: true,
                       })}
-                      placeholder='Enter Rent Amount'
                       className='h-11 w-full rounded-lg border border-gray-300 px-3 text-sm outline-none focus:border-green-600'
                     />
                   </div>
 
-                  {/* Rent Per Acre */}
+                  {/* =====================================================
+                          Rent Per Acre
+                      ====================================================== */}
                   <div>
                     <label className='mb-2 block text-sm font-medium text-gray-700'>
                       Rent / Lease Per Acre (BDT)
@@ -443,15 +533,17 @@ const LandAndLeaseManagement = () => {
                     <input
                       type='number'
                       step='0.01'
+                      placeholder='Enter Rent Per Acre'
                       {...register("rentPerAcre", {
                         valueAsNumber: true,
                       })}
-                      placeholder='Enter Rent Per Acre'
                       className='h-11 w-full rounded-lg border border-gray-300 px-3 text-sm outline-none focus:border-green-600'
                     />
                   </div>
 
-                  {/* Purpose */}
+                  {/* =====================================================
+                          Purpose / Remarks
+                      ====================================================== */}
                   <div className='md:col-span-2'>
                     <label className='mb-2 block text-sm font-medium text-gray-700'>
                       Purpose / Remarks
@@ -460,12 +552,14 @@ const LandAndLeaseManagement = () => {
                     <textarea
                       rows={2}
                       placeholder='Enter Purpose / Remarks'
-                      {...register("purposeRemarks")}
+                      {...register("purpose")}
                       className='w-full resize-none rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-green-600'
                     />
                   </div>
 
-                  {/* Documents */}
+                  {/* =====================================================
+                          Documents
+                      ====================================================== */}
                   <div>
                     <label className='mb-2 block text-sm font-medium text-gray-700'>
                       Documents
@@ -474,11 +568,13 @@ const LandAndLeaseManagement = () => {
                     <input
                       type='file'
                       {...register("documents")}
-                      className='file:mr-3 file-input cursor-pointer file:rounded-md file:border-0 file:bg-gray-100 file:px-3 file:py-2 file:text-sm h-11 w-full rounded-lg border border-gray-300 text-sm'
+                      className='h-11 w-full rounded-lg border border-gray-300 text-sm file:mr-3 file:border-0 file:bg-gray-100 file:px-3 file:py-2'
                     />
                   </div>
 
-                  {/* Buttons */}
+                  {/* =====================================================
+                          Action Buttons
+                      ====================================================== */}
                   <div className='col-span-full flex flex-wrap justify-center gap-3 pt-2 sm:justify-end'>
                     {/* Cancel */}
                     <button
@@ -516,111 +612,278 @@ const LandAndLeaseManagement = () => {
           {/* Map */}
           <div className='col-span-12 xl:col-span-5 space-y-3'>
             {/* Map */}
-            <div className='rounded-xl border border-gray-200 bg-white p-5 shadow-sm'>
-              <h2 className='mb-4 text-lg font-semibold text-green-800'>
-                Land / Lease Map View
-              </h2>
+            {/* =========================================================
+    Land / Lease Map
+========================================================= */}
 
-              {/* ================= Map UI ================= */}
-              <div className='relative overflow-hidden rounded-lg border border-gray-200'>
-                {/* Dummy Map */}
+            <div className='mt-5 rounded-xl border border-gray-200 bg-white shadow-sm'>
+              {/* =======================================================
+      Map Header
+  ======================================================== */}
+              <div className='flex flex-col gap-3 border-b border-gray-200 px-5 py-4 sm:flex-row sm:items-center sm:justify-between'>
+                <div>
+                  <h2 className='text-lg font-semibold text-green-800'>
+                    Land / Lease Map
+                  </h2>
+
+                  <p className='mt-1 text-xs text-gray-500'>
+                    GIS location and land boundary information
+                  </p>
+                </div>
+
+                {/* Map Type */}
+                <div className='flex items-center gap-2'>
+                  <span className='text-xs font-medium text-gray-500'>
+                    Map Type:
+                  </span>
+
+                  <span className='rounded-md bg-green-50 px-3 py-1.5 text-xs font-medium text-green-700'>
+                    {landLeaseManagementData.mapInformation.mapType}
+                  </span>
+                </div>
+              </div>
+
+              {/* =======================================================
+      Map Area
+  ======================================================== */}
+
+              <div className='relative h-[360px] w-full overflow-hidden rounded-b-xl'>
+                {/* -------------------------------------------------------
+        Map Background
+    -------------------------------------------------------- */}
+
                 <div
-                  className='relative h-[360px] overflow-hidden rounded-lg bg-cover bg-center'
+                  className='absolute inset-0 bg-cover bg-center'
                   style={{
                     backgroundImage: "url('/land-lease-map.png')",
                   }}
                 >
-                  {/* Dummy Satellite Pattern */}
-                  <div className='absolute inset-0 opacity-20'>
-                    <div className='h-full w-full bg-[radial-gradient(circle,#ffffff_1px,transparent_1px)] [background-size:20px_20px]' />
-                  </div>
+                  {/* Map Overlay */}
+                  <div className='absolute inset-0 bg-black/5' />
 
-                  {/* Left Toolbar */}
-                  <div className='absolute left-3 top-3 flex flex-col gap-2'>
-                    <button
-                      type='button'
-                      className='flex h-10 w-10 items-center justify-center rounded-md border border-gray-200 bg-white shadow hover:bg-gray-100'
-                    >
-                      +
-                    </button>
+                  {/* =====================================================
+          Land Boundary
+      ====================================================== */}
 
-                    <button
-                      type='button'
-                      className='flex h-10 w-10 items-center justify-center rounded-md border border-gray-200 bg-white shadow hover:bg-gray-100'
-                    >
-                      −
-                    </button>
+                  <div
+                    className='absolute rounded-[45%] border-2 border-green-700 bg-green-400/30 shadow-sm'
+                    style={{
+                      width: "52%",
+                      height: "62%",
+                      left: "23%",
+                      top: "18%",
+                      transform: "rotate(-8deg)",
+                    }}
+                  />
 
-                    <button
-                      type='button'
-                      className='flex h-10 w-10 items-center justify-center rounded-md border border-gray-200 bg-white shadow hover:bg-gray-100'
-                    >
-                      🗂
-                    </button>
+                  {/* =====================================================
+          Marker
+      ====================================================== */}
 
-                    <button
-                      type='button'
-                      className='flex h-10 w-10 items-center justify-center rounded-md border border-gray-200 bg-white shadow hover:bg-gray-100'
-                    >
-                      ⛶
-                    </button>
-                  </div>
-
-                  {/* Dummy Marker */}
-                  <div className='absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2'>
-                    <div className='flex h-6 w-6 items-center justify-center rounded-full bg-blue-600 ring-4 ring-white' />
-                  </div>
-
-                  {/* Polygon */}
-                  <svg
-                    className='absolute inset-0 h-full w-full'
-                    viewBox='0 0 100 100'
-                    preserveAspectRatio='none'
+                  <div
+                    className='absolute'
+                    style={{
+                      left: "50%",
+                      top: "45%",
+                      transform: "translate(-50%, -50%)",
+                    }}
                   >
-                    <polygon
-                      points='25,20 70,10 82,52 66,82 30,75 18,42'
-                      fill='rgba(34,197,94,.35)'
-                      stroke='white'
-                      strokeWidth='0.7'
-                      strokeDasharray='2'
-                    />
-                  </svg>
-
-                  {/* Legend */}
-                  <div className='absolute bottom-4 right-4 rounded-md bg-white px-4 py-2 shadow'>
-                    <div className='flex items-center gap-2 text-sm'>
-                      <span className='h-3 w-3 rounded bg-green-500'></span>
-                      Selected Land
+                    {/* Marker */}
+                    <div className='relative flex h-10 w-10 items-center justify-center rounded-full bg-green-700 text-white shadow-lg ring-4 ring-white/80'>
+                      <MapPin size={20} />
                     </div>
+
+                    {/* Marker Information */}
+                    <div className='absolute left-1/2 top-12 w-52 -translate-x-1/2 rounded-lg border border-gray-200 bg-white p-3 shadow-lg'>
+                      <h3 className='mb-2 text-sm font-semibold text-green-800'>
+                        {landLeaseManagementData.marker.name}
+                      </h3>
+
+                      <div className='space-y-1 text-xs text-gray-600'>
+                        <p>
+                          <span className='font-medium text-gray-700'>
+                            Latitude:
+                          </span>{" "}
+                          {landLeaseManagementData.marker.latitude}
+                        </p>
+
+                        <p>
+                          <span className='font-medium text-gray-700'>
+                            Longitude:
+                          </span>{" "}
+                          {landLeaseManagementData.marker.longitude}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* =====================================================
+          Map Toolbar
+      ====================================================== */}
+
+                  <div className='absolute right-4 top-4 flex flex-col overflow-hidden rounded-lg border border-gray-200 bg-white shadow-lg'>
+                    {/* Zoom In */}
+                    <button
+                      type='button'
+                      title='Zoom In'
+                      className='flex h-10 w-10 items-center justify-center border-b border-gray-200 text-gray-700 transition hover:bg-gray-100'
+                    >
+                      <Plus size={18} />
+                    </button>
+
+                    {/* Zoom Out */}
+                    <button
+                      type='button'
+                      title='Zoom Out'
+                      className='flex h-10 w-10 items-center justify-center border-b border-gray-200 text-gray-700 transition hover:bg-gray-100'
+                    >
+                      <Minus size={18} />
+                    </button>
+
+                    {/* Layers */}
+                    <button
+                      type='button'
+                      title='Layers'
+                      className='flex h-10 w-10 items-center justify-center border-b border-gray-200 text-gray-700 transition hover:bg-gray-100'
+                    >
+                      <Layers3 size={18} />
+                    </button>
+
+                    {/* Fullscreen */}
+                    <button
+                      type='button'
+                      title='Fullscreen'
+                      className='flex h-10 w-10 items-center justify-center text-gray-700 transition hover:bg-gray-100'
+                    >
+                      <Expand size={18} />
+                    </button>
+                  </div>
+
+                  {/* =====================================================
+          Map Legend
+      ====================================================== */}
+
+                  <div className='absolute bottom-4 left-4 rounded-lg border border-gray-200 bg-white/95 p-3 shadow-md backdrop-blur-sm'>
+                    <h4 className='mb-2 text-xs font-semibold text-gray-700'>
+                      Map Legend
+                    </h4>
+
+                    <div className='space-y-2'>
+                      {landLeaseManagementData.legends.map((legend) => (
+                        <div
+                          key={legend.id}
+                          className='flex items-center gap-2 text-xs text-gray-600'
+                        >
+                          <span
+                            className='h-3 w-3 rounded-sm border border-gray-300'
+                            style={{
+                              backgroundColor: legend.color,
+                            }}
+                          />
+
+                          <span>{legend.label}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* =====================================================
+          Coordinates Badge
+      ====================================================== */}
+
+                  <div className='absolute bottom-4 right-4 rounded-lg border border-gray-200 bg-white/95 px-3 py-2 shadow-md backdrop-blur-sm'>
+                    <p className='text-xs text-gray-600'>
+                      <span className='font-medium'>Coordinates:</span>{" "}
+                      {landLeaseManagementData.mapInformation.latitude},{" "}
+                      {landLeaseManagementData.mapInformation.longitude}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* =======================================================
+      Map Information Footer
+  ======================================================== */}
+
+              <div className='border-t border-gray-200 px-5 py-4'>
+                <div className='grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4'>
+                  {/* Total Area */}
+                  <div className='rounded-lg border border-gray-200 bg-gray-50 p-3'>
+                    <p className='text-xs text-gray-500'>Total Area</p>
+
+                    <p className='mt-1 text-sm font-semibold text-gray-800'>
+                      {landLeaseManagementData.mapInformation.totalArea}
+                    </p>
+                  </div>
+
+                  {/* Perimeter */}
+                  <div className='rounded-lg border border-gray-200 bg-gray-50 p-3'>
+                    <p className='text-xs text-gray-500'>Perimeter</p>
+
+                    <p className='mt-1 text-sm font-semibold text-gray-800'>
+                      {landLeaseManagementData.mapInformation.perimeter}
+                    </p>
+                  </div>
+
+                  {/* Latitude */}
+                  <div className='rounded-lg border border-gray-200 bg-gray-50 p-3'>
+                    <p className='text-xs text-gray-500'>Latitude</p>
+
+                    <p className='mt-1 text-sm font-semibold text-gray-800'>
+                      {landLeaseManagementData.mapInformation.latitude}
+                    </p>
+                  </div>
+
+                  {/* Longitude */}
+                  <div className='rounded-lg border border-gray-200 bg-gray-50 p-3'>
+                    <p className='text-xs text-gray-500'>Longitude</p>
+
+                    <p className='mt-1 text-sm font-semibold text-gray-800'>
+                      {landLeaseManagementData.mapInformation.longitude}
+                    </p>
                   </div>
                 </div>
 
-                {/* Footer */}
-                <div className='flex flex-col gap-1 border-t bg-white p-1 md:flex-row md:items-center md:justify-between'>
-                  <div className='flex flex-wrap gap-x-6 gap-y-2 text-sm text-gray-700'>
-                    <p>
-                      <span className='font-semibold'>Area:</span> 125.50 Acre
-                    </p>
+                {/* =====================================================
+        Survey Information
+    ====================================================== */}
 
-                    <p>
-                      <span className='font-semibold'>Perimeter:</span> 2.85 Km
-                    </p>
+                <div className='mt-4 grid grid-cols-1 gap-3 border-t border-gray-200 pt-4 sm:grid-cols-2 lg:grid-cols-4'>
+                  {/* Projection */}
+                  <div>
+                    <p className='text-xs text-gray-500'>Projection</p>
 
-                    <p>
-                      <span className='font-semibold'>Latitude:</span> 25.7456
-                    </p>
-
-                    <p>
-                      <span className='font-semibold'>Longitude:</span> 89.2741
+                    <p className='mt-1 text-sm font-medium text-gray-800'>
+                      {landLeaseManagementData.mapInformation.projection}
                     </p>
                   </div>
 
-                  <button
-                    type='button'
-                    className='rounded-md border border-gray-300 bg-white  text-sm hover:bg-gray-50'
-                  >
-                    View in Full Screen
-                  </button>
+                  {/* Coordinate System */}
+                  <div>
+                    <p className='text-xs text-gray-500'>Coordinate System</p>
+
+                    <p className='mt-1 text-sm font-medium text-gray-800'>
+                      {landLeaseManagementData.mapInformation.coordinateSystem}
+                    </p>
+                  </div>
+
+                  {/* Last Survey */}
+                  <div>
+                    <p className='text-xs text-gray-500'>Last Survey</p>
+
+                    <p className='mt-1 text-sm font-medium text-gray-800'>
+                      {landLeaseManagementData.mapInformation.lastSurvey}
+                    </p>
+                  </div>
+
+                  {/* Accuracy */}
+                  <div>
+                    <p className='text-xs text-gray-500'>Accuracy</p>
+
+                    <p className='mt-1 text-sm font-medium text-gray-800'>
+                      {landLeaseManagementData.mapInformation.accuracy}
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>

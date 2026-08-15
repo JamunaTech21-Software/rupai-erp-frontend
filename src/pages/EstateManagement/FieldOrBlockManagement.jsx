@@ -62,16 +62,12 @@ const FieldOrBlockManagement = () => {
     reset,
     formState: { errors },
   } = useForm();
-  const FieldOrBlockManagementonSubmit = async (data) => {
-    try {
-      await axios.post("/field-block", data);
+  const FieldOrBlockManagementonSubmit = (data) => {
+    console.log("Field / Block Data:", data);
 
-      toast.success("Field / Block saved successfully.");
+    toast.success("Field / Block saved successfully.");
 
-      reset();
-    } catch (error) {
-      toast.error("Failed to save Field / Block.");
-    }
+    reset();
   };
 
   const [mapType, setMapType] = useState("street");
@@ -93,9 +89,11 @@ const FieldOrBlockManagement = () => {
             </div>
 
             {/* Body */}
-            <div className='space-y-6 py-4 px-2'>
-              <div className='grid grid-cols-1 py-5 gap-3 md:grid-cols-2 xl:grid-cols-3'>
-                {/* Estate */}
+            <div className='space-y-6 px-2 py-4'>
+              <div className='grid grid-cols-1 gap-3 py-5 md:grid-cols-2 xl:grid-cols-3'>
+                {/* =====================================================
+            Estate
+        ====================================================== */}
                 <div>
                   <label className='mb-1.5 block text-sm font-medium text-gray-700'>
                     Estate <span className='text-red-500'>*</span>
@@ -112,10 +110,12 @@ const FieldOrBlockManagement = () => {
                     }`}
                   >
                     <option value=''>Select Estate</option>
-                    <option value='rupai'>Rupai Tea Estate</option>
-                    <option value='karatoa'>Karatoa Tea Estate</option>
-                    <option value='greenvalley'>Green Valley Tea Estate</option>
-                    <option value='sunrise'>Sunrise Tea Estate</option>
+
+                    {fieldAndBlockManagementData.estates.map((estate) => (
+                      <option key={estate.id} value={estate.value}>
+                        {estate.label}
+                      </option>
+                    ))}
                   </select>
 
                   {errors.estate && (
@@ -125,7 +125,9 @@ const FieldOrBlockManagement = () => {
                   )}
                 </div>
 
-                {/* Division */}
+                {/* =====================================================
+            Division
+        ====================================================== */}
                 <div>
                   <label className='mb-1.5 block text-sm font-medium text-gray-700'>
                     Division <span className='text-red-500'>*</span>
@@ -142,10 +144,12 @@ const FieldOrBlockManagement = () => {
                     }`}
                   >
                     <option value=''>Select Division</option>
-                    <option value='north'>North Division</option>
-                    <option value='south'>South Division</option>
-                    <option value='east'>East Division</option>
-                    <option value='west'>West Division</option>
+
+                    {fieldAndBlockManagementData.divisions.map((division) => (
+                      <option key={division.id} value={division.value}>
+                        {division.name}
+                      </option>
+                    ))}
                   </select>
 
                   {errors.division && (
@@ -155,7 +159,9 @@ const FieldOrBlockManagement = () => {
                   )}
                 </div>
 
-                {/* Section */}
+                {/* =====================================================
+            Section
+        ====================================================== */}
                 <div>
                   <label className='mb-1.5 block text-sm font-medium text-gray-700'>
                     Section <span className='text-red-500'>*</span>
@@ -172,10 +178,12 @@ const FieldOrBlockManagement = () => {
                     }`}
                   >
                     <option value=''>Select Section</option>
-                    <option value='section-a'>Section A</option>
-                    <option value='section-b'>Section B</option>
-                    <option value='section-c'>Section C</option>
-                    <option value='section-d'>Section D</option>
+
+                    {fieldAndBlockManagementData.sections.map((section) => (
+                      <option key={section.id} value={section.value}>
+                        {section.name}
+                      </option>
+                    ))}
                   </select>
 
                   {errors.section && (
@@ -185,7 +193,9 @@ const FieldOrBlockManagement = () => {
                   )}
                 </div>
 
-                {/* Field Name */}
+                {/* =====================================================
+            Field Name
+        ====================================================== */}
                 <div>
                   <label className='mb-1.5 block text-sm font-medium text-gray-700'>
                     Field / Block Name <span className='text-red-500'>*</span>
@@ -193,11 +203,11 @@ const FieldOrBlockManagement = () => {
 
                   <input
                     type='text'
-                    placeholder='Enter field / block name '
+                    placeholder='Enter field / block name'
                     {...register("fieldName", {
                       required: "Field / Block Name is required",
                     })}
-                    className={`input h-11 w-full p-2 rounded-lg border bg-white ${
+                    className={`input h-11 w-full rounded-lg border bg-white p-2 ${
                       errors.fieldName
                         ? "border-red-500"
                         : "border-gray-300 focus:border-green-600"
@@ -211,7 +221,9 @@ const FieldOrBlockManagement = () => {
                   )}
                 </div>
 
-                {/* Field Code */}
+                {/* =====================================================
+            Field Code
+        ====================================================== */}
                 <div>
                   <label className='mb-1.5 block text-sm font-medium text-gray-700'>
                     Field / Block Code <span className='text-red-500'>*</span>
@@ -223,7 +235,7 @@ const FieldOrBlockManagement = () => {
                     {...register("fieldCode", {
                       required: "Field / Block Code is required",
                     })}
-                    className={`input h-11 w-full rounded-lg border p-2 bg-white ${
+                    className={`input h-11 w-full rounded-lg border bg-white p-2 ${
                       errors.fieldCode
                         ? "border-red-500"
                         : "border-gray-300 focus:border-green-600"
@@ -237,7 +249,9 @@ const FieldOrBlockManagement = () => {
                   )}
                 </div>
 
-                {/* Field Type */}
+                {/* =====================================================
+            Field Type
+        ====================================================== */}
                 <div>
                   <label className='mb-1.5 block text-sm font-medium text-gray-700'>
                     Field Type <span className='text-red-500'>*</span>
@@ -253,12 +267,13 @@ const FieldOrBlockManagement = () => {
                         : "border-gray-300 focus:border-green-600"
                     }`}
                   >
-                    <option value=''>Select Field type</option>
-                    <option value='tea'>Tea Field</option>
-                    <option value='nursery'>Nursery</option>
-                    <option value='shade'>Shade Area</option>
-                    <option value='road'>Road Side</option>
-                    <option value='water'>Water Body</option>
+                    <option value=''>Select Field Type</option>
+
+                    {fieldAndBlockManagementData.fieldTypes.map((type) => (
+                      <option key={type.id} value={type.value}>
+                        {type.label}
+                      </option>
+                    ))}
                   </select>
 
                   {errors.fieldType && (
@@ -267,7 +282,10 @@ const FieldOrBlockManagement = () => {
                     </p>
                   )}
                 </div>
-                {/* Parent Field / Block */}
+
+                {/* =====================================================
+            Parent Field / Block
+        ====================================================== */}
                 <div>
                   <label className='mb-1.5 block text-sm font-medium text-gray-700'>
                     Parent Field / Block
@@ -278,14 +296,18 @@ const FieldOrBlockManagement = () => {
                     className='select h-11 w-full rounded-lg border border-gray-300 bg-white focus:border-green-600'
                   >
                     <option value=''>Select Parent Field</option>
-                    <option value='north-01'>North Block-01</option>
-                    <option value='north-02'>North Block-02</option>
-                    <option value='south-01'>South Block-01</option>
-                    <option value='south-02'>South Block-02</option>
+
+                    {fieldAndBlockManagementData.parentFields.map((field) => (
+                      <option key={field.id} value={field.value}>
+                        {field.label}
+                      </option>
+                    ))}
                   </select>
                 </div>
 
-                {/* Total Area */}
+                {/* =====================================================
+            Total Area
+        ====================================================== */}
                 <div>
                   <label className='mb-1.5 block text-sm font-medium text-gray-700'>
                     Total Area (Acres) <span className='text-red-500'>*</span>
@@ -302,7 +324,7 @@ const FieldOrBlockManagement = () => {
                         message: "Area must be greater than 0",
                       },
                     })}
-                    className={`input h-11 p-2 w-full rounded-lg border bg-white ${
+                    className={`input h-11 w-full rounded-lg border bg-white p-2 ${
                       errors.totalArea
                         ? "border-red-500"
                         : "border-gray-300 focus:border-green-600"
@@ -316,7 +338,9 @@ const FieldOrBlockManagement = () => {
                   )}
                 </div>
 
-                {/* Planted Area */}
+                {/* =====================================================
+            Planted Area
+        ====================================================== */}
                 <div>
                   <label className='mb-1.5 block text-sm font-medium text-gray-700'>
                     Planted Area (Acres) <span className='text-red-500'>*</span>
@@ -333,7 +357,7 @@ const FieldOrBlockManagement = () => {
                         message: "Area must be greater than 0",
                       },
                     })}
-                    className={`input p-2 h-11 w-full rounded-lg border bg-white ${
+                    className={`input h-11 w-full rounded-lg border bg-white p-2 ${
                       errors.plantedArea
                         ? "border-red-500"
                         : "border-gray-300 focus:border-green-600"
@@ -347,7 +371,9 @@ const FieldOrBlockManagement = () => {
                   )}
                 </div>
 
-                {/* Year of Planting */}
+                {/* =====================================================
+            Year of Planting
+        ====================================================== */}
                 <div>
                   <label className='mb-1.5 block text-sm font-medium text-gray-700'>
                     Year of Planting <span className='text-red-500'>*</span>
@@ -367,7 +393,7 @@ const FieldOrBlockManagement = () => {
                         message: "Year cannot be in the future",
                       },
                     })}
-                    className={`input h-11 w-full rounded-lg border p-2 bg-white ${
+                    className={`input h-11 w-full rounded-lg border bg-white p-2 ${
                       errors.plantingYear
                         ? "border-red-500"
                         : "border-gray-300 focus:border-green-600"
@@ -381,7 +407,9 @@ const FieldOrBlockManagement = () => {
                   )}
                 </div>
 
-                {/* Bush Type / Clone */}
+                {/* =====================================================
+            Bush Type / Clone
+        ====================================================== */}
                 <div>
                   <label className='mb-1.5 block text-sm font-medium text-gray-700'>
                     Bush Type / Clone <span className='text-red-500'>*</span>
@@ -391,18 +419,19 @@ const FieldOrBlockManagement = () => {
                     {...register("bushType", {
                       required: "Bush Type is required",
                     })}
-                    className={`select h-11 w-full p-2 rounded-lg border bg-white ${
+                    className={`select h-11 w-full rounded-lg border bg-white p-2 ${
                       errors.bushType
                         ? "border-red-500"
                         : "border-gray-300 focus:border-green-600"
                     }`}
                   >
                     <option value=''>Select Bush Type</option>
-                    <option value='bt1'>BT-1</option>
-                    <option value='bt2'>BT-2</option>
-                    <option value='bt6'>BT-6</option>
-                    <option value='tv1'>TV-1</option>
-                    <option value='tv23'>TV-23</option>
+
+                    {fieldAndBlockManagementData.bushTypes.map((type) => (
+                      <option key={type.id} value={type.value}>
+                        {type.label}
+                      </option>
+                    ))}
                   </select>
 
                   {errors.bushType && (
@@ -412,7 +441,9 @@ const FieldOrBlockManagement = () => {
                   )}
                 </div>
 
-                {/* Spacing */}
+                {/* =====================================================
+            Spacing
+        ====================================================== */}
                 <div>
                   <label className='mb-1.5 block text-sm font-medium text-gray-700'>
                     Spacing (Feet) <span className='text-red-500'>*</span>
@@ -424,7 +455,7 @@ const FieldOrBlockManagement = () => {
                     {...register("spacing", {
                       required: "Spacing is required",
                     })}
-                    className={`input h-11 p-2 w-full rounded-lg border bg-white ${
+                    className={`input h-11 w-full rounded-lg border bg-white p-2 ${
                       errors.spacing
                         ? "border-red-500"
                         : "border-gray-300 focus:border-green-600"
@@ -437,7 +468,10 @@ const FieldOrBlockManagement = () => {
                     </p>
                   )}
                 </div>
-                {/* Altitude */}
+
+                {/* =====================================================
+            Altitude
+        ====================================================== */}
                 <div>
                   <label className='mb-1.5 block text-sm font-medium text-gray-700'>
                     Altitude (Meters)
@@ -452,7 +486,7 @@ const FieldOrBlockManagement = () => {
                         message: "Altitude cannot be negative",
                       },
                     })}
-                    className={`input p-2 h-11 w-full rounded-lg border bg-white ${
+                    className={`input h-11 w-full rounded-lg border bg-white p-2 ${
                       errors.altitude
                         ? "border-red-500"
                         : "border-gray-300 focus:border-green-600"
@@ -466,7 +500,9 @@ const FieldOrBlockManagement = () => {
                   )}
                 </div>
 
-                {/* Average Slope */}
+                {/* =====================================================
+            Average Slope
+        ====================================================== */}
                 <div>
                   <label className='mb-1.5 block text-sm font-medium text-gray-700'>
                     Average Slope (%)
@@ -486,7 +522,7 @@ const FieldOrBlockManagement = () => {
                         message: "Slope cannot exceed 100%",
                       },
                     })}
-                    className={`input h-11 p-2 w-full rounded-lg border bg-white ${
+                    className={`input h-11 w-full rounded-lg border bg-white p-2 ${
                       errors.averageSlope
                         ? "border-red-500"
                         : "border-gray-300 focus:border-green-600"
@@ -500,7 +536,77 @@ const FieldOrBlockManagement = () => {
                   )}
                 </div>
 
-                {/* Status */}
+                {/* =====================================================
+            Irrigation Source
+        ====================================================== */}
+                <div>
+                  <label className='mb-1.5 block text-sm font-medium text-gray-700'>
+                    Irrigation Source
+                  </label>
+
+                  <select
+                    {...register("irrigation")}
+                    className='select h-11 w-full rounded-lg border border-gray-300 bg-white p-2 focus:border-green-600'
+                  >
+                    <option value=''>Select Irrigation Source</option>
+
+                    {fieldAndBlockManagementData.irrigationSources.map(
+                      (source) => (
+                        <option key={source.id} value={source.value}>
+                          {source.label}
+                        </option>
+                      ),
+                    )}
+                  </select>
+                </div>
+
+                {/* =====================================================
+            Soil Type
+        ====================================================== */}
+                <div>
+                  <label className='mb-1.5 block text-sm font-medium text-gray-700'>
+                    Soil Type
+                  </label>
+
+                  <select
+                    {...register("soilType")}
+                    className='select h-11 w-full rounded-lg border border-gray-300 bg-white p-2 focus:border-green-600'
+                  >
+                    <option value=''>Select Soil Type</option>
+
+                    {fieldAndBlockManagementData.soilTypes.map((soil) => (
+                      <option key={soil.id} value={soil.value}>
+                        {soil.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* =====================================================
+            Drainage
+        ====================================================== */}
+                <div>
+                  <label className='mb-1.5 block text-sm font-medium text-gray-700'>
+                    Drainage
+                  </label>
+
+                  <select
+                    {...register("drainage")}
+                    className='select h-11 w-full rounded-lg border border-gray-300 bg-white p-2 focus:border-green-600'
+                  >
+                    <option value=''>Select Drainage</option>
+
+                    {fieldAndBlockManagementData.drainage.map((item) => (
+                      <option key={item.id} value={item.value}>
+                        {item.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* =====================================================
+            Status
+        ====================================================== */}
                 <div>
                   <label className='mb-1.5 block text-sm font-medium text-gray-700'>
                     Status <span className='text-red-500'>*</span>
@@ -510,17 +616,19 @@ const FieldOrBlockManagement = () => {
                     {...register("status", {
                       required: "Status is required",
                     })}
-                    className={`select p-2 h-11 w-full rounded-lg border bg-white ${
+                    className={`select h-11 w-full rounded-lg border bg-white p-2 ${
                       errors.status
                         ? "border-red-500"
                         : "border-gray-300 focus:border-green-600"
                     }`}
                   >
                     <option value=''>Select Status</option>
-                    <option value='active'>Active</option>
-                    <option value='inactive'>Inactive</option>
-                    <option value='under-development'>Under Development</option>
-                    <option value='maintenance'>Maintenance</option>
+
+                    {fieldAndBlockManagementData.statuses.map((status) => (
+                      <option key={status.id} value={status.value}>
+                        {status.label}
+                      </option>
+                    ))}
                   </select>
 
                   {errors.status && (
@@ -529,7 +637,10 @@ const FieldOrBlockManagement = () => {
                     </p>
                   )}
                 </div>
-                {/* Description / Remarks */}
+
+                {/* =====================================================
+            Description / Remarks
+        ====================================================== */}
                 <div className='md:col-span-2 xl:col-span-3'>
                   <label className='mb-1.5 block text-sm font-medium text-gray-700'>
                     Description / Remarks
@@ -543,15 +654,16 @@ const FieldOrBlockManagement = () => {
                   />
                 </div>
 
-                {/* Footer Buttons */}
-
+                {/* =====================================================
+            Footer Buttons
+        ====================================================== */}
                 <div className='md:col-span-2 xl:col-span-3'>
                   <div className='mt-3 border-t border-gray-200 pt-2'>
                     <div className='flex flex-col gap-3 sm:flex-row sm:justify-end'>
                       {/* Cancel */}
                       <button
                         type='button'
-                        className='btn flex items-center gap-2 h-11 w-full rounded-lg border border-gray-300 bg-white px-6 text-gray-700 shadow-sm transition-all hover:bg-gray-50 sm:w-auto  cursor-pointer'
+                        className='btn flex h-11 w-full cursor-pointer items-center gap-2 rounded-lg border border-gray-300 bg-white px-6 text-gray-700 shadow-sm transition-all hover:bg-gray-50 sm:w-auto'
                       >
                         <X size={18} />
                         Cancel
@@ -561,7 +673,7 @@ const FieldOrBlockManagement = () => {
                       <button
                         type='button'
                         onClick={() => reset()}
-                        className=' cursor-pointer flex items-center gap-2  h-11 w-full rounded-lg border-0 bg-green-500 px-6 text-white shadow-sm transition-all hover:bg-amber-600 sm:w-auto cursor-pointer'
+                        className='btn flex h-11 w-full cursor-pointer items-center gap-2 rounded-lg border-0 bg-green-500 px-6 text-white shadow-sm transition-all hover:bg-amber-600 sm:w-auto'
                       >
                         <RotateCcw size={18} />
                         Reset
@@ -570,7 +682,7 @@ const FieldOrBlockManagement = () => {
                       {/* Save */}
                       <button
                         type='submit'
-                        className='btn flex items-center gap-2 h-11 w-full rounded-lg border-0 bg-green-900 px-6 text-white shadow-sm transition-all hover:bg-green-800 sm:w-auto cursor-pointer'
+                        className='btn flex h-11 w-full cursor-pointer items-center gap-2 rounded-lg border-0 bg-green-900 px-6 text-white shadow-sm transition-all hover:bg-green-800 sm:w-auto'
                       >
                         <Save size={18} />
                         Save Field
@@ -581,16 +693,25 @@ const FieldOrBlockManagement = () => {
               </div>
             </div>
           </form>
-          <div className='rounded-xl my-4 border border-gray-200 bg-white shadow-sm'>
+
+          {/* =========================================================
+      Field / Block Details
+  ========================================================== */}
+
+          <div className='my-4 rounded-xl border border-gray-200 bg-white shadow-sm'>
             {/* Header */}
             <div className='border-b border-gray-200 px-5 py-4'>
               <h2 className='text-lg font-semibold text-green-800'>
-                Field / Block Details (Block 01)
+                Field / Block Details (
+                {fieldAndBlockManagementData.details.fieldName})
               </h2>
             </div>
 
             <div className='grid grid-cols-1 gap-2 p-5 md:grid-cols-2'>
-              {/* Left Column */}
+              {/* =====================================================
+          Left Column
+      ====================================================== */}
+
               <div className='space-y-2'>
                 {fieldAndBlockManagementData.detailsLeft.map((item) => (
                   <div key={item.key} className='flex items-center text-sm'>
@@ -607,11 +728,14 @@ const FieldOrBlockManagement = () => {
                 ))}
               </div>
 
-              {/* Right Column */}
+              {/* =====================================================
+          Right Column
+      ====================================================== */}
+
               <div className='space-y-2'>
                 {fieldAndBlockManagementData.detailsRight.map((item) => (
                   <div key={item.key} className='flex items-center text-sm'>
-                    <span className='w-36 font-regular text-gray-700'>
+                    <span className='w-36 font-medium text-gray-700'>
                       {item.label}
                     </span>
 
@@ -635,25 +759,31 @@ const FieldOrBlockManagement = () => {
 
         {/* Right */}
         <div className='self-start xl:col-span-7'>
-          <div className='h-fit w-full rounded-xl border border-gray-200 bg-white shadow-sm '>
-            {/* Header */}
+          <div className='h-fit w-full rounded-xl border border-gray-200 bg-white shadow-sm'>
+            {/* =====================================================
+        Header
+    ====================================================== */}
             <div className='flex flex-col gap-3 border-b border-gray-200 p-4 lg:flex-row lg:items-center lg:justify-between'>
               <h2 className='text-lg font-semibold text-green-800'>
                 Field / Block List
                 <span className='ml-1 text-sm font-normal text-gray-500'>
-                  (Rangpur Division &gt; Section A)
+                  ({fieldAndBlockManagementData.details.division}
+                  {" > "}
+                  {fieldAndBlockManagementData.details.section})
                 </span>
               </h2>
 
               <button
                 type='button'
-                className='btn h-10 border-0 rounded-sm bg-green-700 px-4 text-white hover:bg-green-800 cursor-pointer'
+                className='btn h-10 cursor-pointer rounded-sm border-0 bg-green-700 px-4 text-white hover:bg-green-800'
               >
                 + Add Field / Block
               </button>
             </div>
 
-            {/* Search & Filter */}
+            {/* =====================================================
+        Search & Filter
+    ====================================================== */}
             <div className='grid grid-cols-1 gap-3 border-b border-gray-200 p-4 md:grid-cols-[2fr_1fr_1fr_auto]'>
               {/* Search */}
               <div className='relative'>
@@ -671,21 +801,33 @@ const FieldOrBlockManagement = () => {
                 />
               </div>
 
-              {/* Field Type */}
+              {/* =================================================
+          Field Type Filter
+      ================================================== */}
               <select className='h-10 w-full rounded-md border border-gray-300 bg-white px-3 text-sm outline-none transition focus:border-green-600'>
-                <option>{fieldAndBlockManagementData.filters.fieldType}</option>
+                <option value=''>
+                  {fieldAndBlockManagementData.filters.fieldType}
+                </option>
 
                 {fieldAndBlockManagementData.fieldTypes.map((item) => (
-                  <option key={item}>{item}</option>
+                  <option key={item.id} value={item.value}>
+                    {item.label}
+                  </option>
                 ))}
               </select>
 
-              {/* Status */}
+              {/* =================================================
+          Status Filter
+      ================================================== */}
               <select className='h-10 w-full rounded-md border border-gray-300 bg-white px-3 text-sm outline-none transition focus:border-green-600'>
-                <option>{fieldAndBlockManagementData.filters.status}</option>
+                <option value=''>
+                  {fieldAndBlockManagementData.filters.status}
+                </option>
 
                 {fieldAndBlockManagementData.statuses.map((item) => (
-                  <option key={item}>{item}</option>
+                  <option key={item.id} value={item.value}>
+                    {item.label}
+                  </option>
                 ))}
               </select>
 
@@ -698,7 +840,9 @@ const FieldOrBlockManagement = () => {
               </button>
             </div>
 
-            {/* Table */}
+            {/* =====================================================
+        Table
+    ====================================================== */}
             <div className='overflow-x-auto'>
               <table className='w-full min-w-[900px] border-collapse text-sm'>
                 <thead className='bg-gray-100'>
@@ -706,7 +850,7 @@ const FieldOrBlockManagement = () => {
                     {fieldAndBlockManagementData.tableHeaders.map((header) => (
                       <th
                         key={header}
-                        className='border border-gray-200 px-1 py-3 text-center text-xs font-semibold whitespace-nowrap text-gray-700'
+                        className='whitespace-nowrap border border-gray-200 px-1 py-3 text-center text-xs font-semibold text-gray-700'
                       >
                         {header}
                       </th>
@@ -717,29 +861,37 @@ const FieldOrBlockManagement = () => {
                 <tbody>
                   {fieldAndBlockManagementData.fieldList.map((field, index) => (
                     <tr key={field.id} className='hover:bg-gray-50'>
+                      {/* SL */}
                       <td className='border border-gray-200 px-1 py-2 text-center'>
                         {index + 1}
                       </td>
 
-                      <td className='border border-gray-200 px-3 py-2 text-left whitespace-nowrap'>
+                      {/* Field / Block Name */}
+                      <td className='whitespace-nowrap border border-gray-200 px-3 py-2 text-left'>
                         {field.fieldName}
                       </td>
 
+                      {/* Code */}
                       <td className='border border-gray-200 px-3 py-2 text-center'>
                         {field.code}
                       </td>
 
+                      {/* Field Type */}
                       <td className='border border-gray-200 px-3 py-2 text-center'>
                         {field.fieldType}
                       </td>
 
-                      <td className='border border-gray-200 px-3 py-2 text-center whitespace-nowrap'>
+                      {/* Total Area */}
+                      <td className='whitespace-nowrap border border-gray-200 px-3 py-2 text-center'>
                         {field.totalArea}
                       </td>
-                      <td className='border border-gray-200 px-3 py-2 text-center whitespace-nowrap'>
+
+                      {/* Planted Area */}
+                      <td className='whitespace-nowrap border border-gray-200 px-3 py-2 text-center'>
                         {field.plantedArea === 0 ? "-" : field.plantedArea}
                       </td>
 
+                      {/* Status */}
                       <td className='border border-gray-200 px-3 py-2 text-center'>
                         <span
                           className={`inline-flex rounded-full px-3 py-1 text-xs font-medium ${
@@ -752,18 +904,23 @@ const FieldOrBlockManagement = () => {
                         </span>
                       </td>
 
+                      {/* Actions */}
                       <td className='border border-gray-200 px-3 py-2'>
                         <div className='flex items-center justify-center gap-2'>
+                          {/* Edit */}
                           <button
                             type='button'
                             className='text-blue-600 transition hover:text-blue-800'
+                            title='Edit'
                           >
                             <Pencil size={16} />
                           </button>
 
+                          {/* Delete */}
                           <button
                             type='button'
                             className='text-red-500 transition hover:text-red-700'
+                            title='Delete'
                           >
                             <Trash2 size={16} />
                           </button>
@@ -775,8 +932,10 @@ const FieldOrBlockManagement = () => {
               </table>
             </div>
 
-            {/* Footer */}
-            <div className='flex flex-col items-center justify-between gap-3 border-t border-gray-200 px-4 py-3 text-sm text-gray-600 sm:flex-row mb-24'>
+            {/* =====================================================
+        Footer
+    ====================================================== */}
+            <div className='mb-24 flex flex-col items-center justify-between gap-3 border-t border-gray-200 px-4 py-3 text-sm text-gray-600 sm:flex-row'>
               <p>
                 Showing <strong>1</strong> to{" "}
                 <strong>{fieldAndBlockManagementData.fieldList.length}</strong>{" "}
@@ -786,29 +945,40 @@ const FieldOrBlockManagement = () => {
               </p>
 
               <div className='join'>
-                <button className='join-item btn btn-sm' disabled>
+                <button type='button' className='join-item btn btn-sm' disabled>
                   Previous
                 </button>
 
-                <button className='join-item btn btn-sm btn-active'>1</button>
+                <button
+                  type='button'
+                  className='join-item btn btn-sm btn-active'
+                >
+                  1
+                </button>
 
-                <button className='join-item btn btn-sm' disabled>
+                <button type='button' className='join-item btn btn-sm' disabled>
                   Next
                 </button>
               </div>
             </div>
           </div>
-          {/* Map section start from here */}
-          <div className='rounded-xl border border-gray-200 bg-white shadow-sm mt-4'>
-            {/* Header */}
 
+          {/* =========================================================
+      Map Section
+  ========================================================== */}
+
+          <div className='mt-4 rounded-xl border border-gray-200 bg-white shadow-sm'>
+            {/* Header */}
             <div className='border-b border-gray-200 px-5 py-4'>
               <h2 className='text-lg font-semibold text-green-800'>
-                Field / Block Map View (Block 01)
+                Field / Block Map View (
+                {fieldAndBlockManagementData.details.fieldName})
               </h2>
             </div>
 
-            {/* Map */}
+            {/* =====================================================
+        Map
+    ====================================================== */}
             <div className='relative h-[320px] w-full'>
               {/* Layer Switch Button */}
               <div className='absolute left-4 top-4 z-[1000]'>
@@ -820,19 +990,24 @@ const FieldOrBlockManagement = () => {
                   className='flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2 shadow-lg hover:bg-gray-100'
                 >
                   <Layers3 size={18} />
+
                   {mapType === "street" ? "Satellite" : "Street"}
                 </button>
               </div>
 
+              {/* =================================================
+          Leaflet Map
+      ================================================== */}
               <MapContainer
                 center={[
                   Number(fieldAndBlockManagementData.map.latitude),
                   Number(fieldAndBlockManagementData.map.longitude),
                 ]}
-                zoom={16}
+                zoom={fieldAndBlockManagementData.map.zoom}
                 zoomControl={false}
                 className='h-full w-full'
               >
+                {/* Street / Satellite Layer */}
                 {mapType === "street" ? (
                   <TileLayer
                     attribution='&copy; OpenStreetMap contributors'
@@ -845,8 +1020,12 @@ const FieldOrBlockManagement = () => {
                   />
                 )}
 
+                {/* Zoom Control */}
                 <ZoomControl position='topleft' />
 
+                {/* =================================================
+            Marker
+        ================================================== */}
                 <Marker
                   position={[
                     Number(fieldAndBlockManagementData.map.latitude),
@@ -869,12 +1048,19 @@ const FieldOrBlockManagement = () => {
                       </p>
 
                       <p>
+                        Section: {fieldAndBlockManagementData.details.section}
+                      </p>
+
+                      <p>
                         Status: {fieldAndBlockManagementData.details.status}
                       </p>
                     </div>
                   </Popup>
                 </Marker>
 
+                {/* =================================================
+            Field Polygon
+        ================================================== */}
                 <Polygon
                   positions={fieldAndBlockManagementData.map.polygon}
                   pathOptions={{
@@ -890,6 +1076,7 @@ const FieldOrBlockManagement = () => {
                         weight: 5,
                       });
                     },
+
                     mouseout: (e) => {
                       e.target.setStyle({
                         fillOpacity: 0.45,
@@ -901,28 +1088,32 @@ const FieldOrBlockManagement = () => {
               </MapContainer>
             </div>
 
-            {/* Footer */}
-
+            {/* =====================================================
+        Map Footer
+    ====================================================== */}
             <div className='flex flex-col gap-4 border-t border-gray-200 px-5 py-4 lg:flex-row lg:items-center lg:justify-between'>
               <div className='flex flex-wrap items-center gap-5 text-sm'>
+                {/* Area */}
                 <span>
                   Area:
                   <strong className='ml-1'>
-                    {fieldAndBlockManagementData.map.totalArea}
+                    {fieldAndBlockManagementData.map.totalArea} Acre
                   </strong>
                 </span>
 
+                {/* Perimeter */}
                 <span>
                   Perimeter:
                   <strong className='ml-1'>
-                    {fieldAndBlockManagementData.map.perimeter}
+                    {fieldAndBlockManagementData.map.perimeter} Km
                   </strong>
                 </span>
 
+                {/* Coordinates */}
                 <span>
                   Coordinates:
                   <strong className='ml-1'>
-                    {fieldAndBlockManagementData.map.latitude},
+                    {fieldAndBlockManagementData.map.latitude},{" "}
                     {fieldAndBlockManagementData.map.longitude}
                   </strong>
                 </span>

@@ -1,156 +1,250 @@
+// src/data/EstateManagementData/landAndLeaseManagementData.js
+
 export const landLeaseManagementData = {
-  // =========================
-  // Dropdown Data
-  // =========================
+  // =========================================================
+  // Estate Dropdown
+  // =========================================================
 
   estates: [
-    "Jamuna Tea Estate",
-    "Rupai Tea Estate",
-    "Karatoa Tea Estate",
-    "Green Valley Tea Estate",
-    "Surma Tea Estate",
-  ],
-
-  landLeaseTypes: ["Leased In", "Leased Out", "Owned", "Disputed"],
-
-  landCategories: [
-    "Tea Garden Land",
-    "Factory Land",
-    "Office Area",
-    "Residential Area",
-    "Water Body",
-    "Road",
-    "Nursery",
-  ],
-
-  mouzas: ["Madhabpur", "Shahapur", "Kashimpur", "Uttarkhan", "Rupganj"],
-
-  recordTypes: ["C.S Record", "S.A Record", "R.S Record", "B.S Record"],
-
-  landStatuses: ["Active", "Inactive", "Under Process", "Expired"],
-
-  // =========================
-  // Default Filter
-  // =========================
-
-  filters: {
-    estate: "Jamuna Tea Estate",
-    landLeaseType: "Leased In",
-    landCategory: "Tea Garden Land",
-    status: "Active",
-  },
-
-  // =========================
-  // Action Buttons
-  // =========================
-
-  actionButtons: [
     {
       id: 1,
-      label: "Cancel",
-      icon: "X",
-      color: "secondary",
+      value: "jamuna-tea-estate",
+      label: "Jamuna Tea Estate",
     },
-
     {
       id: 2,
-      label: "Reset",
-      icon: "RotateCcw",
-      color: "warning",
+      value: "rupai-tea-estate",
+      label: "Rupai Tea Estate",
     },
-
     {
       id: 3,
-      label: "Save Land / Lease",
-      icon: "Save",
-      color: "primary",
+      value: "karatoa-tea-estate",
+      label: "Karatoa Tea Estate",
     },
-
     {
       id: 4,
-      label: "Add Document",
-      icon: "Plus",
-      color: "primary",
+      value: "green-valley-tea-estate",
+      label: "Green Valley Tea Estate",
     },
-
     {
       id: 5,
-      label: "Export",
-      icon: "Download",
-      color: "secondary",
+      value: "surma-tea-estate",
+      label: "Surma Tea Estate",
     },
   ],
 
-  // =========================
-  // Form Data
-  // =========================
+  // =========================================================
+  // Land / Lease Type Options
+  // =========================================================
 
-  formData: {
-    estate: "Jamuna Tea Estate",
+  landLeaseTypes: [
+    {
+      id: 1,
+      value: "leased_in",
+      label: "Leased In",
+    },
+    {
+      id: 2,
+      value: "leased_out",
+      label: "Leased Out",
+    },
+    {
+      id: 3,
+      value: "owned",
+      label: "Owned",
+    },
+    {
+      id: 4,
+      value: "disputed",
+      label: "Disputed",
+    },
+  ],
 
-    landLeaseType: "Leased In",
+  // =========================================================
+  // Land Category Options
+  // =========================================================
 
-    landCategory: "Tea Garden Land",
+  landCategories: [
+    {
+      id: 1,
+      value: "tea_garden_land",
+      label: "Tea Garden Land",
+    },
+    {
+      id: 2,
+      value: "factory_land",
+      label: "Factory Land",
+    },
+    {
+      id: 3,
+      value: "office_area",
+      label: "Office Area",
+    },
+    {
+      id: 4,
+      value: "residential_area",
+      label: "Residential Area",
+    },
+    {
+      id: 5,
+      value: "water_body",
+      label: "Water Body",
+    },
+    {
+      id: 6,
+      value: "road",
+      label: "Road",
+    },
+    {
+      id: 7,
+      value: "nursery",
+      label: "Nursery",
+    },
+  ],
 
-    landLeaseName: "Madhabpur Lease Land",
+  // =========================================================
+  // Mouza Options
+  // =========================================================
 
-    surveyNo: "KH-1234, RS-5678",
+  mouzas: [
+    {
+      id: 1,
+      value: "madhabpur",
+      label: "Madhabpur",
+    },
+    {
+      id: 2,
+      value: "shahapur",
+      label: "Shahapur",
+    },
+    {
+      id: 3,
+      value: "kashimpur",
+      label: "Kashimpur",
+    },
+    {
+      id: 4,
+      value: "uttarkhan",
+      label: "Uttarkhan",
+    },
+    {
+      id: 5,
+      value: "rupganj",
+      label: "Rupganj",
+    },
+  ],
 
-    plotNo: "Dag-234/1, 234/2",
+  // =========================================================
+  // Record Type Options
+  // =========================================================
 
-    mouza: "Madhabpur",
+  recordTypes: [
+    {
+      id: 1,
+      value: "cs_record",
+      label: "C.S Record",
+    },
+    {
+      id: 2,
+      value: "sa_record",
+      label: "S.A Record",
+    },
+    {
+      id: 3,
+      value: "rs_record",
+      label: "R.S Record",
+    },
+    {
+      id: 4,
+      value: "bs_record",
+      label: "B.S Record",
+    },
+  ],
 
-    jlNo: "JL-876/2015",
+  // =========================================================
+  // Land Status Options
+  // =========================================================
 
-    recordType: "C.S Record",
+  landStatuses: [
+    {
+      id: 1,
+      value: "active",
+      label: "Active",
+    },
+    {
+      id: 2,
+      value: "inactive",
+      label: "Inactive",
+    },
+    {
+      id: 3,
+      value: "under_process",
+      label: "Under Process",
+    },
+    {
+      id: 4,
+      value: "expired",
+      label: "Expired",
+    },
+  ],
 
-    totalArea: "125.50",
+  // =========================================================
+  // Default Filter Configuration
+  // =========================================================
 
-    usableArea: "118.25",
-
-    nonUsableArea: "7.25",
-
-    location: "Madhabpur, Rangpur",
-
-    gpsArea: "125.35",
-
-    latitude: "25.7456",
-
-    longitude: "89.2741",
-
-    acquisitionDate: "2015-01-01",
-
-    startDate: "2015-01-01",
-
-    endDate: "2035-12-31",
-
-    leaseTerm: "20",
-
-    rentAmount: "150000.00",
-
-    rentPerAcre: "1196.81",
-
-    purpose: "Leased land for tea cultivation and factory development.",
-
-    documents: [
-      {
-        id: 1,
-        name: "lease_deed.pdf",
-      },
-      {
-        id: 2,
-        name: "survey_plan.pdf",
-      },
-      {
-        id: 3,
-        name: "khatian_copy.pdf",
-      },
-    ],
+  filters: {
+    estate: "",
+    landLeaseType: "",
+    landCategory: "",
+    status: "",
   },
 
-  // =========================
+  // =========================================================
+  // Search & Filter Configuration
+  // =========================================================
+
+  filtersConfig: {
+    searchPlaceholder: "Search by Land Name / Plot No / Owner...",
+    defaultStatus: "All Status",
+    defaultLandType: "All Types",
+  },
+
+  // =========================================================
+  // Form Default Structure
+  // =========================================================
+  // Empty values are intentional.
+  // Backend/API data will populate these fields later.
+
+  formData: {
+    estate: "",
+    landLeaseType: "",
+    landCategory: "",
+    landLeaseName: "",
+    surveyNo: "",
+    plotNo: "",
+    mouza: "",
+    jlNo: "",
+    recordType: "",
+    totalArea: "",
+    usableArea: "",
+    nonUsableArea: "",
+    location: "",
+    gpsArea: "",
+    latitude: "",
+    longitude: "",
+    acquisitionDate: "",
+    startDate: "",
+    endDate: "",
+    leaseTerm: "",
+    rentAmount: "",
+    rentPerAcre: "",
+    purpose: "",
+    documents: [],
+  },
+
+  // =========================================================
   // React Hook Form Validation
-  // =========================
+  // =========================================================
 
   validation: {
     estate: {
@@ -193,9 +287,52 @@ export const landLeaseManagementData = {
       required: "End Date is required",
     },
   },
-  // =========================
+
+  // =========================================================
+  // Action Buttons Configuration
+  // =========================================================
+
+  actionButtons: [
+    {
+      id: 1,
+      label: "Cancel",
+      icon: "X",
+      color: "secondary",
+      type: "button",
+    },
+    {
+      id: 2,
+      label: "Reset",
+      icon: "RotateCcw",
+      color: "warning",
+      type: "reset",
+    },
+    {
+      id: 3,
+      label: "Save Land / Lease",
+      icon: "Save",
+      color: "primary",
+      type: "submit",
+    },
+    {
+      id: 4,
+      label: "Add Document",
+      icon: "Plus",
+      color: "primary",
+      type: "button",
+    },
+    {
+      id: 5,
+      label: "Export",
+      icon: "Download",
+      color: "secondary",
+      type: "button",
+    },
+  ],
+
+  // =========================================================
   // Map Settings
-  // =========================
+  // =========================================================
 
   mapSettings: {
     defaultZoom: 16,
@@ -205,9 +342,9 @@ export const landLeaseManagementData = {
     tileProvider: "OpenStreetMap",
   },
 
-  // =========================
+  // =========================================================
   // Map Information
-  // =========================
+  // =========================================================
 
   mapInformation: {
     totalArea: "125.50 Acre",
@@ -222,9 +359,9 @@ export const landLeaseManagementData = {
     accuracy: "±0.50 Meter",
   },
 
-  // =========================
+  // =========================================================
   // Map Toolbar
-  // =========================
+  // =========================================================
 
   mapTools: [
     {
@@ -253,9 +390,9 @@ export const landLeaseManagementData = {
     },
   ],
 
-  // =========================
-  // Map Boundary
-  // =========================
+  // =========================================================
+  // Land Boundary
+  // =========================================================
 
   landBoundary: [
     [25.7474, 89.2719],
@@ -267,9 +404,9 @@ export const landLeaseManagementData = {
     [25.7474, 89.2719],
   ],
 
-  // =========================
+  // =========================================================
   // Land Marker
-  // =========================
+  // =========================================================
 
   marker: {
     name: "Madhabpur Lease Land",
@@ -277,9 +414,9 @@ export const landLeaseManagementData = {
     longitude: 89.2741,
   },
 
-  // =========================
-  // Legend
-  // =========================
+  // =========================================================
+  // Map Legend
+  // =========================================================
 
   legends: [
     {
@@ -294,48 +431,56 @@ export const landLeaseManagementData = {
     },
   ],
 
-  // =========================
+  // =========================================================
   // Ownership Details
-  // =========================
+  // =========================================================
 
   ownershipDetails: [
     {
+      id: 1,
       label: "Ownership Status",
       value: "Leased In",
     },
     {
+      id: 2,
       label: "Land Owner / Lessor",
       value: "Md. Abul Kalam",
     },
     {
+      id: 3,
       label: "Father's / Company Name",
       value: "Late Hossain Ali",
     },
     {
+      id: 4,
       label: "Address",
       value: "Madhabpur, Rangpur Sadar, Rangpur",
     },
     {
+      id: 5,
       label: "Mobile",
       value: "+8801712345678",
     },
     {
+      id: 6,
       label: "Email",
       value: "abulkalam@gmail.com",
     },
     {
+      id: 7,
       label: "NID / TIN",
       value: "1234567890",
     },
     {
+      id: 8,
       label: "Relation / Remarks",
       value: "Long term lease for tea cultivation.",
     },
   ],
 
-  // =========================
-  // Sidebar Summary
-  // =========================
+  // =========================================================
+  // Sidebar Summary Cards
+  // =========================================================
 
   summaryCards: [
     {
@@ -346,7 +491,6 @@ export const landLeaseManagementData = {
       icon: "Map",
       color: "green",
     },
-
     {
       id: 2,
       title: "Owned Land",
@@ -355,7 +499,6 @@ export const landLeaseManagementData = {
       icon: "Building2",
       color: "green",
     },
-
     {
       id: 3,
       title: "Leased In Land",
@@ -364,7 +507,6 @@ export const landLeaseManagementData = {
       icon: "MapPinned",
       color: "blue",
     },
-
     {
       id: 4,
       title: "Leased Out Land",
@@ -373,7 +515,6 @@ export const landLeaseManagementData = {
       icon: "ArrowUpRight",
       color: "orange",
     },
-
     {
       id: 5,
       title: "Disputed Land",
@@ -384,9 +525,9 @@ export const landLeaseManagementData = {
     },
   ],
 
-  // =========================
+  // =========================================================
   // Statistics
-  // =========================
+  // =========================================================
 
   statistics: {
     totalLand: 5250,
@@ -395,9 +536,10 @@ export const landLeaseManagementData = {
     leasedOutLand: 150,
     disputedLand: 25,
   },
-  // =========================
-  // Lease Payment Table
-  // =========================
+
+  // =========================================================
+  // Payment Table Headers
+  // =========================================================
 
   paymentTableHeaders: [
     "SL",
@@ -411,6 +553,10 @@ export const landLeaseManagementData = {
     "Action",
   ],
 
+  // =========================================================
+  // Payment List
+  // =========================================================
+
   paymentList: [
     {
       id: 1,
@@ -422,7 +568,6 @@ export const landLeaseManagementData = {
       status: "Paid",
       paymentMethod: "Bank Transfer",
     },
-
     {
       id: 2,
       year: "2016",
@@ -433,7 +578,6 @@ export const landLeaseManagementData = {
       status: "Paid",
       paymentMethod: "Bank Transfer",
     },
-
     {
       id: 3,
       year: "2017",
@@ -444,7 +588,6 @@ export const landLeaseManagementData = {
       status: "Paid",
       paymentMethod: "Cheque",
     },
-
     {
       id: 4,
       year: "2018",
@@ -455,7 +598,6 @@ export const landLeaseManagementData = {
       status: "Paid",
       paymentMethod: "Cheque",
     },
-
     {
       id: 5,
       year: "2019",
@@ -468,6 +610,10 @@ export const landLeaseManagementData = {
     },
   ],
 
+  // =========================================================
+  // Payment Pagination
+  // =========================================================
+
   paymentPagination: {
     currentPage: 1,
     totalPages: 4,
@@ -477,9 +623,9 @@ export const landLeaseManagementData = {
     pageSize: 5,
   },
 
-  // =========================
-  // Documents
-  // =========================
+  // =========================================================
+  // Document Table Headers
+  // =========================================================
 
   documentTableHeaders: [
     "SL",
@@ -490,6 +636,10 @@ export const landLeaseManagementData = {
     "Action",
   ],
 
+  // =========================================================
+  // Document List
+  // =========================================================
+
   documentList: [
     {
       id: 1,
@@ -498,7 +648,6 @@ export const landLeaseManagementData = {
       file: "lease_deed.pdf",
       uploadedOn: "05/01/2024",
     },
-
     {
       id: 2,
       documentName: "Khatian Copy",
@@ -506,7 +655,6 @@ export const landLeaseManagementData = {
       file: "khatian_1234.pdf",
       uploadedOn: "05/01/2024",
     },
-
     {
       id: 3,
       documentName: "CS Record",
@@ -514,7 +662,6 @@ export const landLeaseManagementData = {
       file: "cs_record.pdf",
       uploadedOn: "05/01/2024",
     },
-
     {
       id: 4,
       documentName: "Map / Survey Plan",
@@ -522,7 +669,6 @@ export const landLeaseManagementData = {
       file: "survey_plan.pdf",
       uploadedOn: "05/01/2024",
     },
-
     {
       id: 5,
       documentName: "NOC",
@@ -532,9 +678,9 @@ export const landLeaseManagementData = {
     },
   ],
 
-  // =========================
+  // =========================================================
   // Document Actions
-  // =========================
+  // =========================================================
 
   documentActions: [
     {
@@ -543,7 +689,6 @@ export const landLeaseManagementData = {
       icon: "Download",
       color: "blue",
     },
-
     {
       id: 2,
       label: "Delete",
@@ -552,59 +697,28 @@ export const landLeaseManagementData = {
     },
   ],
 
-  // =========================
-  // Payment Status
-  // =========================
+  // =========================================================
+  // Payment Status Configuration
+  // =========================================================
 
   paymentStatus: [
     {
       value: "Paid",
       color: "green",
     },
-
     {
       value: "Pending",
       color: "yellow",
     },
-
     {
       value: "Overdue",
       color: "red",
     },
   ],
-  // =========================
-  // Search & Filter
-  // =========================
 
-  filtersConfig: {
-    searchPlaceholder: "Search by Land Name / Plot No / Owner...",
-    defaultStatus: "All Status",
-    defaultLandType: "All Types",
-  },
-
-  // =========================
-  // Header Buttons
-  // =========================
-
-  tableActionButtons: [
-    {
-      id: 1,
-      label: "Export",
-      icon: "Download",
-      color: "secondary",
-    },
-
-    {
-      id: 2,
-      label: "Add Land / Lease",
-      icon: "Plus",
-      color: "primary",
-    },
-  ],
-
-  // =========================
+  // =========================================================
   // Summary Table Headers
-  // =========================
+  // =========================================================
 
   summaryTableHeaders: [
     "SL",
@@ -619,9 +733,9 @@ export const landLeaseManagementData = {
     "Action",
   ],
 
-  // =========================
+  // =========================================================
   // Land / Lease List
-  // =========================
+  // =========================================================
 
   landLeaseList: [
     {
@@ -635,7 +749,6 @@ export const landLeaseManagementData = {
       leaseTerm: "20 Years",
       status: "Active",
     },
-
     {
       id: 2,
       landName: "Factory Expansion Area",
@@ -647,7 +760,6 @@ export const landLeaseManagementData = {
       leaseTerm: "-",
       status: "Active",
     },
-
     {
       id: 3,
       landName: "North Nursery",
@@ -659,7 +771,6 @@ export const landLeaseManagementData = {
       leaseTerm: "-",
       status: "Active",
     },
-
     {
       id: 4,
       landName: "West Residential Zone",
@@ -671,7 +782,6 @@ export const landLeaseManagementData = {
       leaseTerm: "10 Years",
       status: "Inactive",
     },
-
     {
       id: 5,
       landName: "South Water Body",
@@ -683,7 +793,6 @@ export const landLeaseManagementData = {
       leaseTerm: "-",
       status: "Active",
     },
-
     {
       id: 6,
       landName: "Office Complex",
@@ -695,7 +804,6 @@ export const landLeaseManagementData = {
       leaseTerm: "-",
       status: "Active",
     },
-
     {
       id: 7,
       landName: "Road Side Plot",
@@ -707,7 +815,6 @@ export const landLeaseManagementData = {
       leaseTerm: "-",
       status: "Under Process",
     },
-
     {
       id: 8,
       landName: "Extension Zone",
@@ -719,7 +826,6 @@ export const landLeaseManagementData = {
       leaseTerm: "15 Years",
       status: "Active",
     },
-
     {
       id: 9,
       landName: "Warehouse Area",
@@ -731,7 +837,6 @@ export const landLeaseManagementData = {
       leaseTerm: "-",
       status: "Active",
     },
-
     {
       id: 10,
       landName: "Worker Colony",
@@ -745,9 +850,9 @@ export const landLeaseManagementData = {
     },
   ],
 
-  // =========================
-  // Table Row Actions
-  // =========================
+  // =========================================================
+  // Row Actions
+  // =========================================================
 
   rowActions: [
     {
@@ -756,14 +861,12 @@ export const landLeaseManagementData = {
       icon: "Eye",
       color: "blue",
     },
-
     {
       id: 2,
       label: "Edit",
       icon: "Pencil",
       color: "amber",
     },
-
     {
       id: 3,
       label: "Delete",
@@ -772,9 +875,9 @@ export const landLeaseManagementData = {
     },
   ],
 
-  // =========================
-  // Status Badge
-  // =========================
+  // =========================================================
+  // Status Badge Configuration
+  // =========================================================
 
   statusBadge: {
     Active: "green",
@@ -783,9 +886,9 @@ export const landLeaseManagementData = {
     Expired: "red",
   },
 
-  // =========================
+  // =========================================================
   // Summary Pagination
-  // =========================
+  // =========================================================
 
   summaryPagination: {
     currentPage: 1,

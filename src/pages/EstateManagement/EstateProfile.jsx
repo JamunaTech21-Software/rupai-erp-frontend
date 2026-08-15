@@ -153,48 +153,32 @@ const EstateProfile = () => {
               </div>
 
               {/* Estate Type */}
-              <div>
-                <label className='mb-2 block text-sm font-medium text-gray-700'>
-                  Estate Type
-                </label>
+              <select
+                {...register("estateType")}
+                className='h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-700 outline-none focus:border-green-600'
+              >
+                <option value=''>Select Estate Type</option>
 
-                <select
-                  {...register("estateType")}
-                  className='h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-700 outline-none focus:border-green-600'
-                >
-                  <option value=''>Select Estate Type</option>
-                  <option>Company Owned</option>
-                  <option>Private Estate</option>
-                  <option>Government Estate</option>
-                </select>
-                {errors.estateType && (
-                  <p className='mt-1 text-xs text-red-500'>
-                    {errors.estateType.message}
-                  </p>
-                )}
-              </div>
+                {estateProfileData.estateTypes.map((type) => (
+                  <option key={type.id} value={type.value}>
+                    {type.label}
+                  </option>
+                ))}
+              </select>
 
               {/* Estate Category */}
-              <div>
-                <label className='mb-2 block text-sm font-medium text-gray-700'>
-                  Estate Category
-                </label>
+              <select
+                {...register("estateCategory")}
+                className='h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-700 outline-none focus:border-green-600'
+              >
+                <option value=''>Select Category</option>
 
-                <select
-                  {...register("estateCategory")}
-                  className='h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-700 outline-none focus:border-green-600'
-                >
-                  <option value=''>Select Category</option>
-                  <option>Large Estate</option>
-                  <option>Medium Estate</option>
-                  <option>Small Estate</option>
-                </select>
-                {errors.estateCategory && (
-                  <p className='mt-1 text-xs text-red-500'>
-                    {errors.estateCategory.message}
-                  </p>
-                )}
-              </div>
+                {estateProfileData.estateCategories.map((category) => (
+                  <option key={category.id} value={category.value}>
+                    {category.label}
+                  </option>
+                ))}
+              </select>
 
               {/* Address */}
               <div>
@@ -728,125 +712,29 @@ const EstateProfile = () => {
             </div>
 
             {/* Body */}
+            {/* Body */}
             <div className='grid grid-cols-1 gap-6 p-6 md:grid-cols-2 xl:grid-cols-4'>
-              {/* Column 1 */}
-              <div className='space-y-3'>
-                <label className='flex items-center gap-2 text-sm text-gray-700'>
-                  <input
-                    type='checkbox'
-                    {...register("factory")}
-                    className='checkbox checkbox-success checkbox-sm rounded'
-                  />
-                  Factory
-                </label>
+              {/* Dynamic Facilities */}
+              <div className='md:col-span-2 xl:col-span-3'>
+                <div className='grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3'>
+                  {estateProfileData.facilityOptions.map((facility) => (
+                    <label
+                      key={facility.id}
+                      className='flex items-center gap-2 text-sm text-gray-700'
+                    >
+                      <input
+                        type='checkbox'
+                        {...register(facility.key)}
+                        className='checkbox checkbox-success checkbox-sm rounded'
+                      />
 
-                <label className='flex items-center gap-2 text-sm text-gray-700'>
-                  <input
-                    type='checkbox'
-                    {...register("warehouse")}
-                    className='checkbox checkbox-success checkbox-sm rounded'
-                  />
-                  Warehouse
-                </label>
-
-                <label className='flex items-center gap-2 text-sm text-gray-700'>
-                  <input
-                    type='checkbox'
-                    {...register("staffQuarter")}
-                    className='checkbox checkbox-success checkbox-sm rounded'
-                  />
-                  Staff Quarter
-                </label>
-
-                <label className='flex items-center gap-2 text-sm text-gray-700'>
-                  <input
-                    type='checkbox'
-                    {...register("hospital")}
-                    className='checkbox checkbox-success checkbox-sm rounded'
-                  />
-                  Hospital / Dispensary
-                </label>
+                      {facility.label}
+                    </label>
+                  ))}
+                </div>
               </div>
 
-              {/* Column 2 */}
-              <div className='space-y-3'>
-                <label className='flex items-center gap-2 text-sm text-gray-700'>
-                  <input
-                    type='checkbox'
-                    {...register("school")}
-                    className='checkbox checkbox-success checkbox-sm rounded'
-                  />
-                  School
-                </label>
-
-                <label className='flex items-center gap-2 text-sm text-gray-700'>
-                  <input
-                    type='checkbox'
-                    {...register("playground")}
-                    className='checkbox checkbox-success checkbox-sm rounded'
-                  />
-                  Playground
-                </label>
-
-                <label className='flex items-center gap-2 text-sm text-gray-700'>
-                  <input
-                    type='checkbox'
-                    {...register("religiousPlace")}
-                    className='checkbox checkbox-success checkbox-sm rounded'
-                  />
-                  Mosque / Temple
-                </label>
-
-                <label className='flex items-center gap-2 text-sm text-gray-700'>
-                  <input
-                    type='checkbox'
-                    {...register("electricity")}
-                    className='checkbox checkbox-success checkbox-sm rounded'
-                  />
-                  Electricity
-                </label>
-              </div>
-
-              {/* Column 3 */}
-              <div className='space-y-3'>
-                <label className='flex items-center gap-2 text-sm text-gray-700'>
-                  <input
-                    type='checkbox'
-                    {...register("waterSupply")}
-                    className='checkbox checkbox-success checkbox-sm rounded'
-                  />
-                  Water Supply
-                </label>
-
-                <label className='flex items-center gap-2 text-sm text-gray-700'>
-                  <input
-                    type='checkbox'
-                    {...register("transport")}
-                    className='checkbox checkbox-success checkbox-sm rounded'
-                  />
-                  Transport
-                </label>
-
-                <label className='flex items-center gap-2 text-sm text-gray-700'>
-                  <input
-                    type='checkbox'
-                    {...register("canteen")}
-                    className='checkbox checkbox-success checkbox-sm rounded'
-                  />
-                  Canteen
-                </label>
-
-                <label className='flex items-center gap-2 text-sm text-gray-700'>
-                  <input
-                    type='checkbox'
-                    {...register("othersFacility")}
-                    className='checkbox checkbox-success checkbox-sm rounded'
-                  />
-                  Others
-                </label>
-              </div>
-
-              {/* Column 4 */}
+              {/* Others */}
               <div>
                 <label className='mb-2 block text-sm font-medium text-gray-700'>
                   Others (Specify)
@@ -854,10 +742,11 @@ const EstateProfile = () => {
 
                 <input
                   type='text'
-                  placeholder='Club, Library, Gym...'
+                  placeholder='Gym, Guest House...'
                   {...register("otherFacilityName")}
                   className='h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-700 outline-none transition-all duration-200 placeholder:text-gray-400 focus:border-green-600'
                 />
+
                 {errors.otherFacilityName && (
                   <p className='mt-1 text-xs text-red-500'>
                     {errors.otherFacilityName.message}

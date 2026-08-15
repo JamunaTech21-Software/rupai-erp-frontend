@@ -1,86 +1,340 @@
+// src/data/EstateManagementData/fieldAndBlockManagementData.js
+
 export const fieldAndBlockManagementData = {
+  // =========================================================
+  // Dropdown / Master Data
+  // =========================================================
+
   // =========================
-  // Dropdown Data
+  // Estate Options
   // =========================
   estates: [
-    "Jamuna Tea Estate",
-    "Rangpur Tea Estate",
-    "Green Valley Tea Estate",
-    "Sylhet Tea Estate",
-    "Sunrise Tea Estate",
+    {
+      id: 1,
+      value: "jamuna-tea-estate",
+      label: "Jamuna Tea Estate",
+    },
+    {
+      id: 2,
+      value: "rangpur-tea-estate",
+      label: "Rangpur Tea Estate",
+    },
+    {
+      id: 3,
+      value: "green-valley-tea-estate",
+      label: "Green Valley Tea Estate",
+    },
+    {
+      id: 4,
+      value: "sylhet-tea-estate",
+      label: "Sylhet Tea Estate",
+    },
+    {
+      id: 5,
+      value: "sunrise-tea-estate",
+      label: "Sunrise Tea Estate",
+    },
   ],
 
+  // =========================
+  // Division Options
+  // =========================
   divisions: [
     {
       id: 1,
+      value: "div-01",
       name: "Rangpur Division",
       code: "DIV-01",
     },
     {
       id: 2,
+      value: "div-02",
       name: "North Division",
       code: "DIV-02",
     },
     {
       id: 3,
+      value: "div-03",
       name: "South Division",
       code: "DIV-03",
     },
   ],
 
+  // =========================
+  // Section Options
+  // =========================
   sections: [
     {
       id: 1,
+      value: "sec-a",
       divisionId: 1,
       name: "Section A",
       code: "SEC-A",
     },
     {
       id: 2,
+      value: "sec-b",
       divisionId: 1,
       name: "Section B",
       code: "SEC-B",
     },
     {
       id: 3,
+      value: "sec-c",
       divisionId: 2,
       name: "Section C",
       code: "SEC-C",
     },
     {
       id: 4,
+      value: "sec-d",
       divisionId: 3,
       name: "Section D",
       code: "SEC-D",
     },
   ],
 
+  // =========================
+  // Field Type Options
+  // =========================
   fieldTypes: [
-    "Tea Field",
-    "Nursery",
-    "Extension",
-    "Infrastructure",
-    "Drain",
-    "Road Reserve",
+    {
+      id: 1,
+      value: "tea_field",
+      label: "Tea Field",
+    },
+    {
+      id: 2,
+      value: "nursery",
+      label: "Nursery",
+    },
+    {
+      id: 3,
+      value: "shade_area",
+      label: "Shade Area",
+    },
+    {
+      id: 4,
+      value: "road_side",
+      label: "Road Side",
+    },
+    {
+      id: 5,
+      value: "water_body",
+      label: "Water Body",
+    },
+    {
+      id: 6,
+      value: "extension",
+      label: "Extension",
+    },
+    {
+      id: 7,
+      value: "infrastructure",
+      label: "Infrastructure",
+    },
+    {
+      id: 8,
+      value: "drain",
+      label: "Drain",
+    },
+    {
+      id: 9,
+      value: "road_reserve",
+      label: "Road Reserve",
+    },
   ],
 
-  statuses: ["Active", "Inactive"],
-
-  parentFields: ["None", "Block 01", "Block 02", "Block 03", "Block 04"],
-
-  bushTypes: ["TV-1", "TV-18", "BT-2", "Clone 6", "Seedling"],
-
-  irrigationSources: ["Natural Rain", "Tube Well", "River", "Canal"],
-
-  soilTypes: ["Loamy", "Clay", "Sandy", "Mixed"],
-
-  drainage: ["Good", "Average", "Poor"],
-
-  managers: ["Md. Faruk Hossain", "Rashed Khan", "Arif Islam", "Saiful Alam"],
+  // =========================
+  // Status Options
+  // =========================
+  statuses: [
+    {
+      id: 1,
+      value: "active",
+      label: "Active",
+    },
+    {
+      id: 2,
+      value: "inactive",
+      label: "Inactive",
+    },
+    {
+      id: 3,
+      value: "under_development",
+      label: "Under Development",
+    },
+    {
+      id: 4,
+      value: "maintenance",
+      label: "Maintenance",
+    },
+  ],
 
   // =========================
-  // Filter
+  // Parent Field Options
   // =========================
+  parentFields: [
+    {
+      id: 1,
+      value: "",
+      label: "None",
+    },
+    {
+      id: 2,
+      value: "blk-01",
+      label: "Block 01",
+    },
+    {
+      id: 3,
+      value: "blk-02",
+      label: "Block 02",
+    },
+    {
+      id: 4,
+      value: "blk-03",
+      label: "Block 03",
+    },
+    {
+      id: 5,
+      value: "blk-04",
+      label: "Block 04",
+    },
+  ],
+
+  // =========================
+  // Bush / Clone Type Options
+  // =========================
+  bushTypes: [
+    {
+      id: 1,
+      value: "tv-1",
+      label: "TV-1",
+    },
+    {
+      id: 2,
+      value: "tv-18",
+      label: "TV-18",
+    },
+    {
+      id: 3,
+      value: "bt-2",
+      label: "BT-2",
+    },
+    {
+      id: 4,
+      value: "clone-6",
+      label: "Clone 6",
+    },
+    {
+      id: 5,
+      value: "seedling",
+      label: "Seedling",
+    },
+  ],
+
+  // =========================
+  // Irrigation Source Options
+  // =========================
+  irrigationSources: [
+    {
+      id: 1,
+      value: "natural_rain",
+      label: "Natural Rain",
+    },
+    {
+      id: 2,
+      value: "tube_well",
+      label: "Tube Well",
+    },
+    {
+      id: 3,
+      value: "river",
+      label: "River",
+    },
+    {
+      id: 4,
+      value: "canal",
+      label: "Canal",
+    },
+  ],
+
+  // =========================
+  // Soil Type Options
+  // =========================
+  soilTypes: [
+    {
+      id: 1,
+      value: "loamy",
+      label: "Loamy",
+    },
+    {
+      id: 2,
+      value: "clay",
+      label: "Clay",
+    },
+    {
+      id: 3,
+      value: "sandy",
+      label: "Sandy",
+    },
+    {
+      id: 4,
+      value: "mixed",
+      label: "Mixed",
+    },
+  ],
+
+  // =========================
+  // Drainage Options
+  // =========================
+  drainage: [
+    {
+      id: 1,
+      value: "good",
+      label: "Good",
+    },
+    {
+      id: 2,
+      value: "average",
+      label: "Average",
+    },
+    {
+      id: 3,
+      value: "poor",
+      label: "Poor",
+    },
+  ],
+
+  // =========================
+  // Manager Options
+  // =========================
+  managers: [
+    {
+      id: 1,
+      value: "manager-001",
+      label: "Md. Faruk Hossain",
+    },
+    {
+      id: 2,
+      value: "manager-002",
+      label: "Rashed Khan",
+    },
+    {
+      id: 3,
+      value: "manager-003",
+      label: "Arif Islam",
+    },
+    {
+      id: 4,
+      value: "manager-004",
+      label: "Saiful Alam",
+    },
+  ],
+
+  // =========================================================
+  // Filter Configuration
+  // =========================================================
 
   filters: {
     searchPlaceholder: "Search field / block...",
@@ -88,9 +342,9 @@ export const fieldAndBlockManagementData = {
     status: "All Status",
   },
 
-  // =========================
+  // =========================================================
   // Table Headers
-  // =========================
+  // =========================================================
 
   tableHeaders: [
     "SL",
@@ -103,9 +357,11 @@ export const fieldAndBlockManagementData = {
     "Action",
   ],
 
-  // =========================
-  // Field List
-  // =========================
+  // =========================================================
+  // Field / Block List
+  // =========================================================
+  // Temporary frontend data.
+  // Later this will come from backend/API.
 
   fieldList: [
     {
@@ -182,14 +438,16 @@ export const fieldAndBlockManagementData = {
     },
   ],
 
-  // =========================
-  // Details
-  // =========================
+  // =========================================================
+  // Selected Field / Block Details
+  // =========================================================
+  // Temporary frontend data.
+  // Later this will come from backend/API.
 
   details: {
-    estate: "Jamuna  ",
-    division: "Rangpur  ",
-    section: "Section A ",
+    estate: "Jamuna Tea Estate",
+    division: "Rangpur Division",
+    section: "Section A",
     fieldName: "Block 01",
     fieldCode: "BLK-01",
     fieldType: "Tea Field",
@@ -200,47 +458,119 @@ export const fieldAndBlockManagementData = {
     spacing: "4ft × 2.5ft",
     altitude: "240 ft",
     averageSlope: "5°",
-    irrigation: " Rain",
+    irrigation: "Natural Rain",
     soilType: "Loamy",
     drainage: "Good",
     status: "Active",
-    createdBy: "Md. Faruk ",
-    createdOn: " May 2026",
+    createdBy: "Md. Faruk Hossain",
+    createdOn: "May 2026",
   },
+
+  // =========================================================
+  // Details Left Column
+  // =========================================================
+  // UI configuration only.
+
   detailsLeft: [
-    { label: "Estate", key: "estate" },
-    { label: "Division", key: "division" },
-    { label: "Section", key: "section" },
-    { label: "Field  / Block Name", key: "fieldName" },
-    { label: "Field Code", key: "fieldCode" },
-    { label: "Field Type", key: "fieldType" },
-    { label: "Total Area", key: "totalArea" },
-    { label: "Planted Area", key: "plantedArea" },
-    { label: "Year of Planting", key: "yearOfPlanting" },
-    { label: "Bush Type / Clone", key: "bushType" },
+    {
+      label: "Estate",
+      key: "estate",
+    },
+    {
+      label: "Division",
+      key: "division",
+    },
+    {
+      label: "Section",
+      key: "section",
+    },
+    {
+      label: "Field / Block Name",
+      key: "fieldName",
+    },
+    {
+      label: "Field Code",
+      key: "fieldCode",
+    },
+    {
+      label: "Field Type",
+      key: "fieldType",
+    },
+    {
+      label: "Total Area",
+      key: "totalArea",
+    },
+    {
+      label: "Planted Area",
+      key: "plantedArea",
+    },
+    {
+      label: "Year of Planting",
+      key: "yearOfPlanting",
+    },
+    {
+      label: "Bush Type / Clone",
+      key: "bushType",
+    },
   ],
+
+  // =========================================================
+  // Details Right Column
+  // =========================================================
+  // UI configuration only.
 
   detailsRight: [
-    { label: "Spacing", key: "spacing" },
-    { label: "Altitude", key: "altitude" },
-    { label: "Average Slope", key: "averageSlope" },
-    { label: "Irrigation Source", key: "irrigation" },
-    { label: "Soil Type", key: "soilType" },
-    { label: "Drainage", key: "drainage" },
-    { label: "Status", key: "status" },
-    { label: "Created By", key: "createdBy" },
-    { label: "Created On", key: "createdOn" },
+    {
+      label: "Spacing",
+      key: "spacing",
+    },
+    {
+      label: "Altitude",
+      key: "altitude",
+    },
+    {
+      label: "Average Slope",
+      key: "averageSlope",
+    },
+    {
+      label: "Irrigation Source",
+      key: "irrigation",
+    },
+    {
+      label: "Soil Type",
+      key: "soilType",
+    },
+    {
+      label: "Drainage",
+      key: "drainage",
+    },
+    {
+      label: "Status",
+      key: "status",
+    },
+    {
+      label: "Created By",
+      key: "createdBy",
+    },
+    {
+      label: "Created On",
+      key: "createdOn",
+    },
   ],
-  // =========================
-  // Map
-  // =========================
+
+  // =========================================================
+  // Map / GIS Data
+  // =========================================================
+  // Temporary frontend data.
+  // Later this will come from backend/API.
 
   map: {
-    latitude: "25.7467",
-    longitude: "89.2712",
-    perimeter: "2.15 Km",
-    totalArea: "25.50 Acre",
+    latitude: 25.7467,
+    longitude: 89.2712,
+    perimeter: 2.15,
+    totalArea: 25.5,
     zoom: 16,
+
     polygon: [
       [25.7468, 89.2708],
       [25.7475, 89.272],
@@ -250,9 +580,11 @@ export const fieldAndBlockManagementData = {
     ],
   },
 
-  // =========================
+  // =========================================================
   // Summary
-  // =========================
+  // =========================================================
+  // Temporary frontend data.
+  // Later this will come from backend/API.
 
   summary: {
     totalField: 48,
