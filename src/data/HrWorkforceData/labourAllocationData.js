@@ -916,60 +916,55 @@ export const labourAllocationData = {
   taskWorkSummary: {
     title: "Task / Work Summary",
 
-    headers: [
-      {
-        key: "task",
-        label: "Task / Work",
-      },
-      {
-        key: "allocatedWorkers",
-        label: "Allocated Workers",
-      },
-    ],
+    columns: {
+      task: "Task / Work",
+      workers: "Allocated Workers",
+    },
 
     items: [
       {
-        id: "plucking",
+        id: "task-001",
         task: "Plucking",
         allocatedWorkers: 650,
       },
       {
-        id: "pruning",
+        id: "task-002",
         task: "Pruning",
         allocatedWorkers: 320,
       },
       {
-        id: "weeding",
+        id: "task-003",
         task: "Weeding",
         allocatedWorkers: 280,
       },
       {
-        id: "fertilizer-application",
+        id: "task-004",
         task: "Fertilizer Application",
         allocatedWorkers: 150,
       },
       {
-        id: "drain-cleaning",
+        id: "task-005",
         task: "Drain Cleaning",
         allocatedWorkers: 90,
       },
       {
-        id: "shade-tree-pruning",
+        id: "task-006",
         task: "Shade Tree Pruning",
         allocatedWorkers: 60,
       },
       {
-        id: "nursery-maintenance",
+        id: "task-007",
         task: "Nursery Maintenance",
         allocatedWorkers: 30,
       },
       {
-        id: "road-maintenance",
+        id: "task-008",
         task: "Road Maintenance",
         allocatedWorkers: 25,
       },
     ],
 
+    totalLabel: "Total",
     total: 1605,
   },
 
@@ -979,19 +974,13 @@ export const labourAllocationData = {
   unallocatedWorkers: {
     title: "Unallocated Workers",
 
-    count: 602,
+    total: 602,
 
-    countDisplay: "602",
-
-    percentage: 24.42,
-
-    percentageDisplay: "24.42%",
-
-    iconKey: "userRoundX",
+    percentage: "24.42%",
 
     action: {
+      id: "view-unallocated-workers",
       label: "View Unallocated Workers",
-      action: "viewUnallocatedWorkers",
     },
   },
 
@@ -1005,32 +994,27 @@ export const labourAllocationData = {
       {
         id: "bulk-allocation",
         label: "Bulk Allocation",
-        action: "bulkAllocation",
-        iconKey: "clipboardPlus",
+        iconKey: "bulkAllocation",
       },
       {
         id: "reallocate-workers",
         label: "Reallocate Workers",
-        action: "reallocateWorkers",
-        iconKey: "refreshCw",
+        iconKey: "reallocateWorkers",
       },
       {
         id: "update-allocation",
         label: "Update Allocation",
-        action: "updateAllocation",
-        iconKey: "filePenLine",
+        iconKey: "updateAllocation",
       },
       {
         id: "allocation-report",
         label: "Allocation Report",
-        action: "allocationReport",
-        iconKey: "fileText",
+        iconKey: "allocationReport",
       },
       {
         id: "print-allocation",
         label: "Print Allocation",
-        action: "printAllocation",
-        iconKey: "printer",
+        iconKey: "printAllocation",
       },
     ],
   },
@@ -1038,36 +1022,36 @@ export const labourAllocationData = {
   // =========================================================
   // INFORMATION
   // =========================================================
-  information: {
+  informationSection: {
     title: "Information",
 
-    items: [
+    cards: [
       {
         id: "work-types",
         title: "Work Types",
         description:
           "Different types of works and tasks that can be allocated to workers.",
-        iconKey: "usersRound",
+        iconKey: "workTypes",
       },
       {
         id: "allocation-rules",
         title: "Allocation Rules",
         description:
           "Workers are allocated based on availability, skills and work requirements.",
-        iconKey: "clipboardCheck",
+        iconKey: "allocationRules",
       },
       {
         id: "reallocation",
         title: "Reallocation",
         description: "You can reallocate workers if needed based on priority.",
-        iconKey: "refreshCw",
+        iconKey: "reallocation",
       },
       {
         id: "approval-process",
         title: "Approval Process",
         description:
           "Some allocations may require approval from higher authority.",
-        iconKey: "userCheck",
+        iconKey: "approvalProcess",
       },
     ],
   },

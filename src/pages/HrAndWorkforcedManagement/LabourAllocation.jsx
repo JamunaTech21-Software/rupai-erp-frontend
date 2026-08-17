@@ -5,6 +5,10 @@ import { labourAllocationData } from "../../data/HrWorkforceData/labourAllocatio
 import HrWorkforceTabs from "../../components/HrWorkforceTabs/HrWorkforceTabs";
 
 import {
+  BriefcaseBusiness,
+  ClipboardCheck,
+  RefreshCcw,
+  ShieldCheck,
   Plus,
   Upload,
   Download,
@@ -17,6 +21,10 @@ import {
   UserRoundX,
   RotateCcw,
   ArrowRight,
+  FilePenLine,
+  FileText,
+  Layers,
+  Printer,
 } from "lucide-react";
 
 const summaryIconMap = {
@@ -25,6 +33,19 @@ const summaryIconMap = {
   clipboardList: ClipboardList,
   circleCheck: CircleCheck,
   userRoundX: UserRoundX,
+};
+const quickActionIconMap = {
+  bulkAllocation: Layers,
+  reallocateWorkers: UsersRound,
+  updateAllocation: FilePenLine,
+  allocationReport: FileText,
+  printAllocation: Printer,
+};
+const informationIconMap = {
+  workTypes: BriefcaseBusiness,
+  allocationRules: ClipboardCheck,
+  reallocation: RefreshCcw,
+  approvalProcess: ShieldCheck,
 };
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
 const LabourAllocation = () => {
@@ -220,7 +241,7 @@ const LabourAllocation = () => {
               ALLOCATION LIST
           ===================================================== */}
           {/* ALLOCATION LIST */}
-          <div className='rounded-xl border border-gray-200 bg-white p-4 shadow-sm'>
+          <div className='rounded-xl border border-gray-200 bg-white p-2 shadow-sm'>
             {/* HEADER */}
             <div className='mb-3 flex items-center justify-between'>
               <h2 className='text-sm font-semibold text-green-800'>
@@ -328,11 +349,11 @@ const LabourAllocation = () => {
           {/* =====================================================
               BOTTOM LEFT SECTION
           ===================================================== */}
-          <div className='grid grid-cols-1 gap-2 lg:grid-cols-2'>
+          <div className='grid grid-cols-1 items-start gap-2 lg:grid-cols-2'>
             {/* NEW ALLOCATION */}
-            <div className='rounded-xl border border-gray-200 bg-white p-4 shadow-sm'>
+            <div className='rounded-xl border border-gray-200 bg-white p-2 shadow-sm'>
               {/* HEADER */}
-              <div className='mb-4'>
+              <div className=''>
                 <h2 className='text-sm font-semibold text-green-800'>
                   {labourAllocationData.newAllocationForm.title}
                 </h2>
@@ -352,7 +373,7 @@ const LabourAllocation = () => {
                         }
                       >
                         {/* LABEL */}
-                        <label className='mb-1 block text-[11px] font-medium text-gray-700'>
+                        <label className='mb-2 block text-[11px] font-medium text-gray-700'>
                           {field.label}
                           {field.required && (
                             <span className='ml-1 text-red-500'>*</span>
@@ -413,7 +434,7 @@ const LabourAllocation = () => {
                           <textarea
                             {...register(field.name)}
                             placeholder={field.placeholder}
-                            rows={3}
+                            rows={5}
                             className='w-full resize-none rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs text-gray-700 outline-none transition focus:border-green-700'
                           />
                         )}
@@ -423,7 +444,7 @@ const LabourAllocation = () => {
                 </div>
 
                 {/* ACTION BUTTONS */}
-                <div className='mt-4 flex flex-wrap justify-end gap-2 border-t border-gray-100 pt-3'>
+                <div className='mt-0 flex flex-wrap justify-end gap-2 border-t border-gray-100 pt-1'>
                   {labourAllocationData.newAllocationForm.actions.map(
                     (action) => (
                       <button
@@ -601,67 +622,180 @@ const LabourAllocation = () => {
             </div>
           </div>
 
-          {/* =====================================================
-              TASK / WORK SUMMARY
-          ===================================================== */}
-          <div className='min-h-64 rounded-xl border border-gray-200 bg-white p-4 shadow-sm'>
-            {/* DYNAMIC TITLE */}
+          {/* TASK / WORK SUMMARY */}
+          <div className='rounded-xl border border-gray-200 bg-white p-4 shadow-sm'>
+            {/* HEADER */}
+            <div className='mb-3'>
+              <h2 className='text-sm font-semibold text-green-800'>
+                {labourAllocationData.taskWorkSummary.title}
+              </h2>
+            </div>
 
-            {/* DYNAMIC TASK LIST */}
+            {/* TABLE */}
+            <div className='overflow-x-auto'>
+              <table className='w-full min-w-[280px]'>
+                {/* TABLE HEADER */}
+                <thead>
+                  <tr className='border-b border-gray-100'>
+                    <th className='px-2 py-2 text-left text-[11px] font-semibold text-gray-600'>
+                      {labourAllocationData.taskWorkSummary.columns.task}
+                    </th>
 
-            {/* TOTAL */}
+                    <th className='px-2 py-2 text-right text-[11px] font-semibold text-gray-600'>
+                      {labourAllocationData.taskWorkSummary.columns.workers}
+                    </th>
+                  </tr>
+                </thead>
+
+                {/* TABLE BODY */}
+                <tbody>
+                  {labourAllocationData.taskWorkSummary.items.map((item) => (
+                    <tr
+                      key={item.id}
+                      className='border-b border-gray-50 transition hover:bg-gray-50'
+                    >
+                      <td className='px-2 py-1.5 text-left text-[11px] text-gray-700'>
+                        {item.task}
+                      </td>
+
+                      <td className='px-2 py-1.5 text-right text-[11px] font-medium text-gray-700'>
+                        {item.allocatedWorkers.toLocaleString()}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+
+                {/* TOTAL */}
+                <tfoot>
+                  <tr>
+                    <td className='px-2 pt-2 text-right text-xs font-bold text-green-800'>
+                      {labourAllocationData.taskWorkSummary.totalLabel}
+                    </td>
+
+                    <td className='px-2 pt-2  text-right text-sm font-bold text-green-800'>
+                      {labourAllocationData.taskWorkSummary.total.toLocaleString()}
+                    </td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
           </div>
 
-          {/* =====================================================
-              UNALLOCATED WORKERS
-          ===================================================== */}
-          <div className='min-h-40 rounded-xl border border-gray-200 bg-white p-4 shadow-sm'>
-            {/* DYNAMIC CONTENT */}
+          {/* UNALLOCATED WORKERS */}
+          <div className='rounded-xl border border-gray-200 bg-white p-4 shadow-sm'>
+            {/* HEADER */}
+            <div className='mb-3'>
+              <h2 className='text-sm font-semibold text-green-800'>
+                {labourAllocationData.unallocatedWorkers.title}
+              </h2>
+            </div>
 
-            {/* ACTION BUTTON */}
+            {/* CONTENT */}
+            <div className='flex items-center gap-3'>
+              {/* ICON */}
+              <div className='flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-red-50 text-red-500'>
+                <UsersRound size={22} strokeWidth={2} />
+              </div>
+
+              {/* VALUE + PERCENTAGE */}
+              <div className='min-w-0 flex-1'>
+                <div className='flex items-center gap-4'>
+                  <span className='text-lg font-bold text-gray-800'>
+                    {labourAllocationData.unallocatedWorkers.total.toLocaleString()}
+                  </span>
+
+                  <span className='text-[11px] font-medium text-gray-500'>
+                    {labourAllocationData.unallocatedWorkers.percentage}%
+                  </span>
+                </div>
+
+                {/* ACTION */}
+                <button
+                  type='button'
+                  className='mt-2 h-8 w-full rounded-lg border border-gray-200 bg-white px-3 text-xs font-medium text-gray-700 transition hover:border-green-700 hover:bg-green-50 hover:text-green-800'
+                >
+                  {labourAllocationData.unallocatedWorkers.action.label}
+                </button>
+              </div>
+            </div>
           </div>
 
-          {/* =====================================================
-              QUICK ACTIONS
-          ===================================================== */}
-          <div className='min-h-32 rounded-xl border border-gray-200 bg-white p-4 shadow-sm'>
-            {/* DYNAMIC TITLE */}
+          {/* QUICK ACTIONS */}
+          <div className='rounded-xl border border-gray-200 bg-white p-4 shadow-sm'>
+            {/* HEADER */}
+            <div className='mb-4'>
+              <h2 className='text-sm font-semibold text-green-800'>
+                {labourAllocationData.quickActions.title}
+              </h2>
+            </div>
 
-            <div className='grid grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-2'>
-              {/* QUICK ACTIONS WILL BE MAPPED HERE */}
+            {/* ACTIONS */}
+            <div className='grid grid-cols-5 gap-2'>
+              {labourAllocationData.quickActions.items.map((action) => {
+                const Icon = quickActionIconMap[action.iconKey];
+
+                return (
+                  <button
+                    key={action.id}
+                    type='button'
+                    className='group flex min-w-0 flex-col items-center justify-start gap-1.5 rounded-lg p-1.5 text-center transition hover:bg-green-50'
+                  >
+                    {/* ICON */}
+                    <div className='flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-600 transition group-hover:border-green-200 group-hover:bg-green-50 group-hover:text-green-700'>
+                      {Icon && <Icon size={15} strokeWidth={1.8} />}
+                    </div>
+
+                    {/* LABEL */}
+                    <span className='text-[9px] font-medium leading-tight text-gray-600 group-hover:text-green-800'>
+                      {action.label}
+                    </span>
+                  </button>
+                );
+              })}
             </div>
           </div>
         </div>
       </div>
 
       {/* =========================================================
-          INFORMATION SECTION
-      ========================================================= */}
+              INFORMATION SECTION
+          ========================================================= */}
       <div className='rounded-xl border border-gray-200 bg-white p-4 shadow-sm'>
-        {/* INFORMATION HEADER */}
-        <div className='mb-4'>{/* DYNAMIC TITLE */}</div>
+        {/* HEADER */}
+        <div className='mb-4'>
+          <h2 className='text-sm font-semibold text-green-800'>
+            {labourAllocationData.informationSection.title}
+          </h2>
+        </div>
 
         {/* INFORMATION CARDS */}
         <div className='grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4'>
-          {/* INFORMATION CARD 1 */}
-          <div className='min-h-24 rounded-lg border border-gray-100 bg-gray-50 p-4'>
-            {/* DYNAMIC CONTENT */}
-          </div>
+          {labourAllocationData.informationSection.cards.map((card) => {
+            const Icon = informationIconMap[card.iconKey];
 
-          {/* INFORMATION CARD 2 */}
-          <div className='min-h-24 rounded-lg border border-gray-100 bg-gray-50 p-4'>
-            {/* DYNAMIC CONTENT */}
-          </div>
+            return (
+              <div
+                key={card.id}
+                className='flex min-h-24 items-start gap-3 rounded-lg border border-gray-100 bg-gray-50 p-3'
+              >
+                {/* ICON */}
+                <div className='flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-600'>
+                  {Icon && <Icon size={17} strokeWidth={2} />}
+                </div>
 
-          {/* INFORMATION CARD 3 */}
-          <div className='min-h-24 rounded-lg border border-gray-100 bg-gray-50 p-4'>
-            {/* DYNAMIC CONTENT */}
-          </div>
+                {/* CONTENT */}
+                <div className='min-w-0'>
+                  <h3 className='text-[11px] font-semibold text-gray-800'>
+                    {card.title}
+                  </h3>
 
-          {/* INFORMATION CARD 4 */}
-          <div className='min-h-24 rounded-lg border border-gray-100 bg-gray-50 p-4'>
-            {/* DYNAMIC CONTENT */}
-          </div>
+                  <p className='mt-1 text-[9px] leading-relaxed text-gray-500'>
+                    {card.description}
+                  </p>
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>
