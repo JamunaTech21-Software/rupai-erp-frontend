@@ -19,6 +19,10 @@ import AddNewWorker from "./pages/HrAndWorkforcedManagement/AddNewWorker";
 import AttendenceAndFaceRecognition from "./pages/HrAndWorkforcedManagement/AttendenceAndFaceRecognition";
 import ContractorManagement from "./pages/HrAndWorkforcedManagement/ContractorManagement";
 import WorkerManagement from "./pages/HrAndWorkforcedManagement/WorkerManagement";
+import LabourAllocation from "./pages/HrAndWorkforcedManagement/LabourAllocation";
+import LabourAllocationEntry from "./pages/HrAndWorkforcedManagement/LabourAllocationEntry";
+import ShiftAndDutyRosterEntryProcess from "./pages/HrAndWorkforcedManagement/ShiftAndDutyRosterEntryProcess";
+import ShiftAndDutyRoster from "./pages/HrAndWorkforcedManagement/ShiftAndDutyRoster";
 
 const router = createBrowserRouter([
   {
@@ -148,6 +152,34 @@ const router = createBrowserRouter([
         element: <WorkerManagement />,
         handle: {
           title: "Worker Management",
+        },
+      },
+      {
+        path: "labour-allocation",
+        element: <LabourAllocation />,
+        handle: {
+          title: "Labour Allocation",
+        },
+      },
+      {
+        path: "labour-allocation-entry",
+        element: <LabourAllocationEntry />,
+        handle: {
+          title: "Labour Allocation Entry",
+        },
+      },
+      {
+        path: "shift-and-duty-roster-entry-process",
+        element: <ShiftAndDutyRosterEntryProcess />,
+        handle: {
+          title: "Shift and Duty Roster Process",
+        },
+      },
+      {
+        path: "shift-and-duty-roster",
+        element: <ShiftAndDutyRoster />,
+        handle: {
+          title: "Shift and Duty Roster",
         },
       },
 

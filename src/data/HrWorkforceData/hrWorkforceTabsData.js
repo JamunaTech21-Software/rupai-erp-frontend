@@ -29,4 +29,24 @@ export const hrWorkforceTabs = [
     label: "Worker Management",
     path: "/worker-management",
   },
+  {
+    id: 7,
+    label: "Labour Allocation",
+    path: "/labour-allocation",
+  },
+  {
+    id: 8,
+    label: "Labour Allocation Entry",
+    path: "/labour-allocation-entry",
+  },
+  {
+    id: 9,
+    label: "Shift & Duty Roster",
+    path: "/shift-and-duty-roster",
+  },
+  {
+    id: 10,
+    label: "Shift & Duty Roster Entry Process",
+    path: "/shift-and-duty-roster-entry-process",
+  },
 ];

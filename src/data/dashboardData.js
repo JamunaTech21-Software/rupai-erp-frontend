@@ -107,6 +107,26 @@ export const navSections = [
             label: "Worker Management",
             path: "/worker-management",
           },
+          {
+            id: "labour-allocation",
+            label: "Labour Allocation",
+            path: "/labour-allocation",
+          },
+          {
+            id: "labour-allocation-entry",
+            label: "Labour Allocation Entry",
+            path: "/labour-allocation-entry",
+          },
+          {
+            id: "shift-and-duty-roster",
+            label: "Shift and Duty Roster",
+            path: "/shift-and-duty-roster",
+          },
+          {
+            id: "shift-and-duty-roster--entry-process",
+            label: "Shift and Duty Roster entry Process",
+            path: "/shift-and-duty-roster-entry-process",
+          },
         ],
       },
       {
