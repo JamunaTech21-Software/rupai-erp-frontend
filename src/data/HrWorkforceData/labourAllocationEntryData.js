@@ -1096,21 +1096,18 @@ export const labourAllocationEntryData = {
       label: "Reset",
       action: "reset",
       variant: "secondary",
-      iconKey: "rotateCcw",
     },
     {
       id: "save-draft",
       label: "Save as Draft",
-      action: "saveDraft",
+      action: "draft",
       variant: "secondary",
-      iconKey: "save",
     },
     {
       id: "save-submit",
       label: "Save & Submit",
       action: "submit",
       variant: "primary",
-      iconKey: "checkCircle",
     },
   ],
 };

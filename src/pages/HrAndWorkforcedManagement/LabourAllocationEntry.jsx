@@ -15,6 +15,10 @@ import {
   Plus,
   Clock,
   BriefcaseBusiness,
+  Wallet,
+  FileText,
+  ShieldCheck,
+  RotateCcw,
 } from "lucide-react";
 
 const actionIconMap = {
@@ -28,6 +32,8 @@ const LabourAllocationEntry = () => {
 
   const onSubmit = (data) => {
     console.log(data);
+
+    reset();
   };
 
   return (
@@ -48,8 +54,8 @@ const LabourAllocationEntry = () => {
                 type='button'
                 className={
                   action.variant === "primary"
-                    ? "inline-flex h-9 items-center justify-center gap-2 rounded-lg bg-green-800 px-4 text-xs font-semibold text-white transition hover:bg-green-900"
-                    : "inline-flex h-9 items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-4 text-xs font-medium text-gray-700 transition hover:border-green-700 hover:bg-green-50 hover:text-green-800"
+                    ? "inline-flex h-9 items-center justify-center gap-2 rounded-lg bg-green-800 px-4 text-xs font-semibold text-white transition hover:bg-green-900  cursor-pointer"
+                    : "inline-flex h-9 items-center cursor-pointer justify-center gap-2 rounded-lg border border-gray-200 bg-white px-4 text-xs font-medium text-gray-700 transition hover:border-green-700 hover:bg-green-50 hover:text-green-800"
                 }
               >
                 {Icon && <Icon size={15} strokeWidth={2} />}
@@ -598,7 +604,7 @@ const LabourAllocationEntry = () => {
             </div>
 
             {/* EQUIPMENT / TOOLS ALLOCATION */}
-            <div className='rounded-xl border border-gray-200 bg-white p-3 shadow-sm'>
+            <div className='rounded-xl border border-gray-200 bg-white p-2 shadow-sm'>
               {/* HEADER */}
               <div className='mb-3 flex items-center gap-2'>
                 <BriefcaseBusiness size={16} className='text-green-700' />
@@ -658,28 +664,255 @@ const LabourAllocationEntry = () => {
         </div>
 
         {/* =========================================================
-      ROW 3
-  ========================================================== */}
+                ROW 3
+            ========================================================== */}
         <div className='grid grid-cols-1 gap-3 lg:grid-cols-12'>
-          {/* 5. WAGE / RATE INFORMATION */}
+          {/* =====================================================
+                  5. WAGE / RATE INFORMATION
+              ====================================================== */}
           <div className='min-h-40 rounded-xl border border-gray-200 bg-white p-3 shadow-sm lg:col-span-3'>
-            {/* Wage / Rate Information */}
+            {/* HEADER */}
+            <div className='mb-3 flex items-center gap-2'>
+              <Wallet size={16} className='text-green-700' />
+
+              <h2 className='text-sm font-semibold text-green-800'>
+                {labourAllocationEntryData.wageRateInformation.title}
+              </h2>
+            </div>
+
+            {/* FIELDS */}
+            <div className='grid grid-cols-1 gap-3 sm:grid-cols-2'>
+              {labourAllocationEntryData.wageRateInformation.fields.map(
+                (field) => (
+                  <div key={field.id}>
+                    {/* LABEL */}
+                    <label className='mb-1 block text-[11px] font-medium text-gray-700'>
+                      {field.label}
+
+                      {field.required && (
+                        <span className='ml-1 text-red-500'>*</span>
+                      )}
+                    </label>
+
+                    {/* SELECT */}
+                    {field.type === "select" && (
+                      <select
+                        {...register(field.name, {
+                          required: field.required
+                            ? `${field.label} is required`
+                            : false,
+                        })}
+                        defaultValue={field.defaultValue ?? ""}
+                        className='h-9 w-full rounded-lg border border-gray-200 bg-white px-3 text-xs text-gray-700 outline-none transition focus:border-green-700'
+                      >
+                        <option value=''>{field.placeholder}</option>
+
+                        {field.options?.map((option) => (
+                          <option key={option.value} value={option.value}>
+                            {option.label}
+                          </option>
+                        ))}
+                      </select>
+                    )}
+
+                    {/* NUMBER */}
+                    {field.type === "number" && (
+                      <input
+                        type='number'
+                        {...register(field.name, {
+                          required: field.required
+                            ? `${field.label} is required`
+                            : false,
+                          valueAsNumber: true,
+                          min: field.validation?.min ?? undefined,
+                        })}
+                        defaultValue={field.defaultValue ?? ""}
+                        placeholder={field.placeholder}
+                        className='h-9 w-full rounded-lg border border-gray-200 bg-white px-3 text-xs text-gray-700 outline-none transition focus:border-green-700'
+                      />
+                    )}
+                  </div>
+                ),
+              )}
+            </div>
           </div>
 
-          {/* 6. REMARKS & NOTES */}
+          {/* =====================================================
+                  6. REMARKS & NOTES
+              ====================================================== */}
           <div className='min-h-40 rounded-xl border border-gray-200 bg-white p-3 shadow-sm lg:col-span-4'>
-            {/* Remarks & Notes */}
+            {/* HEADER */}
+            <div className='mb-3 flex items-center gap-2'>
+              <FileText size={16} className='text-green-700' />
+
+              <h2 className='text-sm font-semibold text-green-800'>
+                {labourAllocationEntryData.remarksNotes.title}
+              </h2>
+            </div>
+
+            {/* FIELDS */}
+            <div className='grid grid-cols-1 gap-3 sm:grid-cols-2'>
+              {labourAllocationEntryData.remarksNotes.fields.map((field) => (
+                <div
+                  key={field.id}
+                  className={field.type === "textarea" ? "sm:col-span-2" : ""}
+                >
+                  {/* LABEL */}
+                  <label className='mb-1 block text-[11px] font-medium text-gray-700'>
+                    {field.label}
+
+                    {field.required && (
+                      <span className='ml-1 text-red-500'>*</span>
+                    )}
+                  </label>
+
+                  {/* SELECT */}
+                  {field.type === "select" && (
+                    <select
+                      {...register(field.name, {
+                        required: field.required
+                          ? `${field.label} is required`
+                          : false,
+                      })}
+                      defaultValue={field.defaultValue ?? ""}
+                      className='h-9 w-full rounded-lg border border-gray-200 bg-white px-3 text-xs text-gray-700 outline-none transition focus:border-green-700'
+                    >
+                      <option value=''>{field.placeholder}</option>
+
+                      {field.options?.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                  )}
+
+                  {/* TEXTAREA */}
+                  {field.type === "textarea" && (
+                    <textarea
+                      {...register(field.name, {
+                        required: field.required
+                          ? `${field.label} is required`
+                          : false,
+                      })}
+                      placeholder={field.placeholder}
+                      rows={3}
+                      className='w-full resize-none rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs text-gray-700 outline-none transition focus:border-green-700'
+                    />
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
 
-          {/* 7. APPROVAL */}
+          {/* =====================================================
+                  7. APPROVAL
+              ====================================================== */}
           <div className='min-h-40 rounded-xl border border-gray-200 bg-white p-3 shadow-sm lg:col-span-5'>
-            {/* Approval */}
+            {/* HEADER */}
+            <div className='mb-3 flex items-center gap-2'>
+              <ShieldCheck size={16} className='text-green-700' />
+
+              <h2 className='text-sm font-semibold text-green-800'>
+                {labourAllocationEntryData.approval.title}
+              </h2>
+            </div>
+
+            {/* FIELDS */}
+            <div className='grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3'>
+              {labourAllocationEntryData.approval.fields.map((field) => (
+                <div
+                  key={field.id}
+                  className={
+                    field.type === "textarea"
+                      ? "sm:col-span-2 lg:col-span-3"
+                      : ""
+                  }
+                >
+                  {/* LABEL */}
+                  <label className='mb-1 block text-[11px] font-medium text-gray-700'>
+                    {field.label}
+
+                    {field.required && (
+                      <span className='ml-1 text-red-500'>*</span>
+                    )}
+                  </label>
+
+                  {/* SELECT */}
+                  {field.type === "select" && (
+                    <select
+                      {...register(field.name, {
+                        required: field.required
+                          ? `${field.label} is required`
+                          : false,
+                      })}
+                      defaultValue={field.defaultValue ?? ""}
+                      className='h-9 w-full rounded-lg border border-gray-200 bg-white px-3 text-xs text-gray-700 outline-none transition focus:border-green-700'
+                    >
+                      <option value=''>{field.placeholder}</option>
+
+                      {field.options?.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                  )}
+
+                  {/* DATE */}
+                  {field.type === "date" && (
+                    <input
+                      type='date'
+                      {...register(field.name, {
+                        required: field.required
+                          ? `${field.label} is required`
+                          : false,
+                      })}
+                      defaultValue={field.defaultValue ?? ""}
+                      className='h-9 w-full rounded-lg border border-gray-200 bg-white px-3 text-xs text-gray-700 outline-none transition focus:border-green-700'
+                    />
+                  )}
+
+                  {/* TEXTAREA */}
+                  {field.type === "textarea" && (
+                    <textarea
+                      {...register(field.name, {
+                        required: field.required
+                          ? `${field.label} is required`
+                          : false,
+                      })}
+                      placeholder={field.placeholder}
+                      rows={3}
+                      className='w-full resize-none rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs text-gray-700 outline-none transition focus:border-green-700'
+                    />
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
         </div>
-
         {/* BOTTOM ACTION BAR */}
-        <div className='flex min-h-12 items-center justify-end gap-2 rounded-xl border border-gray-200 bg-white px-3 py-2 shadow-sm'>
-          {/* Reset / Save Draft / Save & Submit */}
+        <div className='mt-3 flex  flex-wrap items-center justify-end gap-2 rounded-xl border border-gray-200 bg-white px-3 py-2 shadow-sm'>
+          {labourAllocationEntryData.bottomActions.map((action) => (
+            <button
+              key={action.id}
+              type={action.action === "reset" ? "button" : "submit"}
+              onClick={action.action === "reset" ? () => reset() : undefined}
+              className={
+                action.variant === "primary"
+                  ? "inline-flex h-9 cursor-pointer items-center justify-center gap-2 rounded-lg bg-green-800 px-4 text-xs font-semibold text-white transition hover:bg-green-900"
+                  : "inline-flex h-9 cursor-pointer items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-4 text-xs font-medium text-gray-700 transition hover:bg-gray-50"
+              }
+            >
+              {action.action === "reset" && <RotateCcw size={14} />}
+
+              {action.action === "draft" && <Save size={14} />}
+
+              {action.action === "submit" && <CircleCheck size={14} />}
+
+              <span>{action.label}</span>
+            </button>
+          ))}
         </div>
       </form>
     </div>
