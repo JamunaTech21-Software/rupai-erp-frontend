@@ -535,16 +535,45 @@ export const shiftAndDutyRosterData = {
   // =========================================================
   // DEPARTMENT COVERAGE
   // =========================================================
+  // =========================================================
+  // DEPARTMENT COVERAGE
+  // =========================================================
   departmentCoverage: {
     title: "Department Coverage",
     subtitle: "This Week",
 
-    chart: {
-      type: "donut",
-      data: [],
-    },
-
-    legend: [],
+    data: [
+      {
+        id: "plucking",
+        name: "Plucking",
+        value: 68.5,
+        color: "green",
+      },
+      {
+        id: "pruning",
+        name: "Pruning",
+        value: 72.3,
+        color: "blue",
+      },
+      {
+        id: "weeding",
+        name: "Weeding",
+        value: 70.1,
+        color: "purple",
+      },
+      {
+        id: "factory",
+        name: "Factory",
+        value: 65.8,
+        color: "orange",
+      },
+      {
+        id: "others",
+        name: "Others",
+        value: 63.2,
+        color: "gray",
+      },
+    ],
   },
 
   // =========================================================
@@ -557,32 +586,32 @@ export const shiftAndDutyRosterData = {
       {
         id: "create-shift",
         label: "Create Shift",
-        action: "create-shift",
         iconKey: "plus",
+        action: "create-shift",
       },
       {
         id: "generate-roster",
         label: "Generate Roster",
+        iconKey: "calendar",
         action: "generate-roster",
-        iconKey: "wand",
       },
       {
         id: "bulk-assign",
         label: "Bulk Assign",
+        iconKey: "users",
         action: "bulk-assign",
-        iconKey: "userPlus",
       },
       {
         id: "copy-roster",
         label: "Copy Roster",
-        action: "copy-roster",
         iconKey: "copy",
+        action: "copy-roster",
       },
       {
         id: "print-roster",
         label: "Print Roster",
-        action: "print-roster",
         iconKey: "printer",
+        action: "print-roster",
       },
     ],
   },
@@ -590,44 +619,37 @@ export const shiftAndDutyRosterData = {
   // =========================================================
   // TODAY'S SUMMARY
   // =========================================================
-  todaysSummary: {
+  todaySummary: {
     title: "Today's Summary",
+    date: "01 June 2026",
 
-    statistics: [
+    stats: [
       {
         id: "total-scheduled",
         label: "Total Scheduled",
         value: 2312,
-        displayValue: "2,312",
+        iconKey: "users",
         variant: "blue",
       },
       {
         id: "present",
         label: "Present",
         value: 2184,
-        displayValue: "2,184",
+        iconKey: "user-check",
         variant: "green",
       },
       {
         id: "absent",
         label: "Absent",
         value: 128,
-        displayValue: "128",
+        iconKey: "user-x",
         variant: "red",
-      },
-      {
-        id: "coverage",
-        label: "Coverage",
-        value: 94.46,
-        displayValue: "94.46%",
-        variant: "gray",
       },
     ],
 
-    progress: {
+    coverage: {
+      label: "Coverage",
       value: 94.46,
-      displayValue: "94.46%",
-      type: "percentage",
     },
   },
 
