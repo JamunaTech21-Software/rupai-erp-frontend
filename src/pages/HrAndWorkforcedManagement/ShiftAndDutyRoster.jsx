@@ -58,7 +58,7 @@ const ShiftAndDutyRoster = () => {
       {/* =====================================================
           1. TOP ACTION BAR
       ====================================================== */}
-      <div className='flex min-h-12 flex-wrap items-center justify-end gap-2 rounded-xl border border-gray-200 bg-white px-3 py-2 shadow-sm'>
+      <div className='grid grid-cols-1 gap-2 rounded-xl border border-gray-200 bg-white px-3 py-2 shadow-sm sm:flex sm:flex-wrap sm:items-center sm:justify-end'>
         {shiftAndDutyRosterData.topActions.map((action) => {
           const Icon = actionIconMap[action.iconKey];
 
@@ -68,8 +68,8 @@ const ShiftAndDutyRoster = () => {
               type='button'
               className={
                 action.variant === "primary"
-                  ? "inline-flex h-9 items-center justify-center gap-2 rounded-lg bg-green-800 px-4 text-xs font-semibold text-white transition hover:bg-green-900"
-                  : "inline-flex h-9 items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-4 text-xs font-medium text-gray-700 transition hover:bg-gray-50"
+                  ? "inline-flex h-9 w-full items-center justify-center gap-2 rounded-lg bg-green-800 px-4 text-xs font-semibold text-white transition hover:bg-green-900 sm:w-auto"
+                  : "inline-flex h-9 w-full items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-4 text-xs font-medium text-gray-700 transition hover:bg-gray-50 sm:w-auto"
               }
             >
               {Icon && <Icon size={14} />}
