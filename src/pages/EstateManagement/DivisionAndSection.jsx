@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import EstateManagementTabs from "../../components/EstateManagement/EstateManagementTabs";
 import { X, RotateCcw, Save, Plus, Pencil, Trash2, Map } from "lucide-react";
 import { useForm } from "react-hook-form";
@@ -6,6 +6,7 @@ import { divisionSectionData } from "../../data/EstateManagementData/divisionAnd
 import toast from "react-hot-toast";
 
 const DivisionAndSection = () => {
+  const [showDivisionModal, setShowDivisionModal] = useState(false);
   const {
     register,
     handleSubmit,
@@ -33,6 +34,7 @@ const DivisionAndSection = () => {
       console.error(error);
     }
   };
+
   const onSubmitSection = async (data) => {
     try {
       console.log(data);
@@ -59,541 +61,14 @@ const DivisionAndSection = () => {
           {/* =========================================================
                   Division Information
               ========================================================= */}
-          <div className='rounded-xl bg-white shadow-sm'>
-            <div className='border-b bg-green-50 px-6 py-4'>
-              <h2 className='text-lg font-semibold text-green-800'>
-                Division Information
-              </h2>
-            </div>
-
-            <form
-              onSubmit={handleSubmit(onSubmitDivision)}
-              className='rounded-xl bg-white shadow-sm'
-            >
-              <div className='p-6'>
-                <div className='grid grid-cols-1 gap-5 md:grid-cols-2'>
-                  {/* =====================================================
-                          Estate
-                      ===================================================== */}
-                  <div>
-                    <label className='mb-1.5 block text-sm font-medium text-gray-700'>
-                      Estate <span className='text-red-500'>*</span>
-                    </label>
-
-                    <select
-                      {...register("estate", {
-                        required: "Estate is required",
-                      })}
-                      className='h-11 w-full rounded-lg border border-gray-300 bg-white px-4 outline-none transition focus:border-green-600'
-                    >
-                      <option value=''>Select Estate</option>
-
-                      {divisionSectionData.estateOptions.map((estate) => (
-                        <option key={estate.id} value={estate.value}>
-                          {estate.label}
-                        </option>
-                      ))}
-                    </select>
-
-                    {errors.estate && (
-                      <p className='mt-1 text-xs text-red-500'>
-                        {errors.estate.message}
-                      </p>
-                    )}
-                  </div>
-
-                  {/* =====================================================
-                          Total Area
-                      ===================================================== */}
-                  <div>
-                    <label className='mb-1.5 block text-sm font-medium text-gray-700'>
-                      Total Area (Acre) <span className='text-red-500'>*</span>
-                    </label>
-
-                    <input
-                      type='number'
-                      min={0}
-                      step='0.01'
-                      placeholder='Enter total area'
-                      {...register("totalArea", {
-                        required: "Total Area is required",
-                        min: {
-                          value: 0.01,
-                          message: "Area must be greater than 0",
-                        },
-                      })}
-                      className='h-11 w-full rounded-lg border border-gray-300 px-4 outline-none transition focus:border-green-600'
-                    />
-
-                    {errors.totalArea && (
-                      <p className='mt-1 text-xs text-red-500'>
-                        {errors.totalArea.message}
-                      </p>
-                    )}
-                  </div>
-
-                  {/* =====================================================
-                          Division Name
-                      ===================================================== */}
-                  <div>
-                    <label className='mb-1.5 block text-sm font-medium text-gray-700'>
-                      Division Name <span className='text-red-500'>*</span>
-                    </label>
-
-                    <input
-                      type='text'
-                      placeholder='Enter division name'
-                      {...register("divisionName", {
-                        required: "Division Name is required",
-                      })}
-                      className='h-11 w-full rounded-lg border border-gray-300 px-4 outline-none transition focus:border-green-600'
-                    />
-
-                    {errors.divisionName && (
-                      <p className='mt-1 text-xs text-red-500'>
-                        {errors.divisionName.message}
-                      </p>
-                    )}
-                  </div>
-
-                  {/* =====================================================
-                          Total Section
-                      ===================================================== */}
-                  <div>
-                    <label className='mb-1.5 block text-sm font-medium text-gray-700'>
-                      Total Section
-                    </label>
-
-                    <input
-                      type='number'
-                      min={0}
-                      placeholder='Enter total section'
-                      {...register("totalSection", {
-                        min: {
-                          value: 0,
-                          message: "Value cannot be negative",
-                        },
-                      })}
-                      className='h-11 w-full rounded-lg border border-gray-300 px-4 outline-none transition focus:border-green-600'
-                    />
-
-                    {errors.totalSection && (
-                      <p className='mt-1 text-xs text-red-500'>
-                        {errors.totalSection.message}
-                      </p>
-                    )}
-                  </div>
-
-                  {/* =====================================================
-                          Division Code
-                      ===================================================== */}
-                  <div>
-                    <label className='mb-1.5 block text-sm font-medium text-gray-700'>
-                      Division Code <span className='text-red-500'>*</span>
-                    </label>
-
-                    <input
-                      type='text'
-                      placeholder='Enter division code'
-                      {...register("divisionCode", {
-                        required: "Division Code is required",
-                        pattern: {
-                          value: /^DIV-\d+$/,
-                          message: "Example: DIV-01",
-                        },
-                      })}
-                      className='h-11 w-full rounded-lg border border-gray-300 px-4 outline-none transition focus:border-green-600'
-                    />
-
-                    {errors.divisionCode && (
-                      <p className='mt-1 text-xs text-red-500'>
-                        {errors.divisionCode.message}
-                      </p>
-                    )}
-                  </div>
-
-                  {/* =====================================================
-                          Status
-                      ===================================================== */}
-                  <div>
-                    <label className='mb-1.5 block text-sm font-medium text-gray-700'>
-                      Status <span className='text-red-500'>*</span>
-                    </label>
-
-                    <select
-                      {...register("status", {
-                        required: "Status is required",
-                      })}
-                      className='h-11 w-full rounded-lg border border-gray-300 bg-white px-4 outline-none transition focus:border-green-600'
-                    >
-                      <option value=''>Select Status</option>
-
-                      {divisionSectionData.divisionStatusOptions.map(
-                        (status) => (
-                          <option key={status.id} value={status.value}>
-                            {status.label}
-                          </option>
-                        ),
-                      )}
-                    </select>
-
-                    {errors.status && (
-                      <p className='mt-1 text-xs text-red-500'>
-                        {errors.status.message}
-                      </p>
-                    )}
-                  </div>
-                </div>
-
-                {/* =======================================================
-                        Description
-                    ======================================================= */}
-                <div className='mt-5'>
-                  <label className='mb-1.5 block text-sm font-medium text-gray-700'>
-                    Description
-                  </label>
-
-                  <textarea
-                    placeholder='Write division description...'
-                    {...register("description", {
-                      maxLength: {
-                        value: 250,
-                        message: "Maximum 250 characters",
-                      },
-                    })}
-                    className='w-full resize-none rounded-lg border border-gray-300 p-4 outline-none transition focus:border-green-600'
-                  />
-
-                  {errors.description && (
-                    <p className='mt-1 text-xs text-red-500'>
-                      {errors.description.message}
-                    </p>
-                  )}
-                </div>
-
-                {/* =======================================================
-                        Division Footer
-                    ======================================================= */}
-                <div className='mt-6 border-t pt-6'>
-                  <div className='flex flex-col-reverse gap-3 sm:flex-row sm:justify-end'>
-                    {/* Cancel */}
-                    <button
-                      type='button'
-                      onClick={() => {
-                        reset();
-                        clearErrors();
-                      }}
-                      className='inline-flex h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-5 text-sm font-medium text-gray-700 transition hover:bg-gray-100 sm:w-auto'
-                    >
-                      <X size={18} />
-                      Cancel
-                    </button>
-
-                    {/* Reset */}
-                    <button
-                      type='button'
-                      onClick={() => {
-                        reset();
-                        clearErrors();
-                      }}
-                      className='inline-flex h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-lg border border-green-200 bg-green-50 px-5 text-sm font-medium text-green-700 transition hover:bg-green-100 sm:w-auto'
-                    >
-                      <RotateCcw size={18} />
-                      Reset
-                    </button>
-
-                    {/* Save */}
-                    <button
-                      type='submit'
-                      disabled={isSubmitting}
-                      className='inline-flex h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-lg bg-green-700 px-5 text-sm font-semibold text-white transition hover:bg-green-800 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto'
-                    >
-                      <Save size={18} />
-
-                      {isSubmitting ? "Saving..." : "Save Division"}
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </form>
-          </div>
 
           {/* =========================================================
                   Section Information
               ========================================================= */}
-          <div className='rounded-xl bg-white shadow-sm'>
-            <div className='border-b bg-green-50 px-6 py-4'>
-              <h2 className='text-lg font-semibold text-green-800'>
-                Section Information
-              </h2>
-            </div>
-
-            <form
-              onSubmit={handleSubmitSection(onSubmitSection)}
-              className='p-6'
-            >
-              <div className='grid grid-cols-1 gap-5 md:grid-cols-2'>
-                {/* =====================================================
-                        Division
-                    ===================================================== */}
-                <div>
-                  <label className='mb-1.5 block text-sm font-medium text-gray-700'>
-                    Division <span className='text-red-500'>*</span>
-                  </label>
-
-                  <select
-                    {...registerSection("division", {
-                      required: "Division is required",
-                    })}
-                    className='h-11 w-full rounded-lg border border-gray-300 bg-white px-4 outline-none transition focus:border-green-600'
-                  >
-                    <option value=''>Select Division</option>
-
-                    {divisionSectionData.divisionList.map((division) => (
-                      <option key={division.id} value={division.divisionCode}>
-                        {division.divisionName}
-                      </option>
-                    ))}
-                  </select>
-
-                  {sectionErrors.division && (
-                    <p className='mt-1 text-xs text-red-500'>
-                      {sectionErrors.division.message}
-                    </p>
-                  )}
-                </div>
-
-                {/* =====================================================
-                        Parent Section
-                    ===================================================== */}
-                <div>
-                  <label className='mb-1.5 block text-sm font-medium text-gray-700'>
-                    Parent Section
-                  </label>
-
-                  <select
-                    {...registerSection("parentSection")}
-                    className='h-11 w-full rounded-lg border border-gray-300 bg-white px-4 outline-none transition focus:border-green-600'
-                  >
-                    {divisionSectionData.parentSectionOptions.map((section) => (
-                      <option key={section.id} value={section.value}>
-                        {section.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* =====================================================
-                        Section Name
-                    ===================================================== */}
-                <div>
-                  <label className='mb-1.5 block text-sm font-medium text-gray-700'>
-                    Section Name <span className='text-red-500'>*</span>
-                  </label>
-
-                  <input
-                    type='text'
-                    placeholder='Enter section name'
-                    {...registerSection("sectionName", {
-                      required: "Section Name is required",
-                    })}
-                    className='h-11 w-full rounded-lg border border-gray-300 px-4 outline-none transition focus:border-green-600'
-                  />
-
-                  {sectionErrors.sectionName && (
-                    <p className='mt-1 text-xs text-red-500'>
-                      {sectionErrors.sectionName.message}
-                    </p>
-                  )}
-                </div>
-
-                {/* =====================================================
-                        Manager / In-charge
-                    ===================================================== */}
-                <div>
-                  <label className='mb-1.5 block text-sm font-medium text-gray-700'>
-                    Manager / In-charge
-                  </label>
-
-                  <select
-                    {...registerSection("manager")}
-                    className='h-11 w-full rounded-lg border border-gray-300 bg-white px-4 outline-none transition focus:border-green-600'
-                  >
-                    <option value=''>Select Manager</option>
-
-                    {divisionSectionData.managerOptions.map((manager) => (
-                      <option key={manager.id} value={manager.value}>
-                        {manager.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* =====================================================
-                      Section Code
-                  ===================================================== */}
-                <div>
-                  <label className='mb-1.5 block text-sm font-medium text-gray-700'>
-                    Section Code <span className='text-red-500'>*</span>
-                  </label>
-
-                  <input
-                    type='text'
-                    placeholder='Enter section code'
-                    {...registerSection("sectionCode", {
-                      required: "Section Code is required",
-                      pattern: {
-                        value: /^SEC-\d+$/,
-                        message: "Example: SEC-001",
-                      },
-                    })}
-                    className='h-11 w-full rounded-lg border border-gray-300 px-4 outline-none transition focus:border-green-600'
-                  />
-
-                  {sectionErrors.sectionCode && (
-                    <p className='mt-1 text-xs text-red-500'>
-                      {sectionErrors.sectionCode.message}
-                    </p>
-                  )}
-                </div>
-
-                {/* =====================================================
-                        Description
-                    ===================================================== */}
-                <div>
-                  <label className='mb-1.5 block text-sm font-medium text-gray-700'>
-                    Description
-                  </label>
-
-                  <textarea
-                    rows={3}
-                    placeholder='Write section description...'
-                    {...registerSection("description", {
-                      maxLength: {
-                        value: 250,
-                        message: "Maximum 250 characters",
-                      },
-                    })}
-                    className='h-11 w-full resize-none rounded-lg border border-gray-300 p-4 outline-none transition focus:border-green-600'
-                  />
-
-                  {sectionErrors.description && (
-                    <p className='mt-1 text-xs text-red-500'>
-                      {sectionErrors.description.message}
-                    </p>
-                  )}
-                </div>
-
-                {/* =====================================================
-                        Total Area
-                    ===================================================== */}
-                <div>
-                  <label className='mb-1.5 block text-sm font-medium text-gray-700'>
-                    Total Area (Acre) <span className='text-red-500'>*</span>
-                  </label>
-
-                  <input
-                    type='number'
-                    min={0}
-                    step='0.01'
-                    placeholder='Enter total area'
-                    {...registerSection("totalArea", {
-                      required: "Total Area is required",
-                      min: {
-                        value: 0.01,
-                        message: "Area must be greater than 0",
-                      },
-                    })}
-                    className='h-11 w-full rounded-lg border border-gray-300 px-4 outline-none transition focus:border-green-600'
-                  />
-
-                  {sectionErrors.totalArea && (
-                    <p className='mt-1 text-xs text-red-500'>
-                      {sectionErrors.totalArea.message}
-                    </p>
-                  )}
-                </div>
-
-                {/* =====================================================
-                        Status
-                    ===================================================== */}
-                <div>
-                  <label className='mb-1.5 block text-sm font-medium text-gray-700'>
-                    Status <span className='text-red-500'>*</span>
-                  </label>
-
-                  <select
-                    {...registerSection("status", {
-                      required: "Status is required",
-                    })}
-                    className='h-11 w-full rounded-lg border border-gray-300 bg-white px-4 outline-none transition focus:border-green-600'
-                  >
-                    <option value=''>Select Status</option>
-
-                    {divisionSectionData.sectionStatusOptions.map((status) => (
-                      <option key={status.id} value={status.value}>
-                        {status.label}
-                      </option>
-                    ))}
-                  </select>
-
-                  {sectionErrors.status && (
-                    <p className='mt-1 text-xs text-red-500'>
-                      {sectionErrors.status.message}
-                    </p>
-                  )}
-                </div>
-              </div>
-
-              {/* =======================================================
-                      Section Footer
-                  ======================================================= */}
-              <div className='mt-6 border-t pt-6'>
-                <div className='flex flex-col-reverse gap-3 sm:flex-row sm:justify-end'>
-                  {/* Cancel */}
-                  <button
-                    type='button'
-                    onClick={() => {
-                      resetSection();
-                      clearSectionErrors();
-                    }}
-                    className='inline-flex h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-5 text-sm font-medium text-gray-700 transition hover:bg-gray-100 sm:w-auto'
-                  >
-                    <X size={18} />
-                    Cancel
-                  </button>
-
-                  {/* Reset */}
-                  <button
-                    type='button'
-                    onClick={() => {
-                      resetSection();
-                      clearSectionErrors();
-                    }}
-                    className='inline-flex h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-lg border border-green-200 bg-green-50 px-5 text-sm font-medium text-green-700 transition hover:bg-green-100 sm:w-auto'
-                  >
-                    <RotateCcw size={18} />
-                    Reset
-                  </button>
-
-                  {/* Save */}
-                  <button
-                    type='submit'
-                    disabled={sectionSubmitting}
-                    className='inline-flex h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-lg bg-green-700 px-5 text-sm font-semibold text-white transition hover:bg-green-800 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto'
-                  >
-                    <Save size={18} />
-
-                    {sectionSubmitting ? "Saving..." : "Save Section"}
-                  </button>
-                </div>
-              </div>
-            </form>
-          </div>
         </div>
 
         {/* ================= Right Side ================= */}
-        <div className='col-span-12 space-y-6 xl:col-span-7'>
+        <div className='col-span-12 space-y-6 xl:col-span-12'>
           {/* Division List */}
           <div className='rounded-xl bg-white shadow-sm'>
             <div className='flex items-center justify-between border-b bg-green-50 px-6 py-3'>
@@ -603,6 +78,7 @@ const DivisionAndSection = () => {
 
               <button
                 type='button'
+                onClick={() => setShowDivisionModal(true)}
                 className='inline-flex items-center gap-2 rounded-lg bg-green-700 px-4 py-2 text-sm font-medium text-white hover:bg-green-800 cursor-pointer'
               >
                 <Plus size={18} />
@@ -617,7 +93,9 @@ const DivisionAndSection = () => {
                     {divisionSectionData.divisionTableHeaders.map((header) => (
                       <th
                         key={header}
-                        className='border border-gray-200 bg-gray-50 px-1 py-3 text-left text-sm font-medium text-gray-700'
+                        className={`border border-gray-200 bg-gray-50 px-1 py-3 text-sm font-medium text-gray-700 ${
+                          header === "SL" ? "text-center" : "text-left"
+                        }`}
                       >
                         {header}
                       </th>
@@ -917,6 +395,259 @@ const DivisionAndSection = () => {
           </div>
         </div>
       </div>
+      {/* ================= Division Information Popup / Modal ================= */}
+      {showDivisionModal && (
+        <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4'>
+          {/* Division Modal Container */}
+          <div className='w-full max-w-3xl rounded-xl bg-white shadow-xl'>
+            {/* Modal Header */}
+            <div className='flex items-center justify-between border-b bg-green-50 px-6 py-4'>
+              <h2 className='text-lg font-semibold text-green-800'>
+                Division Information
+              </h2>
+
+              {/* Close Modal Button */}
+              <button
+                type='button'
+                onClick={() => setShowDivisionModal(false)}
+                className='rounded-lg p-2 text-gray-500 hover:bg-gray-100'
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <form onSubmit={handleSubmit(onSubmitDivision)}>
+              <div className='p-6'>
+                <div className='grid grid-cols-1 gap-5 md:grid-cols-2'>
+                  {/* Estate */}
+                  <div>
+                    <label className='mb-1.5 block text-sm font-medium text-gray-700'>
+                      Estate <span className='text-red-500'>*</span>
+                    </label>
+
+                    <select
+                      {...register("estate", {
+                        required: "Estate is required",
+                      })}
+                      className='h-11 w-full rounded-lg border border-gray-300 bg-white px-4 outline-none transition focus:border-green-600'
+                    >
+                      <option value=''>Select Estate</option>
+
+                      {divisionSectionData.estateOptions.map((estate) => (
+                        <option key={estate.id} value={estate.value}>
+                          {estate.label}
+                        </option>
+                      ))}
+                    </select>
+
+                    {errors.estate && (
+                      <p className='mt-1 text-xs text-red-500'>
+                        {errors.estate.message}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Total Area */}
+                  <div>
+                    <label className='mb-1.5 block text-sm font-medium text-gray-700'>
+                      Total Area (Acre) <span className='text-red-500'>*</span>
+                    </label>
+
+                    <input
+                      type='number'
+                      min={0}
+                      step='0.01'
+                      placeholder='Enter total area'
+                      {...register("totalArea", {
+                        required: "Total Area is required",
+                        min: {
+                          value: 0.01,
+                          message: "Area must be greater than 0",
+                        },
+                      })}
+                      className='h-11 w-full rounded-lg border border-gray-300 px-4 outline-none transition focus:border-green-600'
+                    />
+
+                    {errors.totalArea && (
+                      <p className='mt-1 text-xs text-red-500'>
+                        {errors.totalArea.message}
+                      </p>
+                    )}
+                  </div>
+                  {/* Division Name */}
+                  <div>
+                    <label className='mb-1.5 block text-sm font-medium text-gray-700'>
+                      Division Name <span className='text-red-500'>*</span>
+                    </label>
+
+                    <input
+                      type='text'
+                      placeholder='Enter division name'
+                      {...register("divisionName", {
+                        required: "Division Name is required",
+                      })}
+                      className='h-11 w-full rounded-lg border border-gray-300 px-4 outline-none transition focus:border-green-600'
+                    />
+
+                    {errors.divisionName && (
+                      <p className='mt-1 text-xs text-red-500'>
+                        {errors.divisionName.message}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Total Section */}
+                  <div>
+                    <label className='mb-1.5 block text-sm font-medium text-gray-700'>
+                      Total Section
+                    </label>
+
+                    <input
+                      type='number'
+                      min={0}
+                      placeholder='Enter total section'
+                      {...register("totalSection", {
+                        min: {
+                          value: 0,
+                          message: "Value cannot be negative",
+                        },
+                      })}
+                      className='h-11 w-full rounded-lg border border-gray-300 px-4 outline-none transition focus:border-green-600'
+                    />
+
+                    {errors.totalSection && (
+                      <p className='mt-1 text-xs text-red-500'>
+                        {errors.totalSection.message}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Division Code */}
+                  <div>
+                    <label className='mb-1.5 block text-sm font-medium text-gray-700'>
+                      Division Code <span className='text-red-500'>*</span>
+                    </label>
+
+                    <input
+                      type='text'
+                      placeholder='Enter division code'
+                      {...register("divisionCode", {
+                        required: "Division Code is required",
+                        pattern: {
+                          value: /^DIV-\d+$/,
+                          message: "Example: DIV-01",
+                        },
+                      })}
+                      className='h-11 w-full rounded-lg border border-gray-300 px-4 outline-none transition focus:border-green-600'
+                    />
+
+                    {errors.divisionCode && (
+                      <p className='mt-1 text-xs text-red-500'>
+                        {errors.divisionCode.message}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Status */}
+                  <div>
+                    <label className='mb-1.5 block text-sm font-medium text-gray-700'>
+                      Status <span className='text-red-500'>*</span>
+                    </label>
+
+                    <select
+                      {...register("status", {
+                        required: "Status is required",
+                      })}
+                      className='h-11 w-full rounded-lg border border-gray-300 bg-white px-4 outline-none transition focus:border-green-600'
+                    >
+                      <option value=''>Select Status</option>
+
+                      {divisionSectionData.divisionStatusOptions.map(
+                        (status) => (
+                          <option key={status.id} value={status.value}>
+                            {status.label}
+                          </option>
+                        ),
+                      )}
+                    </select>
+
+                    {errors.status && (
+                      <p className='mt-1 text-xs text-red-500'>
+                        {errors.status.message}
+                      </p>
+                    )}
+                  </div>
+                  {/* Description */}
+                  <div className='mt-5'>
+                    <label className='mb-1.5 block text-sm font-medium text-gray-700'>
+                      Description
+                    </label>
+
+                    <textarea
+                      placeholder='Write division description...'
+                      {...register("description", {
+                        maxLength: {
+                          value: 250,
+                          message: "Maximum 250 characters",
+                        },
+                      })}
+                      className='min-h-24 w-full resize-none rounded-lg border border-gray-300 p-4 outline-none transition focus:border-green-600'
+                    />
+
+                    {errors.description && (
+                      <p className='mt-1 text-xs text-red-500'>
+                        {errors.description.message}
+                      </p>
+                    )}
+                  </div>
+                </div>
+                {/* Division Form Footer */}
+                <div className='mt-6 border-t pt-6'>
+                  <div className='flex flex-col-reverse gap-3 sm:flex-row sm:justify-end'>
+                    {/* Cancel */}
+                    <button
+                      type='button'
+                      onClick={() => {
+                        reset();
+                        clearErrors();
+                        setShowDivisionModal(false);
+                      }}
+                      className='inline-flex h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-5 text-sm font-medium text-gray-700 transition hover:bg-gray-100 sm:w-auto'
+                    >
+                      <X size={18} />
+                      Cancel
+                    </button>
+
+                    {/* Reset */}
+                    <button
+                      type='button'
+                      onClick={() => {
+                        reset();
+                        clearErrors();
+                      }}
+                      className='inline-flex h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-lg border border-green-200 bg-green-50 px-5 text-sm font-medium text-green-700 transition hover:bg-green-100 sm:w-auto'
+                    >
+                      <RotateCcw size={18} />
+                      Reset
+                    </button>
+
+                    {/* Save Division */}
+                    <button
+                      type='submit'
+                      disabled={isSubmitting}
+                      className='inline-flex h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-lg bg-green-700 px-5 text-sm font-semibold text-white transition hover:bg-green-800 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto'
+                    >
+                      <Save size={18} />
+                      {isSubmitting ? "Saving..." : "Save Division"}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

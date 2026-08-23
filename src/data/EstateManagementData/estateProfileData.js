@@ -33,10 +33,8 @@ export const estateProfileData = {
   ],
 
   // =========================================================
-  // Estate Profile Form Options
-  // =========================================================
-
   // Estate Type Options
+  // =========================================================
   estateTypes: [
     {
       id: 1,
@@ -55,7 +53,9 @@ export const estateProfileData = {
     },
   ],
 
+  // =========================================================
   // Estate Category Options
+  // =========================================================
   estateCategories: [
     {
       id: 1,
@@ -77,7 +77,6 @@ export const estateProfileData = {
   // =========================================================
   // Estate Basic Information
   // =========================================================
-
   basicInformation: {
     estateName: "Jamuna Tea Estate",
 
@@ -114,146 +113,106 @@ export const estateProfileData = {
   },
 
   // =========================================================
-  // Estate Images
+  // Estate Overview
   // =========================================================
-
-  estateImages: [
-    {
-      id: 1,
-      image:
-        "https://images.unsplash.com/photo-1506744038136-46273834b3fb",
-      title: "Tea Garden",
-      type: "tea_garden",
-    },
-    {
-      id: 2,
-      image:
-        "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee",
-      title: "Factory",
-      type: "factory",
-    },
-    {
-      id: 3,
-      image:
-        "https://images.unsplash.com/photo-1494526585095-c41746248156",
-      title: "Main Gate",
-      type: "main_gate",
-    },
-  ],
-
-  // =========================================================
-  // Estate Summary
-  // =========================================================
-
-  estateSummary: [
+  estateOverview: [
     {
       id: 1,
       key: "totalLandArea",
       title: "Total Land Area",
-      value: "5250.00 Acre",
+      value: 5250,
+      unit: "Acre",
       icon: "map",
     },
     {
       id: 2,
       key: "teaArea",
       title: "Tea Area",
-      value: "4120.00 Acre",
+      value: 4120,
+      unit: "Acre",
       icon: "leaf",
     },
     {
       id: 3,
       key: "nonTeaArea",
       title: "Non Tea Area",
-      value: "1130.00 Acre",
+      value: 1130,
+      unit: "Acre",
       icon: "trees",
     },
     {
       id: 4,
-      key: "totalDivision",
-      title: "Total Division",
-      value: "6",
-      icon: "building",
+      key: "totalFieldBlock",
+      title: "Total Field / Block",
+      value: 48,
+      unit: "",
+      icon: "field",
     },
     {
       id: 5,
-      key: "totalSection",
-      title: "Total Section",
-      value: "24",
-      icon: "section",
+      key: "totalDivision",
+      title: "Total Division",
+      value: 6,
+      unit: "",
+      icon: "building",
     },
     {
       id: 6,
-      key: "totalFieldBlock",
-      title: "Total Field / Block",
-      value: "48",
-      icon: "field",
+      key: "totalSection",
+      title: "Total Section",
+      value: 24,
+      unit: "",
+      icon: "section",
     },
     {
       id: 7,
       key: "totalWorker",
       title: "Total Worker",
-      value: "1250",
+      value: 1250,
+      unit: "",
       icon: "users",
     },
     {
       id: 8,
-      key: "establishedYear",
-      title: "Established Year",
-      value: "1998",
-      icon: "calendar",
+      key: "totalFamily",
+      title: "Total Family",
+      value: 980,
+      unit: "",
+      icon: "users",
     },
   ],
 
   // =========================================================
-  // Estate Overview
+  // Manager / In-charge Information
   // =========================================================
-
-  estateOverview: {
-    totalLandArea: 5250.0,
-
-    teaArea: 4120.0,
-
-    nonTeaArea: 1130.0,
-
-    totalFieldBlock: 48,
-
-    totalDivision: 6,
-
-    totalSection: 24,
-
-    totalWorker: 1250,
-
-    totalFamily: 980,
-  },
-
   // =========================================================
   // Manager / In-charge Information
   // =========================================================
-
-  managerInformation: {
-    manager: {
+  managerInformation: [
+    {
       id: 1,
+      type: "estate_manager",
+      title: "Estate Manager",
       name: "Md. Rahman Ali",
       designation: "Estate Manager",
       mobile: "+8801711122233",
       email: "manager@jamunateaestate.com",
     },
-
-    assistantManager: {
+    {
       id: 2,
+      type: "assistant_manager",
+      title: "Assistant Manager",
       name: "Md. Faruk Hossain",
       designation: "Assistant Manager",
       mobile: "+8801713344556",
       email: "asst.manager@jamunateaestate.com",
     },
-  },
+  ],
 
   // =========================================================
   // Facility Options
   // =========================================================
-  // এগুলো system-এর available facilities.
-  // পরে backend থেকেও এই list আসতে পারবে।
-
+  // System-এর available facility list
   facilityOptions: [
     {
       id: 1,
@@ -330,89 +289,51 @@ export const estateProfileData = {
   ],
 
   // =========================================================
-  // Estate Facilities
+  // Selected Facilities
   // =========================================================
-  // কোন facility এই estate-এ available সেটা এখানে থাকবে।
+  // এই Estate-এ বর্তমানে যেসব facility available
+  selectedFacilities: [
+    "factory",
+    "warehouse",
+    "staff_quarter",
+    "hospital",
+    "school",
+    "playground",
+    "religious_place",
+    "electricity",
+    "water_supply",
+    "transport",
+    "canteen",
+    "club_library",
+  ],
 
-  facilities: [
+  // =========================================================
+  // Estate Images
+  // =========================================================
+  estateImages: [
     {
       id: 1,
-      key: "factory",
-      name: "Factory",
-      checked: true,
+      url: "https://images.unsplash.com/photo-1506744038136-46273834b3fb",
+      title: "Tea Garden",
+      type: "tea_garden",
     },
     {
       id: 2,
-      key: "warehouse",
-      name: "Warehouse",
-      checked: true,
+      url: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee",
+      title: "Factory",
+      type: "factory",
     },
     {
       id: 3,
-      key: "staffQuarter",
-      name: "Staff Quarter",
-      checked: true,
-    },
-    {
-      id: 4,
-      key: "hospital",
-      name: "Hospital / Dispensary",
-      checked: true,
-    },
-    {
-      id: 5,
-      key: "school",
-      name: "School",
-      checked: true,
-    },
-    {
-      id: 6,
-      key: "playground",
-      name: "Playground",
-      checked: true,
-    },
-    {
-      id: 7,
-      key: "religiousPlace",
-      name: "Mosque / Temple",
-      checked: true,
-    },
-    {
-      id: 8,
-      key: "electricity",
-      name: "Electricity",
-      checked: true,
-    },
-    {
-      id: 9,
-      key: "waterSupply",
-      name: "Water Supply",
-      checked: true,
-    },
-    {
-      id: 10,
-      key: "transport",
-      name: "Transport",
-      checked: true,
-    },
-    {
-      id: 11,
-      key: "canteen",
-      name: "Canteen",
-      checked: true,
-    },
-    {
-      id: 12,
-      key: "clubLibrary",
-      name: "Club & Library",
-      checked: true,
+      url: "https://images.unsplash.com/photo-1494526585095-c41746248156",
+      title: "Main Gate",
+      type: "main_gate",
     },
   ],
 
   // =========================================================
   // Geo Location
   // =========================================================
-
   geoLocation: {
     latitude: 26.3417,
 
@@ -420,22 +341,18 @@ export const estateProfileData = {
 
     zoom: 15,
 
-    googleMap: "https://maps.google.com",
-
     address: "Panchagarh Sadar, Panchagarh, Bangladesh",
   },
 
   // =========================================================
   // Description
   // =========================================================
-
   description:
     "Jamuna Tea Estate is one of the largest tea estates in northern Bangladesh. Established in 1998, the estate is situated in Panchagarh district under Rangpur division. The estate produces premium CTC and Orthodox tea while operating modern processing facilities, worker residential areas, schools, healthcare services, warehouses and transport systems.",
 
   // =========================================================
-  // Action Buttons
+  // Footer Actions
   // =========================================================
-
   actions: [
     {
       id: 1,

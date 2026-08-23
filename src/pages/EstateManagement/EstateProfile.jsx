@@ -25,7 +25,11 @@ const summaryIconMap = {
   users: Users,
   calendar: CalendarDays,
 };
-
+const actionIconMap = {
+  cancel: X,
+  reset: RotateCcw,
+  submit: Save,
+};
 const EstateProfile = () => {
   const {
     register,
@@ -153,32 +157,61 @@ const EstateProfile = () => {
               </div>
 
               {/* Estate Type */}
-              <select
-                {...register("estateType")}
-                className='h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-700 outline-none focus:border-green-600'
-              >
-                <option value=''>Select Estate Type</option>
 
-                {estateProfileData.estateTypes.map((type) => (
-                  <option key={type.id} value={type.value}>
-                    {type.label}
-                  </option>
-                ))}
-              </select>
+              <div>
+                <label className='mb-2 block text-sm font-medium text-gray-700'>
+                  Estate Type <span className='text-red-500'>*</span>
+                </label>
+
+                <select
+                  {...register("estateType", {
+                    required: "Estate Type is required",
+                  })}
+                  className='h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-700 outline-none focus:border-green-600'
+                >
+                  <option value=''>Select Estate Type</option>
+
+                  {estateProfileData.estateTypes.map((type) => (
+                    <option key={type.id} value={type.value}>
+                      {type.label}
+                    </option>
+                  ))}
+                </select>
+
+                {errors.estateType && (
+                  <p className='mt-1 text-xs text-red-500'>
+                    {errors.estateType.message}
+                  </p>
+                )}
+              </div>
 
               {/* Estate Category */}
-              <select
-                {...register("estateCategory")}
-                className='h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-700 outline-none focus:border-green-600'
-              >
-                <option value=''>Select Category</option>
+              <div>
+                <label className='mb-2 block text-sm font-medium text-gray-700'>
+                  Estate Category <span className='text-red-500'>*</span>
+                </label>
 
-                {estateProfileData.estateCategories.map((category) => (
-                  <option key={category.id} value={category.value}>
-                    {category.label}
-                  </option>
-                ))}
-              </select>
+                <select
+                  {...register("estateCategory", {
+                    required: "Estate Category is required",
+                  })}
+                  className='h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-700 outline-none focus:border-green-600'
+                >
+                  <option value=''>Select Category</option>
+
+                  {estateProfileData.estateCategories.map((category) => (
+                    <option key={category.id} value={category.value}>
+                      {category.label}
+                    </option>
+                  ))}
+                </select>
+
+                {errors.estateCategory && (
+                  <p className='mt-1 text-xs text-red-500'>
+                    {errors.estateCategory.message}
+                  </p>
+                )}
+              </div>
 
               {/* Address */}
               <div>
@@ -395,7 +428,7 @@ const EstateProfile = () => {
 
               {/* Tea Area */}
               <div>
-                <label className='mb-2 flex min-h-[48px] items-start text-sm font-medium leading-5 text-gray-700'>
+                <label className='mb-2 flex min-h-12 items-start text-sm font-medium leading-5 text-gray-700'>
                   Tea Area (Acre)
                   <span className='ml-1 text-red-500'>*</span>
                 </label>
@@ -442,21 +475,21 @@ const EstateProfile = () => {
 
               {/* Total Field / Block */}
               <div>
-                <label className='mb-2 flex min-h-[48px] items-start text-sm font-medium leading-5 text-gray-700'>
+                <label className='mb-2 flex min-h-12 items-start text-sm font-medium leading-5 text-gray-700'>
                   Total Field / Block
                 </label>
 
                 <input
                   type='number'
                   placeholder='0'
-                  {...register("totalField", {
+                  {...register("totalFieldBlock", {
                     valueAsNumber: true,
                   })}
                   className='h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-700 outline-none transition-all duration-200 placeholder:text-gray-400 focus:border-green-600'
                 />
-                {errors.totalField && (
-                  <p className='mt-1 text-xs text-red-500'>
-                    {errors.totalField.message}
+                {errors.totalFieldBlock && (
+                  <p className='text-xs text-red-500'>
+                    {errors.totalFieldBlock.message}
                   </p>
                 )}
               </div>
@@ -526,7 +559,7 @@ const EstateProfile = () => {
 
               {/* Total Family */}
               <div>
-                <label className='mb-2 flex min-h-[48px] items-start text-sm font-medium leading-5 text-gray-700'>
+                <label className='mb-2 flex min-h-12 items-start text-sm font-medium leading-5 text-gray-700'>
                   Total Family
                 </label>
 
@@ -558,147 +591,62 @@ const EstateProfile = () => {
 
             {/* Body */}
             <div className='grid grid-cols-1 gap-5 p-6 sm:grid-cols-2 xl:grid-cols-3'>
-              {/* Estate Manager */}
-              <div>
-                <label className='mb-2 block text-sm font-medium text-gray-700'>
-                  Estate Manager
-                </label>
+              {estateProfileData.managerInformation.map((manager) => (
+                <div
+                  key={manager.id}
+                  className='col-span-1 rounded-lg border border-gray-200 p-4 sm:col-span-2 xl:col-span-3'
+                >
+                  <div className='mb-4'>
+                    <p className='text-xs text-gray-500'>
+                      {manager.designation}
+                    </p>
+                  </div>
 
-                <input
-                  type='text'
-                  placeholder='Enter estate manager name'
-                  {...register("estateManager", {
-                    required: "Estate Manager is required",
-                  })}
-                  className='h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-700 outline-none transition-all duration-200 placeholder:text-gray-400 focus:border-green-600'
-                />
+                  <div className='grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3'>
+                    {/* Name */}
+                    <div>
+                      <label className='mb-2 block text-sm font-medium text-gray-700'>
+                        Name
+                      </label>
 
-                {errors.estateManager && (
-                  <p className='mt-1 text-xs text-red-500'>
-                    {errors.estateManager.message}
-                  </p>
-                )}
-              </div>
+                      <input
+                        type='text'
+                        defaultValue={manager.name}
+                        {...register(`managers.${manager.id}.name`)}
+                        className='h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-700 outline-none transition-all duration-200 focus:border-green-600'
+                      />
+                    </div>
 
-              {/* Mobile */}
-              <div>
-                <label className='mb-2 block text-sm font-medium text-gray-700'>
-                  Mobile
-                </label>
+                    {/* Mobile */}
+                    <div>
+                      <label className='mb-2 block text-sm font-medium text-gray-700'>
+                        Mobile
+                      </label>
 
-                <input
-                  type='tel'
-                  placeholder='+8801XXXXXXXXX'
-                  {...register("estateManagerMobile", {
-                    required: "Mobile Number is required",
-                    pattern: {
-                      value: /^(\+8801|01)[3-9]\d{8}$/,
-                      message: "Invalid mobile number",
-                    },
-                  })}
-                  className='h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-700 outline-none transition-all duration-200 placeholder:text-gray-400 focus:border-green-600'
-                />
+                      <input
+                        type='tel'
+                        defaultValue={manager.mobile}
+                        {...register(`managers.${manager.id}.mobile`)}
+                        className='h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-700 outline-none transition-all duration-200 focus:border-green-600'
+                      />
+                    </div>
 
-                {errors.estateManagerMobile && (
-                  <p className='mt-1 text-xs text-red-500'>
-                    {errors.estateManagerMobile.message}
-                  </p>
-                )}
-              </div>
+                    {/* Email */}
+                    <div>
+                      <label className='mb-2 block text-sm font-medium text-gray-700'>
+                        Email
+                      </label>
 
-              {/* Email */}
-              <div>
-                <label className='mb-2 block text-sm font-medium text-gray-700'>
-                  Email
-                </label>
-
-                <input
-                  type='email'
-                  placeholder='manager@example.com'
-                  {...register("estateManagerEmail", {
-                    pattern: {
-                      value: /^\S+@\S+\.\S+$/,
-                      message: "Invalid email address",
-                    },
-                  })}
-                  className='h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-700 outline-none transition-all duration-200 placeholder:text-gray-400 focus:border-green-600'
-                />
-
-                {errors.estateManagerEmail && (
-                  <p className='mt-1 text-xs text-red-500'>
-                    {errors.estateManagerEmail.message}
-                  </p>
-                )}
-              </div>
-
-              {/* Assistant Manager */}
-              <div>
-                <label className='mb-2 block text-sm font-medium text-gray-700'>
-                  Assistant Manager
-                </label>
-
-                <input
-                  type='text'
-                  placeholder='Enter assistant manager name'
-                  {...register("assistantManager")}
-                  className='h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-700 outline-none transition-all duration-200 placeholder:text-gray-400 focus:border-green-600'
-                />
-                {errors.assistantManager && (
-                  <p className='mt-1 text-xs text-red-500'>
-                    {errors.assistantManager.message}
-                  </p>
-                )}
-              </div>
-
-              {/* Mobile */}
-              <div>
-                <label className='mb-2 block text-sm font-medium text-gray-700'>
-                  Mobile
-                </label>
-
-                <input
-                  type='tel'
-                  placeholder='+8801XXXXXXXXX'
-                  {...register("assistantManagerMobile", {
-                    pattern: {
-                      value: /^(\+8801|01)[3-9]\d{8}$/,
-                      message: "Invalid mobile number",
-                    },
-                  })}
-                  className='h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-700 outline-none transition-all duration-200 placeholder:text-gray-400 focus:border-green-600'
-                />
-
-                {errors.assistantManagerMobile && (
-                  <p className='mt-1 text-xs text-red-500'>
-                    {errors.assistantManagerMobile.message}
-                  </p>
-                )}
-              </div>
-
-              {/* Email */}
-              <div>
-                <label className='mb-2 block text-sm font-medium text-gray-700'>
-                  Email
-                </label>
-
-                <input
-                  type='email'
-                  placeholder='assistant@example.com'
-                  {...register("assistantManagerEmail", {
-                    pattern: {
-                      value: /^\S+@\S+\.\S+$/,
-                      message: "Invalid email address",
-                    },
-                  })}
-                  className='h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-700 outline-none transition-all duration-200 placeholder:text-gray-400 focus:border-green-600'
-                />
-
-                {errors.assistantManagerEmail && (
-                  <p className='mt-1 text-xs text-red-500'>
-                    {errors.assistantManagerEmail.message}
-                  </p>
-                )}
-              </div>
+                      <input
+                        type='email'
+                        defaultValue={manager.email}
+                        {...register(`managers.${manager.id}.email`)}
+                        className='h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-700 outline-none transition-all duration-200 focus:border-green-600'
+                      />
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
 
@@ -712,7 +660,7 @@ const EstateProfile = () => {
             </div>
 
             {/* Body */}
-            {/* Body */}
+
             <div className='grid grid-cols-1 gap-6 p-6 md:grid-cols-2 xl:grid-cols-4'>
               {/* Dynamic Facilities */}
               <div className='md:col-span-2 xl:col-span-3'>
@@ -724,7 +672,8 @@ const EstateProfile = () => {
                     >
                       <input
                         type='checkbox'
-                        {...register(facility.key)}
+                        value={facility.value}
+                        {...register("selectedFacilities")}
                         className='checkbox checkbox-success checkbox-sm rounded'
                       />
 
@@ -777,7 +726,7 @@ const EstateProfile = () => {
                     className='overflow-hidden rounded-xl border border-gray-200'
                   >
                     <img
-                      src={image.image}
+                      src={image.url}
                       alt={image.title}
                       className='h-28 w-full object-cover transition duration-300 hover:scale-105 cursor-pointer'
                     />
@@ -808,7 +757,7 @@ const EstateProfile = () => {
             {/* Body */}
             <div className='p-6'>
               <div className='space-y-2'>
-                {estateProfileData.estateSummary.map((item) => {
+                {estateProfileData.estateOverview.map((item) => {
                   const Icon = summaryIconMap[item.icon];
 
                   return (
@@ -825,7 +774,7 @@ const EstateProfile = () => {
                       </div>
 
                       <span className='text-sm font-semibold text-green-700'>
-                        {item.value}
+                        {item.value} {item.unit}
                       </span>
                     </div>
                   );
@@ -948,45 +897,64 @@ const EstateProfile = () => {
           </div>
         </div>
       </div>
-      {/* Footer */}
 
+      {/* Footer */}
       <div className='rounded-xl border border-gray-200 bg-white p-4 shadow-sm'>
         <div className='flex flex-col justify-between gap-4 md:flex-row md:items-center'>
           <p className='text-sm text-red-500'>* Mandatory Field</p>
 
-          <div className='flex items-center gap-3'>
-            {/* Cancel */}
-            <button
-              type='button'
-              onClick={() => navigate(-1)}
-              className='inline-flex h-11 items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-6 text-sm font-medium text-gray-700 transition-all duration-200 hover:bg-gray-100 hover:border-gray-400 cursor-pointer'
-            >
-              <X size={18} />
-              Cancel
-            </button>
+          <div className='flex flex-wrap items-center justify-end gap-3'>
+            {estateProfileData.actions.map((action) => {
+              const Icon = actionIconMap[action.type];
 
-            {/* Reset */}
-            <button
-              type='button'
-              onClick={() => reset()}
-              className='inline-flex h-11 items-center justify-center gap-2 rounded-lg border border-green-200 bg-green-50 px-6 text-sm font-medium text-green-700 transition-all duration-200 hover:bg-green-100 hover:border-green-300 cursor-pointer'
-            >
-              <RotateCcw
-                size={18}
-                className={isSubmitting ? "animate-spin" : ""}
-              />
-              Reset
-            </button>
+              // Cancel
+              if (action.type === "cancel") {
+                return (
+                  <button
+                    key={action.id}
+                    type='button'
+                    onClick={() => navigate(-1)}
+                    className='inline-flex h-11 items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-6 text-sm font-medium text-gray-700 transition-all duration-200 hover:border-gray-400 hover:bg-gray-100'
+                  >
+                    <Icon size={18} />
+                    {action.label}
+                  </button>
+                );
+              }
 
-            {/* Save */}
-            <button
-              type='submit'
-              disabled={isSubmitting}
-              className='inline-flex h-11 min-w-[120px] items-center justify-center gap-2 rounded-lg bg-green-700 px-6 text-sm font-semibold text-white transition-all duration-200 hover:bg-green-800 disabled:cursor-not-allowed disabled:opacity-70 cursor-pointer'
-            >
-              <Save size={18} />
-              {isSubmitting ? "Saving..." : "Save"}
-            </button>
+              // Reset
+              if (action.type === "reset") {
+                return (
+                  <button
+                    key={action.id}
+                    type='button'
+                    onClick={() => reset()}
+                    className='inline-flex h-11 items-center justify-center gap-2 rounded-lg border border-green-200 bg-green-50 px-6 text-sm font-medium text-green-700 transition-all duration-200 hover:border-green-300 hover:bg-green-100'
+                  >
+                    <Icon size={18} />
+                    {action.label}
+                  </button>
+                );
+              }
+
+              // Submit / Save
+              if (action.type === "submit") {
+                return (
+                  <button
+                    key={action.id}
+                    type='submit'
+                    disabled={isSubmitting}
+                    className='inline-flex h-11 min-w-[120px] items-center justify-center gap-2 rounded-lg bg-green-700 px-6 text-sm font-semibold text-white transition-all duration-200 hover:bg-green-800 disabled:cursor-not-allowed disabled:opacity-70'
+                  >
+                    <Icon size={18} />
+
+                    {isSubmitting ? "Saving..." : action.label}
+                  </button>
+                );
+              }
+
+              return null;
+            })}
           </div>
         </div>
       </div>
