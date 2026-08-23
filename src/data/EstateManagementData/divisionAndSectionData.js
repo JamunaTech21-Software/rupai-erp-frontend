@@ -144,6 +144,7 @@ export const divisionSectionData = {
   // =========================
   sectionTableHeaders: [
     "SL",
+    "Division",
     "Section Name",
     "Section Code",
     "Parent Section",
@@ -205,6 +206,7 @@ export const divisionSectionData = {
   sectionList: [
     {
       id: 1,
+      division: "DIV-01",
       sectionName: "Section A",
       sectionCode: "SEC-A",
       parentSection: "-",
@@ -214,6 +216,7 @@ export const divisionSectionData = {
     },
     {
       id: 2,
+      division: "DIV-01",
       sectionName: "Section B",
       sectionCode: "SEC-B",
       parentSection: "-",
@@ -223,6 +226,7 @@ export const divisionSectionData = {
     },
     {
       id: 3,
+      division: "DIV-01",
       sectionName: "Section C",
       sectionCode: "SEC-C",
       parentSection: "-",
@@ -232,6 +236,7 @@ export const divisionSectionData = {
     },
     {
       id: 4,
+      division: "DIV-01",
       sectionName: "Section D",
       sectionCode: "SEC-D",
       parentSection: "-",
@@ -241,6 +246,7 @@ export const divisionSectionData = {
     },
     {
       id: 5,
+      division: "DIV-01",
       sectionName: "Section E",
       sectionCode: "SEC-E",
       parentSection: "-",
@@ -250,6 +256,7 @@ export const divisionSectionData = {
     },
     {
       id: 6,
+      division: "DIV-01",
       sectionName: "Section F",
       sectionCode: "SEC-F",
       parentSection: "-",
@@ -259,6 +266,7 @@ export const divisionSectionData = {
     },
     {
       id: 7,
+      division: "DIV-01",
       sectionName: "Section G",
       sectionCode: "SEC-G",
       parentSection: "-",
@@ -268,6 +276,7 @@ export const divisionSectionData = {
     },
     {
       id: 8,
+      division: "DIV-01",
       sectionName: "Section H",
       sectionCode: "SEC-H",
       parentSection: "-",
@@ -276,7 +285,6 @@ export const divisionSectionData = {
       status: "Active",
     },
   ],
-
   // =========================
   // Summary
   // =========================
