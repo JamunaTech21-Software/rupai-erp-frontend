@@ -77,7 +77,7 @@ const DivisionAndSection = () => {
               </div>
             </div>
 
-            <div className='overflow-x-auto'>
+            <div className='max-h-78 overflow-auto'>
               <table className='min-w-full border border-gray-200 border-collapse'>
                 <thead className='border border-gray-200 bg-gray-50 px-2 py-3 text-left text-sm font-regular text-gray-700'>
                   <tr>
@@ -189,8 +189,8 @@ const DivisionAndSection = () => {
               </div>
             </div>
 
-            <div className='overflow-x-auto'>
-              <table className='min-w-full border border-collapse border-gray-200'>
+            <div className='max-h-78 overflow-auto'>
+              <table className='min-w-full border border-gray-200 border-collapse'>
                 <thead className='bg-gray-50'>
                   <tr>
                     {divisionSectionData.sectionTableHeaders.map((header) => (
