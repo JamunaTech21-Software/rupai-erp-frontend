@@ -309,7 +309,7 @@ const FieldOrBlockManagement = () => {
 
               {/* Right */}
 
-              <div className='space-y-2'>
+              <div className='space-y-4'>
                 {fieldAndBlockManagementData.detailsRight.map((item) => (
                   <div key={item.key} className='flex items-center text-sm'>
                     <span className='w-36 font-medium text-gray-700'>
@@ -319,7 +319,7 @@ const FieldOrBlockManagement = () => {
                     <span className='w-4 text-center text-gray-500'>:</span>
 
                     {item.key === "status" ? (
-                      <span className='rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-700'>
+                      <span className='rounded-full bg-green-100 px-3 py-2 text-xs font-medium text-green-700'>
                         {fieldAndBlockManagementData.details[item.key]}
                       </span>
                     ) : (
@@ -351,7 +351,7 @@ const FieldOrBlockManagement = () => {
                     HEADER
                 ====================================================== */}
 
-            <div className='flex shrink-0 items-center justify-between border-b border-gray-200 px-5 py-3'>
+            <div className='flex shrink-0 items-center justify-between border-b border-gray-200 px-5 py-4'>
               <h2 className='text-lg font-semibold text-green-800'>
                 Field / Block Map View (
                 {fieldAndBlockManagementData.details.fieldName})
@@ -391,7 +391,7 @@ const FieldOrBlockManagement = () => {
                 ]}
                 zoom={fieldAndBlockManagementData.map.zoom}
                 zoomControl={false}
-                className='!h-full !w-full'
+                className='h-full w-full'
               >
                 {/* =========================
                         MAP LAYER
