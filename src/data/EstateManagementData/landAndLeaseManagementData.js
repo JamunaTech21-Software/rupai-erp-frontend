@@ -2,7 +2,7 @@
 
 export const landLeaseManagementData = {
   // =========================================================
-  // Estate Dropdown
+  // ESTATE DROPDOWN
   // =========================================================
 
   estates: [
@@ -34,7 +34,7 @@ export const landLeaseManagementData = {
   ],
 
   // =========================================================
-  // Land / Lease Type Options
+  // LAND / LEASE TYPE
   // =========================================================
 
   landLeaseTypes: [
@@ -61,7 +61,7 @@ export const landLeaseManagementData = {
   ],
 
   // =========================================================
-  // Land Category Options
+  // LAND CATEGORY
   // =========================================================
 
   landCategories: [
@@ -103,7 +103,7 @@ export const landLeaseManagementData = {
   ],
 
   // =========================================================
-  // Mouza Options
+  // MOUZA OPTIONS
   // =========================================================
 
   mouzas: [
@@ -135,7 +135,7 @@ export const landLeaseManagementData = {
   ],
 
   // =========================================================
-  // Record Type Options
+  // RECORD TYPE
   // =========================================================
 
   recordTypes: [
@@ -162,7 +162,7 @@ export const landLeaseManagementData = {
   ],
 
   // =========================================================
-  // Land Status Options
+  // LAND STATUS
   // =========================================================
 
   landStatuses: [
@@ -189,7 +189,7 @@ export const landLeaseManagementData = {
   ],
 
   // =========================================================
-  // Default Filter Configuration
+  // FILTERS
   // =========================================================
 
   filters: {
@@ -200,7 +200,7 @@ export const landLeaseManagementData = {
   },
 
   // =========================================================
-  // Search & Filter Configuration
+  // FILTER CONFIGURATION
   // =========================================================
 
   filtersConfig: {
@@ -210,10 +210,8 @@ export const landLeaseManagementData = {
   },
 
   // =========================================================
-  // Form Default Structure
+  // MAIN LAND / LEASE FORM DEFAULT DATA
   // =========================================================
-  // Empty values are intentional.
-  // Backend/API data will populate these fields later.
 
   formData: {
     estate: "",
@@ -238,12 +236,45 @@ export const landLeaseManagementData = {
     leaseTerm: "",
     rentAmount: "",
     rentPerAcre: "",
+    landStatus: "",
     purpose: "",
     documents: [],
   },
 
   // =========================================================
-  // React Hook Form Validation
+  // PAYMENT FORM DEFAULT DATA
+  // =========================================================
+
+  paymentFormData: {
+    landLeaseId: "",
+    year: "",
+    dueDate: "",
+    amount: "",
+    paidAmount: "",
+    paymentDate: "",
+    status: "",
+    paymentMethod: "",
+    referenceNo: "",
+    remarks: "",
+  },
+
+  // =========================================================
+  // DOCUMENT FORM DEFAULT DATA
+  // =========================================================
+
+  documentFormData: {
+    landLeaseId: "",
+    documentName: "",
+    documentType: "",
+    documentNumber: "",
+    issueDate: "",
+    expiryDate: "",
+    file: null,
+    remarks: "",
+  },
+
+  // =========================================================
+  // MAIN FORM VALIDATION
   // =========================================================
 
   validation: {
@@ -289,7 +320,152 @@ export const landLeaseManagementData = {
   },
 
   // =========================================================
-  // Action Buttons Configuration
+  // PAYMENT VALIDATION
+  // =========================================================
+
+  paymentValidation: {
+    year: {
+      required: "Payment year is required",
+    },
+
+    dueDate: {
+      required: "Due date is required",
+    },
+
+    amount: {
+      required: "Payment amount is required",
+    },
+
+    status: {
+      required: "Payment status is required",
+    },
+
+    paymentMethod: {
+      required: "Payment method is required",
+    },
+  },
+
+  // =========================================================
+  // DOCUMENT VALIDATION
+  // =========================================================
+
+  documentValidation: {
+    documentName: {
+      required: "Document name is required",
+    },
+
+    documentType: {
+      required: "Document type is required",
+    },
+
+    file: {
+      required: "Document file is required",
+    },
+  },
+
+  // =========================================================
+  // PAYMENT STATUS OPTIONS
+  // =========================================================
+
+  paymentStatuses: [
+    {
+      id: 1,
+      value: "Paid",
+      label: "Paid",
+    },
+    {
+      id: 2,
+      value: "Pending",
+      label: "Pending",
+    },
+    {
+      id: 3,
+      value: "Overdue",
+      label: "Overdue",
+    },
+  ],
+
+  // =========================================================
+  // PAYMENT METHOD OPTIONS
+  // =========================================================
+
+  paymentMethods: [
+    {
+      id: 1,
+      value: "Cash",
+      label: "Cash",
+    },
+    {
+      id: 2,
+      value: "Bank Transfer",
+      label: "Bank Transfer",
+    },
+    {
+      id: 3,
+      value: "Cheque",
+      label: "Cheque",
+    },
+    {
+      id: 4,
+      value: "Online Payment",
+      label: "Online Payment",
+    },
+  ],
+
+  // =========================================================
+  // DOCUMENT TYPE OPTIONS
+  // =========================================================
+
+  documentTypes: [
+    {
+      id: 1,
+      value: "Lease Deed",
+      label: "Lease Deed",
+    },
+    {
+      id: 2,
+      value: "Khatian",
+      label: "Khatian",
+    },
+    {
+      id: 3,
+      value: "CS Record",
+      label: "CS Record",
+    },
+    {
+      id: 4,
+      value: "SA Record",
+      label: "SA Record",
+    },
+    {
+      id: 5,
+      value: "RS Record",
+      label: "RS Record",
+    },
+    {
+      id: 6,
+      value: "BS Record",
+      label: "BS Record",
+    },
+    {
+      id: 7,
+      value: "Map",
+      label: "Map / Survey Plan",
+    },
+    {
+      id: 8,
+      value: "NOC",
+      label: "NOC",
+    },
+    {
+      id: 9,
+      value: "Other",
+      label: "Other",
+    },
+  ],
+
+  // =========================================================
+  // ACTION BUTTONS
   // =========================================================
 
   actionButtons: [
@@ -331,7 +507,7 @@ export const landLeaseManagementData = {
   ],
 
   // =========================================================
-  // Map Settings
+  // MAP SETTINGS
   // =========================================================
 
   mapSettings: {
@@ -343,7 +519,7 @@ export const landLeaseManagementData = {
   },
 
   // =========================================================
-  // Map Information
+  // MAP INFORMATION
   // =========================================================
 
   mapInformation: {
@@ -360,7 +536,7 @@ export const landLeaseManagementData = {
   },
 
   // =========================================================
-  // Map Toolbar
+  // MAP TOOLS
   // =========================================================
 
   mapTools: [
@@ -391,7 +567,7 @@ export const landLeaseManagementData = {
   ],
 
   // =========================================================
-  // Land Boundary
+  // LAND BOUNDARY
   // =========================================================
 
   landBoundary: [
@@ -405,7 +581,7 @@ export const landLeaseManagementData = {
   ],
 
   // =========================================================
-  // Land Marker
+  // LAND MARKER
   // =========================================================
 
   marker: {
@@ -415,7 +591,7 @@ export const landLeaseManagementData = {
   },
 
   // =========================================================
-  // Map Legend
+  // MAP LEGEND
   // =========================================================
 
   legends: [
@@ -432,7 +608,7 @@ export const landLeaseManagementData = {
   ],
 
   // =========================================================
-  // Ownership Details
+  // OWNERSHIP DETAILS
   // =========================================================
 
   ownershipDetails: [
@@ -479,7 +655,7 @@ export const landLeaseManagementData = {
   ],
 
   // =========================================================
-  // Sidebar Summary Cards
+  // SUMMARY CARDS
   // =========================================================
 
   summaryCards: [
@@ -526,7 +702,7 @@ export const landLeaseManagementData = {
   ],
 
   // =========================================================
-  // Statistics
+  // STATISTICS
   // =========================================================
 
   statistics: {
@@ -538,7 +714,7 @@ export const landLeaseManagementData = {
   },
 
   // =========================================================
-  // Payment Table Headers
+  // PAYMENT TABLE HEADERS
   // =========================================================
 
   paymentTableHeaders: [
@@ -554,12 +730,13 @@ export const landLeaseManagementData = {
   ],
 
   // =========================================================
-  // Payment List
+  // PAYMENT LIST
   // =========================================================
 
   paymentList: [
     {
       id: 1,
+      landLeaseId: 1,
       year: "2015",
       dueDate: "31/12/2015",
       amount: "150,000.00",
@@ -567,9 +744,12 @@ export const landLeaseManagementData = {
       paymentDate: "15/12/2015",
       status: "Paid",
       paymentMethod: "Bank Transfer",
+      referenceNo: "REC-2015-001",
+      remarks: "Annual lease payment",
     },
     {
       id: 2,
+      landLeaseId: 1,
       year: "2016",
       dueDate: "31/12/2016",
       amount: "150,000.00",
@@ -577,9 +757,12 @@ export const landLeaseManagementData = {
       paymentDate: "28/12/2016",
       status: "Paid",
       paymentMethod: "Bank Transfer",
+      referenceNo: "REC-2016-001",
+      remarks: "Annual lease payment",
     },
     {
       id: 3,
+      landLeaseId: 1,
       year: "2017",
       dueDate: "31/12/2017",
       amount: "165,000.00",
@@ -587,9 +770,12 @@ export const landLeaseManagementData = {
       paymentDate: "29/12/2017",
       status: "Paid",
       paymentMethod: "Cheque",
+      referenceNo: "CHQ-2017-001",
+      remarks: "Annual lease payment",
     },
     {
       id: 4,
+      landLeaseId: 1,
       year: "2018",
       dueDate: "31/12/2018",
       amount: "165,000.00",
@@ -597,9 +783,12 @@ export const landLeaseManagementData = {
       paymentDate: "30/12/2018",
       status: "Paid",
       paymentMethod: "Cheque",
+      referenceNo: "CHQ-2018-001",
+      remarks: "Annual lease payment",
     },
     {
       id: 5,
+      landLeaseId: 1,
       year: "2019",
       dueDate: "31/12/2019",
       amount: "175,000.00",
@@ -607,24 +796,118 @@ export const landLeaseManagementData = {
       paymentDate: "29/12/2019",
       status: "Paid",
       paymentMethod: "Bank Transfer",
+      referenceNo: "REC-2019-001",
+      remarks: "Annual lease payment",
+    },
+    {
+      id: 6,
+      landLeaseId: 1,
+      year: "2020",
+      dueDate: "31/12/2020",
+      amount: "175,000.00",
+      paidAmount: "175,000.00",
+      paymentDate: "28/12/2020",
+      status: "Paid",
+      paymentMethod: "Bank Transfer",
+      referenceNo: "REC-2020-001",
+      remarks: "Annual lease payment",
+    },
+    {
+      id: 7,
+      landLeaseId: 1,
+      year: "2021",
+      dueDate: "31/12/2021",
+      amount: "185,000.00",
+      paidAmount: "185,000.00",
+      paymentDate: "27/12/2021",
+      status: "Paid",
+      paymentMethod: "Online Payment",
+      referenceNo: "PAY-2021-001",
+      remarks: "Annual lease payment",
+    },
+    {
+      id: 8,
+      landLeaseId: 1,
+      year: "2022",
+      dueDate: "31/12/2022",
+      amount: "185,000.00",
+      paidAmount: "185,000.00",
+      paymentDate: "29/12/2022",
+      status: "Paid",
+      paymentMethod: "Bank Transfer",
+      referenceNo: "REC-2022-001",
+      remarks: "Annual lease payment",
+    },
+    {
+      id: 9,
+      landLeaseId: 1,
+      year: "2023",
+      dueDate: "31/12/2023",
+      amount: "195,000.00",
+      paidAmount: "195,000.00",
+      paymentDate: "28/12/2023",
+      status: "Paid",
+      paymentMethod: "Bank Transfer",
+      referenceNo: "REC-2023-001",
+      remarks: "Annual lease payment",
+    },
+    {
+      id: 10,
+      landLeaseId: 1,
+      year: "2024",
+      dueDate: "31/12/2024",
+      amount: "195,000.00",
+      paidAmount: "0.00",
+      paymentDate: "-",
+      status: "Pending",
+      paymentMethod: "-",
+      referenceNo: "",
+      remarks: "Payment pending",
+    },
+    {
+      id: 11,
+      landLeaseId: 1,
+      year: "2025",
+      dueDate: "31/12/2025",
+      amount: "210,000.00",
+      paidAmount: "0.00",
+      paymentDate: "-",
+      status: "Overdue",
+      paymentMethod: "-",
+      referenceNo: "",
+      remarks: "Payment overdue",
+    },
+    {
+      id: 12,
+      landLeaseId: 1,
+      year: "2026",
+      dueDate: "31/12/2026",
+      amount: "220,000.00",
+      paidAmount: "0.00",
+      paymentDate: "-",
+      status: "Pending",
+      paymentMethod: "-",
+      referenceNo: "",
+      remarks: "Current year payment",
     },
   ],
 
   // =========================================================
-  // Payment Pagination
+  // PAYMENT PAGINATION
   // =========================================================
 
   paymentPagination: {
     currentPage: 1,
-    totalPages: 4,
-    totalRecords: 20,
+    totalPages: 3,
+    totalRecords: 12,
     showingFrom: 1,
     showingTo: 5,
     pageSize: 5,
+    pages: [1, 2, 3],
   },
 
   // =========================================================
-  // Document Table Headers
+  // DOCUMENT TABLE HEADERS
   // =========================================================
 
   documentTableHeaders: [
@@ -637,56 +920,117 @@ export const landLeaseManagementData = {
   ],
 
   // =========================================================
-  // Document List
+  // DOCUMENT LIST
   // =========================================================
 
   documentList: [
     {
       id: 1,
+      landLeaseId: 1,
       documentName: "Lease Deed",
       type: "Lease Deed",
+      documentNumber: "LD-2024-001",
+      issueDate: "01/01/2024",
+      expiryDate: "31/12/2043",
       file: "lease_deed.pdf",
       uploadedOn: "05/01/2024",
+      remarks: "Original lease deed",
     },
     {
       id: 2,
+      landLeaseId: 1,
       documentName: "Khatian Copy",
       type: "Khatian",
+      documentNumber: "KH-1234",
+      issueDate: "10/01/2024",
+      expiryDate: "",
       file: "khatian_1234.pdf",
       uploadedOn: "05/01/2024",
+      remarks: "Certified khatian copy",
     },
     {
       id: 3,
+      landLeaseId: 1,
       documentName: "CS Record",
       type: "CS Record",
+      documentNumber: "CS-5678",
+      issueDate: "15/01/2024",
+      expiryDate: "",
       file: "cs_record.pdf",
       uploadedOn: "05/01/2024",
+      remarks: "C.S record document",
     },
     {
       id: 4,
+      landLeaseId: 1,
       documentName: "Map / Survey Plan",
       type: "Map",
+      documentNumber: "MAP-2024-001",
+      issueDate: "20/01/2024",
+      expiryDate: "",
       file: "survey_plan.pdf",
       uploadedOn: "05/01/2024",
+      remarks: "Latest survey plan",
     },
     {
       id: 5,
+      landLeaseId: 1,
       documentName: "NOC",
       type: "NOC",
+      documentNumber: "NOC-2024-001",
+      issueDate: "25/01/2024",
+      expiryDate: "25/01/2027",
       file: "noc.pdf",
       uploadedOn: "05/01/2024",
+      remarks: "No objection certificate",
+    },
+    {
+      id: 6,
+      landLeaseId: 1,
+      documentName: "SA Record",
+      type: "SA Record",
+      documentNumber: "SA-2024-001",
+      issueDate: "28/01/2024",
+      expiryDate: "",
+      file: "sa_record.pdf",
+      uploadedOn: "06/01/2024",
+      remarks: "S.A record copy",
+    },
+    {
+      id: 7,
+      landLeaseId: 1,
+      documentName: "RS Record",
+      type: "RS Record",
+      documentNumber: "RS-2024-001",
+      issueDate: "30/01/2024",
+      expiryDate: "",
+      file: "rs_record.pdf",
+      uploadedOn: "06/01/2024",
+      remarks: "R.S record copy",
+    },
+    {
+      id: 8,
+      landLeaseId: 1,
+      documentName: "BS Record",
+      type: "BS Record",
+      documentNumber: "BS-2024-001",
+      issueDate: "02/02/2024",
+      expiryDate: "",
+      file: "bs_record.pdf",
+      uploadedOn: "06/01/2024",
+      remarks: "B.S record copy",
     },
   ],
 
   // =========================================================
-  // Document Actions
+  // DOCUMENT ACTIONS
   // =========================================================
 
   documentActions: [
     {
       id: 1,
-      label: "Download",
-      icon: "Download",
+      label: "View",
+      icon: "Eye",
       color: "blue",
     },
     {
@@ -698,7 +1042,7 @@ export const landLeaseManagementData = {
   ],
 
   // =========================================================
-  // Payment Status Configuration
+  // PAYMENT STATUS CONFIGURATION
   // =========================================================
 
   paymentStatus: [
@@ -717,7 +1061,7 @@ export const landLeaseManagementData = {
   ],
 
   // =========================================================
-  // Summary Table Headers
+  // SUMMARY TABLE HEADERS
   // =========================================================
 
   summaryTableHeaders: [
@@ -734,7 +1078,7 @@ export const landLeaseManagementData = {
   ],
 
   // =========================================================
-  // Land / Lease List
+  // LAND / LEASE LIST
   // =========================================================
 
   landLeaseList: [
@@ -851,7 +1195,7 @@ export const landLeaseManagementData = {
   ],
 
   // =========================================================
-  // Row Actions
+  // ROW ACTIONS
   // =========================================================
 
   rowActions: [
@@ -876,7 +1220,7 @@ export const landLeaseManagementData = {
   ],
 
   // =========================================================
-  // Status Badge Configuration
+  // STATUS BADGE
   // =========================================================
 
   statusBadge: {
@@ -887,7 +1231,7 @@ export const landLeaseManagementData = {
   },
 
   // =========================================================
-  // Summary Pagination
+  // SUMMARY PAGINATION
   // =========================================================
 
   summaryPagination: {
@@ -897,7 +1241,6 @@ export const landLeaseManagementData = {
     showingFrom: 1,
     showingTo: 10,
     pageSize: 10,
-
     pages: [1, 2, 3, 4, 5],
   },
 };

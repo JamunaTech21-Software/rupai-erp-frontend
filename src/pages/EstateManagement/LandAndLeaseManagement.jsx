@@ -2,6 +2,11 @@ import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import toast from "react-hot-toast";
 import L from "leaflet";
+import EstateManagementTabs from "../../components/EstateManagement/EstateManagementTabs";
+import { landLeaseManagementData } from "../../data/EstateManagementData/landAndLeaseManagementData";
+import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
+import markerIcon from "leaflet/dist/images/marker-icon.png";
+import markerShadow from "leaflet/dist/images/marker-shadow.png";
 
 import {
   MapContainer,
@@ -27,13 +32,6 @@ import {
   CreditCard,
   UserRound,
 } from "lucide-react";
-
-import EstateManagementTabs from "../../components/EstateManagement/EstateManagementTabs";
-import { landLeaseManagementData } from "../../data/EstateManagementData/landAndLeaseManagementData";
-
-import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
-import markerIcon from "leaflet/dist/images/marker-icon.png";
-import markerShadow from "leaflet/dist/images/marker-shadow.png";
 
 // ============================================================
 // LEAFLET MARKER
@@ -65,9 +63,7 @@ const LandAndLeaseManagement = () => {
   // ==========================================================
   // DATA
   // ==========================================================
-
   const data = landLeaseManagementData;
-
   // ==========================================================
   // REACT HOOK FORM
   // ==========================================================
@@ -86,6 +82,8 @@ const LandAndLeaseManagement = () => {
   // ==========================================================
 
   const [showLandModal, setShowLandModal] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [showDocumentModal, setShowDocumentModal] = useState(false);
 
   const [selectedLandId, setSelectedLandId] = useState(
     data.landLeaseList[0]?.id || null,
@@ -549,7 +547,7 @@ const LandAndLeaseManagement = () => {
 
             {/* =====================================================
                       MAP
-                  ====================================================== */}
+                ====================================================== */}
 
             <div
               className={
@@ -737,7 +735,8 @@ const LandAndLeaseManagement = () => {
 
               <button
                 type='button'
-                className='flex h-9 items-center justify-center gap-2 rounded-md bg-green-700 px-3 text-xs font-medium text-white transition hover:bg-green-800'
+                onClick={() => setShowPaymentModal(true)}
+                className='flex h-9 cursor-pointer items-center justify-center gap-2 rounded-md bg-green-700 px-3 text-xs font-medium text-white transition hover:bg-green-800'
               >
                 <Plus size={15} />
                 Add Payment
@@ -747,7 +746,7 @@ const LandAndLeaseManagement = () => {
             {/* PAYMENT TABLE */}
 
             <div className='max-h-52 overflow-auto'>
-              <table className='w-full min-w-[850px] border-collapse text-xs'>
+              <table className='w-full min-w-212 border-collapse text-xs'>
                 <thead className='sticky top-0 z-10 bg-gray-100'>
                   <tr>
                     {data.paymentTableHeaders.map((header, index) => (
@@ -780,7 +779,7 @@ const LandAndLeaseManagement = () => {
                         {payment.amount}
                       </td>
 
-                      <td className='whitespace-nowrap border border-gray-200 px-2 py-2 text-right'>
+                      <td className='whitespace-nowrap border border-gray-200 px-2 py-2 text-center'>
                         {payment.paidAmount}
                       </td>
 
@@ -849,7 +848,8 @@ const LandAndLeaseManagement = () => {
 
               <button
                 type='button'
-                className='flex h-9 items-center justify-center gap-2 rounded-md bg-green-700 px-3 text-xs font-medium text-white transition hover:bg-green-800'
+                onClick={() => setShowDocumentModal(true)}
+                className='flex h-9 cursor-pointer items-center justify-center gap-2 rounded-md bg-green-700 px-3 text-xs font-medium text-white transition hover:bg-green-800'
               >
                 <Plus size={15} />
                 Add Document
@@ -859,7 +859,7 @@ const LandAndLeaseManagement = () => {
             {/* DOCUMENT TABLE */}
 
             <div className='max-h-52 overflow-auto'>
-              <table className='w-full min-w-[700px] border-collapse text-xs'>
+              <table className='w-full min-w-175 border-collapse text-xs'>
                 <thead className='sticky top-0 z-10 bg-gray-100'>
                   <tr>
                     {data.documentTableHeaders.map((header, index) => (
@@ -1615,6 +1615,348 @@ const LandAndLeaseManagement = () => {
                   </div>
                 </div>
               </form>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* ======================================================
+              ADD PAYMENT MODAL
+          ====================================================== */}
+
+      {showPaymentModal && (
+        <div className='fixed  inset-0 z-[9999] flex items-center justify-center bg-black/50 p-4'>
+          <div className='w-full max-w-3xl rounded-xl bg-white shadow-2xl'>
+            {/* HEADER */}
+
+            <div className='flex items-center justify-between border-b border-gray-200 px-5 py-4'>
+              <div>
+                <h2 className='text-lg font-semibold text-green-800'>
+                  Add Lease Payment
+                </h2>
+
+                <p className='text-xs text-gray-500'>
+                  Create a new lease payment record
+                </p>
+              </div>
+
+              <button
+                type='button'
+                onClick={() => setShowPaymentModal(false)}
+                className='rounded-lg p-2 hover:bg-gray-100'
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* BODY */}
+
+            <div className='p-5'>
+              <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+                <div>
+                  <label className='mb-1 block text-sm font-medium text-gray-700'>
+                    Payment Year
+                  </label>
+
+                  <input
+                    type='text'
+                    placeholder='2026'
+                    className='h-11 w-full rounded-lg border border-gray-300 px-3 text-sm outline-none focus:border-green-600'
+                  />
+                </div>
+
+                <div>
+                  <label className='mb-1 block text-sm font-medium text-gray-700'>
+                    Due Date
+                  </label>
+
+                  <input
+                    type='date'
+                    className='h-11 w-full rounded-lg border border-gray-300 px-3 text-sm outline-none focus:border-green-600'
+                  />
+                </div>
+
+                <div>
+                  <label className='mb-1 block text-sm font-medium text-gray-700'>
+                    Amount
+                  </label>
+
+                  <input
+                    type='number'
+                    placeholder='Enter amount'
+                    className='h-11 w-full rounded-lg border border-gray-300 px-3 text-sm outline-none focus:border-green-600'
+                  />
+                </div>
+
+                <div>
+                  <label className='mb-1 block text-sm font-medium text-gray-700'>
+                    Paid Amount
+                  </label>
+
+                  <input
+                    type='number'
+                    placeholder='Enter paid amount'
+                    className='h-11 w-full rounded-lg border border-gray-300 px-3 text-sm outline-none focus:border-green-600'
+                  />
+                </div>
+
+                <div>
+                  <label className='mb-1 block text-sm font-medium text-gray-700'>
+                    Payment Date
+                  </label>
+
+                  <input
+                    type='date'
+                    className='h-11 w-full rounded-lg border border-gray-300 px-3 text-sm outline-none focus:border-green-600'
+                  />
+                </div>
+
+                <div>
+                  <label className='mb-1 block text-sm font-medium text-gray-700'>
+                    Status
+                  </label>
+
+                  <select className='h-11 w-full rounded-lg border border-gray-300 px-3 text-sm outline-none focus:border-green-600'>
+                    <option value=''>Select Status</option>
+
+                    {data.paymentStatuses.map((status) => (
+                      <option key={status.id} value={status.value}>
+                        {status.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className='mb-1 block text-sm font-medium text-gray-700'>
+                    Payment Method
+                  </label>
+
+                  <select className='h-11 w-full rounded-lg border border-gray-300 px-3 text-sm outline-none focus:border-green-600'>
+                    <option value=''>Select Method</option>
+
+                    {data.paymentMethods.map((method) => (
+                      <option key={method.id} value={method.value}>
+                        {method.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className='mb-1 block text-sm font-medium text-gray-700'>
+                    Receipt No.
+                  </label>
+
+                  <input
+                    type='text'
+                    placeholder='REC-2026-001'
+                    className='h-11 w-full rounded-lg border border-gray-300 px-3 text-sm outline-none focus:border-green-600'
+                  />
+                </div>
+
+                <div className='md:col-span-2'>
+                  <label className='mb-1 block text-sm font-medium text-gray-700'>
+                    Remarks
+                  </label>
+
+                  <textarea
+                    rows={3}
+                    placeholder='Enter remarks'
+                    className='w-full resize-none rounded-lg border border-gray-300 p-3 text-sm outline-none focus:border-green-600'
+                  />
+                </div>
+              </div>
+
+              {/* FOOTER */}
+
+              <div className='mt-6 flex justify-end gap-3 border-t border-gray-200 pt-4'>
+                <button
+                  type='button'
+                  onClick={() => setShowPaymentModal(false)}
+                  className='flex cursor-pointer items-center justify-center gap-2 rounded-lg border border-gray-300 px-5 py-2 text-sm text-gray-700 transition hover:bg-gray-50'
+                >
+                  <X size={17} />
+                  Cancel
+                </button>
+
+                <button
+                  type='button'
+                  onClick={() => {
+                    toast.success("Payment saved successfully");
+                    setShowPaymentModal(false);
+                  }}
+                  className='flex cursor-pointer items-center justify-center gap-2 rounded-lg bg-green-800 px-5 py-2 text-sm font-medium text-white transition hover:bg-green-900'
+                >
+                  <Save size={17} />
+                  Save Payment
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* ======================================================
+              ADD DOCUMENT MODAL
+          ====================================================== */}
+
+      {showDocumentModal && (
+        <div className='fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 p-4'>
+          <div className='flex max-h-[90vh] w-full max-w-3xl flex-col overflow-hidden rounded-xl bg-white shadow-2xl'>
+            {/* ================= HEADER ================= */}
+
+            <div className='flex shrink-0 items-center justify-between border-b border-gray-200 px-5 py-4'>
+              <div>
+                <h2 className='text-lg font-semibold text-green-800'>
+                  Add Land / Lease Document
+                </h2>
+
+                <p className='mt-1 text-xs text-gray-500'>
+                  Upload and save a document for this land / lease record
+                </p>
+              </div>
+
+              <button
+                type='button'
+                onClick={() => setShowDocumentModal(false)}
+                className='cursor-pointer rounded-lg p-2 text-gray-500 transition hover:bg-gray-100 hover:text-gray-700'
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* ================= BODY ================= */}
+
+            <div className='min-h-0 overflow-y-auto p-5'>
+              <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+                {/* Document Name */}
+
+                <div>
+                  <label className='mb-1.5 block text-sm font-medium text-gray-700'>
+                    Document Name <span className='text-red-500'>*</span>
+                  </label>
+
+                  <input
+                    type='text'
+                    placeholder='Enter document name'
+                    className='h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm outline-none transition focus:border-green-600'
+                  />
+                </div>
+
+                {/* Document Type */}
+
+                <div>
+                  <label className='mb-1.5 block text-sm font-medium text-gray-700'>
+                    Document Type <span className='text-red-500'>*</span>
+                  </label>
+
+                  <select className='h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm outline-none transition focus:border-green-600'>
+                    <option value=''>Select Document Type</option>
+
+                    {data.documentTypes.map((type) => (
+                      <option key={type.id} value={type.value}>
+                        {type.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Document Number */}
+
+                <div>
+                  <label className='mb-1.5 block text-sm font-medium text-gray-700'>
+                    Document Number
+                  </label>
+
+                  <input
+                    type='text'
+                    placeholder='Enter document number'
+                    className='h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm outline-none transition focus:border-green-600'
+                  />
+                </div>
+
+                {/* Issue Date */}
+
+                <div>
+                  <label className='mb-1.5 block text-sm font-medium text-gray-700'>
+                    Issue Date
+                  </label>
+
+                  <input
+                    type='date'
+                    className='h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm outline-none transition focus:border-green-600'
+                  />
+                </div>
+
+                {/* Expiry Date */}
+
+                <div>
+                  <label className='mb-1.5 block text-sm font-medium text-gray-700'>
+                    Expiry Date
+                  </label>
+
+                  <input
+                    type='date'
+                    className='h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm outline-none transition focus:border-green-600'
+                  />
+                </div>
+
+                {/* File Upload */}
+
+                <div>
+                  <label className='mb-1.5 block text-sm font-medium text-gray-700'>
+                    Document File <span className='text-red-500'>*</span>
+                  </label>
+
+                  <input
+                    type='file'
+                    accept='.pdf,.jpg,.jpeg,.png,.doc,.docx'
+                    className='h-11 w-full cursor-pointer rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm outline-none file:mr-3 file:rounded-md file:border-0 file:bg-green-50 file:px-3 file:py-1 file:text-xs file:font-medium file:text-green-700'
+                  />
+
+                  <p className='mt-1 text-[11px] text-gray-500'>
+                    PDF, JPG, PNG, DOC or DOCX
+                  </p>
+                </div>
+
+                {/* Remarks */}
+
+                <div className='md:col-span-2'>
+                  <label className='mb-1.5 block text-sm font-medium text-gray-700'>
+                    Remarks
+                  </label>
+
+                  <textarea
+                    rows={4}
+                    placeholder='Enter document remarks...'
+                    className='w-full resize-none rounded-lg border border-gray-300 bg-white p-3 text-sm outline-none transition focus:border-green-600'
+                  />
+                </div>
+              </div>
+
+              {/* ================= FOOTER ================= */}
+
+              <div className='mt-6 flex flex-col gap-3 border-t border-gray-200 pt-4 sm:flex-row sm:justify-end'>
+                <button
+                  type='button'
+                  onClick={() => setShowDocumentModal(false)}
+                  className='flex h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-5 text-sm text-gray-700 transition hover:bg-gray-50 sm:w-auto'
+                >
+                  <X size={17} />
+                  Cancel
+                </button>
+
+                <button
+                  type='button'
+                  onClick={() => {
+                    toast.success("Document saved successfully");
+                    setShowDocumentModal(false);
+                  }}
+                  className='flex h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-lg bg-green-800 px-5 text-sm font-medium text-white transition hover:bg-green-900 sm:w-auto'
+                >
+                  <Save size={17} />
+                  Save Document
+                </button>
+              </div>
             </div>
           </div>
         </div>
