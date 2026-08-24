@@ -319,7 +319,7 @@ const FieldOrBlockManagement = () => {
                     <span className='w-4 text-center text-gray-500'>:</span>
 
                     {item.key === "status" ? (
-                      <span className='rounded-full bg-green-100 px-3 py-2 text-xs font-medium text-green-700'>
+                      <span className='rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-700'>
                         {fieldAndBlockManagementData.details[item.key]}
                       </span>
                     ) : (
