@@ -567,12 +567,12 @@ const LandAndLeaseManagement = () => {
                 {mapType === "street" ? (
                   <TileLayer
                     attribution='&copy; OpenStreetMap contributors'
-                    url='https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
+                    url={data.mapSettings.streetUrl}
                   />
                 ) : (
                   <TileLayer
                     attribution='&copy; Esri'
-                    url='https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
+                    url={data.mapSettings.satelliteUrl}
                   />
                 )}
 
@@ -969,7 +969,9 @@ const LandAndLeaseManagement = () => {
                   </div>
 
                   <div className='grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3'>
-                    {/* Estate */}
+                    {/* =================================================
+      ESTATE
+  ================================================== */}
 
                     <div>
                       <label className='mb-1.5 block text-sm font-medium text-gray-700'>
@@ -978,7 +980,7 @@ const LandAndLeaseManagement = () => {
 
                       <select
                         {...register("estate", {
-                          required: data.validation.estate.required,
+                          required: "Estate is required",
                         })}
                         className={`h-11 w-full rounded-lg border bg-white px-3 text-sm outline-none ${
                           errors.estate
@@ -1002,7 +1004,9 @@ const LandAndLeaseManagement = () => {
                       )}
                     </div>
 
-                    {/* Land Lease Type */}
+                    {/* =================================================
+      LAND / LEASE TYPE
+  ================================================== */}
 
                     <div>
                       <label className='mb-1.5 block text-sm font-medium text-gray-700'>
@@ -1012,7 +1016,7 @@ const LandAndLeaseManagement = () => {
 
                       <select
                         {...register("landLeaseType", {
-                          required: data.validation.landLeaseType.required,
+                          required: "Land / Lease Type is required",
                         })}
                         className={`h-11 w-full rounded-lg border bg-white px-3 text-sm outline-none ${
                           errors.landLeaseType
@@ -1036,7 +1040,9 @@ const LandAndLeaseManagement = () => {
                       )}
                     </div>
 
-                    {/* Category */}
+                    {/* =================================================
+      LAND CATEGORY
+  ================================================== */}
 
                     <div>
                       <label className='mb-1.5 block text-sm font-medium text-gray-700'>
@@ -1045,7 +1051,7 @@ const LandAndLeaseManagement = () => {
 
                       <select
                         {...register("landCategory", {
-                          required: data.validation.landCategory.required,
+                          required: "Land Category is required",
                         })}
                         className={`h-11 w-full rounded-lg border bg-white px-3 text-sm outline-none ${
                           errors.landCategory
@@ -1069,7 +1075,9 @@ const LandAndLeaseManagement = () => {
                       )}
                     </div>
 
-                    {/* Land Name */}
+                    {/* =================================================
+      LAND / LEASE NAME
+  ================================================== */}
 
                     <div>
                       <label className='mb-1.5 block text-sm font-medium text-gray-700'>
@@ -1081,7 +1089,7 @@ const LandAndLeaseManagement = () => {
                         type='text'
                         placeholder='Enter land / lease name'
                         {...register("landLeaseName", {
-                          required: data.validation.landLeaseName.required,
+                          required: "Land / Lease Name is required",
                         })}
                         className={`h-11 w-full rounded-lg border bg-white px-3 text-sm outline-none ${
                           errors.landLeaseName
@@ -1097,7 +1105,9 @@ const LandAndLeaseManagement = () => {
                       )}
                     </div>
 
-                    {/* Survey */}
+                    {/* =================================================
+      SURVEY / KHATIAN
+  ================================================== */}
 
                     <div>
                       <label className='mb-1.5 block text-sm font-medium text-gray-700'>
@@ -1109,7 +1119,7 @@ const LandAndLeaseManagement = () => {
                         type='text'
                         placeholder='Enter survey / khatian no.'
                         {...register("surveyNo", {
-                          required: data.validation.surveyNo.required,
+                          required: "Survey / Khatian No is required",
                         })}
                         className={`h-11 w-full rounded-lg border bg-white px-3 text-sm outline-none ${
                           errors.surveyNo
@@ -1125,7 +1135,9 @@ const LandAndLeaseManagement = () => {
                       )}
                     </div>
 
-                    {/* Plot */}
+                    {/* =================================================
+      PLOT / DAG
+  ================================================== */}
 
                     <div>
                       <label className='mb-1.5 block text-sm font-medium text-gray-700'>
@@ -1136,7 +1148,7 @@ const LandAndLeaseManagement = () => {
                         type='text'
                         placeholder='Enter plot / dag no.'
                         {...register("plotNo", {
-                          required: data.validation.plotNo.required,
+                          required: "Plot / Dag No is required",
                         })}
                         className={`h-11 w-full rounded-lg border bg-white px-3 text-sm outline-none ${
                           errors.plotNo
@@ -1152,7 +1164,9 @@ const LandAndLeaseManagement = () => {
                       )}
                     </div>
 
-                    {/* Mouza */}
+                    {/* =================================================
+      MOUZA
+  ================================================== */}
 
                     <div>
                       <label className='mb-1.5 block text-sm font-medium text-gray-700'>
@@ -1173,7 +1187,9 @@ const LandAndLeaseManagement = () => {
                       </select>
                     </div>
 
-                    {/* JL */}
+                    {/* =================================================
+      JL NO.
+  ================================================== */}
 
                     <div>
                       <label className='mb-1.5 block text-sm font-medium text-gray-700'>
@@ -1188,7 +1204,9 @@ const LandAndLeaseManagement = () => {
                       />
                     </div>
 
-                    {/* Record Type */}
+                    {/* =================================================
+      RECORD TYPE
+  ================================================== */}
 
                     <div>
                       <label className='mb-1.5 block text-sm font-medium text-gray-700'>
@@ -1210,7 +1228,137 @@ const LandAndLeaseManagement = () => {
                     </div>
                   </div>
                 </div>
+                {/* =================================================
+                  OWNERSHIP & LEASE INFORMATION
+              ================================================= */}
 
+                <div className='mb-6'>
+                  <div className='mb-4 border-b border-gray-200 pb-2'>
+                    <h3 className='text-sm font-semibold text-green-800'>
+                      Ownership & Lease Information
+                    </h3>
+                  </div>
+
+                  <div className='grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4'>
+                    {/* Owner / Lessor Name */}
+
+                    <div>
+                      <label className='mb-1.5 block text-sm font-medium text-gray-700'>
+                        Owner / Lessor Name
+                        <span className='text-red-500'> *</span>
+                      </label>
+
+                      <input
+                        type='text'
+                        placeholder='Enter owner / lessor name'
+                        {...register("ownerName", {
+                          required: "Owner / Lessor Name is required",
+                        })}
+                        className={`h-11 w-full rounded-lg border bg-white px-3 text-sm outline-none ${
+                          errors.ownerName
+                            ? "border-red-500"
+                            : "border-gray-300 focus:border-green-600"
+                        }`}
+                      />
+
+                      {errors.ownerName && (
+                        <p className='mt-1 text-xs text-red-500'>
+                          {errors.ownerName.message}
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Father's / Company Name */}
+
+                    <div>
+                      <label className='mb-1.5 block text-sm font-medium text-gray-700'>
+                        Father's / Company Name
+                      </label>
+
+                      <input
+                        type='text'
+                        placeholder="Enter father's / company name"
+                        {...register("fatherOrCompanyName")}
+                        className='h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm outline-none focus:border-green-600'
+                      />
+                    </div>
+
+                    {/* Mobile */}
+
+                    <div>
+                      <label className='mb-1.5 block text-sm font-medium text-gray-700'>
+                        Mobile
+                      </label>
+
+                      <input
+                        type='text'
+                        placeholder='Enter mobile number'
+                        {...register("ownerMobile")}
+                        className='h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm outline-none focus:border-green-600'
+                      />
+                    </div>
+
+                    {/* Email */}
+
+                    <div>
+                      <label className='mb-1.5 block text-sm font-medium text-gray-700'>
+                        Email
+                      </label>
+
+                      <input
+                        type='email'
+                        placeholder='Enter email address'
+                        {...register("ownerEmail")}
+                        className='h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm outline-none focus:border-green-600'
+                      />
+                    </div>
+
+                    {/* NID / TIN */}
+
+                    <div>
+                      <label className='mb-1.5 block text-sm font-medium text-gray-700'>
+                        NID / TIN
+                      </label>
+
+                      <input
+                        type='text'
+                        placeholder='Enter NID / TIN'
+                        {...register("ownerNidTin")}
+                        className='h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm outline-none focus:border-green-600'
+                      />
+                    </div>
+
+                    {/* Address */}
+
+                    <div className='md:col-span-2'>
+                      <label className='mb-1.5 block text-sm font-medium text-gray-700'>
+                        Owner / Lessor Address
+                      </label>
+
+                      <input
+                        type='text'
+                        placeholder='Enter owner / lessor address'
+                        {...register("ownerAddress")}
+                        className='h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm outline-none focus:border-green-600'
+                      />
+                    </div>
+
+                    {/* Relation / Remarks */}
+
+                    <div className='md:col-span-1'>
+                      <label className='mb-1.5 block text-sm font-medium text-gray-700'>
+                        Relation / Remarks
+                      </label>
+
+                      <input
+                        type='text'
+                        placeholder='Enter relation / remarks'
+                        {...register("ownershipRemarks")}
+                        className='h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm outline-none focus:border-green-600'
+                      />
+                    </div>
+                  </div>
+                </div>
                 {/* =================================================
                     AREA INFORMATION
                 ================================================== */}
@@ -1236,7 +1384,7 @@ const LandAndLeaseManagement = () => {
                         step='0.01'
                         placeholder='Enter total area'
                         {...register("totalArea", {
-                          required: data.validation.totalArea.required,
+                          required: "Total Area is required",
                         })}
                         className={`h-11 w-full rounded-lg border bg-white px-3 text-sm outline-none ${
                           errors.totalArea
@@ -1252,7 +1400,7 @@ const LandAndLeaseManagement = () => {
                       )}
                     </div>
 
-                    {/* Usable */}
+                    {/* Usable Area */}
 
                     <div>
                       <label className='mb-1.5 block text-sm font-medium text-gray-700'>
@@ -1268,7 +1416,7 @@ const LandAndLeaseManagement = () => {
                       />
                     </div>
 
-                    {/* Non Usable */}
+                    {/* Non-Usable Area */}
 
                     <div>
                       <label className='mb-1.5 block text-sm font-medium text-gray-700'>
@@ -1280,22 +1428,6 @@ const LandAndLeaseManagement = () => {
                         step='0.01'
                         placeholder='Enter non-usable area'
                         {...register("nonUsableArea")}
-                        className='h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm outline-none focus:border-green-600'
-                      />
-                    </div>
-
-                    {/* GPS Area */}
-
-                    <div>
-                      <label className='mb-1.5 block text-sm font-medium text-gray-700'>
-                        GPS Area (Acre)
-                      </label>
-
-                      <input
-                        type='number'
-                        step='0.01'
-                        placeholder='GPS calculated area'
-                        {...register("gpsArea")}
                         className='h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm outline-none focus:border-green-600'
                       />
                     </div>
@@ -1347,7 +1479,7 @@ const LandAndLeaseManagement = () => {
                       )}
                     </div>
 
-                    {/* Acquisition */}
+                    {/* Acquisition Date */}
 
                     <div>
                       <label className='mb-1.5 block text-sm font-medium text-gray-700'>
@@ -1357,9 +1489,13 @@ const LandAndLeaseManagement = () => {
                       <input
                         type='date'
                         {...register("acquisitionDate", {
-                          required: data.validation.acquisitionDate.required,
+                          required: "Acquisition Date is required",
                         })}
-                        className='h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm outline-none focus:border-green-600'
+                        className={`h-11 w-full rounded-lg border bg-white px-3 text-sm outline-none ${
+                          errors.acquisitionDate
+                            ? "border-red-500"
+                            : "border-gray-300 focus:border-green-600"
+                        }`}
                       />
 
                       {errors.acquisitionDate && (
@@ -1369,7 +1505,7 @@ const LandAndLeaseManagement = () => {
                       )}
                     </div>
 
-                    {/* Start */}
+                    {/* Start Date */}
 
                     <div>
                       <label className='mb-1.5 block text-sm font-medium text-gray-700'>
@@ -1379,13 +1515,23 @@ const LandAndLeaseManagement = () => {
                       <input
                         type='date'
                         {...register("startDate", {
-                          required: data.validation.startDate.required,
+                          required: "Start Date is required",
                         })}
-                        className='h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm outline-none focus:border-green-600'
+                        className={`h-11 w-full rounded-lg border bg-white px-3 text-sm outline-none ${
+                          errors.startDate
+                            ? "border-red-500"
+                            : "border-gray-300 focus:border-green-600"
+                        }`}
                       />
+
+                      {errors.startDate && (
+                        <p className='mt-1 text-xs text-red-500'>
+                          {errors.startDate.message}
+                        </p>
+                      )}
                     </div>
 
-                    {/* End */}
+                    {/* End Date */}
 
                     <div>
                       <label className='mb-1.5 block text-sm font-medium text-gray-700'>
@@ -1395,10 +1541,20 @@ const LandAndLeaseManagement = () => {
                       <input
                         type='date'
                         {...register("endDate", {
-                          required: data.validation.endDate.required,
+                          required: "End Date is required",
                         })}
-                        className='h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm outline-none focus:border-green-600'
+                        className={`h-11 w-full rounded-lg border bg-white px-3 text-sm outline-none ${
+                          errors.endDate
+                            ? "border-red-500"
+                            : "border-gray-300 focus:border-green-600"
+                        }`}
                       />
+
+                      {errors.endDate && (
+                        <p className='mt-1 text-xs text-red-500'>
+                          {errors.endDate.message}
+                        </p>
+                      )}
                     </div>
 
                     {/* Lease Term */}
@@ -1416,7 +1572,7 @@ const LandAndLeaseManagement = () => {
                       />
                     </div>
 
-                    {/* Rent */}
+                    {/* Rent / Lease Amount */}
 
                     <div>
                       <label className='mb-1.5 block text-sm font-medium text-gray-700'>
@@ -1432,7 +1588,7 @@ const LandAndLeaseManagement = () => {
                       />
                     </div>
 
-                    {/* Rent Per Acre */}
+                    {/* Rent / Lease Per Acre */}
 
                     <div>
                       <label className='mb-1.5 block text-sm font-medium text-gray-700'>

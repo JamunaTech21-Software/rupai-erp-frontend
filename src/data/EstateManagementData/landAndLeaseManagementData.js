@@ -59,7 +59,28 @@ export const landLeaseManagementData = {
       label: "Disputed",
     },
   ],
-
+  ownershipTypes: [
+    {
+      id: 1,
+      value: "owned",
+      label: "Owned",
+    },
+    {
+      id: 2,
+      value: "leased_in",
+      label: "Leased In",
+    },
+    {
+      id: 3,
+      value: "leased_out",
+      label: "Leased Out",
+    },
+    {
+      id: 4,
+      value: "disputed",
+      label: "Disputed",
+    },
+  ],
   // =========================================================
   // LAND CATEGORY
   // =========================================================
@@ -511,11 +532,20 @@ export const landLeaseManagementData = {
   // =========================================================
 
   mapSettings: {
-    defaultZoom: 16,
-    minZoom: 12,
-    maxZoom: 20,
     center: [25.7456, 89.2741],
-    tileProvider: "OpenStreetMap",
+    defaultZoom: 14,
+
+    streetUrl: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+
+    satelliteUrl:
+      "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+
+    polygon: {
+      color: "#15803d",
+      fillColor: "#22c55e",
+      fillOpacity: 0.4,
+      weight: 2,
+    },
   },
 
   // =========================================================
