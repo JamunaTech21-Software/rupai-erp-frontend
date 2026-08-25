@@ -73,7 +73,7 @@ const AddNewWorker = () => {
 
               <div className='border border-gray-200 rounded-xl bg-white p-3 sm:p-4'>
                 {/* Header */}
-                <div className='flex items-center gap-2 mb-4'>
+                <div className='flex items-center gap-2 mb-6'>
                   <div className='flex items-center justify-center w-7 h-7 rounded-md bg-green-50 text-green-700'>
                     <UserRound size={16} />
                   </div>
@@ -84,7 +84,7 @@ const AddNewWorker = () => {
                 </div>
 
                 {/* Dynamic Fields */}
-                <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-4 gap-y-4'>
+                <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-4 gap-y-6'>
                   {addNewWorkerData.sections.basicInformation.fields.map(
                     (field) => {
                       const options = field.optionsKey
@@ -208,7 +208,7 @@ const AddNewWorker = () => {
 
               <div className='border border-gray-200 rounded-xl bg-white p-3 sm:p-4'>
                 {/* Section Header */}
-                <div className='flex items-center gap-2 mb-4'>
+                <div className='flex items-center gap-2 mb-5'>
                   <div className='flex items-center justify-center w-7 h-7 rounded-md bg-green-50 text-green-700'>
                     <UserRound size={16} />
                   </div>
@@ -219,7 +219,7 @@ const AddNewWorker = () => {
                 </div>
 
                 {/* Dynamic Fields */}
-                <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-4 gap-y-4'>
+                <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-4 gap-y-6'>
                   {addNewWorkerData.sections.employmentInformation.fields.map(
                     (field) => {
                       const options = field.optionsKey
@@ -232,7 +232,7 @@ const AddNewWorker = () => {
                           {/* Label */}
                           <label
                             htmlFor={field.name}
-                            className='block text-xs font-medium text-gray-700 mb-1'
+                            className='block text-xs font-medium text-gray-700 mb-3'
                           >
                             {field.label}
 
@@ -558,7 +558,7 @@ const AddNewWorker = () => {
                     ============================================= */}
 
                       <div className='flex flex-col items-center'>
-                        <div className='w-full h-[145px] rounded-md border border-gray-200 overflow-hidden bg-gray-50'>
+                        <div className='w-full h-40 rounded-md border border-gray-200 overflow-hidden bg-gray-50'>
                           <img
                             src='https://randomuser.me/api/portraits/women/44.jpg'
                             alt='Worker'
@@ -568,7 +568,7 @@ const AddNewWorker = () => {
 
                         <button
                           type='button'
-                          className='w-full mt-2 bg-green-700 hover:bg-green-800 text-white rounded-md py-2 text-[11px] font-medium'
+                          className='w-full mt-10 bg-green-700 hover:bg-green-800 text-white rounded-md py-4 text-[12px] font-medium'
                         >
                           + Change Photo
                         </button>
@@ -578,12 +578,12 @@ const AddNewWorker = () => {
                               BIOMETRIC
                           ============================================= */}
 
-                      <div className='space-y-3'>
+                      <div className='space-y-6'>
                         {addNewWorkerData.sections.photoBiometric.biometric.map(
                           (biometric) => (
                             <div key={biometric.name}>
                               {/* Label */}
-                              <label className='block text-[11px] font-medium text-gray-700 mb-1'>
+                              <label className='block text-[11px] font-medium text-gray-700 mb-2'>
                                 {biometric.label}
                               </label>
 

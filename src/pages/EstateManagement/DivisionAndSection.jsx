@@ -1,6 +1,16 @@
 import React, { useState } from "react";
 import EstateManagementTabs from "../../components/EstateManagement/EstateManagementTabs";
-import { X, RotateCcw, Save, Plus, Pencil, Trash2, Map } from "lucide-react";
+import {
+  X,
+  RotateCcw,
+  Save,
+  Plus,
+  Pencil,
+  Trash2,
+  Map,
+  Search,
+  SlidersHorizontal,
+} from "lucide-react";
 import { useForm } from "react-hook-form";
 import { divisionSectionData } from "../../data/EstateManagementData/divisionAndSectionData";
 import toast from "react-hot-toast";
@@ -8,6 +18,14 @@ import toast from "react-hot-toast";
 const DivisionAndSection = () => {
   const [showDivisionModal, setShowDivisionModal] = useState(false);
   const [showSectionModal, setShowSectionModal] = useState(false);
+
+  const [divisionSearch, setDivisionSearch] = useState("");
+  const [selectedDivision, setSelectedDivision] = useState("");
+  const [divisionStatus, setDivisionStatus] = useState("");
+
+  const [sectionSearch, setSectionSearch] = useState("");
+  const [selectedSectionDivision, setSelectedSectionDivision] = useState("");
+  const [sectionStatus, setSectionStatus] = useState("");
   const {
     register,
     handleSubmit,
@@ -15,6 +33,47 @@ const DivisionAndSection = () => {
     clearErrors,
     formState: { errors, isSubmitting },
   } = useForm();
+  const filteredDivisions = divisionSectionData.divisionList.filter(
+    (division) => {
+      const search = divisionSearch.toLowerCase().trim();
+
+      // Search
+      const matchesSearch =
+        division.divisionName.toLowerCase().includes(search) ||
+        division.divisionCode.toLowerCase().includes(search);
+
+      // Division
+      const matchesDivision =
+        selectedDivision === "" || division.divisionCode === selectedDivision;
+
+      // Status
+      const matchesStatus =
+        divisionStatus === "" || division.status === divisionStatus;
+
+      return matchesSearch && matchesDivision && matchesStatus;
+    },
+  );
+
+  const filteredSections = divisionSectionData.sectionList.filter((section) => {
+    const search = sectionSearch.toLowerCase().trim();
+
+    // Search condition
+    const matchesSearch =
+      section.sectionName.toLowerCase().includes(search) ||
+      section.sectionCode.toLowerCase().includes(search) ||
+      section.division.toLowerCase().includes(search);
+
+    // Division condition
+    const matchesDivision =
+      selectedSectionDivision === "" ||
+      section.division === selectedSectionDivision;
+
+    // Status condition
+    const matchesStatus =
+      sectionStatus === "" || section.status === sectionStatus;
+
+    return matchesSearch && matchesDivision && matchesStatus;
+  });
   const {
     register: registerSection,
     handleSubmit: handleSubmitSection,
@@ -76,7 +135,70 @@ const DivisionAndSection = () => {
                 </button>
               </div>
             </div>
+            {/* Division Search */}
+            <div className='border-b border-gray-200 p-3 sm:p-4'>
+              <div className='grid grid-cols-1 gap-3 md:grid-cols-12'>
+                {/* Search */}
+                <div className='relative md:col-span-5'>
+                  <Search
+                    size={18}
+                    className='absolute left-3 top-1/2 -translate-y-1/2 text-gray-400'
+                  />
 
+                  <input
+                    type='text'
+                    value={divisionSearch}
+                    onChange={(e) => setDivisionSearch(e.target.value)}
+                    placeholder='Search division...'
+                    className='h-11 w-full rounded-lg border border-gray-300 bg-white pl-10 pr-3 text-sm outline-none focus:border-green-600'
+                  />
+                </div>
+
+                {/* Division */}
+                <div className='md:col-span-3'>
+                  <select
+                    value={selectedDivision}
+                    onChange={(e) => setSelectedDivision(e.target.value)}
+                    className='h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-700 outline-none focus:border-green-600'
+                  >
+                    <option value=''>All Division</option>
+
+                    {divisionSectionData.divisionList.map((division) => (
+                      <option key={division.id} value={division.divisionCode}>
+                        {division.divisionName}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Status */}
+                <div className='md:col-span-3'>
+                  <select
+                    value={divisionStatus}
+                    onChange={(e) => setDivisionStatus(e.target.value)}
+                    className='h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-700 outline-none focus:border-green-600'
+                  >
+                    <option value=''>All Status</option>
+
+                    {divisionSectionData.divisionStatusOptions.map((status) => (
+                      <option key={status.id} value={status.value}>
+                        {status.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Filter */}
+                <div className='md:col-span-1'>
+                  <button
+                    type='button'
+                    className='flex h-11 w-full items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-600 hover:bg-gray-50'
+                  >
+                    <SlidersHorizontal size={18} />
+                  </button>
+                </div>
+              </div>
+            </div>
             <div className='max-h-78 overflow-auto'>
               <table className='min-w-full border border-gray-200 border-collapse'>
                 <thead className='border border-gray-200 bg-gray-50 px-2 py-3 text-left text-sm font-regular text-gray-700'>
@@ -99,7 +221,7 @@ const DivisionAndSection = () => {
                 </thead>
 
                 <tbody>
-                  {divisionSectionData.divisionList.map((division, index) => (
+                  {filteredDivisions.map((division, index) => (
                     <tr key={division.id} className='hover:bg-gray-50'>
                       {/* SL */}
                       <td className='border border-gray-200 px-4 py-3 text-sm text-center'>
@@ -172,6 +294,7 @@ const DivisionAndSection = () => {
 
           {/* ================= Section List ================= */}
           <div className='rounded-xl bg-white shadow-sm'>
+            {/* Section Header */}
             <div className='border-b bg-green-50 px-4 py-3 sm:px-6 sm:py-4'>
               <div className='flex w-full flex-col items-center gap-3 sm:flex-row sm:items-center sm:justify-between'>
                 <h2 className='text-center text-lg font-semibold text-green-800'>
@@ -189,8 +312,80 @@ const DivisionAndSection = () => {
               </div>
             </div>
 
+            {/* Search + Division + Status + Filter */}
+            <div className='border-b border-gray-200 p-3 sm:p-4'>
+              <div className='grid grid-cols-1 gap-3 md:grid-cols-12'>
+                {/* Search */}
+                <div className='relative md:col-span-5'>
+                  <Search
+                    size={18}
+                    className='absolute left-3 top-1/2 -translate-y-1/2 text-gray-400'
+                  />
+
+                  <input
+                    type='text'
+                    value={sectionSearch}
+                    onChange={(e) => setSectionSearch(e.target.value)}
+                    placeholder='Search section...'
+                    className='h-11 w-full rounded-lg border border-gray-300 bg-white pl-10 pr-3 text-sm outline-none focus:border-green-600'
+                  />
+                </div>
+
+                {/* Division */}
+                <div className='md:col-span-3'>
+                  <select
+                    value={selectedSectionDivision}
+                    onChange={(e) => setSelectedSectionDivision(e.target.value)}
+                    className='h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-700 outline-none focus:border-green-600'
+                  >
+                    <option value=''>All Division</option>
+
+                    {divisionSectionData.divisionList.map((division) => (
+                      <option key={division.id} value={division.divisionName}>
+                        {division.divisionName}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Status */}
+                <div className='md:col-span-3'>
+                  <select
+                    value={sectionStatus}
+                    onChange={(e) => setSectionStatus(e.target.value)}
+                    className='h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-700 outline-none focus:border-green-600'
+                  >
+                    <option value=''>All Status</option>
+
+                    {divisionSectionData.sectionStatusOptions.map((status) => (
+                      <option key={status.id} value={status.value}>
+                        {status.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Filter Icon */}
+                <div className='md:col-span-1'>
+                  <button
+                    type='button'
+                    onClick={() => {
+                      setSectionSearch("");
+                      setSelectedSectionDivision("");
+                      setSectionStatus("");
+                    }}
+                    title='Reset Filters'
+                    className='flex h-11 w-full items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-600 hover:bg-gray-50'
+                  >
+                    <SlidersHorizontal size={18} />
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Section Table */}
             <div className='max-h-78 overflow-auto'>
-              <table className='min-w-full border border-gray-200 border-collapse'>
+              <table className='min-w-full border-collapse border border-gray-200'>
                 <thead className='bg-gray-50'>
                   <tr>
                     {divisionSectionData.sectionTableHeaders.map((header) => (
@@ -212,83 +407,95 @@ const DivisionAndSection = () => {
                 </thead>
 
                 <tbody>
-                  {divisionSectionData.sectionList.map((section, index) => (
-                    <tr key={section.id} className='hover:bg-gray-50'>
-                      {/* SL */}
-                      <td className='border border-gray-200 px-3 py-3 text-center text-sm'>
-                        {index + 1}
-                      </td>
+                  {filteredSections.length > 0 ? (
+                    filteredSections.map((section, index) => (
+                      <tr key={section.id} className='hover:bg-gray-50'>
+                        {/* SL */}
+                        <td className='border border-gray-200 px-3 py-3 text-center text-sm'>
+                          {index + 1}
+                        </td>
 
-                      {/* Division */}
-                      <td className='border border-gray-200 px-3 py-3 text-sm'>
-                        {section.division}
-                      </td>
+                        {/* Division */}
+                        <td className='border border-gray-200 px-3 py-3 text-sm'>
+                          {section.division}
+                        </td>
 
-                      {/* Section Name */}
-                      <td className='border border-gray-200 px-3 py-3 text-sm font-medium text-gray-800'>
-                        {section.sectionName}
-                      </td>
+                        {/* Section Name */}
+                        <td className='border border-gray-200 px-3 py-3 text-sm font-medium text-gray-800'>
+                          {section.sectionName}
+                        </td>
 
-                      {/* Section Code */}
-                      <td className='border border-gray-200 px-3 py-3 text-sm'>
-                        {section.sectionCode}
-                      </td>
+                        {/* Section Code */}
+                        <td className='border border-gray-200 px-3 py-3 text-sm'>
+                          {section.sectionCode}
+                        </td>
 
-                      {/* Parent Section */}
-                      <td className='border border-gray-200 px-3 py-3 text-sm'>
-                        {section.parentSection}
-                      </td>
+                        {/* Parent Section */}
+                        <td className='border border-gray-200 px-3 py-3 text-sm'>
+                          {section.parentSection}
+                        </td>
 
-                      {/* Total Area */}
-                      <td className='border border-gray-200 px-3 py-3 text-sm'>
-                        {section.totalArea.toFixed(2)}
-                      </td>
+                        {/* Total Area */}
+                        <td className='border border-gray-200 px-3 py-3 text-sm'>
+                          {section.totalArea.toFixed(2)}
+                        </td>
 
-                      {/* Manager */}
-                      <td className='border border-gray-200 px-3 py-3 text-sm'>
-                        {section.manager}
-                      </td>
+                        {/* Manager */}
+                        <td className='border border-gray-200 px-3 py-3 text-sm'>
+                          {section.manager}
+                        </td>
 
-                      {/* Status */}
-                      <td className='border border-gray-200 px-3 py-3 text-center'>
-                        <span
-                          className={`inline-flex rounded-full px-3 py-1 text-xs font-medium ${
-                            section.status === "Active"
-                              ? "bg-green-100 text-green-700"
-                              : "bg-gray-100 text-gray-600"
-                          }`}
-                        >
-                          {section.status}
-                        </span>
-                      </td>
-
-                      {/* Action */}
-                      <td className='border border-gray-200 px-3 py-3'>
-                        <div className='flex items-center justify-center gap-3'>
-                          <button
-                            type='button'
-                            className='cursor-pointer text-blue-600 hover:text-blue-800'
+                        {/* Status */}
+                        <td className='border border-gray-200 px-3 py-3 text-center'>
+                          <span
+                            className={`inline-flex rounded-full px-3 py-1 text-xs font-medium ${
+                              section.status === "Active"
+                                ? "bg-green-100 text-green-700"
+                                : "bg-gray-100 text-gray-600"
+                            }`}
                           >
-                            <Pencil size={18} />
-                          </button>
+                            {section.status}
+                          </span>
+                        </td>
 
-                          <button
-                            type='button'
-                            className='cursor-pointer text-red-600 hover:text-red-800'
-                          >
-                            <Trash2 size={18} />
-                          </button>
-                        </div>
+                        {/* Action */}
+                        <td className='border border-gray-200 px-3 py-3'>
+                          <div className='flex items-center justify-center gap-3'>
+                            <button
+                              type='button'
+                              className='cursor-pointer text-blue-600 hover:text-blue-800'
+                            >
+                              <Pencil size={18} />
+                            </button>
+
+                            <button
+                              type='button'
+                              className='cursor-pointer text-red-600 hover:text-red-800'
+                            >
+                              <Trash2 size={18} />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td
+                        colSpan={divisionSectionData.sectionTableHeaders.length}
+                        className='border border-gray-200 px-4 py-8 text-center text-sm text-gray-500'
+                      >
+                        No section found
                       </td>
                     </tr>
-                  ))}
+                  )}
                 </tbody>
               </table>
 
+              {/* Entry Count */}
               <div className='flex items-center justify-between border-t border-gray-200 px-4 py-3 text-sm text-gray-600'>
                 <p>
-                  Showing 1 to {divisionSectionData.sectionList.length} of{" "}
-                  {divisionSectionData.sectionList.length} entries
+                  Showing {filteredSections.length > 0 ? 1 : 0} to{" "}
+                  {filteredSections.length} of {filteredSections.length} entries
                 </p>
               </div>
             </div>

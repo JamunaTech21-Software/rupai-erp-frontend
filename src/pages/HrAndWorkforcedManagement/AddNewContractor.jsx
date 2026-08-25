@@ -744,7 +744,6 @@ const AddNewContractor = () => {
           </div>
 
           {/* ================= ADDITIONAL IMPORTANT INFORMATION ================= */}
-          {/* ================= ADDITIONAL IMPORTANT INFORMATION ================= */}
           <div className='col-span-12 xl:col-span-4 border rounded-xl p-2'>
             {/* HEADER */}
             <h3 className='font-semibold mb-3 text-green-700'>

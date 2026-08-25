@@ -775,7 +775,7 @@ const LandAndLeaseManagement = () => {
                         {payment.dueDate}
                       </td>
 
-                      <td className='whitespace-nowrap border border-gray-200 px-2 py-2 text-right'>
+                      <td className='whitespace-nowrap border border-gray-200 px-2 py-2 text-center'>
                         {payment.amount}
                       </td>
 

@@ -1,4 +1,5 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import HrWorkforceTabs from "../../components/HrWorkforceTabs/HrWorkforceTabs";
 import { contractorManagementData } from "../../data/HrWorkforceData/contractorManagementData.js";
@@ -83,6 +84,7 @@ const styleMap = {
   },
 };
 const ContractorManagement = () => {
+  const navigate = useNavigate();
   const {
     register,
     handleSubmit,
@@ -120,10 +122,10 @@ const ContractorManagement = () => {
                   ================================================ */}
               <button
                 type='button'
-                className='flex items-center justify-center gap-2 rounded-lg bg-green-700 px-4 py-2 text-xs font-medium text-white transition hover:bg-green-800'
+                onClick={() => navigate("/add-new-contractor")}
+                className='flex items-center cursor-pointer justify-center gap-2 rounded-lg bg-green-700 px-4 py-2 text-xs font-medium text-white'
               >
-                <span className='text-base leading-none'>+</span>
-
+                <span>+</span>
                 <span>Add New Contractor</span>
               </button>
 

@@ -13,6 +13,48 @@ export const contractorManagementData = {
     { id: 1, value: "dhaka", label: "Dhaka" },
     { id: 2, value: "chattogram", label: "Chattogram" },
   ],
+  relationOptions: [
+  {
+    id: 1,
+    value: "father",
+    label: "Father",
+  },
+  {
+    id: 2,
+    value: "mother",
+    label: "Mother",
+  },
+  {
+    id: 3,
+    value: "spouse",
+    label: "Spouse",
+  },
+  {
+    id: 4,
+    value: "brother",
+    label: "Brother",
+  },
+  {
+    id: 5,
+    value: "sister",
+    label: "Sister",
+  },
+  {
+    id: 6,
+    value: "son",
+    label: "Son",
+  },
+  {
+    id: 7,
+    value: "daughter",
+    label: "Daughter",
+  },
+  {
+    id: 8,
+    value: "other",
+    label: "Other",
+  },
+],
   paymentTermsOptions: [
     { id: 1, value: "advance", label: "Advance Payment" },
     { id: 2, value: "monthly", label: "Monthly" },
