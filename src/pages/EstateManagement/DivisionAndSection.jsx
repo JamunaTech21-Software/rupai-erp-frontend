@@ -33,6 +33,7 @@ const DivisionAndSection = () => {
     clearErrors,
     formState: { errors, isSubmitting },
   } = useForm();
+  // Filter Divison
   const filteredDivisions = divisionSectionData.divisionList.filter(
     (division) => {
       const search = divisionSearch.toLowerCase().trim();
@@ -53,6 +54,7 @@ const DivisionAndSection = () => {
       return matchesSearch && matchesDivision && matchesStatus;
     },
   );
+  // Filter Section
 
   const filteredSections = divisionSectionData.sectionList.filter((section) => {
     const search = sectionSearch.toLowerCase().trim();
@@ -74,6 +76,9 @@ const DivisionAndSection = () => {
 
     return matchesSearch && matchesDivision && matchesStatus;
   });
+
+  // useForm
+
   const {
     register: registerSection,
     handleSubmit: handleSubmitSection,
@@ -81,6 +86,8 @@ const DivisionAndSection = () => {
     clearErrors: clearSectionErrors,
     formState: { errors: sectionErrors, isSubmitting: sectionSubmitting },
   } = useForm();
+  // submitDivision
+
   const onSubmitDivision = async (data) => {
     try {
       console.log(data);
@@ -94,7 +101,7 @@ const DivisionAndSection = () => {
       console.error(error);
     }
   };
-
+  // submitSection
   const onSubmitSection = async (data) => {
     try {
       console.log(data);
@@ -109,6 +116,7 @@ const DivisionAndSection = () => {
     }
   };
 
+  // Main Component
   return (
     <div className='space-y-6'>
       {/* Top Tabs */}
