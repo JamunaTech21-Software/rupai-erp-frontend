@@ -382,38 +382,91 @@ export const userManagementData = {
   // ==========================
   // User Summary Chart
   // ==========================
-  userSummary: [
-    {
-      role: "Estate Manager",
-      total: 12,
-      color: "#15803d",
-    },
-    {
-      role: "HR Manager",
-      total: 8,
-      color: "#2563eb",
-    },
-    {
-      role: "Field Supervisor",
-      total: 28,
-      color: "#8b5cf6",
-    },
-    {
-      role: "Accounts Officer",
-      total: 15,
-      color: "#f97316",
-    },
-    {
-      role: "Wage Officer",
-      total: 18,
-      color: "#14b8a6",
-    },
-    {
-      role: "Others",
-      total: 47,
-      color: "#d1d5db",
-    },
-  ],
+  userSummary: {
+    "By Role": [
+      {
+        label: "Estate Manager",
+        total: 12,
+        color: "#15803d",
+      },
+      {
+        label: "HR Manager",
+        total: 8,
+        color: "#2563eb",
+      },
+      {
+        label: "Field Supervisor",
+        total: 28,
+        color: "#8b5cf6",
+      },
+      {
+        label: "Accounts Officer",
+        total: 15,
+        color: "#f97316",
+      },
+      {
+        label: "Wage Officer",
+        total: 18,
+        color: "#14b8a6",
+      },
+      {
+        label: "Others",
+        total: 47,
+        color: "#d1d5db",
+      },
+    ],
+
+    "By Department": [
+      {
+        label: "Estate Management",
+        total: 20,
+        color: "#15803d",
+      },
+      {
+        label: "HR & Workforce",
+        total: 15,
+        color: "#2563eb",
+      },
+      {
+        label: "Field Operations",
+        total: 28,
+        color: "#8b5cf6",
+      },
+      {
+        label: "Accounts & Finance",
+        total: 15,
+        color: "#f97316",
+      },
+      {
+        label: "Payroll & Wages",
+        total: 18,
+        color: "#14b8a6",
+      },
+      {
+        label: "Others",
+        total: 32,
+        color: "#d1d5db",
+      },
+    ],
+
+    "By Status": [
+      {
+        label: "Active",
+        total: 104,
+        color: "#16a34a",
+      },
+      {
+        label: "Inactive",
+        total: 18,
+        color: "#f59e0b",
+      },
+      {
+        label: "Suspended",
+        total: 6,
+        color: "#ef4444",
+      },
+    ],
+  },
 
   // ==========================
   // Recent Registration

@@ -41,11 +41,177 @@ const iconMap = {
 };
 
 const UserManagement = () => {
+  // ==========================
+  // Filter Configuration
+  // ==========================
+
+  // Get individual filter configurations from userManagementData
   const { search, role, department, status, userType, dateRange } =
     userManagementData.filters;
 
+  // Combine all dropdown filters into one array
   const filterItems = [role, department, status, userType];
+
+  // ==========================
+  // UI States
+  // ==========================
+
+  // Controls Add New User modal visibility
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // ==========================
+  // Date Range State
+  // ==========================
+
+  // Stores selected start and end dates
+  const [dateRangeValue, setDateRangeValue] = useState([null, null]);
+
+  // Separate start and end date from the selected range
+  const [startDate, endDate] = dateRangeValue;
+
+  // ==========================
+  // Search & Filter State
+  // ==========================
+
+  // Stores the filtered users that will be displayed in the table
+  const [filteredUsers, setFilteredUsers] = useState(userManagementData.users);
+  // ==========================
+  // Active tab states
+  // ==========================
+  const [activeTab, setActiveTab] = useState("User List");
+
+  // ==========================
+  // User Summary State
+  // ==========================
+
+  // Controls User Summary view:
+  // By Role / By Department / By Status
+  const [summaryBy, setSummaryBy] = useState("By Role");
+
+  // ==========================
+  // Main Filter State
+  // ==========================
+
+  // Stores all selected search/filter values
+  const [filters, setFilters] = useState({
+    search: "",
+    role: "All Roles",
+    department: "All Departments",
+    status: "All Status",
+    userType: "All Types",
+    startDate: null,
+    endDate: null,
+  });
+
+  // ==========================
+  // Search & Filter Handler
+  // ==========================
+
+  // Applies all selected filters to the user list
+  const handleSearch = () => {
+    const results = userManagementData.users.filter((user) => {
+      // Get search text and convert it to lowercase
+      const query = filters.search.trim().toLowerCase();
+
+      // ==========================
+      // Search User
+      // ==========================
+
+      // Search by:
+      // - Name
+      // - Username
+      // - Email
+      const matchesSearch =
+        !query ||
+        [user.name, user.username, user.email].some((value) =>
+          value?.toLowerCase().includes(query),
+        );
+
+      // ==========================
+      // Role Filter
+      // ==========================
+
+      const matchesRole =
+        filters.role === "All Roles" || user.role === filters.role;
+
+      // ==========================
+      // Department Filter
+      // ==========================
+
+      const matchesDepartment =
+        filters.department === "All Departments" ||
+        user.department === filters.department;
+
+      // ==========================
+      // Status Filter
+      // ==========================
+
+      const matchesStatus =
+        filters.status === "All Status" || user.status === filters.status;
+
+      // ==========================
+      // User Type Filter
+      // ==========================
+
+      const matchesUserType =
+        filters.userType === "All Types" || user.userType === filters.userType;
+
+      // ==========================
+      // Combine All Conditions
+      // ==========================
+
+      // User must match ALL selected filters
+      return (
+        matchesSearch &&
+        matchesRole &&
+        matchesDepartment &&
+        matchesStatus &&
+        matchesUserType
+      );
+    });
+
+    // Update table with filtered users
+    setFilteredUsers(results);
+  };
+
+  // ==========================
+  // Reset Filter Handler
+  // ==========================
+
+  // Clears all filters and restores the complete user list
+  const handleReset = () => {
+    // Reset all filter values
+    setFilters({
+      search: "",
+      role: "All Roles",
+      department: "All Departments",
+      status: "All Status",
+      userType: "All Types",
+      startDate: null,
+      endDate: null,
+    });
+
+    // Restore all users in the table
+    setFilteredUsers(userManagementData.users);
+
+    // Clear selected date range
+    setDateRangeValue([null, null]);
+  };
+
+  // ==========================
+  //All user viewer handler
+  // ==========================
+  const handleViewAllUsers = () => {
+    setActiveTab("User List");
+  };
+
+  // ==========================
+  // User Summary Data
+  // ==========================
+
+  // Gets summary data based on selected view:
+  // By Role / By Department / By Status
+  const summaryData = userManagementData.userSummary[summaryBy] || [];
   return (
     <div className='space-y-6'>
       {/* ================= Summary Cards ================= */}
@@ -85,7 +251,7 @@ const UserManagement = () => {
       </section>
       {/* ================= User Filter Section ================= */}
       <section>
-        <div className='rounded-xl border border-gray-200 bg-white p-5 shadow-sm '>
+        <div className='rounded-xl border border-gray-200 bg-white p-5 shadow-sm'>
           {/* Labels */}
           <div className='mb-2 hidden xl:grid xl:grid-cols-12 xl:gap-2'>
             <label className='col-span-2 text-sm font-medium text-gray-700'>
@@ -96,14 +262,18 @@ const UserManagement = () => {
               <label
                 key={item.label}
                 className={`text-sm font-medium text-gray-700 ${
-                  item.label === "Department" ? "col-span-2" : ""
+                  item.label === "Role"
+                    ? "col-span-2"
+                    : item.label === "Department"
+                      ? "col-span-2"
+                      : ""
                 }`}
               >
                 {item.label}
               </label>
             ))}
 
-            <label className='col-span-3 text-sm font-medium text-gray-700'>
+            <label className='col-span-2 text-sm font-medium text-gray-700'>
               {dateRange.label}
             </label>
 
@@ -112,20 +282,27 @@ const UserManagement = () => {
           </div>
 
           {/* Fields */}
-          <div className='grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-12 xl:gap-2'>
+          <div className='grid grid-cols-1 gap-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-12 xl:gap-2'>
             {/* Search */}
             <div className='xl:col-span-2'>
               <label className='mb-1 block text-sm font-medium text-gray-700 xl:hidden'>
                 {search.label}
               </label>
 
-              <label className='flex h-10 cursor-text items-center gap-2 rounded-lg border border-gray-300 px-3'>
-                <Search size={16} className='cursor-text text-gray-500' />
+              <label className='flex h-10 cursor-text items-center gap-2 rounded-lg border border-gray-300 px-2'>
+                <Search size={16} className='text-gray-500' />
 
                 <input
                   type='text'
+                  value={filters.search}
+                  onChange={(e) =>
+                    setFilters({
+                      ...filters,
+                      search: e.target.value,
+                    })
+                  }
                   placeholder={search.placeholder}
-                  className='w-full cursor-text bg-transparent text-sm outline-none'
+                  className='w-full bg-transparent text-sm outline-none'
                 />
               </label>
             </div>
@@ -134,13 +311,26 @@ const UserManagement = () => {
             {filterItems.map((item) => (
               <div
                 key={item.label}
-                className={item.label === "Department" ? "xl:col-span-2" : ""}
+                className={
+                  item.label === "Role" || item.label === "Department"
+                    ? "xl:col-span-2"
+                    : "xl:col-span-1"
+                }
               >
                 <label className='mb-1 block text-sm font-medium text-gray-700 xl:hidden'>
                   {item.label}
                 </label>
 
-                <select className='h-10 w-full cursor-pointer rounded-lg border border-gray-300 bg-white px-3 text-sm outline-none'>
+                <select
+                  value={filters[item.label.toLowerCase()]}
+                  onChange={(e) =>
+                    setFilters({
+                      ...filters,
+                      [item.label.toLowerCase()]: e.target.value,
+                    })
+                  }
+                  className='h-10 w-full cursor-pointer rounded-lg border border-gray-300 bg-white px-1 text-sm outline-none'
+                >
                   {item.options.map((option) => (
                     <option key={option}>{option}</option>
                   ))}
@@ -148,31 +338,36 @@ const UserManagement = () => {
               </div>
             ))}
 
-            {/* Date */}
-            <div className='xl:col-span-3'>
+            {/* Date Range */}
+            <div className='xl:col-span-2'>
               <label className='mb-1 block text-sm font-medium text-gray-700 xl:hidden'>
                 {dateRange.label}
               </label>
 
-              <label className='flex h-10 cursor-pointer items-center gap-2 rounded-lg border border-gray-300 px-3'>
-                <CalendarDays
-                  size={16}
-                  className='cursor-pointer text-gray-500'
+              <div className='date-range-field relative flex h-10 items-center rounded-lg border border-gray-300 bg-white px-2'>
+                <DatePicker
+                  selectsRange
+                  startDate={startDate}
+                  endDate={endDate}
+                  onChange={(update) => {
+                    setDateRangeValue(update);
+                  }}
+                  isClearable
+                  placeholderText='Select date range'
+                  dateFormat='dd/MM/yyyy'
+                  className='w-full cursor-pointer bg-transparent pr-10 text-xs text-gray-600 outline-none'
                 />
-
-                <input
-                  type='text'
-                  value={`${dateRange.start} - ${dateRange.end}`}
-                  className='w-full cursor-pointer bg-transparent text-sm outline-none'
-                />
-              </label>
+              </div>
             </div>
 
             {/* Buttons */}
             {userManagementData.filterButtons.map((button) => (
               <button
                 key={button.id}
-                className={`flex h-10 cursor-pointer items-center justify-center gap-2 rounded-lg px-4 text-sm font-medium transition xl:w-full ${
+                onClick={
+                  button.variant === "primary" ? handleSearch : handleReset
+                }
+                className={`flex h-10 cursor-pointer items-center justify-center gap-2 rounded-lg px-2 text-sm font-medium transition xl:w-full ${
                   button.variant === "primary"
                     ? "bg-green-700 text-white hover:bg-green-800"
                     : "border border-gray-300 bg-white text-gray-700 hover:bg-gray-100"
@@ -193,12 +388,19 @@ const UserManagement = () => {
       {/* ================= User List Section ================= */}
       <section className='grid grid-cols-1 gap-2 xl:grid-cols-12'>
         {/* Left Section */}
-        <div className='w-full xl:col-span-9'>
+        <div className='w-full xl:col-span-12'>
           <div className='flex flex-col gap-4 rounded-lg border border-gray-200 bg-white p-3 lg:flex-row lg:items-center lg:justify-between'>
             {/* ================= Left Tabs ================= */}
             <div className='flex overflow-x-auto whitespace-nowrap scrollbar-hide'>
               <div className='flex items-center gap-3 sm:gap-5'>
-                <button className='shrink-0 border-b-2 border-green-700 pb-1 text-[10px] font-semibold text-green-700 sm:text-xs cursor-pointer'>
+                <button
+                  onClick={() => setActiveTab("User List")}
+                  className={`shrink-0 pb-1 text-[10px] sm:text-xs cursor-pointer ${
+                    activeTab === "User List"
+                      ? "border-b-2 border-green-700 font-semibold text-green-700"
+                      : "font-medium text-gray-600 hover:text-green-700"
+                  }`}
+                >
                   User List
                 </button>
 
@@ -243,7 +445,7 @@ const UserManagement = () => {
           </div>
           {/* ================= User table Section ================= */}
           <div className='mt-4 overflow-hidden rounded-xl border border-gray-200 bg-white'>
-            <div className='overflow-x-auto'>
+            <div className='max-h-[280px] overflow-y-auto overflow-x-auto'>
               <table className='min-w-full'>
                 {/* ================= Table Header ================= */}
                 <thead className='bg-slate-50'>
@@ -268,7 +470,7 @@ const UserManagement = () => {
 
                 {/* ================= Table Body ================= */}
                 <tbody>
-                  {userManagementData.users.map((user, index) => (
+                  {filteredUsers.map((user, index) => (
                     <tr
                       key={user.id}
                       className='border-b border-gray-100 hover:bg-slate-50'
@@ -415,40 +617,45 @@ const UserManagement = () => {
         </div>
 
         {/* ================= Right Section ================= */}
-        <div className='w-full space-y-4 xl:col-span-3'>
+        <div className='grid grid-cols-1 gap-4 xl:col-span-12 xl:grid-cols-12'>
           {/* ================= User Summary ================= */}
-
-          <div className='rounded-xl border border-gray-200 bg-white shadow-sm'>
+          <div className='rounded-xl border border-gray-200 bg-white shadow-sm xl:col-span-6'>
             {/* Header */}
             <div className='flex items-center justify-between border-b border-gray-200 px-4 py-3'>
-              <h3 className='text-sm font-semibold text-slate-800 '>
+              <h3 className='text-xl font-semibold text-green-700'>
                 {userManagementData.summaryPanel.title}
               </h3>
 
-              <select className='rounded-md border border-gray-300 bg-white px-2 py-1 text-xs outline-none cursor-pointer'>
+              <select
+                value={summaryBy}
+                onChange={(e) => setSummaryBy(e.target.value)}
+                className='h-8 rounded-md border border-gray-300 bg-white px-2 text-[14px] text-slate-600 outline-none transition focus:border-green-600'
+              >
                 {userManagementData.summaryPanel.filter.options.map(
                   (option) => (
-                    <option key={option}>{option}</option>
+                    <option key={option} value={option}>
+                      {option}
+                    </option>
                   ),
                 )}
               </select>
             </div>
 
             {/* Chart + Legend */}
-            <div className='flex items-center gap-1 px-2 py-3 '>
+            <div className='flex items-center gap-3 px-4 py-4'>
               {/* Pie Chart */}
-              <div className='flex shrink-0 items-center justify-center cursor-pointer'>
-                <PieChart width={135} height={135}>
+              <div className='flex shrink-0 items-center justify-center'>
+                <PieChart width={125} height={125}>
                   <Pie
-                    data={userManagementData.userSummary}
+                    data={summaryData}
                     cx='50%'
                     cy='50%'
-                    innerRadius={32}
-                    outerRadius={48}
-                    paddingAngle={2}
+                    innerRadius={40}
+                    outerRadius={55}
+                    paddingAngle={1}
                     dataKey='total'
                   >
-                    {userManagementData.userSummary.map((entry, index) => (
+                    {summaryData.map((entry, index) => (
                       <Cell key={index} fill={entry.color} />
                     ))}
                   </Pie>
@@ -457,37 +664,39 @@ const UserManagement = () => {
                     contentStyle={{
                       borderRadius: "8px",
                       border: "1px solid #e5e7eb",
-                      fontSize: "12px",
+                      fontSize: "11px",
                     }}
                   />
                 </PieChart>
               </div>
 
               {/* Legend */}
-              <div className='flex-1 space-y-2'>
-                {userManagementData.userSummary.map((item) => (
+              <div className='ml-5 min-w-0 flex-1 space-y-2.5'>
+                {summaryData.map((item) => (
                   <div
-                    key={item.role}
-                    className='flex items-center justify-between'
+                    key={item.label}
+                    className='flex items-center justify-between gap-2'
                   >
-                    <div className='flex w-[130px] items-center gap-2'>
+                    {/* Label */}
+                    <div className='flex min-w-0 items-center gap-2'>
                       <span
-                        className='h-2.5 w-2.5 rounded-full'
+                        className='h-3 w-2.5 shrink-0 rounded-full'
                         style={{
                           backgroundColor: item.color,
                         }}
                       />
 
-                      <span className='truncate text-[11px] text-slate-600'>
-                        {item.role}
+                      <span className='truncate text-[14px] font-medium text-slate-600'>
+                        {item.label}
                       </span>
                     </div>
 
-                    <span className='text-[11px] font-semibold text-slate-800'>
+                    {/* Total */}
+                    <span className='shrink-0 text-[14px] font-semibold text-slate-800'>
                       {item.total}
 
                       {item.percentage && (
-                        <span className='ml-1 text-[10px] font-normal text-slate-500'>
+                        <span className='ml-1 text-[14px] font-normal text-slate-400'>
                           ({item.percentage})
                         </span>
                       )}
@@ -499,22 +708,25 @@ const UserManagement = () => {
 
             {/* Total Users */}
             <div className='flex items-center justify-center gap-2 border-t border-gray-200 py-3'>
-              <p className='text-sm font-medium text-slate-500'>Total Users:</p>
+              <p className='text-xs font-medium text-slate-500'>Total Users</p>
 
-              <h3 className='text-xl font-bold text-slate-800'>
+              <h3 className='text-lg font-bold text-slate-800'>
                 {userManagementData.pagination.totalUsers}
               </h3>
             </div>
           </div>
           {/* ================= Recent User Registrations ================= */}
-          <div className='rounded-xl border border-gray-200 bg-white shadow-sm'>
+          <div className='xl:col-span-6 rounded-xl border border-gray-200 bg-white shadow-sm'>
             {/* Header */}
             <div className='flex items-center justify-between border-b border-gray-200 px-4 py-3'>
-              <h3 className='text-sm font-semibold text-green-700'>
+              <h3 className='text-xl font-semibold text-green-700'>
                 {userManagementData.recentRegistrations.title}
               </h3>
 
-              <button className='text-xs font-medium text-blue-600 hover:text-blue-700 cursor-pointer'>
+              <button
+                onClick={handleViewAllUsers}
+                className='cursor-pointer text-sm font-medium text-blue-600 hover:text-blue-700'
+              >
                 {userManagementData.recentRegistrations.viewAll}
               </button>
             </div>
@@ -531,19 +743,19 @@ const UserManagement = () => {
                     <img
                       src={user.avatar}
                       alt={user.name}
-                      className='h-8 w-8 rounded-full object-cover cursor-pointer'
+                      className='h-10 w-10 rounded-full object-cover cursor-pointer'
                     />
 
-                    <span className='text-[12px] font-medium text-slate-800 '>
+                    <span className='text-[14px] font-medium text-slate-800 '>
                       {user.name}
                     </span>
                   </div>
 
                   {/* Role */}
-                  <p className='text-[12px] text-slate-500 ml-2'>{user.role}</p>
+                  <p className='text-[14px] text-slate-500 ml-5'>{user.role}</p>
 
                   {/* Date */}
-                  <p className='text-right text-[12px] text-slate-500'>
+                  <p className='text-right text-[14px] text-slate-500'>
                     {user.date}
                   </p>
                 </div>
@@ -551,10 +763,10 @@ const UserManagement = () => {
             </div>
           </div>
           {/* ================= Quick Actions ================= */}
-          <div className='rounded-xl border border-gray-200 bg-white shadow-sm cursor-pointer'>
+          <div className='xl:col-span-6 rounded-xl border border-gray-200 bg-white shadow-sm cursor-pointer'>
             {/* Header */}
-            <div className='border-b border-gray-200 px-4 py-3 cursor-pointer'>
-              <h3 className='text-sm font-semibold text-green-700'>
+            <div className='border-b border-gray-200 px-4 py-4 cursor-pointer'>
+              <h3 className='text-xl font-semibold text-green-700'>
                 {userManagementData.quickActions.title}
               </h3>
             </div>
@@ -567,11 +779,11 @@ const UserManagement = () => {
                 return (
                   <button
                     key={action.id}
-                    className='flex flex-col items-center justify-center rounded-lg border border-gray-200 bg-white px-2 py-3 transition hover:border-green-600 hover:bg-green-50'
+                    className='flex flex-col items-center justify-center rounded-lg border border-gray-200 bg-white px-3 py-4 transition hover:border-green-600 hover:bg-green-50'
                   >
-                    <Icon size={18} className={action.iconColor} />
+                    <Icon size={24} className={action.iconColor} />
 
-                    <span className='mt-2 text-[9px] font-medium leading-3 text-slate-600 text-center'>
+                    <span className='mt-4 text-[12px] font-medium leading-3 text-slate-600 text-center'>
                       {action.title}
                     </span>
                   </button>
@@ -580,7 +792,7 @@ const UserManagement = () => {
             </div>
           </div>
           {/* ================= Important Notes ================= */}
-          <div className='rounded-xl border border-gray-200 bg-white shadow-sm'>
+          <div className='xl:col-span-6 rounded-xl border border-gray-200 bg-white shadow-sm'>
             {/* Header */}
             <div className='border-b border-gray-200 px-4 py-3'>
               <h3 className='text-sm font-semibold text-green-700'>
@@ -597,7 +809,7 @@ const UserManagement = () => {
                     className='mt-0.5 shrink-0 text-green-600'
                   />
 
-                  <p className='text-[11px] leading-5 text-slate-600'>
+                  <p className='text-[14px] font-medium leading-5 text-slate-600'>
                     {note.text}
                   </p>
                 </div>
