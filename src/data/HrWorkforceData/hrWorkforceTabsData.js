@@ -49,4 +49,9 @@ export const hrWorkforceTabs = [
     label: "Shift & Duty Roster Entry Process",
     path: "/shift-and-duty-roster-entry-process",
   },
+  {
+    id: 11,
+    label: "employee-management",
+    path: "/employee-management",
+  },
 ];

@@ -23,6 +23,7 @@ import LabourAllocation from "./pages/HrAndWorkforcedManagement/LabourAllocation
 import LabourAllocationEntry from "./pages/HrAndWorkforcedManagement/LabourAllocationEntry";
 import ShiftAndDutyRosterEntryProcess from "./pages/HrAndWorkforcedManagement/ShiftAndDutyRosterEntryProcess";
 import ShiftAndDutyRoster from "./pages/HrAndWorkforcedManagement/ShiftAndDutyRoster";
+import EmployeeManagement from "./pages/HrAndWorkforcedManagement/EmployeeManagement";
 
 const router = createBrowserRouter([
   {
@@ -180,6 +181,13 @@ const router = createBrowserRouter([
         element: <ShiftAndDutyRoster />,
         handle: {
           title: "Shift and Duty Roster",
+        },
+      },
+      {
+        path: "employee-management",
+        element: <EmployeeManagement />,
+        handle: {
+          title: "Employee Management",
         },
       },
 

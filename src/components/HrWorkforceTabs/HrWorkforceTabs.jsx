@@ -3,7 +3,7 @@ import { hrWorkforceTabs } from "../../data/HrWorkforceData/hrWorkforceTabsData"
 
 const HrWorkforceTabs = () => {
   return (
-    <div className='mb-4 grid grid-cols-2 gap-1 md:grid-cols-3 xl:grid-cols-5'>
+    <div className='mb-4 grid grid-cols-2 gap-1 md:grid-cols-3 xl:grid-cols-4'>
       {hrWorkforceTabs.map((tab, index) => (
         <NavLink
           key={tab.id}

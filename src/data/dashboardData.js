@@ -127,6 +127,11 @@ export const navSections = [
             label: "Shift and Duty Roster entry Process",
             path: "/shift-and-duty-roster-entry-process",
           },
+          {
+            id: "employee-management",
+            label: "Employee Management",
+            path: "/employee-management",
+          },
         ],
       },
       {
