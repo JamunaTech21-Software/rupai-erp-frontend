@@ -76,7 +76,7 @@ const EmployeeManagement = () => {
           return (
             <div
               key={card.id}
-              className='flex min-h-28 items-center gap-4 rounded-xl border border-gray-200 bg-white p-4 shadow-sm'
+              className='flex min-h-28 items-center gap-2 rounded-xl border border-gray-200 bg-white p-2 shadow-sm'
             >
               {/* Icon */}
               <div
