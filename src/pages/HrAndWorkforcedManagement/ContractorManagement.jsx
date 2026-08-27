@@ -256,14 +256,14 @@ const ContractorManagement = () => {
                           CONTRACTOR TYPE
                       ================================================ */}
                   <div>
-                    <label className='mb-1.5 block text-[10px] font-medium text-gray-600'>
+                    <label className='mb-3 block text-[10px] font-medium text-gray-600'>
                       Contractor Type
                     </label>
 
                     <div className='relative'>
                       <select
                         {...register("contractorType")}
-                        className='w-full appearance-none rounded-md border border-gray-300 bg-white px-3 py-2 pr-8 text-[11px] text-gray-700 outline-none transition focus:border-green-600'
+                        className='w-full appearance-none rounded-md border border-gray-300 bg-white px-3 py-4 pr-8 text-[11px] text-gray-700 outline-none transition focus:border-green-600'
                       >
                         <option value=''>All Types</option>
 
@@ -566,7 +566,7 @@ const ContractorManagement = () => {
               {/* =================================================
                       PAGINATION
                   ================================================== */}
-              <div className='flex flex-col gap-3 border-t border-gray-200 px-4 py-3 sm:flex-row sm:items-center sm:justify-between'>
+              <div className='flex flex-col gap-2 border-t border-gray-200 px-4 py-3 sm:flex-row sm:items-center sm:justify-between'>
                 {/* ENTRY INFO */}
                 <p className='text-[10px] text-gray-500'>
                   Showing 1 to {contractors.length} of 86 entries
@@ -839,9 +839,6 @@ const ContractorManagement = () => {
               RIGHT SIDE - 4 COLUMNS
           ================================================== */}
           <div className='col-span-12 space-y-4 lg:col-span-4'>
-            {/* =================================================
-                CONTRACTOR PROFILE
-            ================================================== */}
             {/* ===================================================
                     CONTRACTOR PROFILE
                 ==================================================== */}
@@ -850,21 +847,21 @@ const ContractorManagement = () => {
                 {/* =================================================
                       PROFILE HEADER
                   ================================================== */}
-                <div className='flex items-center justify-between border-b border-gray-100 px-4 py-3'>
+                <div className='flex items-center justify-between border-b border-gray-100 px-4 py-8'>
                   <h3 className='text-sm font-semibold text-green-700'>
                     Contractor Profile
                   </h3>
 
                   {/* STATUS */}
                   <span
-                    className={`inline-flex items-center gap-1 rounded-full px-2 py-1 text-[9px] font-medium ${
+                    className={`inline-flex items-center mb-2 gap-2 rounded-full px-2 py-3 text-[9px] font-medium ${
                       contractorProfile.status === "Active"
                         ? "bg-green-50 text-green-700"
                         : "bg-red-50 text-red-600"
                     }`}
                   >
                     <span
-                      className={`h-1.5 w-1.5 rounded-full ${
+                      className={`h-1.5 w-1.5 mb-1 py-1 rounded-full ${
                         contractorProfile.status === "Active"
                           ? "bg-green-600"
                           : "bg-red-500"
