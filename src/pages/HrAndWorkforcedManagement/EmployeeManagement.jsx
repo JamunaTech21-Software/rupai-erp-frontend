@@ -20,10 +20,26 @@ import {
   ArrowRightLeft,
   FileBarChart,
 } from "lucide-react";
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
+import {
+  PieChart,
+  Pie,
+  Cell,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+  Bar,
+  BarChart,
+} from "recharts";
 const EmployeeManagement = () => {
-  const { employeesByEmploymentType } = employeeManagementData;
-  const { recentJoiners } = employeeManagementData;
+  const {
+    employeesByEmploymentType,
+    genderDistribution,
+    recentJoiners,
+    ageGroupDistribution,
+    lengthOfService,
+  } = employeeManagementData;
+
   // =========================================================
   // Summary Icons
   // =========================================================
@@ -729,7 +745,7 @@ const EmployeeManagement = () => {
         </div>
 
         {/* ================= Recent Joiners ================= */}
-        <div className='rounded-xl border border-gray-200 bg-white shadow-sm lg:col-span-3'>
+        <div className='rounded-xl border border-gray-200 bg-white shadow-sm lg:col-span-4'>
           {/* Header */}
           <div className='flex items-center justify-between border-b border-gray-200 px-3 py-2.5'>
             <h3 className='text-sm font-semibold text-green-800'>
@@ -794,7 +810,7 @@ const EmployeeManagement = () => {
         </div>
 
         {/* ================= Quick Actions ================= */}
-        <div className='rounded-xl border border-gray-200 bg-white shadow-sm lg:col-span-3'>
+        <div className='rounded-xl border border-gray-200 bg-white shadow-sm lg:col-span-2'>
           {/* Header */}
           <div className='border-b border-gray-200 px-3 py-2.5'>
             <h3 className='text-sm font-semibold text-green-800'>
@@ -855,43 +871,288 @@ const EmployeeManagement = () => {
       {/* ========================================================= */}
       {/* Bottom Analytics */}
       {/* ========================================================= */}
-      <section className='grid grid-cols-1 gap-4 lg:grid-cols-12'>
+      <section className='grid grid-cols-1 gap-2 lg:grid-cols-12'>
         {/* ================= Gender Distribution ================= */}
         <div className='rounded-xl border border-gray-200 bg-white shadow-sm lg:col-span-3'>
-          <div className='border-b border-gray-200 p-4'>
-            {/* Dynamic Header */}
+          {/* Header */}
+          <div className='border-b border-gray-200 px-4 py-3'>
+            <h3 className='text-xs font-semibold text-green-800'>
+              {genderDistribution.title}
+            </h3>
           </div>
 
-          <div className='p-4'>{/* Dynamic Gender Distribution Chart */}</div>
+          {/* Content */}
+          <div className='p-3'>
+            <div className='flex items-center gap-3'>
+              {/* Donut Chart */}
+              <div className='h-[125px] w-[125px] shrink-0'>
+                <ResponsiveContainer width='100%' height='100%'>
+                  <PieChart>
+                    <Pie
+                      data={genderDistribution.data}
+                      dataKey='value'
+                      nameKey='label'
+                      cx='50%'
+                      cy='50%'
+                      innerRadius={32}
+                      outerRadius={50}
+                      paddingAngle={2}
+                    >
+                      {genderDistribution.data.map((item, index) => (
+                        <Cell
+                          key={`gender-${item.label}`}
+                          fill={
+                            index === 0
+                              ? "#3b82f6"
+                              : index === 1
+                                ? "#8b5cf6"
+                                : "#f59e0b"
+                          }
+                        />
+                      ))}
+                    </Pie>
+
+                    <Tooltip />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+
+              {/* Legend */}
+              <div className='min-w-0 flex-1 space-y-2'>
+                {genderDistribution.data.map((item, index) => (
+                  <div
+                    key={item.label}
+                    className='flex items-center justify-between gap-2'
+                  >
+                    <div className='flex min-w-0 items-center gap-2'>
+                      <span
+                        className='h-2 w-2 shrink-0 rounded-sm'
+                        style={{
+                          backgroundColor:
+                            index === 0
+                              ? "#3b82f6"
+                              : index === 1
+                                ? "#8b5cf6"
+                                : "#f59e0b",
+                        }}
+                      />
+
+                      <span className='truncate text-[10px] text-gray-600'>
+                        {item.label}
+                      </span>
+                    </div>
+
+                    <span className='whitespace-nowrap text-[10px] font-medium text-gray-700'>
+                      {item.value} ({item.percentage})
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Total */}
+            <div className='mt-3 border-t border-gray-100 pt-2 text-center'>
+              <p className='text-[10px] font-semibold text-gray-700'>
+                Total: {genderDistribution.total}
+              </p>
+            </div>
+          </div>
         </div>
 
         {/* ================= Age Group Distribution ================= */}
         <div className='rounded-xl border border-gray-200 bg-white shadow-sm lg:col-span-3'>
-          <div className='border-b border-gray-200 p-4'>
-            {/* Dynamic Header */}
+          {/* Header */}
+          <div className='border-b border-gray-200 px-4 py-3'>
+            <h3 className='text-xs font-semibold text-green-800'>
+              {ageGroupDistribution.title}
+            </h3>
           </div>
 
-          <div className='p-4'>
-            {/* Dynamic Age Group Distribution Chart */}
+          {/* Chart */}
+          <div className='px-3 pb-3 pt-2'>
+            <div className='h-[145px] w-full'>
+              <ResponsiveContainer width='100%' height='100%'>
+                <BarChart
+                  data={ageGroupDistribution.data}
+                  margin={{
+                    top: 14,
+                    right: 5,
+                    left: -18,
+                    bottom: 0,
+                  }}
+                >
+                  <XAxis
+                    dataKey='label'
+                    tick={{
+                      fontSize: 8,
+                      fill: "#374151",
+                    }}
+                    axisLine={false}
+                    tickLine={false}
+                  />
+
+                  <YAxis
+                    domain={[0, 140]}
+                    ticks={[0, 35, 70, 105, 140]}
+                    tick={{
+                      fontSize: 8,
+                      fill: "#6b7280",
+                    }}
+                    axisLine={false}
+                    tickLine={false}
+                  />
+
+                  <Tooltip formatter={(value) => [`${value}`, "Employees"]} />
+
+                  <Bar
+                    dataKey='value'
+                    barSize={18}
+                    radius={[2, 2, 0, 0]}
+                    label={{
+                      position: "top",
+                      fontSize: 8,
+                      fontWeight: 600,
+                      fill: "#374151",
+                    }}
+                  >
+                    {ageGroupDistribution.data.map((entry, index) => (
+                      <Cell
+                        key={`age-group-${index}`}
+                        fill={
+                          index === 0
+                            ? "#3b82f6"
+                            : index === 1
+                              ? "#ec4899"
+                              : index === 2
+                                ? "#3b82f6"
+                                : index === 3
+                                  ? "#3b82f6"
+                                  : "#3b82f6"
+                        }
+                      />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+
+            {/* Bottom Divider + Total */}
+            <div className='mt-1 border-t border-gray-100 pt-2 text-center'>
+              <p className='text-[10px] font-semibold text-gray-700'>
+                Total: {ageGroupDistribution.total}
+              </p>
+            </div>
           </div>
         </div>
 
         {/* ================= Length of Service ================= */}
         <div className='rounded-xl border border-gray-200 bg-white shadow-sm lg:col-span-3'>
-          <div className='border-b border-gray-200 p-4'>
-            {/* Dynamic Header */}
+          {/* Header */}
+          <div className='border-b border-gray-200 px-4 py-3'>
+            <h3 className='text-xs font-semibold text-green-800'>
+              {lengthOfService.title}
+            </h3>
           </div>
 
-          <div className='p-4'>{/* Dynamic Length of Service Chart */}</div>
+          {/* Content */}
+          <div className='p-3'>
+            <div className='space-y-2.5'>
+              {lengthOfService.data.map((item) => {
+                const maxValue = Math.max(
+                  ...lengthOfService.data.map((service) => service.value),
+                );
+
+                const width = `${(item.value / maxValue) * 100}%`;
+
+                return (
+                  <div key={item.label} className='flex items-center gap-2'>
+                    {/* Label */}
+                    <div className='w-[58px] shrink-0'>
+                      <p className='whitespace-nowrap text-[9px] text-gray-600'>
+                        {item.label}
+                      </p>
+                    </div>
+
+                    {/* Progress Bar */}
+                    <div className='min-w-0 flex-1'>
+                      <div className='h-2 overflow-hidden rounded-full bg-gray-100'>
+                        <div
+                          className='h-full rounded-full bg-emerald-400'
+                          style={{
+                            width: width,
+                          }}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Value + Percentage */}
+                    <div className='w-[68px] shrink-0 text-right'>
+                      <p className='whitespace-nowrap text-[9px] font-medium text-gray-700'>
+                        {item.value} ({item.percentage})
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Total */}
+            <div className='mt-4 border-t border-gray-100 pt-2 text-center'>
+              <p className='text-[10px] font-semibold text-gray-700'>
+                Total: {lengthOfService.total}
+              </p>
+            </div>
+          </div>
         </div>
 
-        {/* ================= Document Expiry Alerts ================= */}
+        {/* =====================================================
+                  Document Expiry Alerts
+            ====================================================== */}
         <div className='rounded-xl border border-gray-200 bg-white shadow-sm lg:col-span-3'>
-          <div className='border-b border-gray-200 p-4'>
-            {/* Dynamic Header */}
+          {/* Header */}
+          <div className='border-b border-gray-200 px-4 py-3'>
+            <h3 className='text-xs font-semibold text-green-800'>
+              {employeeManagementData.documentExpiryAlerts.title}
+            </h3>
           </div>
 
-          <div className='p-4'>{/* Dynamic Document Expiry Alerts */}</div>
+          {/* Alert List */}
+          <div className='p-4'>
+            <div className='space-y-4'>
+              {employeeManagementData.documentExpiryAlerts.data.map((alert) => (
+                <div
+                  key={alert.id}
+                  className='flex items-center justify-between gap-3'
+                >
+                  {/* Document Name */}
+                  <p className='min-w-0 truncate text-[10px] font-medium text-gray-700'>
+                    {alert.label}
+                  </p>
+
+                  {/* Alert Count */}
+                  <span
+                    className={`flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full px-1.5 text-[9px] font-semibold ${
+                      alert.severity === "danger"
+                        ? "bg-red-100 text-red-600"
+                        : "bg-orange-100 text-orange-600"
+                    }`}
+                  >
+                    {alert.count}
+                  </span>
+                </div>
+              ))}
+            </div>
+
+            {/* View All Alerts */}
+            <div className='mt-5 border-t border-gray-100 pt-3 text-center'>
+              <button
+                type='button'
+                className='rounded-md border border-gray-200 px-4 py-1.5 text-[10px] font-medium text-green-700 transition hover:bg-green-50'
+              >
+                {employeeManagementData.documentExpiryAlerts.action.label}
+              </button>
+            </div>
+          </div>
         </div>
       </section>
     </div>

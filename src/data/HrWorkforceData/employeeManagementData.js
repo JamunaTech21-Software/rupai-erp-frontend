@@ -870,44 +870,6 @@ const employeeManagementData = {
       },
     ],
   },
-  recentJoiners: [
-    {
-      employeeId: "emp-0011",
-      fullName: "Tariqul Islam",
-      designation: "Field Assistant",
-      joinDate: "2026-06-06",
-      avatarUrl: "https://i.pravatar.cc/150?img=11",
-    },
-    {
-      employeeId: "emp-0012",
-      fullName: "Rina Sultana",
-      designation: "HR Assistant",
-      joinDate: "2026-06-05",
-      avatarUrl: "https://i.pravatar.cc/150?img=47",
-    },
-    {
-      employeeId: "emp-0013",
-      fullName: "Biplob Chandra",
-      designation: "Factory Helper",
-      joinDate: "2026-06-04",
-      avatarUrl: "https://i.pravatar.cc/150?img=12",
-    },
-    {
-      employeeId: "emp-0014",
-      fullName: "Kamrul Ahmed",
-      designation: "Field Assistant",
-      joinDate: "2026-06-03",
-      avatarUrl: "https://i.pravatar.cc/150?img=13",
-    },
-    {
-      employeeId: "emp-0015",
-      fullName: "Nayeem Hasan",
-      designation: "Security Officer",
-      joinDate: "2026-06-02",
-      avatarUrl: "https://i.pravatar.cc/150?img=14",
-    },
-  ],
-
   // =========================================================
   // Department Analytics
   // =========================================================
@@ -991,35 +953,35 @@ const employeeManagementData = {
       fullName: "Tariqul Islam",
       designation: "Field Assistant",
       joinDate: "2026-06-06",
-      avatarUrl: "/images/employees/emp-0011.jpg",
+      avatarUrl: "https://i.pravatar.cc/150?img=12",
     },
     {
       employeeId: "emp-0012",
       fullName: "Rina Sultana",
       designation: "HR Assistant",
       joinDate: "2026-06-05",
-      avatarUrl: "/images/employees/emp-0012.jpg",
+      avatarUrl: "https://i.pravatar.cc/150?img=47",
     },
     {
       employeeId: "emp-0013",
       fullName: "Biplob Chandra",
       designation: "Factory Helper",
       joinDate: "2026-06-04",
-      avatarUrl: "/images/employees/emp-0013.jpg",
+      avatarUrl: "https://i.pravatar.cc/150?img=13",
     },
     {
       employeeId: "emp-0014",
       fullName: "Kamrul Ahmed",
       designation: "Field Assistant",
       joinDate: "2026-06-03",
-      avatarUrl: "/images/employees/emp-0014.jpg",
+      avatarUrl: "https://i.pravatar.cc/150?img=14",
     },
     {
       employeeId: "emp-0015",
       fullName: "Nayeem Hasan",
       designation: "Security Officer",
       joinDate: "2026-06-02",
-      avatarUrl: "/images/employees/emp-0015.jpg",
+      avatarUrl: "https://i.pravatar.cc/150?img=15",
     },
   ],
 
@@ -1057,139 +1019,133 @@ const employeeManagementData = {
     },
   ],
 
-  // =========================================================
-  // Gender Distribution
-  // =========================================================
+  // ================= Gender Distribution =================
   genderDistribution: {
+    title: "Gender Distribution",
+
     total: 356,
 
     data: [
       {
-        gender: "male",
         label: "Male",
-        employeeCount: 228,
-        percentage: 64.04,
+        value: 228,
+        percentage: "64.04%",
       },
       {
-        gender: "female",
         label: "Female",
-        employeeCount: 128,
-        percentage: 35.96,
+        value: 128,
+        percentage: "35.96%",
       },
       {
-        gender: "other",
         label: "Other",
-        employeeCount: 0,
-        percentage: 0,
+        value: 0,
+        percentage: "0.00%",
       },
     ],
   },
-
-  // =========================================================
-  // Age Group Distribution
-  // =========================================================
+  // ================= Age Group Distribution =================
   ageGroupDistribution: {
-    total: 356,
+    title: "Age Group Distribution",
 
     data: [
       {
-        ageGroup: "under-25",
         label: "< 25",
-        employeeCount: 32,
+        value: 32,
+        percentage: "8.99%",
       },
       {
-        ageGroup: "25-35",
         label: "25 - 35",
-        employeeCount: 98,
+        value: 98,
+        percentage: "27.53%",
       },
       {
-        ageGroup: "35-45",
         label: "35 - 45",
-        employeeCount: 126,
+        value: 126,
+        percentage: "35.39%",
       },
       {
-        ageGroup: "45-55",
         label: "45 - 55",
-        employeeCount: 72,
+        value: 72,
+        percentage: "20.22%",
       },
       {
-        ageGroup: "55-plus",
         label: "55+",
-        employeeCount: 28,
+        value: 28,
+        percentage: "7.87%",
       },
     ],
-  },
 
-  // =========================================================
-  // Length of Service
-  // =========================================================
-  lengthOfService: {
     total: 356,
+  },
+  // ================= Length Of Service =================
+  lengthOfService: {
+    title: "Length of Service",
 
     data: [
       {
-        range: "0-1",
         label: "0 - 1 Year",
-        employeeCount: 45,
-        percentage: 12.64,
+        value: 45,
+        percentage: "12.64%",
       },
       {
-        range: "1-3",
         label: "1 - 3 Years",
-        employeeCount: 98,
-        percentage: 27.53,
+        value: 98,
+        percentage: "27.53%",
       },
       {
-        range: "3-5",
         label: "3 - 5 Years",
-        employeeCount: 86,
-        percentage: 24.16,
+        value: 86,
+        percentage: "24.16%",
       },
       {
-        range: "5-10",
         label: "5 - 10 Years",
-        employeeCount: 78,
-        percentage: 21.91,
+        value: 78,
+        percentage: "21.91%",
       },
       {
-        range: "10-plus",
         label: "10+ Years",
-        employeeCount: 49,
-        percentage: 13.76,
+        value: 49,
+        percentage: "13.76%",
       },
     ],
-  },
 
-  // =========================================================
-  // Document Expiry Alerts
-  // =========================================================
+    total: 356,
+  },
+  // ================= Document Expiry Alerts =================
   documentExpiryAlerts: {
-    totalAlerts: 19,
+    title: "Document Expiry Alerts",
 
     data: [
       {
-        documentType: "id-card",
+        id: "id-card",
         label: "ID Card",
-        expiringCount: 5,
+        count: 5,
+        severity: "danger",
       },
       {
-        documentType: "work-permit",
+        id: "work-permit",
         label: "Work Permit",
-        expiringCount: 3,
+        count: 3,
+        severity: "warning",
       },
       {
-        documentType: "medical-fitness",
+        id: "medical-fitness",
         label: "Medical Fitness",
-        expiringCount: 7,
+        count: 7,
+        severity: "danger",
       },
       {
-        documentType: "others",
+        id: "others",
         label: "Others",
-        expiringCount: 4,
+        count: 4,
+        severity: "warning",
       },
     ],
-  },
 
+    action: {
+      label: "View All Alerts",
+    },
+  },
   // =========================================================
   // Table Actions
   // =========================================================
