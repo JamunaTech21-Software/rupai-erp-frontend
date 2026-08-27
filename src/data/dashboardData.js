@@ -258,8 +258,11 @@ export const navSections = [
         icon: "Factory",
         expandable: true,
         children: [
-          { id: "production-entry", label: "Production Entry" },
-          { id: "batch-list", label: "Batch List" },
+          {
+            id: "production-entry",
+            label: "Employee Management",
+            path: "/production-entry",
+          },
         ],
       },
       {

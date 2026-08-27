@@ -24,6 +24,7 @@ import LabourAllocationEntry from "./pages/HrAndWorkforcedManagement/LabourAlloc
 import ShiftAndDutyRosterEntryProcess from "./pages/HrAndWorkforcedManagement/ShiftAndDutyRosterEntryProcess";
 import ShiftAndDutyRoster from "./pages/HrAndWorkforcedManagement/ShiftAndDutyRoster";
 import EmployeeManagement from "./pages/HrAndWorkforcedManagement/EmployeeManagement";
+import ProductionEntry from "./pages/FactoryAndManufacturing/ProductionEntry";
 
 const router = createBrowserRouter([
   {
@@ -191,6 +192,15 @@ const router = createBrowserRouter([
         },
       },
 
+      // Factory And Manufacturing
+
+      {
+        path: "production-entry",
+        element: <ProductionEntry />,
+        handle: {
+          title: "Production Entry",
+        },
+      },
       // User Administration
       {
         path: "user-management",
