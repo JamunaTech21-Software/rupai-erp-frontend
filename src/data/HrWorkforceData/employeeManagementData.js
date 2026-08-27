@@ -791,6 +791,122 @@ const employeeManagementData = {
     totalItems: 356,
     totalPages: 36,
   },
+  departmentOverview: {
+    title: "Employees by Department",
+
+    totalEmployees: 356,
+
+    data: [
+      {
+        id: 1,
+        name: "Field Operations",
+        count: 126,
+        percentage: 35.39,
+        color: "#166534",
+      },
+      {
+        id: 2,
+        name: "Estate Management",
+        count: 58,
+        percentage: 16.29,
+        color: "#2563eb",
+      },
+      {
+        id: 3,
+        name: "HR & Admin",
+        count: 46,
+        percentage: 12.92,
+        color: "#a855f7",
+      },
+      {
+        id: 4,
+        name: "Production",
+        count: 45,
+        percentage: 12.64,
+        color: "#f97316",
+      },
+      {
+        id: 5,
+        name: "Accounts & Finance",
+        count: 36,
+        percentage: 10.11,
+        color: "#14b8a6",
+      },
+      {
+        id: 6,
+        name: "Others",
+        count: 45,
+        percentage: 12.64,
+        color: "#94a3b8",
+      },
+    ],
+  },
+  employmentTypeOverview: {
+    title: "Employment Type",
+
+    totalEmployees: 356,
+
+    data: [
+      {
+        id: 1,
+        name: "Permanent",
+        count: 276,
+        percentage: 77.53,
+        color: "#166534",
+      },
+      {
+        id: 2,
+        name: "Contractual",
+        count: 72,
+        percentage: 20.22,
+        color: "#2563eb",
+      },
+      {
+        id: 3,
+        name: "Temporary",
+        count: 8,
+        percentage: 2.25,
+        color: "#d977a8",
+      },
+    ],
+  },
+  recentJoiners: [
+    {
+      employeeId: "emp-0011",
+      fullName: "Tariqul Islam",
+      designation: "Field Assistant",
+      joinDate: "2026-06-06",
+      avatarUrl: "https://i.pravatar.cc/150?img=11",
+    },
+    {
+      employeeId: "emp-0012",
+      fullName: "Rina Sultana",
+      designation: "HR Assistant",
+      joinDate: "2026-06-05",
+      avatarUrl: "https://i.pravatar.cc/150?img=47",
+    },
+    {
+      employeeId: "emp-0013",
+      fullName: "Biplob Chandra",
+      designation: "Factory Helper",
+      joinDate: "2026-06-04",
+      avatarUrl: "https://i.pravatar.cc/150?img=12",
+    },
+    {
+      employeeId: "emp-0014",
+      fullName: "Kamrul Ahmed",
+      designation: "Field Assistant",
+      joinDate: "2026-06-03",
+      avatarUrl: "https://i.pravatar.cc/150?img=13",
+    },
+    {
+      employeeId: "emp-0015",
+      fullName: "Nayeem Hasan",
+      designation: "Security Officer",
+      joinDate: "2026-06-02",
+      avatarUrl: "https://i.pravatar.cc/150?img=14",
+    },
+  ],
 
   // =========================================================
   // Department Analytics

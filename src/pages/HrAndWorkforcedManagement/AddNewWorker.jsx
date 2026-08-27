@@ -843,7 +843,7 @@ const AddNewWorker = () => {
             <div className='xl:col-span-5'>
               <div className='border border-gray-200 rounded-xl bg-white p-3 sm:p-4'>
                 {/* Section Header */}
-                <div className='flex items-center gap-2 mb-4'>
+                <div className='flex items-center gap-3 mb-4'>
                   <div className='flex items-center justify-center w-7 h-7 rounded-md bg-green-50 text-green-700'>
                     <UserRound size={16} />
                   </div>
@@ -855,7 +855,7 @@ const AddNewWorker = () => {
 
                 {/* Table */}
                 <div className='overflow-x-auto'>
-                  <table className='w-full min-w-[620px] text-xs'>
+                  <table className='w-full min-w-155 text-xs'>
                     {/* Table Header */}
                     <thead>
                       <tr className='border-b border-gray-200 bg-gray-50'>
@@ -863,7 +863,7 @@ const AddNewWorker = () => {
                           (header) => (
                             <th
                               key={header.key}
-                              className='px-2 py-2 text-left font-semibold text-gray-600 whitespace-nowrap'
+                              className='px-2 py-3 text-left font-semibold text-gray-600 whitespace-nowrap'
                             >
                               {header.label}
                             </th>
@@ -884,7 +884,7 @@ const AddNewWorker = () => {
                               (header) => (
                                 <td
                                   key={header.key}
-                                  className='px-2 py-2 text-gray-700 whitespace-nowrap'
+                                  className='px-2 py-3 text-gray-700 whitespace-nowrap'
                                 >
                                   {header.key === "action" ? (
                                     <div className='flex items-center gap-2'>
@@ -1194,11 +1194,11 @@ const AddNewWorker = () => {
                 9. SYSTEM INFORMATION
             ========================================================= */}
 
-            <div className='xl:col-span-3'>
-              <div className='border border-gray-200 rounded-xl bg-white p-3 sm:p-4'>
+            <div className='xl:col-span-6'>
+              <div className='border border-gray-200 rounded-xl bg-white p-4 sm:p-4'>
                 {/* Section Header */}
-                <div className='flex items-center gap-2 mb-4'>
-                  <div className='flex items-center justify-center w-7 h-7 rounded-md bg-green-50 text-green-700'>
+                <div className='flex items-center gap-3 mb-8'>
+                  <div className='flex items-center justify-center w-7 h-8 rounded-md bg-green-50 text-green-700'>
                     <Info size={16} />
                   </div>
 
@@ -1208,14 +1208,14 @@ const AddNewWorker = () => {
                 </div>
 
                 {/* Dynamic Fields */}
-                <div className='grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-3'>
+                <div className='grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-4'>
                   {addNewWorkerData.sections.systemInformation.fields.map(
                     (field) => (
                       <div key={field.name}>
                         {/* Label */}
                         <label
                           htmlFor={field.name}
-                          className='block text-xs font-medium text-gray-700 mb-1'
+                          className='block text-xs font-medium text-gray-700 mb-2'
                         >
                           {field.label}
 

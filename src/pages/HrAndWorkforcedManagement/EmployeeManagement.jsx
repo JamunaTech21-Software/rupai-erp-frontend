@@ -17,9 +17,13 @@ import {
   MoreVertical,
   ChevronLeft,
   ChevronRight,
+  ArrowRightLeft,
+  FileBarChart,
 } from "lucide-react";
-
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 const EmployeeManagement = () => {
+  const { employeesByEmploymentType } = employeeManagementData;
+  const { recentJoiners } = employeeManagementData;
   // =========================================================
   // Summary Icons
   // =========================================================
@@ -55,6 +59,12 @@ const EmployeeManagement = () => {
       icon: "text-red-600",
       background: "bg-red-50",
     },
+  };
+  const quickActionIconMap = {
+    addEmployee: Plus,
+    bulkImport: Upload,
+    employeeTransfer: ArrowRightLeft,
+    reports: FileBarChart,
   };
   const navigate = useNavigate();
   return (
@@ -548,43 +558,296 @@ const EmployeeManagement = () => {
       {/* ========================================================= */}
       {/* Department / Employment Type / Recent Joiners / Actions */}
       {/* ========================================================= */}
-      <section className='grid grid-cols-1 gap-4 lg:grid-cols-12'>
+      <section className='grid grid-cols-1 gap-2 lg:grid-cols-12'>
         {/* ================= Employee Department ================= */}
         <div className='rounded-xl border border-gray-200 bg-white shadow-sm lg:col-span-3'>
-          <div className='border-b border-gray-200 p-4'>
-            {/* Dynamic Header */}
+          {/* Header */}
+          <div className='border-b border-gray-200 px-4 py-3'>
+            <h3 className='text-sm font-semibold text-emerald-700'>
+              {employeeManagementData.departmentOverview.title}
+            </h3>
           </div>
 
-          <div className='p-4'>{/* Dynamic Department Chart */}</div>
+          {/* Content */}
+          <div className='p-4'>
+            <div className='grid grid-cols-1 items-center gap-2 sm:grid-cols-2'>
+              {/* ================= Donut Chart ================= */}
+              <div className='h-40 w-full'>
+                <ResponsiveContainer width='100%' height='100%'>
+                  <PieChart>
+                    <Pie
+                      data={employeeManagementData.departmentOverview.data}
+                      dataKey='count'
+                      nameKey='name'
+                      cx='50%'
+                      cy='50%'
+                      innerRadius={35}
+                      outerRadius={55}
+                      paddingAngle={1}
+                      stroke='none'
+                    >
+                      {employeeManagementData.departmentOverview.data.map(
+                        (item) => (
+                          <Cell key={item.id} fill={item.color} />
+                        ),
+                      )}
+                    </Pie>
+
+                    <Tooltip
+                      formatter={(value, name) => [`${value} Employees`, name]}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+
+              {/* ================= Department Legend ================= */}
+              <div className='space-y-2'>
+                {employeeManagementData.departmentOverview.data.map((item) => (
+                  <div
+                    key={item.id}
+                    className='flex items-center justify-between gap-2'
+                  >
+                    {/* Name */}
+                    <div className='flex min-w-0 items-center gap-2'>
+                      <span
+                        className='h-2 w-2 shrink-0 rounded-sm'
+                        style={{
+                          backgroundColor: item.color,
+                        }}
+                      />
+
+                      <span className='truncate text-[10px] font-medium text-gray-600'>
+                        {item.name}
+                      </span>
+                    </div>
+
+                    {/* Count + Percentage */}
+                    <span className='whitespace-nowrap text-[10px] font-semibold text-gray-700'>
+                      {item.count} ({item.percentage}%)
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* ================= Total ================= */}
+            <div className='mt-3 text-center'>
+              <span className='text-xs font-semibold text-gray-700'>
+                Total Employees:{" "}
+                {employeeManagementData.departmentOverview.totalEmployees}
+              </span>
+            </div>
+          </div>
         </div>
 
         {/* ================= Employment Type ================= */}
         <div className='rounded-xl border border-gray-200 bg-white shadow-sm lg:col-span-3'>
-          <div className='border-b border-gray-200 p-4'>
-            {/* Dynamic Header */}
+          {/* Header */}
+          <div className='border-b border-gray-200 p-2'>
+            <h3 className='text-sm font-semibold text-green-800'>
+              Employment Type
+            </h3>
           </div>
 
-          <div className='p-4'>{/* Dynamic Employment Type Chart */}</div>
+          {/* Content */}
+          <div className='p-2'>
+            <div className='flex items-center gap-3'>
+              {/* Donut Chart */}
+              <div className='h-28 w-28 shrink-0'>
+                <ResponsiveContainer width='100%' height='100%'>
+                  <PieChart>
+                    <Pie
+                      data={employeesByEmploymentType.data}
+                      dataKey='employeeCount'
+                      nameKey='label'
+                      cx='50%'
+                      cy='50%'
+                      innerRadius={28}
+                      outerRadius={44}
+                      paddingAngle={2}
+                    >
+                      {employeesByEmploymentType.data.map((item, index) => (
+                        <Cell
+                          key={`cell-${item.type || index}`}
+                          fill={
+                            index === 0
+                              ? "#166534"
+                              : index === 1
+                                ? "#3b82f6"
+                                : "#f9a8d4"
+                          }
+                        />
+                      ))}
+                    </Pie>
+
+                    {/* Tooltip */}
+                    <Tooltip
+                      formatter={(value, name) => [`${value} Employees`, name]}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+
+              {/* Legend */}
+              <div className='flex-1 space-y-3'>
+                {employeesByEmploymentType.data.map((item, index) => (
+                  <div
+                    key={item.type || index}
+                    className='flex items-center justify-between gap-2'
+                  >
+                    <div className='flex items-center gap-2'>
+                      <span
+                        className={`h-2.5 w-2.5 shrink-0 rounded-sm ${
+                          index === 0
+                            ? "bg-green-700"
+                            : index === 1
+                              ? "bg-blue-500"
+                              : "bg-pink-300"
+                        }`}
+                      />
+
+                      <span className='text-xs text-gray-600'>
+                        {item.label}
+                      </span>
+                    </div>
+
+                    <span className='whitespace-nowrap text-xs font-medium text-gray-700'>
+                      {item.employeeCount} ({item.percentage}%)
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Total */}
+            <div className='mt-3 text-center'>
+              <span className='text-xs font-semibold text-gray-700'>
+                Total Employees: {employeesByEmploymentType.total}
+              </span>
+            </div>
+          </div>
         </div>
 
         {/* ================= Recent Joiners ================= */}
         <div className='rounded-xl border border-gray-200 bg-white shadow-sm lg:col-span-3'>
-          <div className='flex items-center justify-between border-b border-gray-200 p-4'>
-            {/* Dynamic Header */}
-            {/* Dynamic View All */}
+          {/* Header */}
+          <div className='flex items-center justify-between border-b border-gray-200 px-3 py-2.5'>
+            <h3 className='text-sm font-semibold text-green-800'>
+              Recent Joiners
+            </h3>
+
+            <button
+              type='button'
+              className='text-xs font-medium text-blue-600 transition hover:text-blue-700'
+            >
+              View All
+            </button>
           </div>
 
-          <div className='p-4'>{/* Dynamic Recent Joiners */}</div>
+          {/* Recent Joiners List */}
+          <div className='p-3'>
+            <div className='space-y-2.5'>
+              {recentJoiners.map((employee) => (
+                <div
+                  key={employee.employeeId}
+                  className='flex items-center gap-2'
+                >
+                  {/* Avatar */}
+                  <div className='h-7 w-7 shrink-0 overflow-hidden rounded-full border border-gray-200 bg-gray-100'>
+                    {employee.avatarUrl ? (
+                      <img
+                        src={employee.avatarUrl}
+                        alt={employee.fullName}
+                        className='h-full w-full object-cover'
+                      />
+                    ) : (
+                      <div className='flex h-full w-full items-center justify-center text-[10px] font-semibold text-gray-500'>
+                        {employee.fullName?.charAt(0)?.toUpperCase()}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Employee Name */}
+                  <div className='min-w-0 flex-1'>
+                    <p className='truncate text-xs font-medium text-gray-800'>
+                      {employee.fullName}
+                    </p>
+                  </div>
+
+                  {/* Designation */}
+                  <div className='w-24 shrink-0'>
+                    <p className='truncate text-[10px] text-gray-500'>
+                      {employee.designation}
+                    </p>
+                  </div>
+
+                  {/* Join Date */}
+                  <div className='w-20 shrink-0 text-right'>
+                    <p className='whitespace-nowrap text-[10px] text-gray-500'>
+                      {employee.joinDate}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
 
         {/* ================= Quick Actions ================= */}
         <div className='rounded-xl border border-gray-200 bg-white shadow-sm lg:col-span-3'>
-          <div className='border-b border-gray-200 p-4'>
-            {/* Dynamic Header */}
+          {/* Header */}
+          <div className='border-b border-gray-200 px-3 py-2.5'>
+            <h3 className='text-sm font-semibold text-green-800'>
+              Quick Actions
+            </h3>
           </div>
 
-          <div className='grid grid-cols-2 gap-3 p-4'>
-            {/* Dynamic Quick Actions */}
+          {/* Actions */}
+          <div className='grid grid-cols-2 gap-2 p-3'>
+            {employeeManagementData.quickActions.map((action) => {
+              const Icon = quickActionIconMap[action.key];
+
+              return (
+                <button
+                  key={action.id}
+                  type='button'
+                  onClick={() => {
+                    if (action.action === "navigate" && action.target) {
+                      navigate(action.target);
+                    }
+
+                    if (action.action === "open-import") {
+                      console.log("Open employee import");
+                    }
+                  }}
+                  className='group flex min-h-[82px] cursor-pointer flex-col items-center justify-center rounded-lg border border-gray-200 bg-white px-2 py-2 transition hover:border-gray-300 hover:bg-gray-50'
+                >
+                  {/* Icon */}
+                  <div className='mb-2 flex h-8 w-8 items-center justify-center'>
+                    {Icon && (
+                      <Icon
+                        size={22}
+                        strokeWidth={2}
+                        className={
+                          action.key === "addEmployee"
+                            ? "text-emerald-600"
+                            : action.key === "bulkImport"
+                              ? "text-blue-600"
+                              : action.key === "employeeTransfer"
+                                ? "text-purple-600"
+                                : "text-orange-500"
+                        }
+                      />
+                    )}
+                  </div>
+
+                  {/* Label */}
+                  <span className='text-center text-[10px] font-medium text-gray-700'>
+                    {action.label}
+                  </span>
+                </button>
+              );
+            })}
           </div>
         </div>
       </section>
