@@ -68,6 +68,10 @@ const ProductionEntry = () => {
     productionSummary,
     productionChecklist,
     productionItemTableHeaders,
+    // Raw Material Modal Options
+    rawMaterialOptions,
+    sourceGardenOptions,
+    uomOptions,
   } = productionEntryData;
 
   // =========================================================
@@ -1464,7 +1468,9 @@ const ProductionEntry = () => {
       {isRawMaterialModalOpen && (
         <div className='fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 px-4'>
           <div className='w-full max-w-2xl overflow-hidden rounded-xl bg-white shadow-2xl'>
-            {/* ================= HEADER ================= */}
+            {/* =====================================================
+                    HEADER
+                ====================================================== */}
             <div className='flex items-center justify-between border-b border-slate-200 px-5 py-4'>
               <div>
                 <h2 className='text-base font-semibold text-emerald-700'>
@@ -1488,14 +1494,20 @@ const ProductionEntry = () => {
               </button>
             </div>
 
-            {/* ================= FORM ================= */}
+            {/* =====================================================
+                    FORM
+                ====================================================== */}
             <form
               onSubmit={handleSubmitRawMaterial(handleAddRawMaterial)}
               className='space-y-5'
             >
-              {/* ================= BODY ================= */}
+              {/* =====================================================
+                      BODY
+                  ====================================================== */}
               <div className='grid grid-cols-1 gap-4 p-5 sm:grid-cols-2'>
-                {/* Raw Material */}
+                {/* =================================================
+                        RAW MATERIAL
+                    ================================================== */}
                 <div>
                   <label className='mb-1.5 block text-sm font-medium text-slate-700'>
                     Raw Material
@@ -1513,10 +1525,13 @@ const ProductionEntry = () => {
                     }`}
                   >
                     <option value=''>Select raw material</option>
-                    <option value='green-leaf'>Green Leaf</option>
-                    <option value='made-tea'>Made Tea</option>
-                    <option value='tea-waste'>Tea Waste</option>
-                    <option value='other'>Other</option>
+
+                    {/* Dynamic Raw Material Options */}
+                    {rawMaterialOptions?.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
                   </select>
 
                   {rawMaterialErrors.rawMaterial && (
@@ -1526,7 +1541,9 @@ const ProductionEntry = () => {
                   )}
                 </div>
 
-                {/* Source Garden */}
+                {/* =================================================
+                        SOURCE GARDEN
+                    ================================================== */}
                 <div>
                   <label className='mb-1.5 block text-sm font-medium text-slate-700'>
                     Source Garden
@@ -1544,10 +1561,13 @@ const ProductionEntry = () => {
                     }`}
                   >
                     <option value=''>Select source garden</option>
-                    <option value='garden-a'>Garden A</option>
-                    <option value='garden-b'>Garden B</option>
-                    <option value='garden-c'>Garden C</option>
-                    <option value='garden-d'>Garden D</option>
+
+                    {/* Dynamic Garden Options */}
+                    {sourceGardenOptions?.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
                   </select>
 
                   {rawMaterialErrors.sourceGarden && (
@@ -1557,7 +1577,9 @@ const ProductionEntry = () => {
                   )}
                 </div>
 
-                {/* Unit */}
+                {/* =================================================
+                        UOM
+                    ================================================== */}
                 <div>
                   <label className='mb-1.5 block text-sm font-medium text-slate-700'>
                     Unit
@@ -1575,10 +1597,13 @@ const ProductionEntry = () => {
                     }`}
                   >
                     <option value=''>Select unit</option>
-                    <option value='kg'>Kg</option>
-                    <option value='ton'>Ton</option>
-                    <option value='liter'>Liter</option>
-                    <option value='piece'>Piece</option>
+
+                    {/* Dynamic UOM Options */}
+                    {uomOptions?.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
                   </select>
 
                   {rawMaterialErrors.uom && (
@@ -1588,7 +1613,9 @@ const ProductionEntry = () => {
                   )}
                 </div>
 
-                {/* Quantity */}
+                {/* =================================================
+                        QUANTITY
+                    ================================================== */}
                 <div>
                   <label className='mb-1.5 block text-sm font-medium text-slate-700'>
                     Quantity
@@ -1602,6 +1629,7 @@ const ProductionEntry = () => {
                     placeholder='Enter quantity'
                     {...registerRawMaterial("quantity", {
                       required: "Quantity is required",
+
                       min: {
                         value: 0,
                         message: "Quantity cannot be negative",
@@ -1621,7 +1649,9 @@ const ProductionEntry = () => {
                   )}
                 </div>
 
-                {/* Average Rate */}
+                {/* =================================================
+                      AVERAGE RATE
+                  ================================================== */}
                 <div className='sm:col-span-2'>
                   <label className='mb-1.5 block text-sm font-medium text-slate-700'>
                     Average Rate
@@ -1653,8 +1683,11 @@ const ProductionEntry = () => {
                 </div>
               </div>
 
-              {/* ================= FOOTER ================= */}
+              {/* =====================================================
+                  FOOTER
+              ====================================================== */}
               <div className='flex flex-col-reverse gap-2 border-t border-slate-200 px-5 py-4 sm:flex-row sm:items-center sm:justify-end'>
+                {/* Cancel */}
                 <button
                   type='button'
                   onClick={() => {
@@ -1667,6 +1700,7 @@ const ProductionEntry = () => {
                   Cancel
                 </button>
 
+                {/* Add Raw Material */}
                 <button
                   type='submit'
                   className='flex h-10 items-center justify-center gap-2 rounded-md bg-emerald-700 px-5 text-sm font-medium text-white transition hover:bg-emerald-800'
