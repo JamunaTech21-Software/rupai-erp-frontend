@@ -260,7 +260,7 @@ export const navSections = [
         children: [
           {
             id: "production-entry",
-            label: "Employee Management",
+            label: "Production Entry",
             path: "/production-entry",
           },
         ],

@@ -1220,7 +1220,7 @@ const ProductionEntry = () => {
       </form>
       {/* =========================================================
                 ADD PRODUCTION ITEM MODAL
-            ========================================================= */}
+          ========================================================= */}
       {isAddItemModalOpen && (
         <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4 py-6'>
           {/* Modal */}
@@ -1245,7 +1245,7 @@ const ProductionEntry = () => {
                   setIsAddItemModalOpen(false);
                   reset();
                 }}
-                className='rounded-md p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-600'
+                className='rounded-md cursor-pointer p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-600'
               >
                 <X className='h-5 w-5' />
               </button>
