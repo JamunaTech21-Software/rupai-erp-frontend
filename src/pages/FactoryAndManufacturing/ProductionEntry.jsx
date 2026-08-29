@@ -1,6 +1,9 @@
 import React, { useState } from "react";
-import { productionEntryData } from "../../data/FactoryAndManufacturing/productionEntryData";
 import { useForm } from "react-hook-form";
+import { productionEntryData } from "../../data/FactoryAndManufacturing/productionEntryData";
+import FactoryAndManufacturingTabs from "./FactoryAndManufacturingTabs";
+
+// react lucide Icons
 import {
   Calendar,
   ChevronDown,
@@ -19,8 +22,6 @@ import {
   Trash2,
 } from "lucide-react";
 
-import FactoryAndManufacturingTabs from "./FactoryAndManufacturingTabs";
-
 const ProductionEntry = () => {
   // =========================================================
   // MODAL & LIST STATES
@@ -33,19 +34,17 @@ const ProductionEntry = () => {
   const [isRawMaterialModalOpen, setIsRawMaterialModalOpen] = useState(false);
 
   // =========================================================
-  // PRODUCTION ITEMS STATE
-  // Loads initial items from JSON and stores newly added items
+  // LIST STATES
   // =========================================================
+
+  // Stores production items
+  // Initial data comes from JSON
   const [productionItems, setProductionItems] = useState(
     productionEntryData.productionItems || [],
   );
 
-  // =========================================================
-  // RAW MATERIAL DETAILS STATE
+  // Stores raw material details
   // Initial data comes from JSON
-  // New raw materials will be added to this state
-  // =========================================================
-
   const [rawMaterialDetails, setRawMaterialDetails] = useState(
     productionEntryData.rawMaterialDetails || [],
   );
@@ -57,6 +56,7 @@ const ProductionEntry = () => {
   // PRODUCTION ENTRY DATA
   // =========================================================
 
+  // Gets required data and options from JSON
   const {
     productionInformation,
     factories,
@@ -68,17 +68,18 @@ const ProductionEntry = () => {
     productionSummary,
     productionChecklist,
     productionItemTableHeaders,
+
     // Raw Material Modal Options
-    rawMaterialOptions,
-    sourceGardenOptions,
-    uomOptions,
+    rawMaterials,
+    sourceGardens,
+    uoms,
   } = productionEntryData;
 
   // =========================================================
   // MAIN PRODUCTION ENTRY FORM
   // =========================================================
 
-  // Main form for the complete Production Entry page
+  // React Hook Form for the main Production Entry form
   const {
     register,
     handleSubmit,
@@ -92,7 +93,7 @@ const ProductionEntry = () => {
   // RAW MATERIAL MODAL FORM
   // =========================================================
 
-  // Separate form instance for the Add Raw Material modal
+  // Separate React Hook Form instance for Raw Material modal
   const {
     register: registerRawMaterial,
     handleSubmit: handleSubmitRawMaterial,
@@ -104,7 +105,7 @@ const ProductionEntry = () => {
   // PRODUCTION ITEM MODAL FORM
   // =========================================================
 
-  // Separate form instance for the Add Production Item modal
+  // Separate React Hook Form instance for Production Item modal
   const {
     register: registerProductionItem,
     handleSubmit: handleSubmitProductionItem,
@@ -113,7 +114,7 @@ const ProductionEntry = () => {
   } = useForm();
 
   // =========================================================
-  // MAIN FORM FUNCTIONS
+  // MAIN FORM HANDLERS
   // =========================================================
 
   // Resets the main Production Entry form
@@ -121,27 +122,27 @@ const ProductionEntry = () => {
     reset();
   };
 
-  // Handles saving the Production Entry as a draft
+  // Gets current main form values and saves them as draft
   const handleSaveDraft = () => {
     const values = getValues();
 
     console.log("Draft Data:", values);
   };
 
-  // Handles the main Production Entry form submission
+  // Handles final Production Entry submission
   const onSubmit = (data) => {
     console.log("Production Entry Data:", data);
   };
 
   // =========================================================
-  // PRODUCTION ITEM MODAL
+  // PRODUCTION ITEM HANDLER
   // =========================================================
 
-  // Handles adding a new Production Item
+  // Adds a new Production Item to the list
   const handleAddProductionItem = (data) => {
     console.log("Production Item Form Data:", data);
 
-    // Creates a new production item object
+    // Create new production item
     const newItem = {
       id: Date.now(),
       ...data,
@@ -149,25 +150,25 @@ const ProductionEntry = () => {
 
     console.log("New Production Item:", newItem);
 
-    // Adds the new item to the production items list
+    // Add new item to existing production items
     setProductionItems((prev) => [...prev, newItem]);
 
-    // Resets the Production Item modal form
+    // Reset modal form
     resetProductionItem();
 
-    // Closes the Production Item modal
+    // Close modal
     setIsAddItemModalOpen(false);
   };
 
   // =========================================================
-  // RAW MATERIAL MODAL
+  // RAW MATERIAL HANDLER
   // =========================================================
 
-  // Handles adding a new Raw Material
+  // Adds a new Raw Material to the list
   const handleAddRawMaterial = (data) => {
-    console.log("Raw Material Data:", data);
+    console.log("Raw Material Form Data:", data);
 
-    // Creates a new raw material object
+    // Create new raw material
     const newMaterial = {
       id: Date.now(),
       ...data,
@@ -175,35 +176,35 @@ const ProductionEntry = () => {
 
     console.log("New Raw Material:", newMaterial);
 
-    // Adds the new material to the raw material list
+    // Add new material to existing raw material list
     setRawMaterialDetails((prev) => [...prev, newMaterial]);
 
-    // Resets the Raw Material modal form
+    // Reset modal form
     resetRawMaterial();
 
-    // Closes the Raw Material modal
+    // Close modal
     setIsRawMaterialModalOpen(false);
   };
 
   // =========================================================
-  // ATTACHMENTS
+  // ATTACHMENTS & NOTES
   // =========================================================
 
-  // Watches the Notes field value
+  // Watches the Notes field
   const notesValue = watch("notes") || "";
 
-  // Handles file selection from the attachment input
+  // Handles file selection
   const handleFileChange = (event) => {
     const files = Array.from(event.target.files);
 
-    // Adds newly selected files to the existing file list
+    // Add selected files to the existing list
     setSelectedFiles((prev) => [...prev, ...files]);
 
-    // Clears the input so the same file can be selected again
+    // Allow selecting the same file again
     event.target.value = "";
   };
 
-  // Handles removing a selected attachment
+  // Removes a selected attachment
   const handleRemoveFile = (index) => {
     setSelectedFiles((prev) =>
       prev.filter((_, fileIndex) => fileIndex !== index),
@@ -1527,9 +1528,9 @@ const ProductionEntry = () => {
                     <option value=''>Select raw material</option>
 
                     {/* Dynamic Raw Material Options */}
-                    {rawMaterialOptions?.map((option) => (
-                      <option key={option.value} value={option.value}>
-                        {option.label}
+                    {rawMaterials?.map((material) => (
+                      <option key={material.id} value={material.id}>
+                        {material.name}
                       </option>
                     ))}
                   </select>
@@ -1563,9 +1564,9 @@ const ProductionEntry = () => {
                     <option value=''>Select source garden</option>
 
                     {/* Dynamic Garden Options */}
-                    {sourceGardenOptions?.map((option) => (
-                      <option key={option.value} value={option.value}>
-                        {option.label}
+                    {sourceGardens?.map((garden) => (
+                      <option key={garden.id} value={garden.id}>
+                        {garden.name}
                       </option>
                     ))}
                   </select>
@@ -1599,9 +1600,9 @@ const ProductionEntry = () => {
                     <option value=''>Select unit</option>
 
                     {/* Dynamic UOM Options */}
-                    {uomOptions?.map((option) => (
-                      <option key={option.value} value={option.value}>
-                        {option.label}
+                    {uoms?.map((uom) => (
+                      <option key={uom.id} value={uom.id}>
+                        {uom.name}
                       </option>
                     ))}
                   </select>
