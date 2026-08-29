@@ -253,7 +253,21 @@ export const productionEntryData = {
       defaultUom: "Kg",
     },
   ],
+  // =========================================================
+  // PRODUCTION ITEM TABLE HEADERS
+  // =========================================================
 
+  productionItemTableHeaders: [
+    "SL",
+    "Item / Product",
+    "Grade",
+    "UOM",
+    "Raw Material Used",
+    "Quantity Produced",
+    "Rejected / Waste",
+    "Net Output",
+    "Action",
+  ],
   // =========================================================
   // PRODUCTION ITEMS
   // =========================================================
