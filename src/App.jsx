@@ -25,6 +25,7 @@ import ShiftAndDutyRosterEntryProcess from "./pages/HrAndWorkforcedManagement/Sh
 import ShiftAndDutyRoster from "./pages/HrAndWorkforcedManagement/ShiftAndDutyRoster";
 import EmployeeManagement from "./pages/HrAndWorkforcedManagement/EmployeeManagement";
 import ProductionEntry from "./pages/FactoryAndManufacturing/ProductionEntry";
+import MasterDataDashboard from "./pages/MasterData/MasterDataDashboard";
 
 const router = createBrowserRouter([
   {
@@ -200,6 +201,20 @@ const router = createBrowserRouter([
         handle: {
           title: "Production Entry",
         },
+      },
+
+      // Master Data Dashboard
+      {
+        path: "master-data-dashboard",
+        children: [
+          {
+            index: true,
+            element: <MasterDataDashboard />,
+            handle: {
+              title: "Master Data Dashboard",
+            },
+          },
+        ],
       },
       // User Administration
       {

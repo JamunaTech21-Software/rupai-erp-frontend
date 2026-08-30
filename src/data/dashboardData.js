@@ -5,6 +5,7 @@ export const navSections = [
   },
   {
     items: [
+      // Estate Management
       {
         id: "estate-mgmt",
         label: "Estate Management",
@@ -38,6 +39,8 @@ export const navSections = [
           },
         ],
       },
+
+      // Plantation Management
       {
         id: "Plantation-mgmt",
         label: "Plantation Management",
@@ -71,6 +74,8 @@ export const navSections = [
           },
         ],
       },
+
+      // HR and Workforce Management
       {
         id: "hr-&-workforce-management",
         label: "HR & Workforce Management",
@@ -134,6 +139,8 @@ export const navSections = [
           },
         ],
       },
+
+      // Replanting and Gap Filling
       {
         id: "replanting",
         label: "Replanting & Gap Filling",
@@ -144,6 +151,7 @@ export const navSections = [
           { id: "gap-filling", label: "Gap Filling" },
         ],
       },
+      // Plant Cencus
       {
         id: "plant-census",
         label: "Plant Census",
@@ -154,6 +162,7 @@ export const navSections = [
           { id: "census-report", label: "Census Report" },
         ],
       },
+      // Bush Register
       {
         id: "bush-register",
         label: "Bush Register",
@@ -166,6 +175,26 @@ export const navSections = [
       },
     ],
   },
+  // Master Data
+  {
+    label: "Master Data",
+    items: [
+      {
+        id: "master-data",
+        label: "Master Data",
+        icon: "Database",
+        expandable: true,
+        children: [
+          {
+            id: "master-data-dashboard",
+            label: "Master Data Dashboard",
+            path: "/master-data-dashboard",
+          },
+        ],
+      },
+    ],
+  },
+  // Nuresery Management
   {
     label: "Nursery Management",
     items: [
@@ -192,6 +221,8 @@ export const navSections = [
       },
     ],
   },
+
+  // Work Force Management
   {
     label: "Workforce Management",
     items: [
@@ -239,6 +270,8 @@ export const navSections = [
       },
     ],
   },
+
+  // Production Management
   {
     label: "Production Management",
     items: [
@@ -288,6 +321,8 @@ export const navSections = [
       },
     ],
   },
+
+  // Sales and Accounts
   {
     label: "Sales & Accounts",
     items: [
@@ -314,6 +349,8 @@ export const navSections = [
       },
     ],
   },
+
+  // Report and Analytics
   {
     label: "Reports & Analytics",
     items: [
@@ -330,6 +367,8 @@ export const navSections = [
       },
     ],
   },
+
+  // System Settings
   {
     label: "System settings",
     items: [
