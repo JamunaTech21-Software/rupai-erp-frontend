@@ -26,6 +26,8 @@ import ShiftAndDutyRoster from "./pages/HrAndWorkforcedManagement/ShiftAndDutyRo
 import EmployeeManagement from "./pages/HrAndWorkforcedManagement/EmployeeManagement";
 import ProductionEntry from "./pages/FactoryAndManufacturing/ProductionEntry";
 import MasterDataDashboard from "./pages/MasterData/MasterDataDashboard";
+import Season from "./pages/MasterData/Season";
+import TeaGrade from "./pages/MasterData/TeaGrade";
 
 const router = createBrowserRouter([
   {
@@ -204,17 +206,28 @@ const router = createBrowserRouter([
       },
 
       // Master Data Dashboard
+
       {
         path: "master-data-dashboard",
-        children: [
-          {
-            index: true,
-            element: <MasterDataDashboard />,
-            handle: {
-              title: "Master Data Dashboard",
-            },
-          },
-        ],
+        element: <MasterDataDashboard />,
+        handle: {
+          title: "Master Data Dashboard",
+        },
+      },
+
+      {
+        path: "master-data-season",
+        element: <Season />,
+        handle: {
+          title: "Season Setup",
+        },
+      },
+      {
+        path: "master-data-tea-grade",
+        element: <TeaGrade />,
+        handle: {
+          title: "Tea Grade",
+        },
       },
       // User Administration
       {

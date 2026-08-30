@@ -190,6 +190,16 @@ export const navSections = [
             label: "Master Data Dashboard",
             path: "/master-data-dashboard",
           },
+          {
+            id: "season",
+            label: "Season",
+            path: "/master-data-season",
+          },
+          {
+            id: "tea-grade",
+            label: "Tea Grade",
+            path: "/master-data-tea-grade",
+          },
         ],
       },
     ],

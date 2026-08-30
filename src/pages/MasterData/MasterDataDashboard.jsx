@@ -14,7 +14,6 @@ import {
   Warehouse,
   ArrowRight,
   Ruler,
-  Scale,
   Sprout,
   Factory,
   CircleCheck,
