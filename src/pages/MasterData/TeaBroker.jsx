@@ -1,10 +1,12 @@
-import React from "react";
 import { useForm } from "react-hook-form";
 import { RotateCcw, Save } from "lucide-react";
 import MasterDataTabs from "./MasterDataTabs";
 import teaBrokerData from "../../data/MasterData/teaBrokerData";
-
+import React, { useRef, useState } from "react";
 const TeaBroker = () => {
+  const formRef = useRef(null);
+
+  const [isAddMode, setIsAddMode] = useState(false);
   const {
     register,
     handleSubmit,
@@ -14,6 +16,8 @@ const TeaBroker = () => {
 
   const onSubmit = (data) => {
     console.log("Broker Position Data:", data);
+
+    setIsAddMode(false);
   };
 
   const handleClear = () => {
@@ -34,6 +38,7 @@ const TeaBroker = () => {
         ===================================================== */}
 
         <form
+          ref={formRef}
           onSubmit={handleSubmit(onSubmit)}
           className='rounded-lg border border-slate-200 bg-white p-4 shadow-sm xl:col-span-1'
         >
@@ -41,7 +46,9 @@ const TeaBroker = () => {
 
           <div className='mb-5'>
             <h2 className='text-sm font-bold text-emerald-700'>
-              {teaBrokerData.setup.title}
+              {isAddMode
+                ? "Add Broker Sale Position"
+                : teaBrokerData.setup.title}
             </h2>
           </div>
 
@@ -130,10 +137,6 @@ const TeaBroker = () => {
           </p>
         </form>
 
-        {/* =====================================================
-            RIGHT : BROKERS SALE POSITION LIST
-        ===================================================== */}
-
         {/* =========================================================
                 RIGHT : BROKERS SALE POSITION LIST
             ========================================================= */}
@@ -158,9 +161,20 @@ const TeaBroker = () => {
 
               <button
                 type='button'
-                className='flex items-center gap-2 rounded-md bg-emerald-700 px-4 py-2 text-xs font-medium text-white hover:bg-emerald-800'
+                onClick={() => {
+                  setIsAddMode(true);
+                  reset();
+
+                  setTimeout(() => {
+                    formRef.current?.scrollIntoView({
+                      behavior: "smooth",
+                      block: "start",
+                    });
+                  }, 0);
+                }}
+                className='rounded-md bg-emerald-700 px-4 py-2 text-xs font-medium text-white'
               >
-                +{teaBrokerData.list.buttons.addNew}
+                Add New
               </button>
             </div>
           </div>

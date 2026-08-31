@@ -205,6 +205,16 @@ export const navSections = [
             label: "Tea Broker",
             path: "/master-data-tea-brokers",
           },
+          {
+            id: "auction-center",
+            label: "Auction Center",
+            path: "/master-data-auction-centers",
+          },
+          {
+            id: "tea-warehouse",
+            label: "Tea Warehouse",
+            path: "/master-data-tea-warehouse",
+          },
         ],
       },
     ],

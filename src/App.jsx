@@ -29,6 +29,8 @@ import MasterDataDashboard from "./pages/MasterData/MasterDataDashboard";
 import Season from "./pages/MasterData/Season";
 import TeaGrade from "./pages/MasterData/TeaGrade";
 import TeaBroker from "./pages/MasterData/TeaBroker";
+import AuctionCenters from "./pages/MasterData/AuctionCenters";
+import TeaWarehouse from "./pages/MasterData/TeaWarehouse";
 
 const router = createBrowserRouter([
   {
@@ -235,6 +237,20 @@ const router = createBrowserRouter([
         element: <TeaBroker></TeaBroker>,
         handle: {
           title: "Broker Sale Position Setup",
+        },
+      },
+      {
+        path: "master-data-auction-centers",
+        element: <AuctionCenters></AuctionCenters>,
+        handle: {
+          title: "Add New Auction Center",
+        },
+      },
+      {
+        path: "master-data-tea-warehouse",
+        element: <TeaWarehouse></TeaWarehouse>,
+        handle: {
+          title: "Add New Warehouse",
         },
       },
       // User Administration
