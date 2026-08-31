@@ -28,6 +28,7 @@ import ProductionEntry from "./pages/FactoryAndManufacturing/ProductionEntry";
 import MasterDataDashboard from "./pages/MasterData/MasterDataDashboard";
 import Season from "./pages/MasterData/Season";
 import TeaGrade from "./pages/MasterData/TeaGrade";
+import TeaBroker from "./pages/MasterData/TeaBroker";
 
 const router = createBrowserRouter([
   {
@@ -227,6 +228,13 @@ const router = createBrowserRouter([
         element: <TeaGrade />,
         handle: {
           title: "Tea Grade",
+        },
+      },
+      {
+        path: "master-data-tea-brokers",
+        element: <TeaBroker></TeaBroker>,
+        handle: {
+          title: "Broker Sale Position Setup",
         },
       },
       // User Administration

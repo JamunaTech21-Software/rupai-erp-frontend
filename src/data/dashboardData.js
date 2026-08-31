@@ -200,6 +200,11 @@ export const navSections = [
             label: "Tea Grade",
             path: "/master-data-tea-grade",
           },
+          {
+            id: "tea-brokers",
+            label: "Tea Broker",
+            path: "/master-data-tea-brokers",
+          },
         ],
       },
     ],

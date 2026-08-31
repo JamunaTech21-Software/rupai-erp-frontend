@@ -253,7 +253,7 @@ const TeaGrade = () => {
         {/* Header */}
 
         <div className='mb-4 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between'>
-          <h2 className='text-sm font-bold text-emerald-700'>Tea Grade List</h2>
+          <h2 className='text-xl font-bold text-emerald-700'>Tea Grade List</h2>
 
           <div className='flex flex-col gap-2 sm:flex-row'>
             {/* Search */}
@@ -297,7 +297,7 @@ const TeaGrade = () => {
             TABLE
         ===================================================== */}
 
-        <div className='overflow-x-auto'>
+        <div className='max-h-[350px] overflow-auto'>
           <table className='w-full min-w-[1100px] text-left'>
             <thead>
               <tr className='bg-slate-50'>
@@ -324,33 +324,33 @@ const TeaGrade = () => {
                       isSelected ? "bg-emerald-50/40" : "hover:bg-slate-50"
                     }`}
                   >
-                    <td className='px-3 py-3 text-[10px] text-slate-600'>
+                    <td className='px-3 py-3 text-[12px] text-slate-600'>
                       {index + 1}
                     </td>
 
-                    <td className='px-3 py-3 text-[10px] font-semibold text-slate-700'>
+                    <td className='px-3 py-3 text-[12px] font-semibold text-slate-700'>
                       {grade.gradeCode}
                     </td>
 
-                    <td className='px-3 py-3 text-[10px] font-medium text-slate-700'>
+                    <td className='px-3 py-3 text-[12px] font-medium text-slate-700'>
                       {grade.gradeName}
                     </td>
 
-                    <td className='px-3 py-3 text-[10px] text-slate-600'>
+                    <td className='px-3 py-3 text-[12px] text-slate-600'>
                       {grade.teaType}
                     </td>
 
-                    <td className='px-3 py-3 text-[10px] text-slate-600'>
+                    <td className='px-3 py-3 text-[12px] text-slate-600'>
                       {grade.category}
                     </td>
 
-                    <td className='px-3 py-3 text-[10px] text-slate-600'>
+                    <td className='px-3 py-3 text-[12px] text-slate-600'>
                       {grade.standard}
                     </td>
 
                     <td className='px-3 py-3'>
                       <span
-                        className={`rounded px-2 py-1 text-[9px] font-medium ${getStatusClass(
+                        className={`rounded px-2 py-1 text-[12px] font-medium ${getStatusClass(
                           grade.status,
                         )}`}
                       >
@@ -358,11 +358,11 @@ const TeaGrade = () => {
                       </span>
                     </td>
 
-                    <td className='whitespace-nowrap px-3 py-3 text-[10px] text-slate-600'>
+                    <td className='whitespace-nowrap px-3 py-3 text-[12px] text-slate-600'>
                       {grade.createdBy}
                     </td>
 
-                    <td className='whitespace-nowrap px-3 py-3 text-[10px] text-slate-600'>
+                    <td className='whitespace-nowrap px-3 py-3 text-[12px] text-slate-600'>
                       {grade.createdOn}
                     </td>
 
@@ -655,7 +655,7 @@ const TeaGrade = () => {
           {/* =========================================================
                     FOOTER
                 ========================================================= */}
-          <div className='mt-3 flex flex-col gap-3 border-t border-slate-100 pt-4 sm:flex-row sm:items-center sm:justify-between'>
+          <div className='mt-2 flex flex-col gap-3 border-t border-slate-100 pt-2 sm:flex-row sm:items-center sm:justify-between'>
             {/* Created Information */}
             <div className='text-[10px] text-slate-500'>
               {selectedGrade && !isAddMode ? (
@@ -720,8 +720,8 @@ const TeaGrade = () => {
           {/* =================================================
                 HEADER
             ================================================= */}
-          <div className='mb-5'>
-            <h2 className='text-sm font-bold text-emerald-700'>
+          <div className='mb-2'>
+            <h2 className='text-xl font-bold text-emerald-700'>
               {teaGradeData.information.title}
             </h2>
           </div>
@@ -733,14 +733,14 @@ const TeaGrade = () => {
             {/* =================================================
                     LEFT - INFORMATION ITEMS
                 ================================================= */}
-            <div className='space-y-5'>
+            <div className='space-y-3'>
               {teaGradeData.information.items.map((item) => {
                 const Icon = iconMap[item.icon];
 
                 return (
                   <div
                     key={item.id}
-                    className='flex items-center justify-between border-b border-slate-100 pb-4 last:border-0'
+                    className='flex items-center justify-between border-b border-slate-100 pb-2 last:border-0'
                   >
                     {/* Label */}
                     <div className='flex min-w-0 items-center gap-2'>
@@ -748,13 +748,13 @@ const TeaGrade = () => {
                         <Icon className='h-4 w-4 shrink-0 text-emerald-600' />
                       )}
 
-                      <span className='truncate text-[10px] font-medium text-slate-500'>
+                      <span className='truncate text-[12px] font-medium text-slate-500'>
                         {item.label}
                       </span>
                     </div>
 
                     {/* Value */}
-                    <span className='ml-3 shrink-0 text-[10px] font-semibold text-slate-700'>
+                    <span className='ml-3 shrink-0 text-[12px] font-semibold text-slate-700'>
                       {item.value}
                     </span>
                   </div>
@@ -808,7 +808,7 @@ const TeaGrade = () => {
 
                     <Tooltip
                       contentStyle={{
-                        fontSize: "10px",
+                        fontSize: "12px",
                         borderRadius: "6px",
                         border: "1px solid #e2e8f0",
                       }}
@@ -819,7 +819,7 @@ const TeaGrade = () => {
                 {/* ================= CENTER TOTAL ================= */}
                 <div className='pointer-events-none absolute inset-0 flex items-center justify-center'>
                   <div className='flex flex-col items-center justify-center'>
-                    <span className='text-[9px] font-medium text-slate-500'>
+                    <span className='text-[12px] font-medium text-slate-500'>
                       Total
                     </span>
 
@@ -876,7 +876,7 @@ const TeaGrade = () => {
                       </div>
 
                       {/* Value + Percentage */}
-                      <span className='ml-2 shrink-0 text-[9px] font-medium text-slate-700'>
+                      <span className='ml-2 shrink-0 text-[12px] font-medium text-slate-700'>
                         {item.value} ({percentage}%)
                       </span>
                     </div>
