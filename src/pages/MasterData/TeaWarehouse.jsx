@@ -407,7 +407,7 @@ const TeaWarehouse = () => {
             <div className='mb-5 flex items-center gap-2 border-b border-slate-100 pb-3'>
               <Warehouse className='h-4 w-4 text-emerald-700' />
 
-              <h2 className='text-sm font-bold text-emerald-700'>
+              <h2 className='text-[14px] font-bold text-emerald-700'>
                 {teaWarehouseData.summary.title}
               </h2>
             </div>
@@ -418,11 +418,11 @@ const TeaWarehouse = () => {
               {teaWarehouseData.summary.fields.map((field) => (
                 <div
                   key={field.key}
-                  className='grid grid-cols-[125px_15px_1fr] gap-2 text-[10px]'
+                  className='grid grid-cols-[125px_15px_1fr] gap-2 text-[14px]'
                 >
                   {/* LABEL */}
 
-                  <span className='font-medium text-slate-600'>
+                  <span className='font-medium text-[14px] text-slate-600'>
                     {field.label}
                   </span>
 

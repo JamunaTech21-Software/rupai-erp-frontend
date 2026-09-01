@@ -15,9 +15,14 @@ export const masterDataTabs = [
     path: "/master-data-tea-grade",
   },
   {
-    id: "tea-brokers",
-    label: "4. Tea Brokers",
-    path: "/master-data-tea-brokers",
+    id: "add-new-broker",
+    label: "4. Add New Broker",
+    path: "/master-data-add-new-broker",
+  },
+  {
+    id: "brokers-sale-position",
+    label: "4. Tea Brokers sale position",
+    path: "/master-data-brokers-sale-position",
   },
   {
     id: "auction-centers",
@@ -25,28 +30,24 @@ export const masterDataTabs = [
     path: "/master-data-auction-centers",
   },
   {
+    id: "auction-schedule",
+    label: "6. Auction Schedule",
+    path: "/master-data-auction-schedule",
+  },
+  {
     id: "tea-warehouse",
-    label: "6. Tea Warehouse",
+    label: "7. Tea Warehouse",
     path: "/master-data-tea-warehouse",
   },
-  {
-    id: "unit-of-measurement",
-    label: "7. Unit of Measurement",
-    path: "/master-data-unit-of-measurement",
-  },
+
   {
     id: "tea-type",
-    label: "8. Tea Type",
+    label: "9. Tea Type",
     path: "/master-data-tea-type",
   },
   {
-    id: "production-type",
-    label: "9. Production Type",
-    path: "/master-data-production-type",
-  },
-  {
-    id: "common-status",
-    label: "10. Common Status",
-    path: "/master-data-common-status",
+    id: "buyer-setup",
+    label: "10. Buyer Setup",
+    path: "/master-data-buyer-setup",
   },
 ];

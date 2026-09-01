@@ -1,4 +1,4 @@
-const teaBrokerData = {
+const BrokerSalePositionData = {
   setup: {
     title: "Brokers Sale Position Setup",
 
@@ -491,4 +491,4 @@ const teaBrokerData = {
   },
 };
 
-export default teaBrokerData;
+export default BrokerSalePositionData;

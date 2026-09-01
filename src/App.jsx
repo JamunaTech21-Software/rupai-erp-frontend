@@ -28,9 +28,11 @@ import ProductionEntry from "./pages/FactoryAndManufacturing/ProductionEntry";
 import MasterDataDashboard from "./pages/MasterData/MasterDataDashboard";
 import Season from "./pages/MasterData/Season";
 import TeaGrade from "./pages/MasterData/TeaGrade";
-import TeaBroker from "./pages/MasterData/TeaBroker";
 import AuctionCenters from "./pages/MasterData/AuctionCenters";
 import TeaWarehouse from "./pages/MasterData/TeaWarehouse";
+import AuctionSchedule from "./pages/MasterData/AuctionSchedule";
+import BrokerSalePositionSetup from "./pages/MasterData/BrokerSalePositionSetup";
+import AddNewBroker from "./pages/MasterData/AddNewBroker";
 
 const router = createBrowserRouter([
   {
@@ -233,8 +235,15 @@ const router = createBrowserRouter([
         },
       },
       {
-        path: "master-data-tea-brokers",
-        element: <TeaBroker></TeaBroker>,
+        path: "master-data-add-new-broker",
+        element: <AddNewBroker></AddNewBroker>,
+        handle: {
+          title: "Add New Broker Setup",
+        },
+      },
+      {
+        path: "master-data-brokers-sale-position",
+        element: <BrokerSalePositionSetup></BrokerSalePositionSetup>,
         handle: {
           title: "Broker Sale Position Setup",
         },
@@ -244,6 +253,13 @@ const router = createBrowserRouter([
         element: <AuctionCenters></AuctionCenters>,
         handle: {
           title: "Add New Auction Center",
+        },
+      },
+      {
+        path: "master-data-auction-schedule",
+        element: <AuctionSchedule></AuctionSchedule>,
+        handle: {
+          title: "Add New Auction Schedule",
         },
       },
       {
