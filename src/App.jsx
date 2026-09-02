@@ -34,6 +34,7 @@ import AuctionSchedule from "./pages/MasterData/AuctionSchedule";
 import BrokerSalePositionSetup from "./pages/MasterData/BrokerSalePositionSetup";
 import AddNewBroker from "./pages/MasterData/AddNewBroker";
 import TeaType from "./pages/MasterData/TeaType";
+import BuyerSetup from "./pages/MasterData/BuyerSetup";
 
 const router = createBrowserRouter([
   {
@@ -275,6 +276,13 @@ const router = createBrowserRouter([
         element: <TeaType></TeaType>,
         handle: {
           title: "Add New Tea Type",
+        },
+      },
+      {
+        path: "master-data-buyer-setup",
+        element: <BuyerSetup></BuyerSetup>,
+        handle: {
+          title: "Buyer Setup",
         },
       },
       // User Administration

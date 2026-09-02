@@ -230,6 +230,11 @@ export const navSections = [
             label: "Tea Type",
             path: "/master-data-tea-type",
           },
+          {
+            id: "buyer-setup",
+            label: "Buyer Setup",
+            path: "/master-data-buyer-setup",
+          },
         ],
       },
     ],
