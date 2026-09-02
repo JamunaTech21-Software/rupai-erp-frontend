@@ -252,7 +252,12 @@ export const masterDataDashboardData = {
       icon: "teaGrade",
       path: "/master-data-tea-grade",
     },
-
+    {
+      id: "master-data-add-new-broker",
+      label: "Add New Broker Setup",
+      icon: "productionType",
+      path: "/master-data-add-new-broker",
+    },
     {
       id: "tea-brokers",
       label: "Tea Brokers",
@@ -276,9 +281,9 @@ export const masterDataDashboardData = {
 
     {
       id: "unit-of-measurement",
-      label: "Unit of Measurement",
+      label: "Auction schedule",
       icon: "unitOfMeasurement",
-      path: "/master-data-unit-of-measurement",
+      path: "/master-data-auction-schedule",
     },
 
     {
@@ -286,13 +291,6 @@ export const masterDataDashboardData = {
       label: "Tea Type",
       icon: "teaType",
       path: "/master-data-tea-type",
-    },
-
-    {
-      id: "production-type",
-      label: "Production Type",
-      icon: "productionType",
-      path: "/master-data-production-type",
     },
 
     {

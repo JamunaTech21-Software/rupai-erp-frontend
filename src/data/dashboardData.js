@@ -225,6 +225,11 @@ export const navSections = [
             label: "Tea Warehouse",
             path: "/master-data-tea-warehouse",
           },
+          {
+            id: "tea-type",
+            label: "Tea Type",
+            path: "/master-data-tea-type",
+          },
         ],
       },
     ],

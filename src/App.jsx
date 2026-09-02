@@ -33,6 +33,7 @@ import TeaWarehouse from "./pages/MasterData/TeaWarehouse";
 import AuctionSchedule from "./pages/MasterData/AuctionSchedule";
 import BrokerSalePositionSetup from "./pages/MasterData/BrokerSalePositionSetup";
 import AddNewBroker from "./pages/MasterData/AddNewBroker";
+import TeaType from "./pages/MasterData/TeaType";
 
 const router = createBrowserRouter([
   {
@@ -267,6 +268,13 @@ const router = createBrowserRouter([
         element: <TeaWarehouse></TeaWarehouse>,
         handle: {
           title: "Add New Warehouse",
+        },
+      },
+      {
+        path: "master-data-tea-type",
+        element: <TeaType></TeaType>,
+        handle: {
+          title: "Add New Tea Type",
         },
       },
       // User Administration
