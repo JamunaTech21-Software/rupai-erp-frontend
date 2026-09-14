@@ -139,40 +139,6 @@ export const navSections = [
           },
         ],
       },
-
-      // Replanting and Gap Filling
-      {
-        id: "replanting",
-        label: "Replanting & Gap Filling",
-        icon: "Replace",
-        expandable: true,
-        children: [
-          { id: "replanting-entry", label: "Replanting Entry" },
-          { id: "gap-filling", label: "Gap Filling" },
-        ],
-      },
-      // Plant Cencus
-      {
-        id: "plant-census",
-        label: "Plant Census",
-        icon: "ClipboardList",
-        expandable: true,
-        children: [
-          { id: "census-entry", label: "Census Entry" },
-          { id: "census-report", label: "Census Report" },
-        ],
-      },
-      // Bush Register
-      {
-        id: "bush-register",
-        label: "Bush Register",
-        icon: "BookOpen",
-        expandable: true,
-        children: [
-          { id: "bush-list", label: "Bush List" },
-          { id: "add-bush", label: "Add Bush Record" },
-        ],
-      },
     ],
   },
   // Master Data
@@ -235,33 +201,6 @@ export const navSections = [
             label: "Buyer Setup",
             path: "/master-data-buyer-setup",
           },
-        ],
-      },
-    ],
-  },
-  // Nuresery Management
-  {
-    label: "Nursery Management",
-    items: [
-      {
-        id: "nursery-mgmt",
-        label: "Nursery Management",
-        icon: "TreeDeciduous",
-        expandable: true,
-        children: [
-          { id: "nursery-list", label: "Nursery List" },
-          { id: "add-nursery", label: "Add Nursery" },
-          { id: "nursery-stock", label: "Nursery Stock" },
-        ],
-      },
-      {
-        id: "seed-clone",
-        label: "Seed & Clone Management",
-        icon: "Flower2",
-        expandable: true,
-        children: [
-          { id: "seed-stock", label: "Seed Stock" },
-          { id: "clone-records", label: "Clone Records" },
         ],
       },
     ],

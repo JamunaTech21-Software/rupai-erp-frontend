@@ -72,6 +72,7 @@ export const buyerSetupData = {
       placeholder: "Enter buyer code",
       required: true,
       maxLength: 50,
+      colSpan: 1,
     },
 
     {
@@ -82,6 +83,7 @@ export const buyerSetupData = {
       placeholder: "Enter buyer name",
       required: true,
       maxLength: 150,
+      colSpan: 1,
     },
 
     {
@@ -92,6 +94,7 @@ export const buyerSetupData = {
       placeholder: "Enter short name",
       required: false,
       maxLength: 50,
+      colSpan: 2,
     },
 
     {
@@ -101,6 +104,8 @@ export const buyerSetupData = {
       type: "select",
       placeholder: "Select buyer type",
       required: true,
+      colSpan: 1,
+      optionsKey: "buyerTypeOptions",
     },
 
     {
@@ -110,6 +115,8 @@ export const buyerSetupData = {
       type: "select",
       placeholder: "Select trading type",
       required: true,
+      colSpan: 1,
+      optionsKey: "tradingTypeOptions",
     },
 
     {
@@ -119,6 +126,8 @@ export const buyerSetupData = {
       type: "select",
       placeholder: "Select country",
       required: true,
+      colSpan: 2,
+      optionsKey: "countryOptions",
     },
 
     {
@@ -129,6 +138,7 @@ export const buyerSetupData = {
       placeholder: "Enter address...",
       required: true,
       maxLength: 250,
+      colSpan: 2,
     },
 
     {
@@ -139,6 +149,7 @@ export const buyerSetupData = {
       placeholder: "Enter phone number",
       required: false,
       maxLength: 30,
+      colSpan: 1,
     },
 
     {
@@ -149,6 +160,7 @@ export const buyerSetupData = {
       placeholder: "Enter email address",
       required: false,
       maxLength: 150,
+      colSpan: 1,
     },
 
     {
@@ -158,6 +170,8 @@ export const buyerSetupData = {
       type: "select",
       placeholder: "Select status",
       required: true,
+      colSpan: 1,
+      optionsKey: "statusOptions",
     },
 
     {
@@ -168,6 +182,7 @@ export const buyerSetupData = {
       placeholder: "Enter remarks...",
       required: false,
       maxLength: 250,
+      colSpan: 1,
     },
   ],
 
@@ -346,42 +361,77 @@ export const buyerSetupData = {
   // CONTACT TABLE HEADERS
   // =======================================================
 
-  contactTableHeaders: [
-    {
-      key: "sl",
-      label: "SL",
+  contactTable: {
+    title: "Contact Persons & Mobile Numbers",
+    required: true,
+
+    addButton: {
+      label: "Add Another Contact Person",
+      icon: "UserPlus",
     },
 
-    {
-      key: "mobileNumber",
-      label: "Mobile Number",
-    },
+    columns: [
+      {
+        key: "sl",
+        label: "SL",
+        width: "6%",
+        align: "center",
+        type: "serial",
+      },
 
-    {
-      key: "contactPersonName",
-      label: "Contact Person Name",
-    },
+      {
+        key: "mobileNumber",
+        label: "Mobile Number",
+        width: "19%",
+        type: "text",
+        placeholder: "+880-...",
+        required: true,
+      },
 
-    {
-      key: "designation",
-      label: "Designation",
-    },
+      {
+        key: "contactPersonName",
+        label: "Contact Person Name",
+        width: "22%",
+        type: "text",
+        placeholder: "Contact person",
+        required: true,
+      },
 
-    {
-      key: "type",
-      label: "Type",
-    },
+      {
+        key: "designation",
+        label: "Designation",
+        width: "20%",
+        type: "select",
+        required: true,
+        optionsKey: "designationOptions",
+      },
 
-    {
-      key: "isPrimary",
-      label: "Primary",
-    },
+      {
+        key: "type",
+        label: "Type",
+        width: "15%",
+        type: "select",
+        required: false,
+        optionsKey: "contactPersonTypeOptions",
+      },
 
-    {
-      key: "action",
-      label: "Action",
-    },
-  ],
+      {
+        key: "isPrimary",
+        label: "Primary",
+        width: "9%",
+        align: "center",
+        type: "radio",
+      },
+
+      {
+        key: "action",
+        label: "Action",
+        width: "9%",
+        align: "center",
+        type: "delete",
+      },
+    ],
+  },
 
   // =======================================================
   // BUYER LIST TABLE HEADERS
