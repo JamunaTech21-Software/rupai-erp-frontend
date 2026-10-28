@@ -1,7 +1,12 @@
-import React from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
+import toast from "react-hot-toast";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import HrWorkforceTabs from "../../components/HrWorkforceTabs/HrWorkforceTabs";
 import { addNewWorkerData } from "../../data/HrWorkforceData/addNewWorkerData";
+import { api } from "../../lib/api";
+import { useApi } from "../../lib/useApi";
+import ErrorState from "../../components/common/ErrorState";
 
 import {
   UserRound,
@@ -13,6 +18,32 @@ import {
   Save,
   CheckCircle,
 } from "lucide-react";
+const S = addNewWorkerData.sections;
+const FORM_SECTIONS = [S.basicInformation, S.employmentInformation, S.contactAddressInformation, S.distributedAgriLand, S.resonCard, S.additionalImportantInformation];
+// Fields the form sends: not the file pickers, not the read-only ones the server fills in.
+const SENT = FORM_SECTIONS.flatMap((section) => section.fields).filter((field) => !field.disabled && field.type !== "file");
+const FILE_FIELDS = [
+  "workerPhoto", "face", "rightThumb", "leftThumb", "resonCardFile",
+  ...S.documentsInformation.documents.map((document) => document.name),
+];
+const DASH = "-";
+const toLocalInput = () => "";
+const dmy = (iso) => (iso ? iso.slice(0, 10).split("-").reverse().join("-") : DASH);
+const blank = (value) => value ?? "";
+const EMPTY_FORM = {
+  ...Object.fromEntries(SENT.map((field) => [field.name, field.defaultValue ?? (field.type === "checkbox" ? false : "")])),
+  workerId: "Auto Generate",
+  createdBy: DASH, createdDate: "", updatedBy: DASH, updatedDate: "",
+};
+const toForm = (record) => ({
+  ...Object.fromEntries(SENT.map((field) => [field.name, field.type === "checkbox" ? Boolean(record[field.name]) : blank(record[field.name])])),
+  workerId: record.workerId ?? "Auto Generate",
+  createdBy: record.createdByName ?? DASH,
+  createdDate: record.createdAt ? record.createdAt.slice(0, 16) : toLocalInput(),
+  updatedBy: record.updatedByName ?? DASH,
+  updatedDate: record.updatedAt ? record.updatedAt.slice(0, 16) : toLocalInput(),
+});
+
 const AddNewWorker = () => {
   // =========================================================
   // REACT HOOK FORM
@@ -22,16 +53,105 @@ const AddNewWorker = () => {
     register,
     handleSubmit,
     reset,
-    formState: { errors },
+    setError,
+    formState: { errors, isSubmitting },
   } = useForm({
-    defaultValues: addNewWorkerData.initialData,
+    defaultValues: EMPTY_FORM,
   });
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const editId = searchParams.get("id");
+  // After a save, return to the page the user came from (the dashboard when the page was opened directly).
+  const goBack = () => (window.history.state?.idx > 0 ? navigate(-1) : navigate("/"));
+  const photoInput = useRef(null);
+  const importInput = useRef(null);
+  const [importing, setImporting] = useState(false);
+  const [importProblems, setImportProblems] = useState([]);
+
+  // The worker being edited (?id=); without it the form adds a new one.
+  const worker = useApi(() => (editId ? api.get(`/workers/${editId}`) : Promise.resolve(null)), [editId]);
+  const saved = worker.data;
+  // Picked files by field name, the two child tables, and messages for fields that are not inputs.
+  const [files, setFiles] = useState({});
+  const [landRows, setLandRows] = useState([]);
+  const [dependentRows, setDependentRows] = useState([]);
+  const [fileErrors, setFileErrors] = useState({});
+  const [photoPreview, setPhotoPreview] = useState(null);
+  useEffect(() => {
+    if (saved) {
+      reset(toForm(saved));
+      setLandRows(saved.landDetails ?? []);
+      setDependentRows(saved.dependents ?? []);
+    }
+  }, [saved, reset]);
+  const pickFile = (name) => (event) => {
+    const file = event.target.files?.[0];
+    setFiles((current) => ({ ...current, [name]: file }));
+    setFileErrors((current) => ({ ...current, [name]: undefined }));
+    if (name === "workerPhoto") setPhotoPreview(file ? URL.createObjectURL(file) : null);
+  };
+
+  // CSV / Excel: download the template, upload a filled one. Nothing is saved unless every row is right.
+  const downloadTemplate = async (format) => {
+    try {
+      const blob = await api.download("/workers/import/template", { format });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = `workers-template.${format}`;
+      link.click();
+      URL.revokeObjectURL(link.href);
+    } catch (error) {
+      toast.error(error.message);
+    }
+  };
+  const importFile = async (event) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+    setImporting(true);
+    setImportProblems([]);
+    try {
+      const result = await api.postFile("/workers/import", file);
+      toast.success(`${result?.imported ?? ""} workers saved`.trim());
+    } catch (error) {
+      const lines = Object.entries(error.fields ?? {}).map(([key, message]) => {
+        const match = key.match(/^rows\.(\d+)\.(.+)$/);
+        return match ? `Row ${match[1]} – ${match[2]}: ${message}` : `${key}: ${message}`;
+      });
+      setImportProblems(lines.length ? lines : [error.message]);
+      toast.error(error.message);
+    } finally {
+      setImporting(false);
+    }
+  };
 
   // =========================================================
   // SUBMIT
   // =========================================================
 
-  const onSubmit = () => {
+  // Each picked file is uploaded first; the record keeps its id (an unchanged file keeps the saved one).
+  const onSubmit = async (values) => {
+    try {
+      const body = Object.fromEntries(SENT.map((field) => [field.name, values[field.name]]));
+      for (const name of FILE_FIELDS) {
+        body[name] = files[name] ? (await api.upload(files[name])).id : (saved?.[name] ?? null);
+      }
+      body.landDetails = landRows.map(({ plotBlockNo, mouza, area, distributedDate }) => ({ plotBlockNo, mouza, area, distributedDate }));
+      body.dependents = dependentRows.map(({ name, relation, dateOfBirth, occupation }) => ({ name, relation, dateOfBirth, occupation }));
+      if (editId) await api.put(`/workers/${editId}`, body);
+      else await api.post("/workers", body);
+      toast.success(editId ? "Worker updated successfully!" : "Worker saved successfully!");
+      reset(EMPTY_FORM);
+      goBack();
+    } catch (error) {
+      const fileProblems = {};
+      for (const [key, message] of Object.entries(error.fields ?? {})) {
+        if (FILE_FIELDS.includes(key)) fileProblems[key] = message;
+        else setError(key, { message });
+      }
+      setFileErrors(fileProblems);
+      toast.error(error.message);
+    }
   };
 
   // =========================================================
@@ -39,7 +159,12 @@ const AddNewWorker = () => {
   // =========================================================
 
   const handleReset = () => {
-    reset(addNewWorkerData.initialData);
+    reset(saved ? toForm(saved) : EMPTY_FORM);
+    setFiles({});
+    setFileErrors({});
+    setPhotoPreview(null);
+    setLandRows(saved?.landDetails ?? []);
+    setDependentRows(saved?.dependents ?? []);
   };
 
   return (
@@ -49,6 +174,31 @@ const AddNewWorker = () => {
       ===================================================== */}
 
       <HrWorkforceTabs />
+      {/* ===== CSV / EXCEL IMPORT ===== */}
+      <div className='mb-2 rounded-xl border border-gray-200 bg-white p-3'>
+        <div className='flex flex-wrap items-center gap-2'>
+          <h3 className='mr-auto text-sm font-semibold text-green-700'>Import Workers (CSV / Excel)</h3>
+          <button type='button' onClick={() => downloadTemplate("xlsx")} className='rounded-md border border-gray-300 px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-50'>
+            Download Template (Excel)
+          </button>
+          <button type='button' onClick={() => downloadTemplate("csv")} className='rounded-md border border-gray-300 px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-50'>
+            Download Template (CSV)
+          </button>
+          <input ref={importInput} type='file' accept='.csv,.xlsx' className='hidden' onChange={importFile} />
+          <button type='button' disabled={importing} onClick={() => importInput.current?.click()} className='flex items-center gap-1.5 rounded-md bg-green-700 px-3 py-1.5 text-xs text-white hover:bg-green-800 disabled:opacity-60'>
+            <Upload size={13} />
+            {importing ? "Importing..." : "Import CSV / Excel"}
+          </button>
+        </div>
+        {importProblems.length > 0 && (
+          <ul role='alert' className='mt-2 max-h-40 list-disc space-y-0.5 overflow-auto rounded-md bg-red-50 p-2 pl-6 text-[11px] text-red-600'>
+            {importProblems.map((line) => (
+              <li key={line}>{line}</li>
+            ))}
+          </ul>
+        )}
+      </div>
+      {editId && worker.error && <ErrorState message={worker.error.message} onRetry={worker.reload} />}
 
       {/* =====================================================
           MAIN FORM
@@ -558,19 +708,34 @@ const AddNewWorker = () => {
 
                       <div className='flex flex-col items-center'>
                         <div className='w-full h-40 rounded-md border border-gray-200 overflow-hidden bg-gray-50'>
-                          <img
-                            src='https://randomuser.me/api/portraits/women/44.jpg'
-                            alt='Worker'
-                            className='w-full h-full object-cover'
-                          />
+                          {photoPreview || saved?.workerPhotoUrl ? (
+                            <img
+                              src={photoPreview ?? saved.workerPhotoUrl}
+                              alt='Worker'
+                              className='w-full h-full object-cover'
+                            />
+                          ) : (
+                            <div className='flex h-full w-full items-center justify-center text-xs text-gray-400'>
+                              No photo
+                            </div>
+                          )}
                         </div>
 
+                        <input
+                          ref={photoInput}
+                          type='file'
+                          accept='.jpg,.jpeg,.png'
+                          className='hidden'
+                          onChange={pickFile("workerPhoto")}
+                        />
                         <button
                           type='button'
+                          onClick={() => photoInput.current?.click()}
                           className='w-full mt-10 bg-green-700 hover:bg-green-800 text-white rounded-md py-4 text-[12px] font-medium'
                         >
                           + Change Photo
                         </button>
+                        {fileErrors.workerPhoto && <p className='mt-1 text-[11px] text-red-500'>{fileErrors.workerPhoto}</p>}
                       </div>
 
                       {/* =============================================
@@ -750,15 +915,15 @@ const AddNewWorker = () => {
 
                     {/* Table Body */}
                     <tbody>
-                      {addNewWorkerData.sections.distributedAgriLand.table.rows.map(
-                        (row) => (
+                      {landRows.map(
+                        (row, rowIndex) => (
                           <tr
-                            key={row.id}
+                            key={row.id ?? rowIndex}
                             className='border-b border-gray-100 hover:bg-gray-50'
                           >
                             {/* SL */}
                             <td className='px-3 py-2 text-gray-700'>
-                              {row.sl}
+                              {rowIndex + 1}
                             </td>
 
                             {/* Plot / Block */}
@@ -778,7 +943,7 @@ const AddNewWorker = () => {
 
                             {/* Distributed Date */}
                             <td className='px-3 py-2 text-gray-700 whitespace-nowrap'>
-                              {row.distributedDate}
+                              {dmy(row.distributedDate)}
                             </td>
 
                             {/* Action */}
@@ -803,6 +968,7 @@ const AddNewWorker = () => {
                                     addNewWorkerData.sections
                                       .distributedAgriLand.actions.deleteLabel
                                   }
+                                  onClick={() => setLandRows((rows) => rows.filter((_, i) => i !== rowIndex))}
                                   className='text-red-500 hover:text-red-700 text-xs'
                                 >
                                   🗑
@@ -873,10 +1039,10 @@ const AddNewWorker = () => {
 
                     {/* Table Body */}
                     <tbody>
-                      {addNewWorkerData.sections.dependentFamilyMember.table.rows.map(
-                        (row) => (
+                      {dependentRows.map(
+                        (row, rowIndex) => (
                           <tr
-                            key={row.id}
+                            key={row.id ?? rowIndex}
                             className='border-b border-gray-100 last:border-b-0 hover:bg-gray-50'
                           >
                             {addNewWorkerData.sections.dependentFamilyMember.table.headers.map(
@@ -903,14 +1069,17 @@ const AddNewWorker = () => {
                                         type='button'
                                         title='Delete'
                                         className='text-red-500 hover:text-red-700 transition'
-                                        onClick={() => {
-                                        }}
+                                        onClick={() => setDependentRows((rows) => rows.filter((_, i) => i !== rowIndex))}
                                       >
                                         🗑
                                       </button>
                                     </div>
                                   ) : (
-                                    row[header.key]
+                                    header.key === "sl"
+                                      ? rowIndex + 1
+                                      : header.key === "dateOfBirth"
+                                        ? dmy(row.dateOfBirth)
+                                        : (row[header.key] ?? DASH)
                                   )}
                                 </td>
                               ),
@@ -1020,14 +1189,14 @@ const AddNewWorker = () => {
                         <span className='text-gray-500 text-sm'>📄</span>
 
                         <span className='text-xs text-gray-600 truncate'>
-                          Choose Reson Card
+                          {files.resonCardFile?.name ?? (saved?.resonCardFileName || "Choose Reson Card")}
                         </span>
-
                         <input
                           id={field.name}
                           type='file'
                           accept={field.accept || ""}
                           className='hidden'
+                          onChange={pickFile("resonCardFile")}
                         />
                       </label>
                     </div>
@@ -1170,8 +1339,17 @@ const AddNewWorker = () => {
                             type='file'
                             accept={document.accept || ""}
                             className='hidden'
+                            onChange={pickFile(document.name)}
                           />
                         </label>
+                        {(files[document.name] || saved?.[`${document.name}Name`]) && (
+                          <p className='mt-1 truncate text-center text-[9px] text-green-700'>
+                            {files[document.name]?.name ?? saved[`${document.name}Name`]}
+                          </p>
+                        )}
+                        {fileErrors[document.name] && (
+                          <p className='mt-1 text-center text-[9px] text-red-500'>{fileErrors[document.name]}</p>
+                        )}
 
                         {/* Required */}
                         {document.required && (
@@ -1224,7 +1402,7 @@ const AddNewWorker = () => {
                         {field.type === "text" && (
                           <input
                             id={field.name}
-                            name={field.name}
+                            {...register(field.name)}
                             type='text'
                             placeholder={field.placeholder || ""}
                             disabled={field.disabled || false}
@@ -1236,7 +1414,7 @@ const AddNewWorker = () => {
                         {["date", "datetime"].includes(field.type) && (
                           <input
                             id={field.name}
-                            name={field.name}
+                            {...register(field.name)}
                             type={
                               field.type === "datetime"
                                 ? "datetime-local"
@@ -1272,7 +1450,9 @@ const AddNewWorker = () => {
             {/* Save as Draft */}
             <button
               type='button'
-              className='flex items-center justify-center gap-1.5 border border-gray-300 rounded-md px-5 py-2 text-xs hover:bg-gray-50 transition'
+              disabled={isSubmitting}
+              onClick={handleSubmit(onSubmit)}
+              className='flex items-center justify-center gap-1.5 border border-gray-300 rounded-md px-5 py-2 text-xs hover:bg-gray-50 transition disabled:opacity-60'
             >
               <Save size={14} />
               <span>Save as Draft</span>
@@ -1281,7 +1461,8 @@ const AddNewWorker = () => {
             {/* Save & Submit */}
             <button
               type='submit'
-              className='flex items-center justify-center gap-1.5 bg-green-700 text-white rounded-md px-5 py-2 text-xs hover:bg-green-800 transition'
+              disabled={isSubmitting}
+              className='flex items-center justify-center gap-1.5 bg-green-700 text-white rounded-md px-5 py-2 text-xs hover:bg-green-800 transition disabled:opacity-60'
             >
               <CheckCircle size={14} />
               <span>Save & Submit</span>

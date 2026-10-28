@@ -1,8 +1,12 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { toast } from "react-hot-toast";
 import { useForm } from "react-hook-form";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { contractorManagementData } from "../../data/HrWorkforceData/addNewContractorData";
 import HrWorkforceTabs from "../../components/HrWorkforceTabs/HrWorkforceTabs";
+import { api } from "../../lib/api";
+import { useApi } from "../../lib/useApi";
+import ErrorState from "../../components/common/ErrorState";
 
 import {
   Upload,
@@ -13,22 +17,77 @@ import {
   CheckCircle,
 } from "lucide-react";
 
+const D = contractorManagementData;
+const FORM_SECTIONS = [
+  D.basicInformationFields,
+  D.contactInformationFields,
+  D.contactPersonInformationFields,
+  D.businessRegistrationFields,
+  D.contractInformationFields,
+  D.bankingInformationFields,
+  D.additionalInformationFields,
+  D.emergencyContactFields,
+];
+// Fields the form sends: not the file pickers, not the read-only Contractor ID the server fills in.
+const SENT = FORM_SECTIONS.flat().filter((field) => !field.disabled && field.type !== "file");
+const FILE_FIELDS = [...D.contractorImageFields, ...D.documentFields].map((field) => field.name);
+const blank = (value) => value ?? "";
+const EMPTY_FORM = {
+  ...Object.fromEntries(SENT.map((field) => [field.name, field.defaultValue ?? (field.type === "checkbox" ? false : "")])),
+  sameAsPresent: false,
+  contractorId: "Auto Generate",
+};
+const toForm = (record) => ({
+  ...Object.fromEntries(SENT.map((field) => [field.name, blank(record[field.name])])),
+  sameAsPresent: Boolean(record.sameAsPresent),
+  contractorId: record.contractorId ?? "Auto Generate",
+});
+
 const AddNewContractor = () => {
   const {
     register,
     handleSubmit,
     reset,
-    formState: { errors },
-  } = useForm();
-  const onSubmit = () => {
+    setError,
+    formState: { errors, isSubmitting },
+  } = useForm({ defaultValues: EMPTY_FORM });
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const editId = searchParams.get("id");
+  // After a save, return to the page the user came from (the dashboard when the page was opened directly).
+  const goBack = () => (window.history.state?.idx > 0 ? navigate(-1) : navigate("/"));
 
-    toast.success("Contractor information saved successfully!");
+  // The contractor being edited (?id=); without it the form adds a new one.
+  const contractor = useApi(() => (editId ? api.get(`/contractors/${editId}`) : Promise.resolve(null)), [editId]);
+  const saved = contractor.data;
+  useEffect(() => {
+    if (saved) reset(toForm(saved));
+  }, [saved, reset]);
+
+  // Each picked file is uploaded first; the record keeps its id (an unchanged file keeps the saved one).
+  const onSubmit = async (values) => {
+    try {
+      const body = Object.fromEntries([...SENT.map((field) => [field.name, values[field.name]]), ["sameAsPresent", Boolean(values.sameAsPresent)]]);
+      for (const name of FILE_FIELDS) {
+        const picked = values[name]?.[0];
+        body[name] = picked ? (await api.upload(picked)).id : (saved?.[name] ?? null);
+      }
+      if (editId) await api.put(`/contractors/${editId}`, body);
+      else await api.post("/contractors", body);
+      toast.success(editId ? "Contractor updated successfully!" : "Contractor information saved successfully!");
+      reset(EMPTY_FORM);
+      goBack();
+    } catch (error) {
+      for (const [key, message] of Object.entries(error.fields ?? {})) setError(key, { message });
+      toast.error(error.message);
+    }
   };
 
   return (
     <div className='p-2 space-y-4'>
       {/* Tabs */}
       <HrWorkforceTabs />
+      {editId && contractor.error && <ErrorState message={contractor.error.message} onRetry={contractor.reload} />}
 
       {/* FORM START */}
       <form onSubmit={handleSubmit(onSubmit)}>
@@ -401,7 +460,13 @@ const AddNewContractor = () => {
                       <div className='border border-gray-300 rounded-lg p-3'>
                         {/* PREVIEW AREA */}
                         <div className='h-24 border border-gray-200 rounded-md bg-gray-50 flex items-center justify-center'>
-                          {field.name === "contractorPhoto" ? (
+                          {saved?.[`${field.name}Url`] ? (
+                            <img
+                              src={saved[`${field.name}Url`]}
+                              alt={field.label}
+                              className='h-full w-full rounded-md object-contain'
+                            />
+                          ) : field.name === "contractorPhoto" ? (
                             <UserRound
                               size={42}
                               strokeWidth={1.5}
@@ -957,7 +1022,7 @@ const AddNewContractor = () => {
             {/* RESET */}
             <button
               type='button'
-              onClick={() => reset()}
+              onClick={() => reset(saved ? toForm(saved) : EMPTY_FORM)}
               className='flex items-center cursor-pointer justify-center gap-1.5 border border-gray-300 bg-white text-gray-700 rounded-md px-4 py-2 text-xs font-medium hover:bg-gray-50 transition'
             >
               <RotateCcw size={14} />
@@ -967,9 +1032,9 @@ const AddNewContractor = () => {
             {/* SAVE AS DRAFT */}
             <button
               type='button'
-              onClick={() => {
-              }}
-              className='flex items-center cursor-pointer justify-center gap-1.5 border border-gray-300 bg-white text-gray-700 rounded-md px-4 py-2 text-xs font-medium hover:bg-gray-50 transition'
+              disabled={isSubmitting}
+              onClick={handleSubmit(onSubmit)}
+              className='flex items-center cursor-pointer justify-center gap-1.5 border border-gray-300 bg-white text-gray-700 rounded-md px-4 py-2 text-xs font-medium hover:bg-gray-50 transition disabled:opacity-60'
             >
               <FileText size={14} />
               <span>Save as Draft</span>
@@ -978,7 +1043,8 @@ const AddNewContractor = () => {
             {/* SAVE & SUBMIT */}
             <button
               type='submit'
-              className='flex cursor-pointer items-center justify-center gap-1.5 bg-green-700 hover:bg-green-800 text-white rounded-md px-4 py-2 text-xs font-medium transition'
+              disabled={isSubmitting}
+              className='flex cursor-pointer items-center justify-center gap-1.5 bg-green-700 hover:bg-green-800 text-white rounded-md px-4 py-2 text-xs font-medium transition disabled:opacity-60'
             >
               <CheckCircle size={14} />
               <span>Save & Submit</span>

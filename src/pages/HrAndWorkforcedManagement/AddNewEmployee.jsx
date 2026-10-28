@@ -1,7 +1,12 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
+import toast from "react-hot-toast";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import HrWorkforceTabs from "../../components/HrWorkforceTabs/HrWorkforceTabs";
 import { employeeManagementData } from "../../data/HrWorkforceData/addNewEmployeeData";
+import { api } from "../../lib/api";
+import { useApi } from "../../lib/useApi";
+import ErrorState from "../../components/common/ErrorState";
 import {
   MapPin,
   WalletCards,
@@ -19,23 +24,96 @@ import {
   CheckCircle,
 } from "lucide-react";
 
+const SECTIONS = [
+  "basicInformationFields",
+  "employmentInformationFields",
+  "contactInformationFields",
+  "salaryPayrollFields",
+  "emergencyContactFields",
+  "nomineeInformationFields",
+];
+const ALL_FIELDS = SECTIONS.flatMap((key) => employeeManagementData[key]);
+// Fields the form sends: not the file pickers, not the read-only ones the server fills in.
+const SENT = ALL_FIELDS.filter((field) => !field.disabled && field.type !== "file" && field.type !== "capture");
+const FILE_FIELDS = [...employeeManagementData.documentFields, ...employeeManagementData.photoBiometricFields]
+  .filter((field) => field.type === "file")
+  .map((field) => field.name);
+const NEW_SYSTEM = { createdBy: "-", createdDate: "-", updatedBy: "-", updatedDate: "-" };
+const stamp = (iso) => (iso ? new Date(iso).toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "short" }) : "-");
+const blank = (value) => value ?? "";
+const toForm = (record) => ({
+  ...Object.fromEntries(SENT.map((field) => [field.name, field.type === "checkbox" ? Boolean(record[field.name]) : blank(record[field.name])])),
+  employeeId: record.employeeId ?? "Auto Generate",
+  totalSalary: record.totalSalary ?? 0,
+  createdBy: record.createdByName ?? "-",
+  createdDate: stamp(record.createdAt),
+  updatedBy: record.updatedByName ?? "-",
+  updatedDate: stamp(record.updatedAt),
+});
+const EMPTY_FORM = {
+  ...Object.fromEntries(SENT.map((field) => [field.name, field.defaultValue ?? (field.type === "checkbox" ? false : "")])),
+  employeeId: "Auto Generate",
+  totalSalary: 0,
+  ...NEW_SYSTEM,
+};
+
 const AddNewEmployee = () => {
   const {
     register,
     handleSubmit,
     reset,
-    formState: { errors },
-  } = useForm();
+    setError,
+    formState: { errors, isSubmitting },
+  } = useForm({ defaultValues: EMPTY_FORM });
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const editId = searchParams.get("id");
+  // After a save, return to the page the user came from (the dashboard when the page was opened directly).
+  const goBack = () => (window.history.state?.idx > 0 ? navigate(-1) : navigate("/"));
+  const [preview, setPreview] = useState(null);
+
+  // The employee being edited (?id=); without it the form adds a new one.
+  const employee = useApi(() => (editId ? api.get(`/employees/${editId}`) : Promise.resolve(null)), [editId]);
+  const saved = employee.data;
+  useEffect(() => {
+    if (saved) reset(toForm(saved));
+  }, [saved, reset]);
+
+  const resetForm = () => {
+    reset(saved ? toForm(saved) : EMPTY_FORM);
+    setPreview(null);
+  };
 
   // =========================
   // FORM SUBMIT
   // =========================
-  const onSubmit = () => {
+  // Each picked file is uploaded first; the record keeps its id (an unchanged file keeps the saved one).
+  const onSubmit = async (values) => {
+    try {
+      const body = Object.fromEntries(SENT.map((field) => [field.name, values[field.name]]));
+      for (const name of FILE_FIELDS) {
+        const picked = values[name]?.[0];
+        body[name] = picked ? (await api.upload(picked)).id : (saved?.[name] ?? null);
+      }
+      if (editId) await api.put(`/employees/${editId}`, body);
+      else await api.post("/employees", body);
+      toast.success(editId ? "Employee updated successfully!" : "Employee saved successfully!");
+      reset(EMPTY_FORM);
+      goBack();
+    } catch (error) {
+      for (const [key, message] of Object.entries(error.fields ?? {})) setError(key, { message });
+      toast.error(error.message);
+    }
+  };
+  const onPhotoPicked = (event) => {
+    const file = event.target.files?.[0];
+    setPreview(file ? URL.createObjectURL(file) : null);
   };
 
   return (
     <div>
       <HrWorkforceTabs />
+      {editId && employee.error && <ErrorState message={employee.error.message} onRetry={employee.reload} />}
 
       {/* ========================= */}
       {/* MAIN FORM */}
@@ -557,11 +635,15 @@ const AddNewEmployee = () => {
                 <div className='col-span-12 md:col-span-5 flex flex-col items-center'>
                   {/* PHOTO */}
                   <div className='w-[104px] h-[118px] border border-gray-300 rounded-md overflow-hidden bg-gray-50 flex items-center justify-center'>
-                    <img
-                      src='https://randomuser.me/api/portraits/men/32.jpg'
-                      alt='Employee'
-                      className='w-full h-full object-cover'
-                    />
+                    {preview || saved?.employeePhotoUrl ? (
+                      <img
+                        src={preview ?? saved.employeePhotoUrl}
+                        alt='Employee'
+                        className='w-full h-full object-cover'
+                      />
+                    ) : (
+                      <span className='text-[9px] text-gray-400'>No photo</span>
+                    )}
                   </div>
 
                   {/* CHANGE PHOTO */}
@@ -569,7 +651,7 @@ const AddNewEmployee = () => {
                     <input
                       type='file'
                       accept='.jpg,.jpeg,.png'
-                      {...register("employeePhoto")}
+                      {...register("employeePhoto", { onChange: onPhotoPicked })}
                       className='hidden'
                     />
 
@@ -844,7 +926,7 @@ const AddNewEmployee = () => {
           {/* RESET */}
           <button
             type='button'
-            onClick={() => reset()}
+            onClick={resetForm}
             className='flex items-center justify-center gap-1.5 border border-gray-300 rounded-md px-5 py-2 text-xs text-gray-700 hover:bg-gray-50 transition-colors'
           >
             <RotateCcw size={13} />
@@ -854,7 +936,9 @@ const AddNewEmployee = () => {
           {/* SAVE AS DRAFT */}
           <button
             type='button'
-            className='flex items-center justify-center gap-1.5 border border-gray-300 rounded-md px-5 py-2 text-xs text-gray-700 hover:bg-gray-50 transition-colors'
+            disabled={isSubmitting}
+            onClick={handleSubmit(onSubmit)}
+            className='flex items-center justify-center gap-1.5 border border-gray-300 rounded-md px-5 py-2 text-xs text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-60'
           >
             <Save size={13} />
             <span>Save as Draft</span>
@@ -863,7 +947,8 @@ const AddNewEmployee = () => {
           {/* SAVE & SUBMIT */}
           <button
             type='submit'
-            className='flex items-center justify-center gap-1.5 bg-green-700 text-white rounded-md px-5 py-2 text-xs hover:bg-green-800 transition-colors'
+            disabled={isSubmitting}
+            className='flex items-center justify-center gap-1.5 bg-green-700 text-white rounded-md px-5 py-2 text-xs hover:bg-green-800 transition-colors disabled:opacity-60'
           >
             <CheckCircle size={13} />
             <span>Save & Submit</span>

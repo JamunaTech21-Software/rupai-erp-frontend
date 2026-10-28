@@ -136,6 +136,21 @@ export const api = {
     form.append("file", file);
     return send("POST", "/files", { form });
   },
+  // Sends a picked file to any endpoint that takes multipart field "file" (spreadsheet imports).
+  postFile: (path, file) => {
+    const form = new FormData();
+    form.append("file", file);
+    return send("POST", path, { form });
+  },
+  // Fetches a file (a template) and returns it as a Blob.
+  download: async (path, params) => {
+    const call = () =>
+      fetch(`${BASE_URL}${path}${toQuery(params)}`, { headers: tokens.access ? { Authorization: `Bearer ${tokens.access}` } : {} });
+    let response = await call();
+    if (response.status === 401 && (await refreshTokens())) response = await call();
+    if (!response.ok) throw new ApiError(response.status, "SERVER_ERROR", "Could not download the file");
+    return response.blob();
+  },
   // Same, for calls that must not send a token or follow the 401 rule (login).
   public: {
     post: (path, body) => send("POST", path, { body, auth: false }),

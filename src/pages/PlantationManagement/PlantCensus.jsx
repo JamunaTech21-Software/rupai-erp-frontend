@@ -111,6 +111,19 @@ const fixed = (value, digits = 2) => (value === null || value === undefined ? DA
 // 2026-05-20 -> 20/05/2026 (no timezone: the text is rearranged, not parsed as a date)
 const dmy = (iso) => (iso ? iso.slice(0, 10).split("-").reverse().join("/") : DASH);
 
+const ROW_FIELDS = [
+  ["rowNo", "Row No.", "text"],
+  ["rowLength", "Row Length (Mtr.)", "number"],
+  ["plantsPerMeter", "Plants / Meter (Avg.)", "number"],
+  ["expectedPlants", "Total Plants (Expected)", "number"],
+  ["livePlants", "Live Plants", "number"],
+  ["deadPlants", "Dead Plants", "number"],
+  ["missingPlants", "Missing", "number"],
+];
+const toRowForm = (row) => Object.fromEntries(ROW_FIELDS.map(([name]) => [name, row[name] ?? ""]));
+// Same formula the server uses for the gap.
+const gapOf = (row) => (Number(row.expectedPlants) ? ((Number(row.deadPlants || 0) + Number(row.missingPlants || 0)) / Number(row.expectedPlants)) * 100 : 0);
+
 const PlantCensus = () => {
   const {
     register,
@@ -129,6 +142,11 @@ const PlantCensus = () => {
   const photoInput = useRef(null);
   const documentInput = useRef(null);
   const [uploading, setUploading] = useState(false);
+  // Row popup: { mode: "view" | "edit", id } plus the values being edited.
+  const [rowPopup, setRowPopup] = useState(null);
+  const [rowValues, setRowValues] = useState({});
+  const [rowErrors, setRowErrors] = useState({});
+  const [rowBusy, setRowBusy] = useState(false);
 
   // The census being edited (?id=); the panels show it, or the first census when adding a new one.
   const first = useApi(() => (editId ? Promise.resolve(null) : api.get("/plant-censuses", { perPage: 1 })), [editId]);
@@ -208,6 +226,61 @@ const PlantCensus = () => {
   };
   const resetForm = () => reset(editing ? toForm(editing) : EMPTY_FORM);
 
+  const openRow = (mode, row) => {
+    setRowPopup({ mode, id: row.id });
+    setRowValues(toRowForm(row));
+    setRowErrors({});
+  };
+  const openAdd = () => {
+    if (!shown) {
+      toast.error("Save the census first.");
+      return;
+    }
+    setRowPopup({ mode: "add" });
+    setRowValues(toRowForm({}));
+    setRowErrors({});
+  };
+  const closeRow = () => setRowPopup(null);
+  useEffect(() => {
+    if (!rowPopup) return undefined;
+    const onKey = (event) => event.key === "Escape" && setRowPopup(null);
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [rowPopup]);
+  // Rows are saved with the census: send every row, the edited one with its new values.
+  const saveRow = async (event) => {
+    event.preventDefault();
+    const problems = {};
+    for (const [name, label, type] of ROW_FIELDS) {
+      const value = rowValues[name];
+      if (value === "" || value === null || value === undefined) problems[name] = `${label} is required.`;
+      else if (type === "number" && (Number.isNaN(Number(value)) || Number(value) < 0)) problems[name] = `${label} must be 0 or more.`;
+    }
+    if (!problems.rowNo && (shown.rows ?? []).some((row) => row.id !== rowPopup.id && row.rowNo === String(rowValues.rowNo).trim())) {
+      problems.rowNo = "This row is already in the census.";
+    }
+    setRowErrors(problems);
+    if (Object.keys(problems).length) return;
+    setRowBusy(true);
+    try {
+      const rows =
+        rowPopup.mode === "add"
+          ? [...(shown.rows ?? []), { ...rowValues, rowNo: String(rowValues.rowNo).trim() }]
+          : (shown.rows ?? []).map((row) => (row.id === rowPopup.id ? { ...row, ...rowValues } : row));
+      await api.put(`/plant-censuses/${shown.id}`, { ...toForm(shown), rows, photos: shown.photos ?? [], documents: shown.documents ?? [] });
+      toast.success(rowPopup.mode === "add" ? "Row added successfully!" : "Row updated successfully!");
+      setRowPopup(null);
+      reloadPanels();
+    } catch (error) {
+      const mapped = {};
+      for (const [key, message] of Object.entries(error.fields ?? {})) mapped[key.split(".").pop()] = message;
+      setRowErrors(mapped);
+      toast.error(error.message);
+    } finally {
+      setRowBusy(false);
+    }
+  };
+
   // Upload pictures / documents of the census shown, then save the record with the new ids.
   const addFiles = async (kind, event) => {
     const files = Array.from(event.target.files ?? []);
@@ -268,6 +341,10 @@ const PlantCensus = () => {
     liveVsDeadChart: { title: "Live vs Dead Plants", total: 0, data: [] },
     plantDistributionChart: { title: "Plant Distribution (Row Wise)", data: [] },
   };
+  const sliceTotal = charts.liveVsDeadChart.data.reduce((total, item) => total + Number(item.value || 0), 0);
+  const liveDeadSlices = sliceTotal
+    ? charts.liveVsDeadChart.data.map((item) => ({ ...item, value: Number(item.value) || 0, percentage: fixed(((Number(item.value) || 0) / sliceTotal) * 100) }))
+    : [];
   const photoUrls = shown?.photosUrl ?? [];
   const documents = (shown?.documentsUrl ?? []).map((url, index) => ({
     id: shown.documents[index],
@@ -1158,6 +1235,7 @@ const PlantCensus = () => {
                           <button
                             type='button'
                             title='View'
+                            onClick={() => openRow("view", row)}
                             className='rounded-md p-2 text-blue-600 transition hover:bg-blue-100'
                           >
                             <Eye size={16} />
@@ -1166,6 +1244,7 @@ const PlantCensus = () => {
                           <button
                             type='button'
                             title='Edit'
+                            onClick={() => openRow("edit", row)}
                             className='rounded-md p-2 text-amber-600 transition hover:bg-amber-100'
                           >
                             <Pencil size={16} />
@@ -1240,6 +1319,7 @@ const PlantCensus = () => {
               {/* Right */}
               <button
                 type='button'
+                onClick={openAdd}
                 className='inline-flex items-center justify-center gap-2 rounded-lg border border-green-600 bg-white px-4 py-2 text-sm font-medium text-green-700 transition hover:bg-green-50'
               >
                 <Plus size={16} />
@@ -1259,52 +1339,50 @@ const PlantCensus = () => {
             </div>
 
             {/* Body */}
-            <div className='grid grid-cols-12 items-center gap-2 px-2 py-10'>
+            <div className='flex flex-col items-center gap-4 px-3 py-6'>
               {/* Donut Chart */}
-              <div className='col-span-7 flex justify-center'>
-                <div className='relative h-50 w-50'>
+              <div className='relative h-48 w-48 shrink-0'>
+                {liveDeadSlices.length === 0 ? (
+                  <div className='flex h-full items-center justify-center rounded-full border-[14px] border-gray-100 text-xs text-gray-400'>
+                    No data
+                  </div>
+                ) : (
                   <ResponsiveContainer width='100%' height='100%'>
                     <PieChart>
                       <Pie
-                        data={charts.liveVsDeadChart.data}
+                        data={liveDeadSlices}
                         dataKey='value'
-                        innerRadius={55}
-                        outerRadius={75}
+                        nameKey='name'
+                        innerRadius='68%'
+                        outerRadius='95%'
                         paddingAngle={2}
+                        startAngle={90}
+                        endAngle={-270}
                         stroke='none'
                       >
-                        {charts.liveVsDeadChart.data.map((item) => (
+                        {liveDeadSlices.map((item) => (
                           <Cell key={item.id} fill={item.color} />
                         ))}
                       </Pie>
+                      <Tooltip formatter={(value, name) => [Number(value).toLocaleString(), name]} />
                     </PieChart>
                   </ResponsiveContainer>
+                )}
 
-                  {/* Center Text */}
-                  <div className='absolute inset-0 flex flex-col items-center justify-center'>
-                    <p className='text-[11px] text-gray-500'>Total</p>
-
-                    <h3 className='text-base font-bold text-gray-800'>
-                      {charts.liveVsDeadChart.total.toLocaleString()}
-                    </h3>
-                  </div>
+                {/* Center Text */}
+                <div className='pointer-events-none absolute inset-0 flex flex-col items-center justify-center'>
+                  <p className='text-[11px] text-gray-500'>Total</p>
+                  <h3 className='text-base font-bold text-gray-800'>{charts.liveVsDeadChart.total.toLocaleString()}</h3>
                 </div>
               </div>
 
               {/* Legend */}
-              <div className='col-span-5 space-y-3'>
-                {charts.liveVsDeadChart.data.map((item) => (
+              <div className='flex flex-wrap justify-center gap-x-6 gap-y-2'>
+                {liveDeadSlices.map((item) => (
                   <div key={item.id} className='flex items-center gap-2'>
-                    <span
-                      className='h-3 w-3 rounded-full flex-shrink-0'
-                      style={{ backgroundColor: item.color }}
-                    />
-
+                    <span className='h-3 w-3 shrink-0 rounded-full' style={{ backgroundColor: item.color }} />
                     <div>
-                      <p className='text-xs font-medium text-gray-700'>
-                        {item.name}
-                      </p>
-
+                      <p className='text-xs font-medium text-gray-700'>{item.name}</p>
                       <p className='text-[11px] text-gray-500'>
                         {item.value.toLocaleString()} ({item.percentage}%)
                       </p>
@@ -1326,13 +1404,16 @@ const PlantCensus = () => {
 
             {/* Chart */}
             <div className='h-64 p-2 '>
+              {charts.plantDistributionChart.data.length === 0 ? (
+                <div className='flex h-full items-center justify-center text-xs text-gray-400'>No rows yet</div>
+              ) : (
               <ResponsiveContainer width='100%' height='100%'>
                 <ComposedChart
                   data={charts.plantDistributionChart.data}
                   margin={{
                     top: 5,
-                    right: 5,
-                    left: -20,
+                    right: 0,
+                    left: 0,
                     bottom: 5,
                   }}
                 >
@@ -1347,7 +1428,7 @@ const PlantCensus = () => {
 
                   <YAxis
                     yAxisId='left'
-                    width={28}
+                    width={36}
                     tick={{ fontSize: 10 }}
                     axisLine={false}
                     tickLine={false}
@@ -1356,7 +1437,8 @@ const PlantCensus = () => {
                   <YAxis
                     yAxisId='right'
                     orientation='right'
-                    width={28}
+                    width={32}
+                    tickFormatter={(value) => `${value}%`}
                     tick={{ fontSize: 10 }}
                     axisLine={false}
                     tickLine={false}
@@ -1400,6 +1482,7 @@ const PlantCensus = () => {
                   />
                 </ComposedChart>
               </ResponsiveContainer>
+              )}
             </div>
           </div>
         </div>
@@ -1669,6 +1752,66 @@ const PlantCensus = () => {
           </div>
         </div>
       </div>
+      {rowPopup && (
+        <div className='fixed inset-0 z-[90] flex items-center justify-center bg-black/40 p-3' onMouseDown={closeRow}>
+          <form
+            role='dialog'
+            aria-modal='true'
+            aria-label={rowPopup.mode === "view" ? "Census row details" : rowPopup.mode === "add" ? "Add census row" : "Edit census row"}
+            onSubmit={saveRow}
+            onMouseDown={(event) => event.stopPropagation()}
+            className='flex max-h-[90vh] w-full max-w-3xl flex-col rounded-xl bg-white shadow-xl'
+          >
+            <div className='flex items-center justify-between border-b border-gray-200 px-5 py-3'>
+              <h2 className='text-base font-semibold text-green-700'>
+                {rowPopup.mode === "view" ? "Census Row Details" : rowPopup.mode === "add" ? "Add Census Row" : "Edit Census Row"}
+              </h2>
+              <button type='button' onClick={closeRow} aria-label='Close' className='rounded p-1 text-gray-500 hover:bg-gray-100'>
+                <X size={18} />
+              </button>
+            </div>
+            <div className='grid grid-cols-1 gap-x-6 gap-y-3 overflow-y-auto p-5 sm:grid-cols-2 lg:grid-cols-3'>
+              {ROW_FIELDS.map(([name, label, type]) => (
+                <div key={name}>
+                  <label htmlFor={`row-${name}`} className='text-xs text-gray-500'>
+                    {label}
+                  </label>
+                  {rowPopup.mode !== "view" ? (
+                    <>
+                      <input
+                        id={`row-${name}`}
+                        type={type}
+                        step='any'
+                        min={type === "number" ? 0 : undefined}
+                        value={rowValues[name] ?? ""}
+                        onChange={(event) => setRowValues((current) => ({ ...current, [name]: event.target.value }))}
+                        className='mt-1 h-10 w-full rounded-lg border border-gray-300 px-3 text-sm outline-none focus:border-green-600'
+                      />
+                      {rowErrors[name] && <p className='mt-1 text-xs text-red-600'>{rowErrors[name]}</p>}
+                    </>
+                  ) : (
+                    <p className='text-sm font-medium text-gray-800'>{rowValues[name] === "" ? DASH : rowValues[name]}</p>
+                  )}
+                </div>
+              ))}
+              <div>
+                <span className='text-xs text-gray-500'>Gap (%)</span>
+                <p className='text-sm font-medium text-gray-800'>{fixed(gapOf(rowValues))}</p>
+              </div>
+            </div>
+            <div className='flex justify-end gap-2 border-t border-gray-200 px-5 py-3'>
+              <button type='button' onClick={closeRow} className='h-10 rounded-lg border border-gray-300 px-4 text-sm font-medium text-gray-700 hover:bg-gray-50'>
+                {rowPopup.mode === "view" ? "Close" : "Cancel"}
+              </button>
+              {rowPopup.mode !== "view" && (
+                <button type='submit' disabled={rowBusy} className='h-10 rounded-lg bg-green-700 px-4 text-sm font-medium text-white hover:bg-green-800 disabled:opacity-60'>
+                  {rowBusy ? "Saving..." : rowPopup.mode === "add" ? "Add Row" : "Save"}
+                </button>
+              )}
+            </div>
+          </form>
+        </div>
+      )}
     </div>
   );
 };
