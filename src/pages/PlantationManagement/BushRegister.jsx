@@ -1,8 +1,15 @@
-import React from "react";
+import React, { useState } from "react";
+import toast from "react-hot-toast";
 import { useForm } from "react-hook-form";
 import PlantationManagementTabs from "../../components/plantationManagementTab/PlantationManagementTabs";
 import { bushRegisterData } from "../../data/PlantationManagementData/bushRegisterData";
-const { gapSummary, gapSizeDetails, healthDistribution } = bushRegisterData;
+import { api } from "../../lib/api";
+import { useApi } from "../../lib/useApi";
+import CardSkeleton from "../../components/common/CardSkeleton";
+import TableSkeleton from "../../components/common/TableSkeleton";
+import EmptyRow from "../../components/common/EmptyRow";
+import ErrorState from "../../components/common/ErrorState";
+import ConfirmDialog from "../../components/common/ConfirmDialog";
 
 import {
   FilePlus2,
@@ -72,56 +79,135 @@ const healthBadgeMap = {
   Dead: "bg-red-100 text-red-700 border border-red-200",
 };
 
+const PER_PAGE = 10;
+const DASH = "-";
+const num = (value) => (value === null || value === undefined ? DASH : Number(value).toLocaleString("en-IN"));
+const fixed = (value, digits = 2) => (value === null || value === undefined ? DASH : Number(value).toFixed(digits));
+const orDash = (value) => (value === null || value === undefined || value === "" ? DASH : value);
+
+const EMPTY_GAP = { totalGap: null, gapArea: null, replantRequired: null, suggestedAction: null, recommendedClone: null, bestTime: null };
+
 const BushRegister = () => {
   const {
     register,
     handleSubmit,
     reset,
+    setValue,
+    watch,
     formState: { errors },
   } = useForm();
+  // Search applies the form as filters to the registers; the first match is shown.
+  const [applied, setApplied] = useState({});
+  const [page, setPage] = useState(1);
+  const [deleting, setDeleting] = useState(null);
+  const [deleteBusy, setDeleteBusy] = useState(false);
 
-  const onSubmit = (data) => {
-    console.log(data);
+  const estateId = watch("estate");
+  const divisionId = watch("division");
+  const sectionId = watch("section");
+  const estateOptions = useApi(() => api.get("/options/estates"), []);
+  const divisionOptions = useApi(() => (estateId ? api.get("/options/divisions", { estate: estateId }) : Promise.resolve([])), [estateId]);
+  const sectionOptions = useApi(() => (divisionId ? api.get("/options/sections", { division: divisionId }) : Promise.resolve([])), [divisionId]);
+  const fieldOptions = useApi(() => (sectionId ? api.get("/options/fields", { section: sectionId }) : Promise.resolve([])), [sectionId]);
+
+  const registers = useApi(() => api.get("/bush-registers", { ...applied, perPage: 1 }), [applied]);
+  const current = registers.data?.data?.[0];
+  const rowsCall = useApi(
+    () => (current ? api.get(`/bush-registers/${current.id}/rows`, { page, perPage: PER_PAGE }) : Promise.resolve(null)),
+    [current?.id, page],
+  );
+  const report = useApi(() => (current ? api.get(`/bush-registers/${current.id}/report`) : Promise.resolve(null)), [current?.id, rowsCall.data]);
+  const rows = rowsCall.data?.data ?? [];
+  const rowMeta = rowsCall.data?.meta ?? { page: 1, perPage: PER_PAGE, total: 0, totalPages: 1 };
+  const tableSummary = rowsCall.data?.tableSummary ?? report.data?.tableSummary;
+  const data = report.data;
+  const waiting = registers.loading && !registers.data;
+  const failure = registers.error ?? rowsCall.error ?? report.error;
+
+  const onSubmit = (values) => {
+    const filters = {};
+    for (const [key, value] of Object.entries(values)) if (value !== "" && value !== undefined && value !== null && key !== "bushAge" && key !== "totalArea" && key !== "rowSpacing" && key !== "plantSpacing" && key !== "surveyDate") filters[key] = value;
+    setPage(1);
+    setApplied(filters);
+    toast.success("Search completed successfully!");
   };
+  const clearSearch = () => {
+    reset({});
+    setPage(1);
+    setApplied({});
+  };
+  const confirmDelete = async () => {
+    setDeleteBusy(true);
+    try {
+      await api.del(`/bush-registers/${current.id}/rows/${deleting.id}`);
+      toast.success("Row deleted successfully!");
+      setDeleting(null);
+      rowsCall.reload();
+    } catch (error) {
+      toast.error(error.message);
+    } finally {
+      setDeleteBusy(false);
+    }
+  };
+
+  const gapSummary = data?.gapSummary ?? EMPTY_GAP;
+  const gapSizeDetails = data?.gapSizeDetails ?? [];
+  const healthDistribution = data?.healthDistribution ?? [];
+  const bushAgeProfile = data?.bushAgeProfile ?? [];
+  const summaryItems = bushRegisterData.summary.map((item, index) => {
+    const live = data?.summary?.[index];
+    const value = live?.value;
+    return {
+      ...item,
+      value:
+        value === null || value === undefined
+          ? DASH
+          : typeof value === "number"
+            ? `${num(value)}${live.unit ? (live.unit === "%" ? "%" : ` ${live.unit}`) : ""}`
+            : value,
+    };
+  });
+  const mapLatitude = orDash(data?.map?.latitude);
+  const mapLongitude = orDash(data?.map?.longitude);
   const gapSummaryItems = [
     {
       key: "totalGap",
       title: "Total Gaps Identified",
-      value: gapSummary.totalGap,
+      value: num(gapSummary.totalGap),
     },
     {
       key: "gapArea",
       title: "Gap Area",
-      value: `${gapSummary.gapArea} Acre`,
+      value: gapSummary.gapArea == null ? DASH : `${gapSummary.gapArea} Acre`,
     },
     {
       key: "replantRequired",
       title: "Replanting Required",
-      value: `${gapSummary.replantRequired} Bushes`,
+      value: gapSummary.replantRequired == null ? DASH : `${num(gapSummary.replantRequired)} Bushes`,
     },
     {
       key: "suggestedAction",
       title: "Suggested Action",
-      value: gapSummary.suggestedAction,
+      value: orDash(gapSummary.suggestedAction),
     },
     {
       key: "recommendedClone",
       title: "Recommended Clone",
-      value: gapSummary.recommendedClone,
+      value: orDash(gapSummary.recommendedClone),
     },
     {
       key: "bestTime",
       title: "Best Time",
-      value: gapSummary.bestTime,
+      value: orDash(gapSummary.bestTime),
     },
   ];
-  const ageProfileData = bushRegisterData.bushAgeProfile.map((item) => ({
+  const ageProfileData = bushAgeProfile.map((item) => ({
     name: item.age,
     value: item.area,
     color: item.color,
   }));
   const totalGapCount = gapSizeDetails.reduce(
-    (sum, item) => sum + item.count,
+    (sum, item) => sum + (item.count ?? 0),
     0,
   );
 
@@ -145,6 +231,22 @@ const BushRegister = () => {
   return (
     <div className='space-y-6'>
       <PlantationManagementTabs />
+      {(waiting || (current && report.loading && !report.data)) && <CardSkeleton count={4} />}
+      {failure && (
+        <ErrorState
+          message={failure.message}
+          onRetry={() => {
+            registers.reload();
+            rowsCall.reload();
+            report.reload();
+          }}
+        />
+      )}
+      {!waiting && !failure && !current && (
+        <p className='rounded-xl border border-gray-200 bg-white p-4 text-center text-sm text-gray-500'>
+          No bush register found
+        </p>
+      )}
 
       {/* ================= Bush Register ================= */}
       <div className='space-y-6'>
@@ -174,15 +276,16 @@ const BushRegister = () => {
                     <select
                       {...register("estate", {
                         required: "Estate is required",
+                        onChange: () => { setValue("division", ""); setValue("section", ""); setValue("fieldBlock", ""); },
                       })}
                       className='w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm outline-none transition-all focus:border-green-600'
                     >
                       <option value=''>Select Estate</option>
-                      <option value='north-estate'>North Estate</option>
-                      <option value='south-estate'>South Estate</option>
-                      <option value='east-estate'>East Estate</option>
-                      <option value='west-estate'>West Estate</option>
-                      <option value='central-estate'>Central Estate</option>
+                      {(estateOptions.data ?? []).map((option) => (
+                        <option key={option.id} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
                     </select>
 
                     {errors.estate && (
@@ -201,15 +304,16 @@ const BushRegister = () => {
                     <select
                       {...register("division", {
                         required: "Division is required",
+                        onChange: () => { setValue("section", ""); setValue("fieldBlock", ""); },
                       })}
                       className='w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm outline-none transition-all focus:border-green-600'
                     >
                       <option value=''>Select Division</option>
-                      <option value='division-1'>Division 01</option>
-                      <option value='division-2'>Division 02</option>
-                      <option value='division-3'>Division 03</option>
-                      <option value='division-4'>Division 04</option>
-                      <option value='division-5'>Division 05</option>
+                      {(divisionOptions.data ?? []).map((option) => (
+                        <option key={option.id} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
                     </select>
 
                     {errors.division && (
@@ -228,15 +332,16 @@ const BushRegister = () => {
                     <select
                       {...register("section", {
                         required: "Section is required",
+                        onChange: () => { setValue("fieldBlock", ""); },
                       })}
                       className='w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm outline-none transition-all focus:border-green-600'
                     >
                       <option value=''>Select Section</option>
-                      <option value='section-a'>Section A</option>
-                      <option value='section-b'>Section B</option>
-                      <option value='section-c'>Section C</option>
-                      <option value='section-d'>Section D</option>
-                      <option value='section-e'>Section E</option>
+                      {(sectionOptions.data ?? []).map((option) => (
+                        <option key={option.id} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
                     </select>
 
                     {errors.section && (
@@ -262,11 +367,11 @@ const BushRegister = () => {
                       className='w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm outline-none transition-all focus:border-green-600'
                     >
                       <option value=''>Select Field / Block</option>
-                      <option value='block-a'>Block A</option>
-                      <option value='block-b'>Block B</option>
-                      <option value='block-c'>Block C</option>
-                      <option value='block-d'>Block D</option>
-                      <option value='block-e'>Block E</option>
+                      {(fieldOptions.data ?? []).map((option) => (
+                        <option key={option.id} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
                     </select>
 
                     {errors.fieldBlock && (
@@ -571,7 +676,7 @@ const BushRegister = () => {
                   {/* Reset Button */}
                   <button
                     type='button'
-                    onClick={() => reset()}
+                    onClick={clearSearch}
                     className='flex cursor-pointer items-center gap-2 rounded-lg border border-gray-300 bg-white px-6 py-2.5 text-sm font-medium text-gray-700 transition-all duration-200 hover:bg-gray-100'
                   >
                     <RotateCcw size={18} />
@@ -602,7 +707,7 @@ const BushRegister = () => {
 
             {/* Body */}
             <div className='grid lg:grid-cols-2  xl:grid-cols-3 gap-2  p-2'>
-              {bushRegisterData.summary.map((item) => {
+              {summaryItems.map((item) => {
                 const Icon = summaryIconMap[item.icon];
 
                 return (
@@ -658,7 +763,7 @@ const BushRegister = () => {
 
                 {/* Image */}
                 <img
-                  src='/bush-register-map.png'
+                  src='/bush-register-map.webp'
                   alt='Bush Density Map'
                   className='h-[260px] w-full object-cover'
                 />
@@ -685,9 +790,9 @@ const BushRegister = () => {
               {/* Footer */}
               <div className='flex items-center justify-between border-t border-gray-200 pt-3'>
                 <div className='text-xs text-gray-600'>
-                  Latitude : {bushRegisterData.map.latitude}
+                  Latitude : {mapLatitude}
                   <br />
-                  Longitude : {bushRegisterData.map.longitude}
+                  Longitude : {mapLongitude}
                 </div>
 
                 <button className='cursor-pointer rounded-md border border-gray-300 px-3 py-1.5 text-xs transition hover:bg-gray-100'>
@@ -746,10 +851,15 @@ const BushRegister = () => {
                 </thead>
 
                 <tbody>
-                  {bushRegisterData.bushRegisterList.map((item, index) => (
+                  {waiting || (current && rowsCall.loading && !rowsCall.data) ? (
+                    <TableSkeleton rows={5} columns={bushRegisterData.tableHeaders.length} />
+                  ) : rows.length === 0 ? (
+                    <EmptyRow columns={bushRegisterData.tableHeaders.length} />
+                  ) : null}
+                  {rows.map((item, index) => (
                     <tr key={item.id} className='hover:bg-gray-50'>
                       <td className='border border-gray-200 px-3 py-2 text-center text-sm'>
-                        {index + 1}
+                        {(page - 1) * PER_PAGE + index + 1}
                       </td>
 
                       <td className='border border-gray-200 px-3 py-2 text-center text-sm'>
@@ -765,11 +875,11 @@ const BushRegister = () => {
                       </td>
 
                       <td className='border border-gray-200 px-3 py-2 text-center text-sm'>
-                        {item.totalBush}
+                        {num(item.totalBush)}
                       </td>
 
                       <td className='border border-gray-200 px-3 py-2 text-center text-sm'>
-                        {item.productive}
+                        {num(item.productive)}
                       </td>
 
                       <td className='border border-gray-200 px-3 py-2 text-center text-sm'>
@@ -785,11 +895,11 @@ const BushRegister = () => {
                       </td>
 
                       <td className='border border-gray-200 px-3 py-2 text-center text-sm'>
-                        {item.height}
+                        {fixed(item.height, 1)}
                       </td>
 
                       <td className='border border-gray-200 px-3 py-2 text-center text-sm'>
-                        {item.spread}
+                        {fixed(item.spread, 1)}
                       </td>
 
                       {/* Health */}
@@ -804,7 +914,7 @@ const BushRegister = () => {
                       </td>
 
                       <td className='border border-gray-200 px-3 py-2 text-center text-sm'>
-                        {item.remarks}
+                        {orDash(item.remarks)}
                       </td>
 
                       {/* Action */}
@@ -831,6 +941,7 @@ const BushRegister = () => {
                           {/* Delete */}
                           <button
                             type='button'
+                            onClick={() => setDeleting(item)}
                             className='cursor-pointer rounded-md p-1 text-red-600 transition hover:bg-red-50'
                             title='Delete'
                           >
@@ -851,40 +962,40 @@ const BushRegister = () => {
                     </td>
 
                     <td className='border border-gray-200 px-3 py-3 text-center text-sm font-semibold'>
-                      {bushRegisterData.tableSummary.totalBush}
+                      {num(tableSummary?.totalBush)}
                     </td>
 
                     <td className='border border-gray-200 px-3 py-3 text-center text-sm font-semibold'>
-                      {bushRegisterData.tableSummary.productive}
+                      {num(tableSummary?.productive)}
                     </td>
 
                     <td className='border border-gray-200 px-3 py-3 text-center text-sm font-semibold'>
-                      {bushRegisterData.tableSummary.dead}
+                      {num(tableSummary?.dead)}
                     </td>
 
                     <td className='border border-gray-200 px-3 py-3 text-center text-sm font-semibold'>
-                      {bushRegisterData.tableSummary.missing}
+                      {num(tableSummary?.missing)}
                     </td>
 
                     <td className='border border-gray-200 px-3 py-3 text-center text-sm font-semibold'>
-                      {bushRegisterData.tableSummary.gap}%
+                      {fixed(tableSummary?.gap)}%
                     </td>
 
                     <td className='border border-gray-200 px-3 py-3 text-center text-sm font-semibold'>
-                      {bushRegisterData.tableSummary.height}
+                      {fixed(tableSummary?.height, 1)}
                     </td>
 
                     <td className='border border-gray-200 px-3 py-3 text-center text-sm font-semibold'>
-                      {bushRegisterData.tableSummary.spread}
+                      {fixed(tableSummary?.spread, 1)}
                     </td>
 
                     <td className='border border-gray-200 px-3 py-3 text-center'>
                       <span
                         className={`inline-flex rounded-full px-3 py-1 text-xs font-medium ${
-                          healthBadgeMap[bushRegisterData.tableSummary.health]
+                          healthBadgeMap[tableSummary?.health]
                         }`}
                       >
-                        {bushRegisterData.tableSummary.health}
+                        {orDash(tableSummary?.health)}
                       </span>
                     </td>
 
@@ -900,15 +1011,15 @@ const BushRegister = () => {
               <p className='text-sm text-gray-600'>
                 Showing{" "}
                 <span className='font-medium'>
-                  {bushRegisterData.tablePagination.showingFrom}
+                  {rows.length > 0 ? (page - 1) * PER_PAGE + 1 : 0}
                 </span>{" "}
                 to{" "}
                 <span className='font-medium'>
-                  {bushRegisterData.tablePagination.showingTo}
+                  {(page - 1) * PER_PAGE + rows.length}
                 </span>{" "}
                 of{" "}
                 <span className='font-medium'>
-                  {bushRegisterData.tablePagination.totalRows.toLocaleString()}
+                  {rowMeta.total.toLocaleString()}
                 </span>{" "}
                 rows
               </p>
@@ -918,41 +1029,49 @@ const BushRegister = () => {
                 {/* Previous */}
                 <button
                   type='button'
-                  className='flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg border border-gray-300 transition hover:bg-gray-100'
+                  disabled={page <= 1}
+                  onClick={() => setPage((p) => p - 1)}
+                  className='flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg border border-gray-300 transition hover:bg-gray-100 disabled:opacity-50'
                 >
                   ❮
                 </button>
 
                 {/* Page Numbers */}
-                {bushRegisterData.tablePagination.pages.map((page) => (
+                {Array.from({ length: Math.min(rowMeta.totalPages, 3) }, (_, i) => i + 1).map((number) => (
                   <button
-                    key={page}
+                    key={number}
                     type='button'
+                    onClick={() => setPage(number)}
                     className={`flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg border text-sm font-medium transition ${
-                      page === bushRegisterData.tablePagination.currentPage
+                      number === page
                         ? "border-green-600 bg-green-600 text-white"
                         : "border-gray-300 hover:bg-gray-100"
                     }`}
                   >
-                    {page}
+                    {number}
                   </button>
                 ))}
-
-                {/* Dots */}
-                <span className='px-1 text-gray-500'>...</span>
-
-                {/* Last Page */}
-                <button
-                  type='button'
-                  className='flex h-9 min-w-10 cursor-pointer items-center justify-center rounded-lg border border-gray-300 px-2 text-sm transition hover:bg-gray-100'
-                >
-                  {bushRegisterData.tablePagination.totalPages}
-                </button>
+                {rowMeta.totalPages > 3 && (
+                  <>
+                    {/* Dots */}
+                    <span className='px-1 text-gray-500'>...</span>
+                    {/* Last Page */}
+                    <button
+                      type='button'
+                      onClick={() => setPage(rowMeta.totalPages)}
+                      className='flex h-9 min-w-10 cursor-pointer items-center justify-center rounded-lg border border-gray-300 px-2 text-sm transition hover:bg-gray-100'
+                    >
+                      {rowMeta.totalPages}
+                    </button>
+                  </>
+                )}
 
                 {/* Next */}
                 <button
                   type='button'
-                  className='flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg border border-gray-300 transition hover:bg-gray-100'
+                  disabled={page >= rowMeta.totalPages}
+                  onClick={() => setPage((p) => p + 1)}
+                  className='flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg border border-gray-300 transition hover:bg-gray-100 disabled:opacity-50'
                 >
                   ❯
                 </button>
@@ -993,7 +1112,7 @@ const BushRegister = () => {
                   {/* Center Text */}
                   <div className='absolute inset-0 flex flex-col items-center justify-center'>
                     <h2 className='text-xl font-semibold text-gray-800'>
-                      {bushRegisterData.summary[0].value}
+                      {summaryItems[0].value}
                     </h2>
 
                     <p className='text-sm text-gray-500'>Acre</p>
@@ -1003,7 +1122,7 @@ const BushRegister = () => {
 
               {/* Right */}
               <div className='col-span-12 space-y-4 lg:col-span-6'>
-                {bushRegisterData.bushAgeProfile.map((item) => (
+                {bushAgeProfile.map((item) => (
                   <div
                     key={item.id}
                     className='flex items-center justify-between'
@@ -1272,8 +1391,15 @@ const BushRegister = () => {
           </div>
         </div>
       </div>
+      <ConfirmDialog
+        open={Boolean(deleting)}
+        title='Delete row?'
+        message={`${deleting?.rowNo ?? ""} will be removed from this register.`}
+        loading={deleteBusy}
+        onConfirm={confirmDelete}
+        onCancel={() => setDeleting(null)}
+      />
     </div>
   );
 };
-
 export default BushRegister;

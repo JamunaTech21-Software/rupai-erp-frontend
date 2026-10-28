@@ -31,8 +31,7 @@ const AddNewWorker = () => {
   // SUBMIT
   // =========================================================
 
-  const onSubmit = (data) => {
-    console.log("Worker Form Data:", data);
+  const onSubmit = () => {
   };
 
   // =========================================================
@@ -894,7 +893,6 @@ const AddNewWorker = () => {
                                         title='Edit'
                                         className='text-blue-500 hover:text-blue-700 transition'
                                         onClick={() => {
-                                          console.log("Edit dependent:", row);
                                         }}
                                       >
                                         ✎
@@ -906,7 +904,6 @@ const AddNewWorker = () => {
                                         title='Delete'
                                         className='text-red-500 hover:text-red-700 transition'
                                         onClick={() => {
-                                          console.log("Delete dependent:", row);
                                         }}
                                       >
                                         🗑
@@ -930,7 +927,6 @@ const AddNewWorker = () => {
                   type='button'
                   className='w-full mt-2 border border-gray-200 rounded-md py-2 text-xs font-medium text-green-700 hover:bg-green-50 transition'
                   onClick={() => {
-                    console.log("Add Dependent");
                   }}
                 >
                   +{" "}

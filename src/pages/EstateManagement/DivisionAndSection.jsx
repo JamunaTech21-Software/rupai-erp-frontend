@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import EstateManagementTabs from "../../components/EstateManagement/EstateManagementTabs";
 import {
   X,
@@ -14,10 +14,34 @@ import {
 import { useForm } from "react-hook-form";
 import { divisionSectionData } from "../../data/EstateManagementData/divisionAndSectionData";
 import toast from "react-hot-toast";
+import { api } from "../../lib/api";
+import { useApi } from "../../lib/useApi";
+import TableSkeleton from "../../components/common/TableSkeleton";
+import EmptyRow from "../../components/common/EmptyRow";
+import ErrorState from "../../components/common/ErrorState";
+import ConfirmDialog from "../../components/common/ConfirmDialog";
+
+// Search boxes wait a moment after typing before asking the server.
+const useDebounced = (value, delay = 300) => {
+  const [debounced, setDebounced] = useState(value);
+  useEffect(() => {
+    const timer = setTimeout(() => setDebounced(value), delay);
+    return () => clearTimeout(timer);
+  }, [value, delay]);
+  return debounced;
+};
+
+const PER_PAGE = 100;
+const EMPTY_DIVISION = { estate: "", divisionName: "", divisionCode: "", totalArea: "", totalSection: "", status: "", description: "" };
+const EMPTY_SECTION = { division: "", parentSection: "", sectionName: "", sectionCode: "", totalArea: "", manager: "", status: "" };
 
 const DivisionAndSection = () => {
   const [showDivisionModal, setShowDivisionModal] = useState(false);
   const [showSectionModal, setShowSectionModal] = useState(false);
+  const [editingDivision, setEditingDivision] = useState(null);
+  const [editingSection, setEditingSection] = useState(null);
+  const [deleting, setDeleting] = useState(null);
+  const [deleteBusy, setDeleteBusy] = useState(false);
 
   const [divisionSearch, setDivisionSearch] = useState("");
   const [selectedDivision, setSelectedDivision] = useState("");
@@ -31,88 +55,189 @@ const DivisionAndSection = () => {
     handleSubmit,
     reset,
     clearErrors,
+    setError,
     formState: { errors, isSubmitting },
   } = useForm();
-  // Filter Divison
-  const filteredDivisions = divisionSectionData.divisionList.filter(
-    (division) => {
-      const search = divisionSearch.toLowerCase().trim();
-
-      // Search
-      const matchesSearch =
-        division.divisionName.toLowerCase().includes(search) ||
-        division.divisionCode.toLowerCase().includes(search);
-
-      // Division
-      const matchesDivision =
-        selectedDivision === "" || division.divisionCode === selectedDivision;
-
-      // Status
-      const matchesStatus =
-        divisionStatus === "" || division.status === divisionStatus;
-
-      return matchesSearch && matchesDivision && matchesStatus;
-    },
-  );
-  // Filter Section
-
-  const filteredSections = divisionSectionData.sectionList.filter((section) => {
-    const search = sectionSearch.toLowerCase().trim();
-
-    // Search condition
-    const matchesSearch =
-      section.sectionName.toLowerCase().includes(search) ||
-      section.sectionCode.toLowerCase().includes(search) ||
-      section.division.toLowerCase().includes(search);
-
-    // Division condition
-    const matchesDivision =
-      selectedSectionDivision === "" ||
-      section.division === selectedSectionDivision;
-
-    // Status condition
-    const matchesStatus =
-      sectionStatus === "" || section.status === sectionStatus;
-
-    return matchesSearch && matchesDivision && matchesStatus;
-  });
 
   // useForm
-
   const {
     register: registerSection,
     handleSubmit: handleSubmitSection,
     reset: resetSection,
     clearErrors: clearSectionErrors,
+    setError: setSectionError,
+    setValue: setSectionValue,
+    watch: watchSection,
     formState: { errors: sectionErrors, isSubmitting: sectionSubmitting },
   } = useForm();
+
+  // Data from the API
+  const searchDivision = useDebounced(divisionSearch);
+  const searchSection = useDebounced(sectionSearch);
+  const divisions = useApi(
+    () =>
+      api.get("/divisions", {
+        search: searchDivision,
+        divisionCode: selectedDivision,
+        status: divisionStatus,
+        perPage: PER_PAGE,
+      }),
+    [searchDivision, selectedDivision, divisionStatus],
+  );
+  const sections = useApi(
+    () =>
+      api.get("/sections", {
+        search: searchSection,
+        division: selectedSectionDivision,
+        status: sectionStatus,
+        perPage: PER_PAGE,
+      }),
+    [searchSection, selectedSectionDivision, sectionStatus],
+  );
+  const summary = useApi(() => api.get("/divisions/summary"), []);
+  // Unfiltered divisions fill the filter and form dropdowns.
+  const allDivisions = useApi(() => api.get("/divisions", { perPage: 500 }), []);
+  const estateOptions = useApi(() => api.get("/options/estates"), []);
+
+  const filteredDivisions = divisions.data?.data ?? [];
+  const filteredSections = sections.data?.data ?? [];
+  const divisionRows = allDivisions.data?.data ?? [];
+
+  // Parent Section follows the chosen division; "Select (If any)" stays first.
+  const sectionDivision = watchSection("division");
+  const parentOptions = useApi(
+    () => (sectionDivision ? api.get("/options/sections", { division: sectionDivision }) : Promise.resolve([])),
+    [sectionDivision],
+  );
+  // Opening a section for edit: the parent shows its saved value once the options have loaded.
+  useEffect(() => {
+    const saved = editingSection?.parentSection;
+    if (saved && parentOptions.data?.some((option) => option.value === saved)) {
+      setSectionValue("parentSection", saved);
+    }
+  }, [editingSection, parentOptions.data, setSectionValue]);
+  const parentSectionChoices = [
+    divisionSectionData.parentSectionOptions[0],
+    ...(parentOptions.data ?? [])
+      .filter((option) => option.id !== editingSection?.id)
+      .map((option) => ({ id: option.id, value: option.value, label: option.label })),
+  ];
+
+  const inactiveDivision = summary.data ? summary.data.totalDivision - summary.data.activeDivision : "—";
+  const inactiveSection = summary.data ? summary.data.totalSection - summary.data.activeSection : "—";
+
+  const reloadAll = () => {
+    divisions.reload();
+    sections.reload();
+    summary.reload();
+    allDivisions.reload();
+  };
+
+  // Division popup: new / edit / close
+  const openNewDivision = () => {
+    setEditingDivision(null);
+    reset(EMPTY_DIVISION);
+    clearErrors();
+    setShowDivisionModal(true);
+  };
+  const openEditDivision = (division) => {
+    setEditingDivision(division);
+    clearErrors();
+    reset({
+      estate: division.estate ?? "",
+      divisionName: division.divisionName ?? "",
+      divisionCode: division.divisionCode ?? "",
+      totalArea: division.totalArea ?? "",
+      totalSection: division.totalSection ?? "",
+      status: division.status ?? "",
+      description: division.description ?? "",
+    });
+    setShowDivisionModal(true);
+  };
+  const closeDivisionModal = () => {
+    reset(EMPTY_DIVISION);
+    clearErrors();
+    setEditingDivision(null);
+    setShowDivisionModal(false);
+  };
+
+  // Section popup: new / edit / close
+  const openNewSection = () => {
+    setEditingSection(null);
+    resetSection(EMPTY_SECTION);
+    clearSectionErrors();
+    setShowSectionModal(true);
+  };
+  const openEditSection = (section) => {
+    setEditingSection(section);
+    clearSectionErrors();
+    resetSection({
+      division: section.division ?? "",
+      parentSection: section.parentSection ?? "",
+      sectionName: section.sectionName ?? "",
+      sectionCode: section.sectionCode ?? "",
+      totalArea: section.totalArea ?? "",
+      manager: section.manager ?? "",
+      status: section.status ?? "",
+    });
+    setShowSectionModal(true);
+  };
+  const closeSectionModal = () => {
+    resetSection(EMPTY_SECTION);
+    clearSectionErrors();
+    setEditingSection(null);
+    setShowSectionModal(false);
+  };
+
   // submitDivision
-
-  const onSubmitDivision = async (data) => {
+  const onSubmitDivision = async (values) => {
     try {
-      console.log(data);
-
-      toast.success("Division saved successfully!");
-
-      reset();
-      clearErrors();
+      if (editingDivision) {
+        await api.put(`/divisions/${editingDivision.id}`, values);
+        toast.success("Division updated successfully!");
+        closeDivisionModal();
+      } else {
+        await api.post("/divisions", values);
+        toast.success("Division saved successfully!");
+        closeDivisionModal();
+      }
+      reloadAll();
     } catch (error) {
-      toast.error("Something went wrong!");
-      console.error(error);
+      for (const [key, message] of Object.entries(error.fields ?? {})) setError(key, { message });
+      toast.error(error.message);
     }
   };
   // submitSection
-  const onSubmitSection = async (data) => {
+  const onSubmitSection = async (values) => {
     try {
-      console.log(data);
-
-      toast.success("Section saved successfully!");
-
-      resetSection();
-      clearSectionErrors();
+      if (editingSection) {
+        await api.put(`/sections/${editingSection.id}`, values);
+        toast.success("Section updated successfully!");
+        closeSectionModal();
+      } else {
+        await api.post("/sections", values);
+        toast.success("Section saved successfully!");
+        closeSectionModal();
+      }
+      reloadAll();
     } catch (error) {
-      toast.error("Something went wrong!");
-      console.error(error);
+      for (const [key, message] of Object.entries(error.fields ?? {})) setSectionError(key, { message });
+      toast.error(error.message);
+    }
+  };
+
+  // Delete (after the confirm dialog)
+  const confirmDelete = async () => {
+    setDeleteBusy(true);
+    try {
+      await api.del(`/${deleting.type}s/${deleting.row.id}`);
+      toast.success(deleting.type === "division" ? "Division deleted successfully!" : "Section deleted successfully!");
+      setDeleting(null);
+      reloadAll();
+    } catch (error) {
+      toast.error(error.message);
+    } finally {
+      setDeleteBusy(false);
     }
   };
 
@@ -135,7 +260,7 @@ const DivisionAndSection = () => {
 
                 <button
                   type='button'
-                  onClick={() => setShowDivisionModal(true)}
+                  onClick={openNewDivision}
                   className='flex h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-lg bg-green-700 px-4 text-sm font-medium text-white hover:bg-green-800 sm:w-auto'
                 >
                   <Plus size={18} />
@@ -171,7 +296,7 @@ const DivisionAndSection = () => {
                   >
                     <option value=''>All Division</option>
 
-                    {divisionSectionData.divisionList.map((division) => (
+                    {divisionRows.map((division) => (
                       <option key={division.id} value={division.divisionCode}>
                         {division.divisionName}
                       </option>
@@ -229,7 +354,18 @@ const DivisionAndSection = () => {
                 </thead>
 
                 <tbody>
-                  {filteredDivisions.map((division, index) => (
+                  {divisions.loading && !divisions.data ? (
+                    <TableSkeleton rows={5} columns={divisionSectionData.divisionTableHeaders.length} />
+                  ) : divisions.error ? (
+                    <tr>
+                      <td colSpan={divisionSectionData.divisionTableHeaders.length} className='p-4'>
+                        <ErrorState message={divisions.error.message} onRetry={divisions.reload} />
+                      </td>
+                    </tr>
+                  ) : filteredDivisions.length === 0 ? (
+                    <EmptyRow columns={divisionSectionData.divisionTableHeaders.length} />
+                  ) : (
+                    filteredDivisions.map((division, index) => (
                     <tr key={division.id} className='hover:bg-gray-50'>
                       {/* SL */}
                       <td className='border border-gray-200 px-4 py-3 text-sm text-center'>
@@ -248,7 +384,7 @@ const DivisionAndSection = () => {
 
                       {/* Total Area */}
                       <td className='border border-gray-200 px-4 py-3 text-sm'>
-                        {division.totalArea.toFixed(2)}
+                        {Number(division.totalArea).toFixed(2)}
                       </td>
 
                       {/* Total Section */}
@@ -274,6 +410,7 @@ const DivisionAndSection = () => {
                         <div className='flex items-center justify-center gap-3'>
                           <button
                             type='button'
+                            onClick={() => openEditDivision(division)}
                             className='text-blue-600 transition-colors hover:text-blue-800 cursor-pointer'
                           >
                             <Pencil size={18} />
@@ -281,6 +418,7 @@ const DivisionAndSection = () => {
 
                           <button
                             type='button'
+                            onClick={() => setDeleting({ type: "division", row: division })}
                             className='text-red-600 transition-colors hover:text-red-800 cursor-pointer'
                           >
                             <Trash2 size={18} />
@@ -288,13 +426,14 @@ const DivisionAndSection = () => {
                         </div>
                       </td>
                     </tr>
-                  ))}
+                    ))
+                  )}
                 </tbody>
               </table>
               <div className='flex items-center justify-between border-t border-gray-200 px-4 py-3 text-sm text-gray-600'>
                 <p>
-                  Showing 1 to {divisionSectionData.divisionList.length} of{" "}
-                  {divisionSectionData.divisionList.length} entries
+                  Showing {filteredDivisions.length > 0 ? 1 : 0} to {filteredDivisions.length} of{" "}
+                  {divisions.data?.meta?.total ?? 0} entries
                 </p>
               </div>
             </div>
@@ -311,7 +450,7 @@ const DivisionAndSection = () => {
 
                 <button
                   type='button'
-                  onClick={() => setShowSectionModal(true)}
+                  onClick={openNewSection}
                   className='flex h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-lg bg-green-700 px-4 text-sm font-medium text-white hover:bg-green-800 sm:w-auto'
                 >
                   <Plus size={18} />
@@ -348,8 +487,8 @@ const DivisionAndSection = () => {
                   >
                     <option value=''>All Division</option>
 
-                    {divisionSectionData.divisionList.map((division) => (
-                      <option key={division.id} value={division.divisionName}>
+                    {divisionRows.map((division) => (
+                      <option key={division.id} value={division.id}>
                         {division.divisionName}
                       </option>
                     ))}
@@ -415,7 +554,15 @@ const DivisionAndSection = () => {
                 </thead>
 
                 <tbody>
-                  {filteredSections.length > 0 ? (
+                  {sections.loading && !sections.data ? (
+                    <TableSkeleton rows={5} columns={divisionSectionData.sectionTableHeaders.length} />
+                  ) : sections.error ? (
+                    <tr>
+                      <td colSpan={divisionSectionData.sectionTableHeaders.length} className='p-4'>
+                        <ErrorState message={sections.error.message} onRetry={sections.reload} />
+                      </td>
+                    </tr>
+                  ) : filteredSections.length > 0 ? (
                     filteredSections.map((section, index) => (
                       <tr key={section.id} className='hover:bg-gray-50'>
                         {/* SL */}
@@ -425,7 +572,7 @@ const DivisionAndSection = () => {
 
                         {/* Division */}
                         <td className='border border-gray-200 px-3 py-3 text-sm'>
-                          {section.division}
+                          {section.divisionName}
                         </td>
 
                         {/* Section Name */}
@@ -440,12 +587,12 @@ const DivisionAndSection = () => {
 
                         {/* Parent Section */}
                         <td className='border border-gray-200 px-3 py-3 text-sm'>
-                          {section.parentSection}
+                          {section.parentSectionName ?? "-"}
                         </td>
 
                         {/* Total Area */}
                         <td className='border border-gray-200 px-3 py-3 text-sm'>
-                          {section.totalArea.toFixed(2)}
+                          {Number(section.totalArea).toFixed(2)}
                         </td>
 
                         {/* Manager */}
@@ -471,6 +618,7 @@ const DivisionAndSection = () => {
                           <div className='flex items-center justify-center gap-3'>
                             <button
                               type='button'
+                              onClick={() => openEditSection(section)}
                               className='cursor-pointer text-blue-600 hover:text-blue-800'
                             >
                               <Pencil size={18} />
@@ -478,6 +626,7 @@ const DivisionAndSection = () => {
 
                             <button
                               type='button'
+                              onClick={() => setDeleting({ type: "section", row: section })}
                               className='cursor-pointer text-red-600 hover:text-red-800'
                             >
                               <Trash2 size={18} />
@@ -503,7 +652,7 @@ const DivisionAndSection = () => {
               <div className='flex items-center justify-between border-t border-gray-200 px-4 py-3 text-sm text-gray-600'>
                 <p>
                   Showing {filteredSections.length > 0 ? 1 : 0} to{" "}
-                  {filteredSections.length} of {filteredSections.length} entries
+                  {filteredSections.length} of {sections.data?.meta?.total ?? 0} entries
                 </p>
               </div>
             </div>
@@ -532,12 +681,12 @@ const DivisionAndSection = () => {
           </div>
 
           {/* Desktop Summary */}
-          <div className='hidden gap-6 p-6 lg:grid lg:grid-cols-6'>
+          <div className='hidden gap-6 p-6 lg:grid lg:grid-cols-8'>
             {/* Total Division */}
             <div>
               <p className='text-sm text-gray-500'>Total Division</p>
               <h3 className='mt-2 text-2xl font-bold text-green-700'>
-                {divisionSectionData.summary.totalDivision}
+                {summary.data?.totalDivision ?? "—"}
               </h3>
             </div>
 
@@ -545,7 +694,7 @@ const DivisionAndSection = () => {
             <div>
               <p className='text-sm text-gray-500'>Total Section</p>
               <h3 className='mt-2 text-2xl font-bold text-green-700'>
-                {divisionSectionData.summary.totalSection}
+                {summary.data?.totalSection ?? "—"}
               </h3>
             </div>
 
@@ -553,7 +702,7 @@ const DivisionAndSection = () => {
             <div>
               <p className='text-sm text-gray-500'>Total Area (Acre)</p>
               <h3 className='mt-2 text-2xl font-bold text-green-700'>
-                {divisionSectionData.summary.totalArea.toFixed(2)}
+                {summary.data ? Number(summary.data.totalArea).toFixed(2) : "—"}
               </h3>
             </div>
 
@@ -561,7 +710,7 @@ const DivisionAndSection = () => {
             <div>
               <p className='text-sm text-gray-500'>Average Section Area</p>
               <h3 className='mt-2 whitespace-nowrap text-2xl font-bold text-green-700'>
-                {divisionSectionData.summary.averageSectionArea}
+                {summary.data?.averageSectionArea ?? "—"}
                 <span className='ml-1 text-lg'>Acre</span>
               </h3>
             </div>
@@ -570,7 +719,7 @@ const DivisionAndSection = () => {
             <div>
               <p className='text-sm text-gray-500'>Active Division</p>
               <h3 className='mt-2 text-2xl font-bold text-green-700'>
-                {divisionSectionData.summary.activeDivision}
+                {summary.data?.activeDivision ?? "—"}
               </h3>
             </div>
 
@@ -578,7 +727,23 @@ const DivisionAndSection = () => {
             <div>
               <p className='text-sm text-gray-500'>Active Section</p>
               <h3 className='mt-2 text-2xl font-bold text-green-700'>
-                {divisionSectionData.summary.activeSection}
+                {summary.data?.activeSection ?? "—"}
+              </h3>
+            </div>
+
+            {/* Inactive Division */}
+            <div>
+              <p className='text-sm text-gray-500'>Inactive Division</p>
+              <h3 className='mt-2 text-2xl font-bold text-red-600'>
+                {inactiveDivision}
+              </h3>
+            </div>
+
+            {/* Inactive Section */}
+            <div>
+              <p className='text-sm text-gray-500'>Inactive Section</p>
+              <h3 className='mt-2 text-2xl font-bold text-red-600'>
+                {inactiveSection}
               </h3>
             </div>
           </div>
@@ -589,7 +754,7 @@ const DivisionAndSection = () => {
             <div className='rounded-lg border border-green-200 bg-white p-4 shadow-sm'>
               <p className='text-sm text-gray-500'>Total Division</p>
               <h3 className='mt-1 text-xl font-bold text-green-700'>
-                {divisionSectionData.summary.totalDivision}
+                {summary.data?.totalDivision ?? "—"}
               </h3>
             </div>
 
@@ -597,7 +762,7 @@ const DivisionAndSection = () => {
             <div className='rounded-lg border border-green-200 bg-white p-4 shadow-sm'>
               <p className='text-sm text-gray-500'>Total Section</p>
               <h3 className='mt-1 text-xl font-bold text-green-700'>
-                {divisionSectionData.summary.totalSection}
+                {summary.data?.totalSection ?? "—"}
               </h3>
             </div>
 
@@ -605,7 +770,7 @@ const DivisionAndSection = () => {
             <div className='rounded-lg border border-green-200 bg-white p-4 shadow-sm'>
               <p className='text-sm text-gray-500'>Total Area (Acre)</p>
               <h3 className='mt-1 text-xl font-bold text-green-700'>
-                {divisionSectionData.summary.totalArea.toFixed(2)}
+                {summary.data ? Number(summary.data.totalArea).toFixed(2) : "—"}
               </h3>
             </div>
 
@@ -613,7 +778,7 @@ const DivisionAndSection = () => {
             <div className='rounded-lg border border-green-200 bg-white p-4 shadow-sm'>
               <p className='text-sm text-gray-500'>Average Section Area</p>
               <h3 className='mt-1 text-xl font-bold text-green-700'>
-                {divisionSectionData.summary.averageSectionArea}
+                {summary.data?.averageSectionArea ?? "—"}
                 <span className='ml-1 text-base'>Acre</span>
               </h3>
             </div>
@@ -622,7 +787,7 @@ const DivisionAndSection = () => {
             <div className='rounded-lg border border-green-200 bg-white p-4 shadow-sm'>
               <p className='text-sm text-gray-500'>Active Division</p>
               <h3 className='mt-1 text-xl font-bold text-green-700'>
-                {divisionSectionData.summary.activeDivision}
+                {summary.data?.activeDivision ?? "—"}
               </h3>
             </div>
 
@@ -630,7 +795,23 @@ const DivisionAndSection = () => {
             <div className='rounded-lg border border-green-200 bg-white p-4 shadow-sm'>
               <p className='text-sm text-gray-500'>Active Section</p>
               <h3 className='mt-1 text-xl font-bold text-green-700'>
-                {divisionSectionData.summary.activeSection}
+                {summary.data?.activeSection ?? "—"}
+              </h3>
+            </div>
+
+            {/* Inactive Division */}
+            <div className='rounded-lg border border-green-200 bg-white p-4 shadow-sm'>
+              <p className='text-sm text-gray-500'>Inactive Division</p>
+              <h3 className='mt-1 text-xl font-bold text-red-600'>
+                {inactiveDivision}
+              </h3>
+            </div>
+
+            {/* Inactive Section */}
+            <div className='rounded-lg border border-green-200 bg-white p-4 shadow-sm'>
+              <p className='text-sm text-gray-500'>Inactive Section</p>
+              <h3 className='mt-1 text-xl font-bold text-red-600'>
+                {inactiveSection}
               </h3>
             </div>
           </div>
@@ -650,7 +831,7 @@ const DivisionAndSection = () => {
               {/* Close Modal Button */}
               <button
                 type='button'
-                onClick={() => setShowDivisionModal(false)}
+                onClick={closeDivisionModal}
                 className='rounded-lg p-2 text-gray-500 hover:bg-gray-100'
               >
                 <X size={20} />
@@ -675,7 +856,7 @@ const DivisionAndSection = () => {
                     >
                       <option value=''>Select Estate</option>
 
-                      {divisionSectionData.estateOptions.map((estate) => (
+                      {(estateOptions.data ?? []).map((estate) => (
                         <option key={estate.id} value={estate.value}>
                           {estate.label}
                         </option>
@@ -849,11 +1030,7 @@ const DivisionAndSection = () => {
                     {/* Cancel */}
                     <button
                       type='button'
-                      onClick={() => {
-                        reset();
-                        clearErrors();
-                        setShowDivisionModal(false);
-                      }}
+                      onClick={closeDivisionModal}
                       className='inline-flex h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-5 text-sm font-medium text-gray-700 transition hover:bg-gray-100 sm:w-auto'
                     >
                       <X size={18} />
@@ -904,7 +1081,7 @@ const DivisionAndSection = () => {
               {/* Close Modal Button */}
               <button
                 type='button'
-                onClick={() => setShowSectionModal(false)}
+                onClick={closeSectionModal}
                 className='rounded-lg p-2 text-gray-500 hover:bg-gray-100'
               >
                 <X size={20} />
@@ -924,13 +1101,18 @@ const DivisionAndSection = () => {
                     <select
                       {...registerSection("division", {
                         required: "Division is required",
+                        onChange: () => setSectionValue("parentSection", ""),
                       })}
                       className='h-11 w-full rounded-lg border border-gray-300 bg-white px-4 outline-none transition focus:border-green-600'
                     >
-                      <option value=''>Select Division</option>
+                      <option value=''>
+{allDivisions.data && divisionRows.length === 0
+ ? "No divisions yet - add a division first"
+ : "Select Division"}
+</option>
 
-                      {divisionSectionData.divisionList.map((division) => (
-                        <option key={division.id} value={division.divisionCode}>
+                      {divisionRows.map((division) => (
+                        <option key={division.id} value={division.id}>
                           {division.divisionName}
                         </option>
                       ))}
@@ -953,7 +1135,7 @@ const DivisionAndSection = () => {
                       {...registerSection("parentSection")}
                       className='h-11 w-full rounded-lg border border-gray-300 bg-white px-4 outline-none transition focus:border-green-600'
                     >
-                      {divisionSectionData.parentSectionOptions.map(
+                      {parentSectionChoices.map(
                         (section) => (
                           <option key={section.id} value={section.value}>
                             {section.label}
@@ -1095,11 +1277,7 @@ const DivisionAndSection = () => {
                   {/* Cancel */}
                   <button
                     type='button'
-                    onClick={() => {
-                      resetSection();
-                      clearSectionErrors();
-                      setShowSectionModal(false);
-                    }}
+                    onClick={closeSectionModal}
                     className='inline-flex h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-5 text-sm font-medium text-gray-700 transition hover:bg-gray-100 sm:w-auto'
                   >
                     <X size={18} />
@@ -1134,6 +1312,14 @@ const DivisionAndSection = () => {
           </div>
         </div>
       )}
+      <ConfirmDialog
+        open={Boolean(deleting)}
+        title={deleting?.type === "division" ? "Delete division?" : "Delete section?"}
+        message={`${deleting?.type === "division" ? deleting?.row?.divisionName : deleting?.row?.sectionName} will be removed from the list.`}
+        loading={deleteBusy}
+        onConfirm={confirmDelete}
+        onCancel={() => setDeleting(null)}
+      />
     </div>
   );
 };

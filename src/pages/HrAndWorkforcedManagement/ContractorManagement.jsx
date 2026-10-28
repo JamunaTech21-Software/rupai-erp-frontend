@@ -89,15 +89,12 @@ const ContractorManagement = () => {
     register,
     handleSubmit,
     reset,
-    watch,
-    formState: { errors },
   } = useForm();
 
   // =====================================================
   // FORM SUBMIT
   // =====================================================
-  const onSubmit = (data) => {
-    console.log("Contractor Management Data:", data);
+  const onSubmit = () => {
   };
 
   return (

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import EstateManagementTabs from "../../components/EstateManagement/EstateManagementTabs";
 import { useForm } from "react-hook-form";
 import L from "leaflet";
@@ -9,6 +9,13 @@ import markerIcon from "leaflet/dist/images/marker-icon.png";
 import markerShadow from "leaflet/dist/images/marker-shadow.png";
 
 import { fieldAndBlockManagementData } from "../../data/EstateManagementData/FieldAndBlockManagementData";
+import { api } from "../../lib/api";
+import { useApi } from "../../lib/useApi";
+import TableSkeleton from "../../components/common/TableSkeleton";
+import EmptyRow from "../../components/common/EmptyRow";
+import ErrorState from "../../components/common/ErrorState";
+import ConfirmDialog from "../../components/common/ConfirmDialog";
+import MapResizer from "../../components/common/MapResizer";
 
 import {
   RotateCcw,
@@ -49,29 +56,200 @@ const blueMarker = new L.Icon({
   popupAnchor: [0, -40],
 });
 
+const PER_PAGE = 10;
+const DASH = "-";
+
+// Search boxes wait a moment after typing before asking the server.
+const useDebounced = (value, delay = 300) => {
+  const [debounced, setDebounced] = useState(value);
+  useEffect(() => {
+    const timer = setTimeout(() => setDebounced(value), delay);
+    return () => clearTimeout(timer);
+  }, [value, delay]);
+  return debounced;
+};
+
+// The label of a stored option value ("tea_field" -> "Tea Field").
+const labelOf = (list, value) => list.find((item) => item.value === value)?.label ?? value ?? DASH;
+const orDash = (value) => (value === null || value === undefined || value === "" ? DASH : value);
+
 const FieldOrBlockManagement = () => {
   const {
     register,
     handleSubmit,
     reset,
-    formState: { errors },
+    setError,
+    setValue,
+    watch,
+    formState: { errors, isSubmitting },
   } = useForm();
 
   const [mapType, setMapType] = useState("street");
   const [isMapFullscreen, setIsMapFullscreen] = useState(false);
   const [showFieldModal, setShowFieldModal] = useState(false);
+  const [editing, setEditing] = useState(null);
+  const [deleting, setDeleting] = useState(null);
+  const [deleteBusy, setDeleteBusy] = useState(false);
+  const [selectedId, setSelectedId] = useState(null);
+
+  // Table filters + page
+  const [search, setSearch] = useState("");
+  const [fieldTypeFilter, setFieldTypeFilter] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
+  const [page, setPage] = useState(1);
+  const searchText = useDebounced(search);
+  useEffect(() => setPage(1), [searchText, fieldTypeFilter, statusFilter]);
+
+  const filters = { search: searchText, fieldType: fieldTypeFilter, status: statusFilter };
+  const fields = useApi(() => api.get("/fields", { ...filters, page, perPage: PER_PAGE }), [searchText, fieldTypeFilter, statusFilter, page]);
+  const summary = useApi(() => api.get("/fields/summary", filters), [searchText, fieldTypeFilter, statusFilter]);
+  const rows = fields.data?.data ?? [];
+  const meta = fields.data?.meta;
+
+  // The field shown in the details panel and on the map: the clicked row, else the first one.
+  const activeId = rows.some((row) => row.id === selectedId) ? selectedId : rows[0]?.id;
+  const record = useApi(() => (activeId ? api.get(`/fields/${activeId}`) : Promise.resolve(null)), [activeId, fields.data]);
+  const field = record.data;
+  // Without a drawn boundary the map is centred on the estate.
+  const estateForMap = useApi(
+    () => (field && !field.map ? api.get(`/estates/${field.estate}`) : Promise.resolve(null)),
+    [field?.id, field?.map],
+  );
+  const map = field?.map ?? (estateForMap.data ? { latitude: estateForMap.data.latitude, longitude: estateForMap.data.longitude, perimeter: null, totalArea: field?.totalArea, polygon: null } : null);
+
+  const details = {
+    estate: orDash(field?.estateName),
+    division: orDash(field?.divisionName),
+    section: orDash(field?.sectionName),
+    fieldName: orDash(field?.fieldName),
+    fieldCode: orDash(field?.fieldCode),
+    fieldType: field ? labelOf(fieldAndBlockManagementData.fieldTypes, field.fieldType) : DASH,
+    totalArea: field ? `${field.totalArea} Acre` : DASH,
+    plantedArea: field ? `${field.plantedArea} Acre` : DASH,
+    yearOfPlanting: orDash(field?.plantingYear),
+    bushType: field ? labelOf(fieldAndBlockManagementData.bushTypes, field.bushType) : DASH,
+    spacing: orDash(field?.spacing),
+    altitude: orDash(field?.altitude),
+    averageSlope: orDash(field?.averageSlope),
+    irrigation: field ? labelOf(fieldAndBlockManagementData.irrigationSources, field.irrigation) : DASH,
+    soilType: field ? labelOf(fieldAndBlockManagementData.soilTypes, field.soilType) : DASH,
+    drainage: field ? labelOf(fieldAndBlockManagementData.drainage, field.drainage) : DASH,
+    status: field ? labelOf(fieldAndBlockManagementData.statuses, field.status) : DASH,
+    createdBy: orDash(field?.createdByName),
+    createdOn: field?.createdAt
+      ? new Date(field.createdAt).toLocaleDateString("en-GB", { month: "short", year: "numeric" })
+      : DASH,
+  };
+
+  // Form dropdowns follow each other: estate -> division -> section -> parent field.
+  const estateId = watch("estate");
+  const divisionId = watch("division");
+  const sectionId = watch("section");
+  const estateOptions = useApi(() => api.get("/options/estates"), []);
+  const divisionOptions = useApi(
+    () => (estateId ? api.get("/options/divisions", { estate: estateId }) : Promise.resolve([])),
+    [estateId],
+  );
+  const sectionOptions = useApi(
+    () => (divisionId ? api.get("/options/sections", { division: divisionId }) : Promise.resolve([])),
+    [divisionId],
+  );
+  const parentOptions = useApi(
+    () => (sectionId ? api.get("/options/fields", { section: sectionId }) : Promise.resolve([])),
+    [sectionId],
+  );
+  // Opening a field for edit: each dropdown shows its saved value once its options have loaded.
+  useEffect(() => {
+    if (!editing) return;
+    for (const [name, options] of [
+      ["division", divisionOptions.data],
+      ["section", sectionOptions.data],
+      ["parentField", parentOptions.data],
+    ]) {
+      if (options?.some((option) => option.value === editing[name])) setValue(name, editing[name]);
+    }
+  }, [editing, divisionOptions.data, sectionOptions.data, parentOptions.data, setValue]);
+  const parentFieldChoices = [
+    fieldAndBlockManagementData.parentFields[0],
+    ...(parentOptions.data ?? [])
+      .filter((option) => option.id !== editing?.id)
+      .map((option) => ({ id: option.id, value: option.value, label: option.label })),
+  ];
+
+  const reloadAll = () => {
+    fields.reload();
+    summary.reload();
+    record.reload();
+  };
+
+  const openNew = () => {
+    setEditing(null);
+    reset({});
+    setShowFieldModal(true);
+  };
+  const openEdit = (row) => {
+    setEditing(row);
+    reset({
+      estate: row.estate ?? "",
+      division: row.division ?? "",
+      section: row.section ?? "",
+      fieldName: row.fieldName ?? "",
+      fieldCode: row.fieldCode ?? "",
+      fieldType: row.fieldType ?? "",
+      parentField: row.parentField ?? "",
+      totalArea: row.totalArea ?? "",
+      plantedArea: row.plantedArea ?? "",
+      plantingYear: row.plantingYear ?? "",
+      bushType: row.bushType ?? "",
+      spacing: row.spacing ?? "",
+      altitude: row.altitude ?? "",
+      averageSlope: row.averageSlope ?? "",
+      irrigation: row.irrigation ?? "",
+      soilType: row.soilType ?? "",
+      drainage: row.drainage ?? "",
+      status: row.status ?? "",
+      description: row.description ?? "",
+    });
+    setShowFieldModal(true);
+  };
+  const closeModal = () => {
+    reset({});
+    setEditing(null);
+    setShowFieldModal(false);
+  };
 
   // =========================================================
   // Form Submit
   // =========================================================
 
-  const FieldOrBlockManagementonSubmit = (data) => {
-    console.log("Field / Block Data:", data);
+  const FieldOrBlockManagementonSubmit = async (values) => {
+    try {
+      if (editing) {
+        await api.put(`/fields/${editing.id}`, values);
+      } else {
+        await api.post("/fields", values);
+      }
+      toast.success("Field / Block saved successfully.");
+      closeModal();
+      reloadAll();
+    } catch (error) {
+      for (const [key, message] of Object.entries(error.fields ?? {})) setError(key, { message });
+      toast.error(error.message);
+    }
+  };
 
-    toast.success("Field / Block saved successfully.");
-
-    reset();
-    setShowFieldModal(false);
+  const confirmDelete = async () => {
+    setDeleteBusy(true);
+    try {
+      await api.del(`/fields/${deleting.id}`);
+      toast.success("Field / Block deleted successfully.");
+      setDeleting(null);
+      reloadAll();
+    } catch (error) {
+      toast.error(error.message);
+    } finally {
+      setDeleteBusy(false);
+    }
   };
 
   return (
@@ -96,15 +274,15 @@ const FieldOrBlockManagement = () => {
               <h2 className='text-lg font-semibold text-green-800'>
                 Field / Block List
                 <span className='ml-1 text-sm font-normal text-gray-500'>
-                  ({fieldAndBlockManagementData.details.division}
+                  ({details.division}
                   {" > "}
-                  {fieldAndBlockManagementData.details.section})
+                  {details.section})
                 </span>
               </h2>
 
               <button
                 type='button'
-                onClick={() => setShowFieldModal(true)}
+                onClick={openNew}
                 className='btn flex h-10 cursor-pointer items-center justify-center gap-2 rounded-sm border-0 bg-green-700 px-4 text-white hover:bg-green-800'
               >
                 <Plus size={16} />
@@ -123,6 +301,8 @@ const FieldOrBlockManagement = () => {
 
                 <input
                   type='text'
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
                   placeholder={
                     fieldAndBlockManagementData.filters.searchPlaceholder
                   }
@@ -130,7 +310,11 @@ const FieldOrBlockManagement = () => {
                 />
               </div>
 
-              <select className='h-10 w-full rounded-md border border-gray-300 bg-white px-3 text-sm outline-none transition focus:border-green-600'>
+              <select
+                value={fieldTypeFilter}
+                onChange={(e) => setFieldTypeFilter(e.target.value)}
+                className='h-10 w-full rounded-md border border-gray-300 bg-white px-3 text-sm outline-none transition focus:border-green-600'
+              >
                 <option value=''>
                   {fieldAndBlockManagementData.filters.fieldType}
                 </option>
@@ -142,7 +326,11 @@ const FieldOrBlockManagement = () => {
                 ))}
               </select>
 
-              <select className='h-10 w-full rounded-md border border-gray-300 bg-white px-3 text-sm outline-none transition focus:border-green-600'>
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className='h-10 w-full rounded-md border border-gray-300 bg-white px-3 text-sm outline-none transition focus:border-green-600'
+              >
                 <option value=''>
                   {fieldAndBlockManagementData.filters.status}
                 </option>
@@ -156,6 +344,12 @@ const FieldOrBlockManagement = () => {
 
               <button
                 type='button'
+                title='Reset Filters'
+                onClick={() => {
+                  setSearch("");
+                  setFieldTypeFilter("");
+                  setStatusFilter("");
+                }}
                 className='flex h-10 w-10 items-center justify-center rounded-md border border-gray-300 bg-white transition hover:bg-gray-100'
               >
                 <SlidersHorizontal size={18} className='text-gray-600' />
@@ -180,41 +374,56 @@ const FieldOrBlockManagement = () => {
                 </thead>
 
                 <tbody>
-                  {fieldAndBlockManagementData.fieldList.map((field, index) => (
-                    <tr key={field.id} className='hover:bg-gray-50'>
+                  {fields.loading && !fields.data ? (
+                    <TableSkeleton rows={5} columns={fieldAndBlockManagementData.tableHeaders.length} />
+                  ) : fields.error ? (
+                    <tr>
+                      <td colSpan={fieldAndBlockManagementData.tableHeaders.length} className='p-4'>
+                        <ErrorState message={fields.error.message} onRetry={fields.reload} />
+                      </td>
+                    </tr>
+                  ) : rows.length === 0 ? (
+                    <EmptyRow columns={fieldAndBlockManagementData.tableHeaders.length} />
+                  ) : (
+                  rows.map((row, index) => (
+                    <tr
+                      key={row.id}
+                      onClick={() => setSelectedId(row.id)}
+                      className={`cursor-pointer hover:bg-gray-50 ${row.id === activeId ? "bg-green-50" : ""}`}
+                    >
                       <td className='border border-gray-200 px-1 py-2 text-center'>
-                        {index + 1}
+                        {(page - 1) * PER_PAGE + index + 1}
                       </td>
 
                       <td className='whitespace-nowrap border border-gray-200 px-3 py-2 text-left'>
-                        {field.fieldName}
+                        {row.fieldName}
                       </td>
 
                       <td className='border border-gray-200 px-3 py-2 text-center'>
-                        {field.code}
+                        {row.fieldCode}
                       </td>
 
                       <td className='border border-gray-200 px-3 py-2 text-center'>
-                        {field.fieldType}
+                        {labelOf(fieldAndBlockManagementData.fieldTypes, row.fieldType)}
                       </td>
 
                       <td className='whitespace-nowrap border border-gray-200 px-3 py-2 text-center'>
-                        {field.totalArea}
+                        {row.totalArea}
                       </td>
 
                       <td className='whitespace-nowrap border border-gray-200 px-3 py-2 text-center'>
-                        {field.plantedArea === 0 ? "-" : field.plantedArea}
+                        {Number(row.plantedArea) === 0 ? "-" : row.plantedArea}
                       </td>
 
                       <td className='border border-gray-200 px-3 py-2 text-center'>
                         <span
                           className={`inline-flex rounded-full px-3 py-1 text-xs font-medium ${
-                            field.status === "Active"
+                            row.status === "active"
                               ? "bg-green-100 text-green-700"
                               : "bg-red-100 text-red-600"
                           }`}
                         >
-                          {field.status}
+                          {labelOf(fieldAndBlockManagementData.statuses, row.status)}
                         </span>
                       </td>
 
@@ -222,6 +431,10 @@ const FieldOrBlockManagement = () => {
                         <div className='flex items-center justify-center gap-2'>
                           <button
                             type='button'
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              openEdit(row);
+                            }}
                             className='text-blue-600 transition hover:text-blue-800'
                             title='Edit'
                           >
@@ -230,6 +443,10 @@ const FieldOrBlockManagement = () => {
 
                           <button
                             type='button'
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setDeleting(row);
+                            }}
                             className='text-red-500 transition hover:text-red-700'
                             title='Delete'
                           >
@@ -238,7 +455,8 @@ const FieldOrBlockManagement = () => {
                         </div>
                       </td>
                     </tr>
-                  ))}
+                  ))
+                  )}
                 </tbody>
               </table>
             </div>
@@ -247,15 +465,20 @@ const FieldOrBlockManagement = () => {
 
             <div className='flex flex-col items-center justify-between gap-3 border-t border-gray-200 px-4 py-3 text-sm text-gray-600 sm:flex-row'>
               <p>
-                Showing <strong>1</strong> to{" "}
-                <strong>{fieldAndBlockManagementData.fieldList.length}</strong>{" "}
+                Showing <strong>{rows.length > 0 ? (page - 1) * PER_PAGE + 1 : 0}</strong> to{" "}
+                <strong>{(page - 1) * PER_PAGE + rows.length}</strong>{" "}
                 of{" "}
-                <strong>{fieldAndBlockManagementData.fieldList.length}</strong>{" "}
+                <strong>{meta?.total ?? 0}</strong>{" "}
                 entries
               </p>
 
               <div className='join'>
-                <button type='button' className='join-item btn btn-sm' disabled>
+                <button
+                  type='button'
+                  className='join-item btn btn-sm'
+                  disabled={page <= 1}
+                  onClick={() => setPage((p) => p - 1)}
+                >
                   Previous
                 </button>
 
@@ -263,10 +486,15 @@ const FieldOrBlockManagement = () => {
                   type='button'
                   className='join-item btn btn-sm btn-active'
                 >
-                  1
+                  {page}
                 </button>
 
-                <button type='button' className='join-item btn btn-sm' disabled>
+                <button
+                  type='button'
+                  className='join-item btn btn-sm'
+                  disabled={page >= (meta?.totalPages ?? 1)}
+                  onClick={() => setPage((p) => p + 1)}
+                >
                   Next
                 </button>
               </div>
@@ -284,7 +512,7 @@ const FieldOrBlockManagement = () => {
             <div className='border-b border-gray-200 px-5 py-4'>
               <h2 className='text-lg font-semibold text-green-800'>
                 Field / Block Details (
-                {fieldAndBlockManagementData.details.fieldName})
+                {details.fieldName})
               </h2>
             </div>
 
@@ -301,7 +529,7 @@ const FieldOrBlockManagement = () => {
                     <span className='w-4 text-center text-gray-500'>:</span>
 
                     <span className='text-gray-900'>
-                      {fieldAndBlockManagementData.details[item.key]}
+                      {details[item.key]}
                     </span>
                   </div>
                 ))}
@@ -320,11 +548,11 @@ const FieldOrBlockManagement = () => {
 
                     {item.key === "status" ? (
                       <span className='rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-700'>
-                        {fieldAndBlockManagementData.details[item.key]}
+                        {details[item.key]}
                       </span>
                     ) : (
                       <span className='text-gray-900'>
-                        {fieldAndBlockManagementData.details[item.key]}
+                        {details[item.key]}
                       </span>
                     )}
                   </div>
@@ -354,7 +582,7 @@ const FieldOrBlockManagement = () => {
             <div className='flex shrink-0 items-center justify-between border-b border-gray-200 px-5 py-4'>
               <h2 className='text-lg font-semibold text-green-800'>
                 Field / Block Map View (
-                {fieldAndBlockManagementData.details.fieldName})
+                {details.fieldName})
               </h2>
 
               {isMapFullscreen && (
@@ -385,11 +613,9 @@ const FieldOrBlockManagement = () => {
                   ================================================== */}
 
               <MapContainer
-                center={[
-                  Number(fieldAndBlockManagementData.map.latitude),
-                  Number(fieldAndBlockManagementData.map.longitude),
-                ]}
-                zoom={fieldAndBlockManagementData.map.zoom}
+                key={`${field?.id}-${map?.latitude}-${map?.longitude}`}
+                center={[Number(map?.latitude ?? 24.9), Number(map?.longitude ?? 91.87)]}
+                zoom={map?.zoom ?? 16}
                 zoomControl={false}
                 className='h-full w-full'
               >
@@ -415,55 +641,58 @@ const FieldOrBlockManagement = () => {
 
                 <ZoomControl position='topleft' />
 
+                <MapResizer trigger={isMapFullscreen} />
+
                 {/* =========================
                         MARKER
                     ========================== */}
 
+                {map && (
                 <Marker
-                  position={[
-                    Number(fieldAndBlockManagementData.map.latitude),
-                    Number(fieldAndBlockManagementData.map.longitude),
-                  ]}
+                  position={[Number(map.latitude), Number(map.longitude)]}
                   icon={blueMarker}
                 >
                   <Popup>
                     <div className='space-y-2'>
                       <h3 className='font-semibold text-green-800'>
-                        {fieldAndBlockManagementData.details.fieldName}
+                        {details.fieldName}
                       </h3>
 
                       <p>
-                        Area: {fieldAndBlockManagementData.details.totalArea}
+                        Area: {details.totalArea}
                       </p>
 
                       <p>
-                        Division: {fieldAndBlockManagementData.details.division}
+                        Division: {details.division}
                       </p>
 
                       <p>
-                        Section: {fieldAndBlockManagementData.details.section}
+                        Section: {details.section}
                       </p>
 
                       <p>
-                        Status: {fieldAndBlockManagementData.details.status}
+                        Status: {details.status}
                       </p>
                     </div>
                   </Popup>
                 </Marker>
+                )}
 
                 {/* =========================
                         FIELD POLYGON
                     ========================== */}
 
-                <Polygon
-                  positions={fieldAndBlockManagementData.map.polygon}
-                  pathOptions={{
-                    color: "#15803d",
-                    fillColor: "#22c55e",
-                    fillOpacity: 0.4,
-                    weight: 2,
-                  }}
-                />
+                {map?.polygon && (
+                  <Polygon
+                    positions={map.polygon}
+                    pathOptions={{
+                      color: "#15803d",
+                      fillColor: "#22c55e",
+                      fillOpacity: 0.4,
+                      weight: 2,
+                    }}
+                  />
+                )}
               </MapContainer>
 
               {/* =================================================
@@ -552,7 +781,7 @@ const FieldOrBlockManagement = () => {
                 <span>
                   Area:
                   <strong className='ml-1 text-gray-800'>
-                    {fieldAndBlockManagementData.map.totalArea} Acre
+                    {orDash(map?.totalArea)} Acre
                   </strong>
                 </span>
 
@@ -563,7 +792,7 @@ const FieldOrBlockManagement = () => {
                 <span>
                   Perimeter:
                   <strong className='ml-1 text-gray-800'>
-                    {fieldAndBlockManagementData.map.perimeter} Km
+                    {orDash(map?.perimeter)} Km
                   </strong>
                 </span>
 
@@ -574,8 +803,7 @@ const FieldOrBlockManagement = () => {
                 <span>
                   Coordinates:
                   <strong className='ml-1 text-gray-800'>
-                    {fieldAndBlockManagementData.map.latitude},{" "}
-                    {fieldAndBlockManagementData.map.longitude}
+                    {orDash(map?.latitude)}, {orDash(map?.longitude)}
                   </strong>
                 </span>
               </div>
@@ -615,10 +843,7 @@ const FieldOrBlockManagement = () => {
 
               <button
                 type='button'
-                onClick={() => {
-                  reset();
-                  setShowFieldModal(false);
-                }}
+                onClick={closeModal}
                 className='rounded-lg p-2 text-gray-500 transition hover:bg-gray-100'
               >
                 <X size={20} />
@@ -640,6 +865,11 @@ const FieldOrBlockManagement = () => {
                     <select
                       {...register("estate", {
                         required: "Estate is required",
+                        onChange: () => {
+                          setValue("division", "");
+                          setValue("section", "");
+                          setValue("parentField", "");
+                        },
                       })}
                       className={`select h-11 w-full rounded-lg border bg-white ${
                         errors.estate
@@ -649,7 +879,7 @@ const FieldOrBlockManagement = () => {
                     >
                       <option value=''>Select Estate</option>
 
-                      {fieldAndBlockManagementData.estates.map((estate) => (
+                      {(estateOptions.data ?? []).map((estate) => (
                         <option key={estate.id} value={estate.value}>
                           {estate.label}
                         </option>
@@ -673,6 +903,10 @@ const FieldOrBlockManagement = () => {
                     <select
                       {...register("division", {
                         required: "Division is required",
+                        onChange: () => {
+                          setValue("section", "");
+                          setValue("parentField", "");
+                        },
                       })}
                       className={`select h-11 w-full rounded-lg border bg-white ${
                         errors.division
@@ -680,11 +914,17 @@ const FieldOrBlockManagement = () => {
                           : "border-gray-300 focus:border-green-600"
                       }`}
                     >
-                      <option value=''>Select Division</option>
+                      <option value=''>
+{!estateId
+ ? "Select Estate first"
+ : divisionOptions.data?.length === 0
+ ? "No divisions for this estate"
+ : "Select Division"}
+</option>
 
-                      {fieldAndBlockManagementData.divisions.map((division) => (
+                      {(divisionOptions.data ?? []).map((division) => (
                         <option key={division.id} value={division.value}>
-                          {division.name}
+                          {division.label}
                         </option>
                       ))}
                     </select>
@@ -706,6 +946,7 @@ const FieldOrBlockManagement = () => {
                     <select
                       {...register("section", {
                         required: "Section is required",
+                        onChange: () => setValue("parentField", ""),
                       })}
                       className={`select h-11 w-full rounded-lg border bg-white ${
                         errors.section
@@ -713,11 +954,17 @@ const FieldOrBlockManagement = () => {
                           : "border-gray-300 focus:border-green-600"
                       }`}
                     >
-                      <option value=''>Select Section</option>
+                      <option value=''>
+{!divisionId
+ ? "Select Division first"
+ : sectionOptions.data?.length === 0
+ ? "No sections for this division"
+ : "Select Section"}
+</option>
 
-                      {fieldAndBlockManagementData.sections.map((section) => (
+                      {(sectionOptions.data ?? []).map((section) => (
                         <option key={section.id} value={section.value}>
-                          {section.name}
+                          {section.label}
                         </option>
                       ))}
                     </select>
@@ -829,7 +1076,7 @@ const FieldOrBlockManagement = () => {
                     >
                       <option value=''>Select Parent Field</option>
 
-                      {fieldAndBlockManagementData.parentFields.map((field) => (
+                      {parentFieldChoices.map((field) => (
                         <option key={field.id} value={field.value}>
                           {field.label}
                         </option>
@@ -1184,10 +1431,7 @@ const FieldOrBlockManagement = () => {
                   <div className='flex flex-col gap-3 sm:flex-row sm:justify-end'>
                     <button
                       type='button'
-                      onClick={() => {
-                        reset();
-                        setShowFieldModal(false);
-                      }}
+                      onClick={closeModal}
                       className='btn flex h-11 w-full items-center gap-2 rounded-lg border border-gray-300 bg-white px-6 text-gray-700 sm:w-auto'
                     >
                       <X size={18} />
@@ -1205,10 +1449,11 @@ const FieldOrBlockManagement = () => {
 
                     <button
                       type='submit'
-                      className='btn flex h-11 w-full items-center gap-2 rounded-lg border-0 bg-green-900 px-6 text-white sm:w-auto'
+                      disabled={isSubmitting}
+                      className='btn flex h-11 w-full items-center gap-2 rounded-lg border-0 bg-green-900 px-6 text-white disabled:opacity-60 sm:w-auto'
                     >
                       <Save size={18} />
-                      Save Field
+                      {isSubmitting ? "Saving..." : "Save Field"}
                     </button>
                   </div>
                 </div>
@@ -1244,7 +1489,7 @@ const FieldOrBlockManagement = () => {
                 <p className='text-sm text-gray-500'>Tea Field</p>
 
                 <h3 className='mt-2 text-2xl font-bold text-green-700'>
-                  {fieldAndBlockManagementData.summary.teaField}
+                  {summary.data?.teaField ?? "—"}
                 </h3>
               </div>
 
@@ -1252,7 +1497,7 @@ const FieldOrBlockManagement = () => {
                 <p className='text-sm text-gray-500'>Nursery</p>
 
                 <h3 className='mt-2 text-2xl font-bold text-green-700'>
-                  {fieldAndBlockManagementData.summary.nursery}
+                  {summary.data?.nursery ?? "—"}
                 </h3>
               </div>
 
@@ -1260,7 +1505,7 @@ const FieldOrBlockManagement = () => {
                 <p className='text-sm text-gray-500'>Extension</p>
 
                 <h3 className='mt-2 text-2xl font-bold text-green-700'>
-                  {fieldAndBlockManagementData.summary.extension}
+                  {summary.data?.extension ?? "—"}
                 </h3>
               </div>
 
@@ -1268,7 +1513,7 @@ const FieldOrBlockManagement = () => {
                 <p className='text-sm text-gray-500'>Infrastructure</p>
 
                 <h3 className='mt-2 text-2xl font-bold text-green-700'>
-                  {fieldAndBlockManagementData.summary.infrastructure}
+                  {summary.data?.infrastructure ?? "—"}
                 </h3>
               </div>
 
@@ -1276,7 +1521,7 @@ const FieldOrBlockManagement = () => {
                 <p className='text-sm text-gray-500'>Drain Area</p>
 
                 <h3 className='mt-2 text-2xl font-bold text-green-700'>
-                  {fieldAndBlockManagementData.summary.drainArea}
+                  {summary.data?.drainArea ?? "—"}
                 </h3>
               </div>
 
@@ -1284,7 +1529,7 @@ const FieldOrBlockManagement = () => {
                 <p className='text-sm text-gray-500'>Total Area (Acre)</p>
 
                 <h3 className='mt-2 text-2xl font-bold text-green-700'>
-                  {fieldAndBlockManagementData.summary.totalArea}
+                  {summary.data?.totalArea ?? "—"}
                 </h3>
               </div>
 
@@ -1292,7 +1537,7 @@ const FieldOrBlockManagement = () => {
                 <p className='text-sm text-gray-500'>Planted Area (Acre)</p>
 
                 <h3 className='mt-2 text-2xl font-bold text-green-700'>
-                  {fieldAndBlockManagementData.summary.plantedArea}
+                  {summary.data?.plantedArea ?? "—"}
                 </h3>
               </div>
 
@@ -1300,7 +1545,7 @@ const FieldOrBlockManagement = () => {
                 <p className='text-sm text-gray-500'>Active Field</p>
 
                 <h3 className='mt-2 text-2xl font-bold text-green-700'>
-                  {fieldAndBlockManagementData.summary.activeField}
+                  {summary.data?.activeField ?? "—"}
                 </h3>
               </div>
 
@@ -1308,13 +1553,21 @@ const FieldOrBlockManagement = () => {
                 <p className='text-sm text-gray-500'>Inactive Field</p>
 
                 <h3 className='mt-2 text-2xl font-bold text-red-600'>
-                  {fieldAndBlockManagementData.summary.inactiveField}
+                  {summary.data?.inactiveField ?? "—"}
                 </h3>
               </div>
             </div>
           </div>
         </div>
       </div>
+      <ConfirmDialog
+        open={Boolean(deleting)}
+        title='Delete field / block?'
+        message={`${deleting?.fieldName ?? ""} will be removed from the list.`}
+        loading={deleteBusy}
+        onConfirm={confirmDelete}
+        onCancel={() => setDeleting(null)}
+      />
     </div>
   );
 };

@@ -30,8 +30,7 @@ const AddNewEmployee = () => {
   // =========================
   // FORM SUBMIT
   // =========================
-  const onSubmit = (data) => {
-    console.log("Employee Form Data:", data);
+  const onSubmit = () => {
   };
 
   return (

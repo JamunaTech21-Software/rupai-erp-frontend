@@ -43,8 +43,7 @@ const Season = () => {
   // =========================================================
   // FORM SUBMIT
   // =========================================================
-  const onSubmit = (data) => {
-    console.log("Season Form Data:", data);
+  const onSubmit = () => {
   };
 
   return (
@@ -481,8 +480,7 @@ const Season = () => {
           {isSeasonModalOpen && (
             <div className='fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 px-4 py-6'>
               <form
-                onSubmit={handleSeasonSubmit((data) => {
-                  console.log("New Season Data:", data);
+                onSubmit={handleSeasonSubmit(() => {
                 })}
                 className='w-full max-w-2xl overflow-hidden rounded-xl bg-white shadow-2xl'
               >

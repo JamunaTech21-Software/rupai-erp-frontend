@@ -1,6 +1,6 @@
 import React from "react";
 import { useForm } from "react-hook-form";
-import { useNavigate } from "react-router-dom";
+
 import { labourAllocationData } from "../../data/HrWorkforceData/labourAllocationData";
 import HrWorkforceTabs from "../../components/HrWorkforceTabs/HrWorkforceTabs";
 
@@ -170,7 +170,7 @@ const LabourAllocation = () => {
         <div className='space-y-4 xl:col-span-8'>
           {/* FILTER & SEARCH */}
           <div className='rounded-xl border border-gray-200 bg-white p-4 shadow-sm'>
-            <form onSubmit={handleSubmit((data) => console.log(data))}>
+            <form onSubmit={handleSubmit(() => {})}>
               <div className='grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'>
                 {labourAllocationData.filters.map((field) => (
                   <div key={field.id}>
@@ -360,7 +360,7 @@ const LabourAllocation = () => {
               </div>
 
               {/* FORM */}
-              <form onSubmit={handleSubmit((data) => console.log(data))}>
+              <form onSubmit={handleSubmit(() => {})}>
                 <div className='grid grid-cols-1 gap-1 sm:grid-cols-2 lg:grid-cols-3'>
                   {labourAllocationData.newAllocationForm.fields.map(
                     (field) => (

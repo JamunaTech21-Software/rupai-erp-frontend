@@ -5,34 +5,6 @@ export const landLeaseManagementData = {
   // ESTATE DROPDOWN
   // =========================================================
 
-  estates: [
-    {
-      id: 1,
-      value: "jamuna-tea-estate",
-      label: "Jamuna Tea Estate",
-    },
-    {
-      id: 2,
-      value: "rupai-tea-estate",
-      label: "Rupai Tea Estate",
-    },
-    {
-      id: 3,
-      value: "karatoa-tea-estate",
-      label: "Karatoa Tea Estate",
-    },
-    {
-      id: 4,
-      value: "green-valley-tea-estate",
-      label: "Green Valley Tea Estate",
-    },
-    {
-      id: 5,
-      value: "surma-tea-estate",
-      label: "Surma Tea Estate",
-    },
-  ],
-
   // =========================================================
   // LAND / LEASE TYPE
   // =========================================================
@@ -553,10 +525,6 @@ export const landLeaseManagementData = {
   // =========================================================
 
   mapInformation: {
-    totalArea: "125.50 Acre",
-    perimeter: "2.85 Km",
-    latitude: "25.7456",
-    longitude: "89.2741",
     mapType: "Satellite",
     projection: "WGS84",
     coordinateSystem: "EPSG:4326",
@@ -600,25 +568,9 @@ export const landLeaseManagementData = {
   // LAND BOUNDARY
   // =========================================================
 
-  landBoundary: [
-    [25.7474, 89.2719],
-    [25.7483, 89.2748],
-    [25.7462, 89.2765],
-    [25.7434, 89.2754],
-    [25.7428, 89.2726],
-    [25.7451, 89.2713],
-    [25.7474, 89.2719],
-  ],
-
   // =========================================================
   // LAND MARKER
   // =========================================================
-
-  marker: {
-    name: "Madhabpur Lease Land",
-    latitude: 25.7456,
-    longitude: 89.2741,
-  },
 
   // =========================================================
   // MAP LEGEND
@@ -645,42 +597,34 @@ export const landLeaseManagementData = {
     {
       id: 1,
       label: "Ownership Status",
-      value: "Leased In",
     },
     {
       id: 2,
       label: "Land Owner / Lessor",
-      value: "Md. Abul Kalam",
     },
     {
       id: 3,
       label: "Father's / Company Name",
-      value: "Late Hossain Ali",
     },
     {
       id: 4,
       label: "Address",
-      value: "Madhabpur, Rangpur Sadar, Rangpur",
     },
     {
       id: 5,
       label: "Mobile",
-      value: "+8801712345678",
     },
     {
       id: 6,
       label: "Email",
-      value: "abulkalam@gmail.com",
     },
     {
       id: 7,
       label: "NID / TIN",
-      value: "1234567890",
     },
     {
       id: 8,
       label: "Relation / Remarks",
-      value: "Long term lease for tea cultivation.",
     },
   ],
 
@@ -763,165 +707,6 @@ export const landLeaseManagementData = {
   // PAYMENT LIST
   // =========================================================
 
-  paymentList: [
-    {
-      id: 1,
-      landLeaseId: 1,
-      year: "2015",
-      dueDate: "31/12/2015",
-      amount: "150,000.00",
-      paidAmount: "150,000.00",
-      paymentDate: "15/12/2015",
-      status: "Paid",
-      paymentMethod: "Bank Transfer",
-      referenceNo: "REC-2015-001",
-      remarks: "Annual lease payment",
-    },
-    {
-      id: 2,
-      landLeaseId: 1,
-      year: "2016",
-      dueDate: "31/12/2016",
-      amount: "150,000.00",
-      paidAmount: "150,000.00",
-      paymentDate: "28/12/2016",
-      status: "Paid",
-      paymentMethod: "Bank Transfer",
-      referenceNo: "REC-2016-001",
-      remarks: "Annual lease payment",
-    },
-    {
-      id: 3,
-      landLeaseId: 1,
-      year: "2017",
-      dueDate: "31/12/2017",
-      amount: "165,000.00",
-      paidAmount: "165,000.00",
-      paymentDate: "29/12/2017",
-      status: "Paid",
-      paymentMethod: "Cheque",
-      referenceNo: "CHQ-2017-001",
-      remarks: "Annual lease payment",
-    },
-    {
-      id: 4,
-      landLeaseId: 1,
-      year: "2018",
-      dueDate: "31/12/2018",
-      amount: "165,000.00",
-      paidAmount: "165,000.00",
-      paymentDate: "30/12/2018",
-      status: "Paid",
-      paymentMethod: "Cheque",
-      referenceNo: "CHQ-2018-001",
-      remarks: "Annual lease payment",
-    },
-    {
-      id: 5,
-      landLeaseId: 1,
-      year: "2019",
-      dueDate: "31/12/2019",
-      amount: "175,000.00",
-      paidAmount: "175,000.00",
-      paymentDate: "29/12/2019",
-      status: "Paid",
-      paymentMethod: "Bank Transfer",
-      referenceNo: "REC-2019-001",
-      remarks: "Annual lease payment",
-    },
-    {
-      id: 6,
-      landLeaseId: 1,
-      year: "2020",
-      dueDate: "31/12/2020",
-      amount: "175,000.00",
-      paidAmount: "175,000.00",
-      paymentDate: "28/12/2020",
-      status: "Paid",
-      paymentMethod: "Bank Transfer",
-      referenceNo: "REC-2020-001",
-      remarks: "Annual lease payment",
-    },
-    {
-      id: 7,
-      landLeaseId: 1,
-      year: "2021",
-      dueDate: "31/12/2021",
-      amount: "185,000.00",
-      paidAmount: "185,000.00",
-      paymentDate: "27/12/2021",
-      status: "Paid",
-      paymentMethod: "Online Payment",
-      referenceNo: "PAY-2021-001",
-      remarks: "Annual lease payment",
-    },
-    {
-      id: 8,
-      landLeaseId: 1,
-      year: "2022",
-      dueDate: "31/12/2022",
-      amount: "185,000.00",
-      paidAmount: "185,000.00",
-      paymentDate: "29/12/2022",
-      status: "Paid",
-      paymentMethod: "Bank Transfer",
-      referenceNo: "REC-2022-001",
-      remarks: "Annual lease payment",
-    },
-    {
-      id: 9,
-      landLeaseId: 1,
-      year: "2023",
-      dueDate: "31/12/2023",
-      amount: "195,000.00",
-      paidAmount: "195,000.00",
-      paymentDate: "28/12/2023",
-      status: "Paid",
-      paymentMethod: "Bank Transfer",
-      referenceNo: "REC-2023-001",
-      remarks: "Annual lease payment",
-    },
-    {
-      id: 10,
-      landLeaseId: 1,
-      year: "2024",
-      dueDate: "31/12/2024",
-      amount: "195,000.00",
-      paidAmount: "0.00",
-      paymentDate: "-",
-      status: "Pending",
-      paymentMethod: "-",
-      referenceNo: "",
-      remarks: "Payment pending",
-    },
-    {
-      id: 11,
-      landLeaseId: 1,
-      year: "2025",
-      dueDate: "31/12/2025",
-      amount: "210,000.00",
-      paidAmount: "0.00",
-      paymentDate: "-",
-      status: "Overdue",
-      paymentMethod: "-",
-      referenceNo: "",
-      remarks: "Payment overdue",
-    },
-    {
-      id: 12,
-      landLeaseId: 1,
-      year: "2026",
-      dueDate: "31/12/2026",
-      amount: "220,000.00",
-      paidAmount: "0.00",
-      paymentDate: "-",
-      status: "Pending",
-      paymentMethod: "-",
-      referenceNo: "",
-      remarks: "Current year payment",
-    },
-  ],
-
   // =========================================================
   // PAYMENT PAGINATION
   // =========================================================
@@ -952,105 +737,6 @@ export const landLeaseManagementData = {
   // =========================================================
   // DOCUMENT LIST
   // =========================================================
-
-  documentList: [
-    {
-      id: 1,
-      landLeaseId: 1,
-      documentName: "Lease Deed",
-      type: "Lease Deed",
-      documentNumber: "LD-2024-001",
-      issueDate: "01/01/2024",
-      expiryDate: "31/12/2043",
-      file: "lease_deed.pdf",
-      uploadedOn: "05/01/2024",
-      remarks: "Original lease deed",
-    },
-    {
-      id: 2,
-      landLeaseId: 1,
-      documentName: "Khatian Copy",
-      type: "Khatian",
-      documentNumber: "KH-1234",
-      issueDate: "10/01/2024",
-      expiryDate: "",
-      file: "khatian_1234.pdf",
-      uploadedOn: "05/01/2024",
-      remarks: "Certified khatian copy",
-    },
-    {
-      id: 3,
-      landLeaseId: 1,
-      documentName: "CS Record",
-      type: "CS Record",
-      documentNumber: "CS-5678",
-      issueDate: "15/01/2024",
-      expiryDate: "",
-      file: "cs_record.pdf",
-      uploadedOn: "05/01/2024",
-      remarks: "C.S record document",
-    },
-    {
-      id: 4,
-      landLeaseId: 1,
-      documentName: "Map / Survey Plan",
-      type: "Map",
-      documentNumber: "MAP-2024-001",
-      issueDate: "20/01/2024",
-      expiryDate: "",
-      file: "survey_plan.pdf",
-      uploadedOn: "05/01/2024",
-      remarks: "Latest survey plan",
-    },
-    {
-      id: 5,
-      landLeaseId: 1,
-      documentName: "NOC",
-      type: "NOC",
-      documentNumber: "NOC-2024-001",
-      issueDate: "25/01/2024",
-      expiryDate: "25/01/2027",
-      file: "noc.pdf",
-      uploadedOn: "05/01/2024",
-      remarks: "No objection certificate",
-    },
-    {
-      id: 6,
-      landLeaseId: 1,
-      documentName: "SA Record",
-      type: "SA Record",
-      documentNumber: "SA-2024-001",
-      issueDate: "28/01/2024",
-      expiryDate: "",
-      file: "sa_record.pdf",
-      uploadedOn: "06/01/2024",
-      remarks: "S.A record copy",
-    },
-    {
-      id: 7,
-      landLeaseId: 1,
-      documentName: "RS Record",
-      type: "RS Record",
-      documentNumber: "RS-2024-001",
-      issueDate: "30/01/2024",
-      expiryDate: "",
-      file: "rs_record.pdf",
-      uploadedOn: "06/01/2024",
-      remarks: "R.S record copy",
-    },
-    {
-      id: 8,
-      landLeaseId: 1,
-      documentName: "BS Record",
-      type: "BS Record",
-      documentNumber: "BS-2024-001",
-      issueDate: "02/02/2024",
-      expiryDate: "",
-      file: "bs_record.pdf",
-      uploadedOn: "06/01/2024",
-      remarks: "B.S record copy",
-    },
-  ],
 
   // =========================================================
   // DOCUMENT ACTIONS
@@ -1111,119 +797,6 @@ export const landLeaseManagementData = {
   // LAND / LEASE LIST
   // =========================================================
 
-  landLeaseList: [
-    {
-      id: 1,
-      landName: "Madhabpur Lease Land",
-      estate: "Jamuna Tea Estate",
-      type: "Leased In",
-      category: "Tea Garden Land",
-      owner: "Md. Abul Kalam",
-      area: 125.5,
-      leaseTerm: "20 Years",
-      status: "Active",
-    },
-    {
-      id: 2,
-      landName: "Factory Expansion Area",
-      estate: "Jamuna Tea Estate",
-      type: "Owned",
-      category: "Factory Land",
-      owner: "Jamuna Tea Company",
-      area: 32.75,
-      leaseTerm: "-",
-      status: "Active",
-    },
-    {
-      id: 3,
-      landName: "North Nursery",
-      estate: "Rupai Tea Estate",
-      type: "Owned",
-      category: "Nursery",
-      owner: "Rupai Tea Estate",
-      area: 18.5,
-      leaseTerm: "-",
-      status: "Active",
-    },
-    {
-      id: 4,
-      landName: "West Residential Zone",
-      estate: "Karatoa Tea Estate",
-      type: "Leased Out",
-      category: "Residential Area",
-      owner: "ABC Housing Ltd.",
-      area: 14.25,
-      leaseTerm: "10 Years",
-      status: "Inactive",
-    },
-    {
-      id: 5,
-      landName: "South Water Body",
-      estate: "Green Valley Tea Estate",
-      type: "Owned",
-      category: "Water Body",
-      owner: "Green Valley Tea Estate",
-      area: 8.9,
-      leaseTerm: "-",
-      status: "Active",
-    },
-    {
-      id: 6,
-      landName: "Office Complex",
-      estate: "Surma Tea Estate",
-      type: "Owned",
-      category: "Office Area",
-      owner: "Surma Tea Estate",
-      area: 12.4,
-      leaseTerm: "-",
-      status: "Active",
-    },
-    {
-      id: 7,
-      landName: "Road Side Plot",
-      estate: "Jamuna Tea Estate",
-      type: "Disputed",
-      category: "Road",
-      owner: "Government",
-      area: 6.2,
-      leaseTerm: "-",
-      status: "Under Process",
-    },
-    {
-      id: 8,
-      landName: "Extension Zone",
-      estate: "Rupai Tea Estate",
-      type: "Leased In",
-      category: "Tea Garden Land",
-      owner: "Md. Harun",
-      area: 45.8,
-      leaseTerm: "15 Years",
-      status: "Active",
-    },
-    {
-      id: 9,
-      landName: "Warehouse Area",
-      estate: "Karatoa Tea Estate",
-      type: "Owned",
-      category: "Factory Land",
-      owner: "Karatoa Tea Estate",
-      area: 22.3,
-      leaseTerm: "-",
-      status: "Active",
-    },
-    {
-      id: 10,
-      landName: "Worker Colony",
-      estate: "Surma Tea Estate",
-      type: "Leased Out",
-      category: "Residential Area",
-      owner: "Tea Workers Association",
-      area: 15.75,
-      leaseTerm: "25 Years",
-      status: "Active",
-    },
-  ],
-
   // =========================================================
   // ROW ACTIONS
   // =========================================================
@@ -1264,13 +837,4 @@ export const landLeaseManagementData = {
   // SUMMARY PAGINATION
   // =========================================================
 
-  summaryPagination: {
-    currentPage: 1,
-    totalPages: 5,
-    totalRecords: 50,
-    showingFrom: 1,
-    showingTo: 10,
-    pageSize: 10,
-    pages: [1, 2, 3, 4, 5],
-  },
 };

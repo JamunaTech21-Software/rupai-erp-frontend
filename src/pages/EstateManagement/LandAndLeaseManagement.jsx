@@ -1,9 +1,16 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import toast from "react-hot-toast";
 import L from "leaflet";
 import EstateManagementTabs from "../../components/EstateManagement/EstateManagementTabs";
 import { landLeaseManagementData } from "../../data/EstateManagementData/landAndLeaseManagementData";
+import { api } from "../../lib/api";
+import { useApi } from "../../lib/useApi";
+import TableSkeleton from "../../components/common/TableSkeleton";
+import EmptyRow from "../../components/common/EmptyRow";
+import ErrorState from "../../components/common/ErrorState";
+import ConfirmDialog from "../../components/common/ConfirmDialog";
+import MapResizer from "../../components/common/MapResizer";
 import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
 import markerIcon from "leaflet/dist/images/marker-icon.png";
 import markerShadow from "leaflet/dist/images/marker-shadow.png";
@@ -59,6 +66,38 @@ const blueMarker = new L.Icon({
 // COMPONENT
 // ============================================================
 
+const PER_PAGE = 10;
+const DASH = "-";
+
+// Search boxes wait a moment after typing before asking the server.
+const useDebounced = (value, delay = 300) => {
+  const [debounced, setDebounced] = useState(value);
+  useEffect(() => {
+    const timer = setTimeout(() => setDebounced(value), delay);
+    return () => clearTimeout(timer);
+  }, [value, delay]);
+  return debounced;
+};
+
+const labelOf = (list, value) => list.find((item) => item.value === value)?.label ?? value ?? DASH;
+const orDash = (value) => (value === null || value === undefined || value === "" ? DASH : value);
+// 2015-12-31 -> 31/12/2015 (no timezone shift: the text is rearranged, not parsed as a date)
+const dmy = (iso) => (iso ? iso.slice(0, 10).split("-").reverse().join("/") : DASH);
+const dmyStamp = (stamp) => (stamp ? new Date(stamp).toLocaleDateString("en-GB") : DASH);
+const money = (value) =>
+  value === null || value === undefined || value === ""
+    ? DASH
+    : Number(value).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const blank = (value) => value ?? "";
+
+const LAND_FIELDS = [
+  "estate", "landLeaseType", "landCategory", "landLeaseName", "surveyNo", "plotNo", "mouza", "jlNo", "recordType",
+  "totalArea", "usableArea", "nonUsableArea", "location", "gpsArea", "latitude", "longitude", "acquisitionDate",
+  "startDate", "endDate", "leaseTerm", "rentAmount", "rentPerAcre", "landStatus", "purpose", "ownerName",
+  "fatherOrCompanyName", "ownerMobile", "ownerEmail", "ownerNidTin", "ownerAddress", "ownershipRemarks",
+];
+const PAYMENT_FIELDS = ["year", "dueDate", "amount", "paidAmount", "paymentDate", "status", "paymentMethod", "referenceNo", "remarks"];
+
 const LandAndLeaseManagement = () => {
   // ==========================================================
   // DATA
@@ -72,10 +111,25 @@ const LandAndLeaseManagement = () => {
     register,
     handleSubmit,
     reset,
-    formState: { errors },
+    setError,
+    formState: { errors, isSubmitting },
   } = useForm({
     defaultValues: data.formData,
   });
+  const {
+    register: registerPayment,
+    handleSubmit: handlePaymentSubmit,
+    reset: resetPayment,
+    setError: setPaymentError,
+    formState: { errors: paymentErrors, isSubmitting: paymentSubmitting },
+  } = useForm();
+  const {
+    register: registerDocument,
+    handleSubmit: handleDocumentSubmit,
+    reset: resetDocument,
+    setError: setDocumentError,
+    formState: { errors: documentErrors, isSubmitting: documentSubmitting },
+  } = useForm();
 
   // ==========================================================
   // STATES
@@ -84,62 +138,122 @@ const LandAndLeaseManagement = () => {
   const [showLandModal, setShowLandModal] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [showDocumentModal, setShowDocumentModal] = useState(false);
+  const [editingLand, setEditingLand] = useState(null);
+  const [editingPayment, setEditingPayment] = useState(null);
+  const [deleting, setDeleting] = useState(null);
+  const [deleteBusy, setDeleteBusy] = useState(false);
 
-  const [selectedLandId, setSelectedLandId] = useState(
-    data.landLeaseList[0]?.id || null,
-  );
+  const [selectedLandId, setSelectedLandId] = useState(null);
 
   const [searchTerm, setSearchTerm] = useState("");
+  const [estateFilter, setEstateFilter] = useState("");
+  const [typeFilter, setTypeFilter] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
+  const [page, setPage] = useState(1);
 
   const [mapType, setMapType] = useState("street");
 
   const [isMapFullscreen, setIsMapFullscreen] = useState(false);
 
   // ==========================================================
-  // SELECTED LAND
+  // DATA FROM THE API
   // ==========================================================
 
-  const selectedLand =
-    data.landLeaseList.find((item) => item.id === selectedLandId) ||
-    data.landLeaseList[0];
+  const search = useDebounced(searchTerm);
+  useEffect(() => setPage(1), [search, estateFilter, typeFilter, statusFilter]);
 
-  // ==========================================================
-  // SEARCH
-  // ==========================================================
-
-  const filteredLandList = data.landLeaseList.filter((land) =>
-    `
-      ${land.landName}
-      ${land.estate}
-      ${land.type}
-      ${land.category}
-      ${land.owner}
-      ${land.area}
-      ${land.status}
-    `
-      .toLowerCase()
-      .includes(searchTerm.toLowerCase()),
+  const estateOptions = useApi(() => api.get("/options/estates"), []);
+  const lands = useApi(
+    () =>
+      api.get("/land-records", {
+        search,
+        estate: estateFilter,
+        landLeaseType: typeFilter,
+        status: statusFilter,
+        page,
+        perPage: PER_PAGE,
+      }),
+    [search, estateFilter, typeFilter, statusFilter, page],
   );
+  const landRows = lands.data?.data ?? [];
+  const landMeta = lands.data?.meta;
+
+  // The record shown in the details, map, payments and documents: the clicked row, else the first.
+  const activeId = landRows.some((row) => row.id === selectedLandId) ? selectedLandId : landRows[0]?.id;
+  const land = useApi(() => (activeId ? api.get(`/land-records/${activeId}`) : Promise.resolve(null)), [activeId, lands.data]);
+  const record = land.data;
+  const payments = useApi(
+    () => (activeId ? api.get("/land-payments", { landLeaseId: activeId, perPage: 20 }) : Promise.resolve(null)),
+    [activeId],
+  );
+  const documents = useApi(
+    () => (activeId ? api.get("/land-documents", { landLeaseId: activeId, perPage: 50 }) : Promise.resolve(null)),
+    [activeId],
+  );
+  const paymentRows = payments.data?.data ?? [];
+  const documentRows = documents.data?.data ?? [];
+
+  const landMap = record?.map;
+  const mapInfo = {
+    totalArea: landMap?.totalArea != null ? `${landMap.totalArea} Acre` : DASH,
+    perimeter: landMap?.perimeter != null ? `${landMap.perimeter} Km` : DASH,
+    latitude: orDash(landMap?.latitude),
+    longitude: orDash(landMap?.longitude),
+    projection: data.mapInformation.projection,
+  };
+  const ownerValues = [
+    labelOf(data.landLeaseTypes, record?.landLeaseType),
+    record?.ownerName,
+    record?.fatherOrCompanyName,
+    record?.ownerAddress,
+    record?.ownerMobile,
+    record?.ownerEmail,
+    record?.ownerNidTin,
+    record?.ownershipRemarks,
+  ];
+  const ownershipRows = data.ownershipDetails.map((detail, index) => ({
+    ...detail,
+    value: record ? orDash(ownerValues[index]) : DASH,
+  }));
+
+  const reloadLands = () => {
+    lands.reload();
+    land.reload();
+  };
 
   // ==========================================================
-  // SUBMIT
+  // LAND / LEASE FORM
   // ==========================================================
 
-  const landLeaseOnSubmit = (formData) => {
-    console.log("Land / Lease Form Data:", formData);
+  const toLandForm = (row) => ({
+    ...data.formData,
+    ...Object.fromEntries(LAND_FIELDS.map((name) => [name, blank(row[name])])),
+  });
 
-    toast.success("Land / Lease saved successfully.");
-
-    reset(data.formData);
-    setShowLandModal(false);
+  const landLeaseOnSubmit = async (values) => {
+    const body = { ...values };
+    delete body.documents;
+    try {
+      const saved = editingLand
+        ? await api.put(`/land-records/${editingLand.id}`, body)
+        : await api.post("/land-records", body);
+      toast.success("Land / Lease saved successfully.");
+      setSelectedLandId(saved.id);
+      closeLandModal();
+      reloadLands();
+    } catch (error) {
+      for (const [key, message] of Object.entries(error.fields ?? {})) setError(key, { message });
+      toast.error(error.message);
+    }
   };
 
   // ==========================================================
   // OPEN MODAL
   // ==========================================================
 
-  const openLandModal = () => {
-    reset(data.formData);
+  const openLandModal = (row) => {
+    setEditingLand(row ?? null);
+    reset(row ? toLandForm(row) : data.formData);
     setShowLandModal(true);
   };
 
@@ -149,8 +263,109 @@ const LandAndLeaseManagement = () => {
 
   const closeLandModal = () => {
     reset(data.formData);
+    setEditingLand(null);
     setShowLandModal(false);
   };
+
+  // ==========================================================
+  // PAYMENTS
+  // ==========================================================
+
+  const openPaymentModal = (row) => {
+    if (!row && !activeId) {
+      toast.error("Select a land / lease record first.");
+      return;
+    }
+    setEditingPayment(row ?? null);
+    resetPayment(row ? Object.fromEntries(PAYMENT_FIELDS.map((name) => [name, blank(row[name])])) : {});
+    setShowPaymentModal(true);
+  };
+  const closePaymentModal = () => {
+    resetPayment({});
+    setEditingPayment(null);
+    setShowPaymentModal(false);
+  };
+  const paymentOnSubmit = async (values) => {
+    try {
+      if (editingPayment) {
+        await api.put(`/land-payments/${editingPayment.id}`, { ...values, landLeaseId: editingPayment.landLeaseId });
+      } else {
+        await api.post("/land-payments", { ...values, landLeaseId: activeId });
+      }
+      toast.success("Payment saved successfully");
+      closePaymentModal();
+      payments.reload();
+    } catch (error) {
+      for (const [key, message] of Object.entries(error.fields ?? {})) setPaymentError(key, { message });
+      toast.error(error.message);
+    }
+  };
+
+  // ==========================================================
+  // DOCUMENTS
+  // ==========================================================
+
+  const openDocumentModal = () => {
+    if (!activeId) {
+      toast.error("Select a land / lease record first.");
+      return;
+    }
+    resetDocument({});
+    setShowDocumentModal(true);
+  };
+  const closeDocumentModal = () => {
+    resetDocument({});
+    setShowDocumentModal(false);
+  };
+  // The picked file is uploaded first; the record keeps its id.
+  const documentOnSubmit = async (values) => {
+    try {
+      const uploaded = await api.upload(values.file[0]);
+      await api.post("/land-documents", {
+        landLeaseId: activeId,
+        documentName: values.documentName,
+        documentType: values.documentType,
+        documentNumber: values.documentNumber,
+        issueDate: values.issueDate,
+        expiryDate: values.expiryDate,
+        file: uploaded.id,
+        remarks: values.remarks,
+      });
+      toast.success("Document saved successfully");
+      closeDocumentModal();
+      documents.reload();
+    } catch (error) {
+      for (const [key, message] of Object.entries(error.fields ?? {})) setDocumentError(key, { message });
+      toast.error(error.message);
+    }
+  };
+
+  // ==========================================================
+  // DELETE (after the confirm dialog)
+  // ==========================================================
+
+  const confirmDelete = async () => {
+    const { type, row } = deleting;
+    setDeleteBusy(true);
+    try {
+      await api.del(`/${{ land: "land-records", payment: "land-payments", document: "land-documents" }[type]}/${row.id}`);
+      toast.success("Deleted successfully");
+      setDeleting(null);
+      if (type === "land") reloadLands();
+      else if (type === "payment") payments.reload();
+      else documents.reload();
+    } catch (error) {
+      toast.error(error.message);
+    } finally {
+      setDeleteBusy(false);
+    }
+  };
+  const deletingName =
+    deleting?.type === "land"
+      ? deleting.row.landLeaseName
+      : deleting?.type === "payment"
+        ? `the ${deleting.row.year} payment`
+        : deleting?.row?.documentName;
 
   // ==========================================================
   // STATUS CLASS
@@ -200,14 +415,6 @@ const LandAndLeaseManagement = () => {
   // DOCUMENT STATUS
   // ==========================================================
 
-  const getDocumentStatusClass = (status) => {
-    if (status === "Verified") {
-      return "bg-green-100 text-green-700";
-    }
-
-    return "bg-yellow-100 text-yellow-700";
-  };
-
   // ==========================================================
   // RETURN
   // ==========================================================
@@ -247,7 +454,7 @@ const LandAndLeaseManagement = () => {
 
               <button
                 type='button'
-                onClick={openLandModal}
+                onClick={() => openLandModal()}
                 className='flex h-10 w-full cursor-pointer items-center justify-center gap-2 rounded-md border-0 bg-green-700 px-4 text-sm font-medium text-white transition hover:bg-green-800 sm:w-auto'
               >
                 <Plus size={16} />
@@ -278,10 +485,14 @@ const LandAndLeaseManagement = () => {
 
               {/* Estate */}
 
-              <select className='h-10 w-full rounded-md border border-gray-300 bg-white px-3 text-sm outline-none focus:border-green-600'>
+              <select
+                value={estateFilter}
+                onChange={(e) => setEstateFilter(e.target.value)}
+                className='h-10 w-full rounded-md border border-gray-300 bg-white px-3 text-sm outline-none focus:border-green-600'
+              >
                 <option value=''>All Estates</option>
 
-                {data.estates.map((estate) => (
+                {(estateOptions.data ?? []).map((estate) => (
                   <option key={estate.id} value={estate.value}>
                     {estate.label}
                   </option>
@@ -290,7 +501,11 @@ const LandAndLeaseManagement = () => {
 
               {/* Land Type */}
 
-              <select className='h-10 w-full rounded-md border border-gray-300 bg-white px-3 text-sm outline-none focus:border-green-600'>
+              <select
+                value={typeFilter}
+                onChange={(e) => setTypeFilter(e.target.value)}
+                className='h-10 w-full rounded-md border border-gray-300 bg-white px-3 text-sm outline-none focus:border-green-600'
+              >
                 <option value=''>{data.filtersConfig.defaultLandType}</option>
 
                 {data.landLeaseTypes.map((type) => (
@@ -302,7 +517,11 @@ const LandAndLeaseManagement = () => {
 
               {/* Status */}
 
-              <select className='h-10 w-full rounded-md border border-gray-300 bg-white px-3 text-sm outline-none focus:border-green-600'>
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className='h-10 w-full rounded-md border border-gray-300 bg-white px-3 text-sm outline-none focus:border-green-600'
+              >
                 <option value=''>{data.filtersConfig.defaultStatus}</option>
 
                 {data.landStatuses.map((status) => (
@@ -316,6 +535,13 @@ const LandAndLeaseManagement = () => {
 
               <button
                 type='button'
+                title='Reset Filters'
+                onClick={() => {
+                  setSearchTerm("");
+                  setEstateFilter("");
+                  setTypeFilter("");
+                  setStatusFilter("");
+                }}
                 className='flex h-10 w-full items-center justify-center rounded-md border border-gray-300 bg-white transition hover:bg-gray-100 md:w-10'
               >
                 <SlidersHorizontal size={18} className='text-gray-600' />
@@ -343,55 +569,66 @@ const LandAndLeaseManagement = () => {
                 </thead>
 
                 <tbody>
-                  {filteredLandList.map((land, index) => (
+                  {lands.loading && !lands.data ? (
+                    <TableSkeleton rows={5} columns={data.summaryTableHeaders.length} />
+                  ) : lands.error ? (
+                    <tr>
+                      <td colSpan={data.summaryTableHeaders.length} className='p-4'>
+                        <ErrorState message={lands.error.message} onRetry={lands.reload} />
+                      </td>
+                    </tr>
+                  ) : landRows.length === 0 ? (
+                    <EmptyRow columns={data.summaryTableHeaders.length} />
+                  ) : (
+                  landRows.map((row, index) => (
                     <tr
-                      key={land.id}
-                      onClick={() => setSelectedLandId(land.id)}
+                      key={row.id}
+                      onClick={() => setSelectedLandId(row.id)}
                       className={`cursor-pointer transition ${
-                        selectedLandId === land.id
+                        activeId === row.id
                           ? "bg-green-50"
                           : "hover:bg-gray-50"
                       }`}
                     >
                       <td className='border border-gray-200 px-3 py-2 text-center'>
-                        {index + 1}
+                        {(page - 1) * PER_PAGE + index + 1}
                       </td>
 
                       <td className='whitespace-nowrap border border-gray-200 px-3 py-2 font-medium text-gray-800'>
-                        {land.landName}
+                        {row.landLeaseName}
                       </td>
 
                       <td className='whitespace-nowrap border border-gray-200 px-3 py-2'>
-                        {land.estate}
+                        {row.estateName}
                       </td>
 
                       <td className='border border-gray-200 px-3 py-2 text-center'>
-                        {land.type}
+                        {labelOf(data.landLeaseTypes, row.landLeaseType)}
                       </td>
 
                       <td className='whitespace-nowrap border border-gray-200 px-3 py-2 text-center'>
-                        {land.category}
+                        {labelOf(data.landCategories, row.landCategory)}
                       </td>
 
                       <td className='border border-gray-200 px-3 py-2 text-center'>
-                        {land.owner}
+                        {orDash(row.ownerName)}
                       </td>
 
                       <td className='border border-gray-200 px-3 py-2 text-center'>
-                        {land.area}
+                        {row.totalArea}
                       </td>
 
                       <td className='border border-gray-200 px-3 py-2 text-center'>
-                        {land.leaseTerm}
+                        {orDash(row.leaseTerm)}
                       </td>
 
                       <td className='border border-gray-200 px-3 py-2 text-center'>
                         <span
                           className={`rounded-full px-3 py-1 text-xs font-medium ${getStatusClass(
-                            land.status,
+                            labelOf(data.landStatuses, row.landStatus),
                           )}`}
                         >
-                          {land.status}
+                          {labelOf(data.landStatuses, row.landStatus)}
                         </span>
                       </td>
 
@@ -404,7 +641,7 @@ const LandAndLeaseManagement = () => {
 
                           <button
                             type='button'
-                            onClick={() => setSelectedLandId(land.id)}
+                            onClick={() => setSelectedLandId(row.id)}
                             className='text-blue-600 transition hover:text-blue-800'
                             title='View'
                           >
@@ -415,7 +652,7 @@ const LandAndLeaseManagement = () => {
 
                           <button
                             type='button'
-                            onClick={openLandModal}
+                            onClick={() => openLandModal(row)}
                             className='text-amber-600 transition hover:text-amber-800'
                             title='Edit'
                           >
@@ -426,11 +663,7 @@ const LandAndLeaseManagement = () => {
 
                           <button
                             type='button'
-                            onClick={() =>
-                              toast.success(
-                                `Delete action for ${land.landName}`,
-                              )
-                            }
+                            onClick={() => setDeleting({ type: "land", row })}
                             className='text-red-500 transition hover:text-red-700'
                             title='Delete'
                           >
@@ -439,7 +672,8 @@ const LandAndLeaseManagement = () => {
                         </div>
                       </td>
                     </tr>
-                  ))}
+                  ))
+                  )}
                 </tbody>
               </table>
             </div>
@@ -448,22 +682,23 @@ const LandAndLeaseManagement = () => {
 
             <div className='flex flex-col items-center justify-between gap-3 border-t border-gray-200 px-5 py-3 text-sm text-gray-600 sm:flex-row'>
               <p>
-                Showing <strong>{filteredLandList.length}</strong> of{" "}
-                <strong>{data.landLeaseList.length}</strong> records
+                Showing <strong>{landRows.length}</strong> of{" "}
+                <strong>{landMeta?.total ?? 0}</strong> records
               </p>
 
               <div className='flex items-center gap-1'>
-                {data.summaryPagination.pages.map((page) => (
+                {Array.from({ length: landMeta?.totalPages ?? 1 }, (_, i) => i + 1).map((number) => (
                   <button
-                    key={page}
+                    key={number}
                     type='button'
+                    onClick={() => setPage(number)}
                     className={`h-8 min-w-8 rounded-md border px-2 text-xs ${
-                      page === data.summaryPagination.currentPage
+                      number === page
                         ? "border-green-700 bg-green-700 text-white"
                         : "border-gray-300 bg-white text-gray-600 hover:bg-gray-50"
                     }`}
                   >
-                    {page}
+                    {number}
                   </button>
                 ))}
               </div>
@@ -492,7 +727,7 @@ const LandAndLeaseManagement = () => {
 
             <div className='flex-1'>
               <div className='grid grid-cols-1 md:grid-cols-2'>
-                {data.ownershipDetails.map((detail, index) => (
+                {ownershipRows.map((detail, index) => (
                   <div
                     key={detail.id}
                     className={`border-b border-gray-100 px-5 py-4 ${
@@ -557,7 +792,12 @@ const LandAndLeaseManagement = () => {
               }
             >
               <MapContainer
-                center={data.mapSettings.center}
+                key={activeId ?? "none"}
+                center={
+                  landMap?.latitude != null
+                    ? [Number(landMap.latitude), Number(landMap.longitude)]
+                    : data.mapSettings.center
+                }
                 zoom={data.mapSettings.defaultZoom}
                 zoomControl={false}
                 className='h-full w-full'
@@ -580,44 +820,47 @@ const LandAndLeaseManagement = () => {
 
                 <ZoomControl position='topleft' />
 
+                <MapResizer trigger={isMapFullscreen} />
+
                 {/* ================= MARKER ================= */}
 
+                {landMap?.latitude != null && (
                 <Marker
-                  position={[
-                    Number(data.marker.latitude),
-                    Number(data.marker.longitude),
-                  ]}
+                  position={[Number(landMap.latitude), Number(landMap.longitude)]}
                   icon={blueMarker}
                 >
                   <Popup>
                     <div className='space-y-2'>
                       <h3 className='font-semibold text-green-800'>
-                        {data.marker.name}
+                        {record?.landLeaseName}
                       </h3>
 
-                      <p>Area: {data.mapInformation.totalArea}</p>
+                      <p>Area: {mapInfo.totalArea}</p>
 
                       <p>
-                        Coordinates: {data.mapInformation.latitude},{" "}
-                        {data.mapInformation.longitude}
+                        Coordinates: {mapInfo.latitude},{" "}
+                        {mapInfo.longitude}
                       </p>
 
-                      <p>Projection: {data.mapInformation.projection}</p>
+                      <p>Projection: {mapInfo.projection}</p>
                     </div>
                   </Popup>
                 </Marker>
+                )}
 
                 {/* ================= POLYGON ================= */}
 
-                <Polygon
-                  positions={data.landBoundary}
-                  pathOptions={{
-                    color: "#15803d",
-                    fillColor: "#22c55e",
-                    fillOpacity: 0.4,
-                    weight: 2,
-                  }}
-                />
+                {landMap?.landBoundary?.length > 0 && (
+                  <Polygon
+                    positions={landMap.landBoundary}
+                    pathOptions={{
+                      color: "#15803d",
+                      fillColor: "#22c55e",
+                      fillOpacity: 0.4,
+                      weight: 2,
+                    }}
+                  />
+                )}
               </MapContainer>
 
               {/* ===================================================
@@ -675,7 +918,7 @@ const LandAndLeaseManagement = () => {
                 <span>
                   Area:
                   <strong className='ml-1 text-gray-800'>
-                    {data.mapInformation.totalArea}
+                    {mapInfo.totalArea}
                   </strong>
                 </span>
 
@@ -684,7 +927,7 @@ const LandAndLeaseManagement = () => {
                 <span>
                   Perimeter:
                   <strong className='ml-1 text-gray-800'>
-                    {data.mapInformation.perimeter}
+                    {mapInfo.perimeter}
                   </strong>
                 </span>
 
@@ -693,8 +936,7 @@ const LandAndLeaseManagement = () => {
                 <span>
                   Coordinates:
                   <strong className='ml-1 text-gray-800'>
-                    {data.mapInformation.latitude},{" "}
-                    {data.mapInformation.longitude}
+                    {mapInfo.latitude}, {mapInfo.longitude}
                   </strong>
                 </span>
               </div>
@@ -735,7 +977,7 @@ const LandAndLeaseManagement = () => {
 
               <button
                 type='button'
-                onClick={() => setShowPaymentModal(true)}
+                onClick={() => openPaymentModal()}
                 className='flex h-9 cursor-pointer items-center justify-center gap-2 rounded-md bg-green-700 px-3 text-xs font-medium text-white transition hover:bg-green-800'
               >
                 <Plus size={15} />
@@ -761,7 +1003,18 @@ const LandAndLeaseManagement = () => {
                 </thead>
 
                 <tbody>
-                  {data.paymentList.map((payment, index) => (
+                  {payments.loading && !payments.data ? (
+                    <TableSkeleton rows={3} columns={data.paymentTableHeaders.length} />
+                  ) : payments.error ? (
+                    <tr>
+                      <td colSpan={data.paymentTableHeaders.length} className='p-4'>
+                        <ErrorState message={payments.error.message} onRetry={payments.reload} />
+                      </td>
+                    </tr>
+                  ) : paymentRows.length === 0 ? (
+                    <EmptyRow columns={data.paymentTableHeaders.length} />
+                  ) : (
+                  paymentRows.map((payment, index) => (
                     <tr key={payment.id} className='hover:bg-gray-50'>
                       <td className='border border-gray-200 px-2 py-2 text-center'>
                         {index + 1}
@@ -772,19 +1025,19 @@ const LandAndLeaseManagement = () => {
                       </td>
 
                       <td className='whitespace-nowrap border border-gray-200 px-2 py-2 text-center'>
-                        {payment.dueDate}
+                        {dmy(payment.dueDate)}
                       </td>
 
                       <td className='whitespace-nowrap border border-gray-200 px-2 py-2 text-center'>
-                        {payment.amount}
+                        {money(payment.amount)}
                       </td>
 
                       <td className='whitespace-nowrap border border-gray-200 px-2 py-2 text-center'>
-                        {payment.paidAmount}
+                        {money(payment.paidAmount)}
                       </td>
 
                       <td className='whitespace-nowrap border border-gray-200 px-2 py-2 text-center'>
-                        {payment.paymentDate}
+                        {dmy(payment.paymentDate)}
                       </td>
 
                       <td className='border border-gray-200 px-2 py-2 text-center'>
@@ -805,6 +1058,7 @@ const LandAndLeaseManagement = () => {
                         <div className='flex items-center justify-center gap-2'>
                           <button
                             type='button'
+                            onClick={() => openPaymentModal(payment)}
                             className='text-blue-600 hover:text-blue-800'
                             title='Edit'
                           >
@@ -813,6 +1067,7 @@ const LandAndLeaseManagement = () => {
 
                           <button
                             type='button'
+                            onClick={() => setDeleting({ type: "payment", row: payment })}
                             className='text-red-500 hover:text-red-700'
                             title='Delete'
                           >
@@ -821,7 +1076,8 @@ const LandAndLeaseManagement = () => {
                         </div>
                       </td>
                     </tr>
-                  ))}
+                  ))
+                  )}
                 </tbody>
               </table>
             </div>
@@ -848,7 +1104,7 @@ const LandAndLeaseManagement = () => {
 
               <button
                 type='button'
-                onClick={() => setShowDocumentModal(true)}
+                onClick={openDocumentModal}
                 className='flex h-9 cursor-pointer items-center justify-center gap-2 rounded-md bg-green-700 px-3 text-xs font-medium text-white transition hover:bg-green-800'
               >
                 <Plus size={15} />
@@ -874,7 +1130,18 @@ const LandAndLeaseManagement = () => {
                 </thead>
 
                 <tbody>
-                  {data.documentList.map((document, index) => (
+                  {documents.loading && !documents.data ? (
+                    <TableSkeleton rows={3} columns={data.documentTableHeaders.length} />
+                  ) : documents.error ? (
+                    <tr>
+                      <td colSpan={data.documentTableHeaders.length} className='p-4'>
+                        <ErrorState message={documents.error.message} onRetry={documents.reload} />
+                      </td>
+                    </tr>
+                  ) : documentRows.length === 0 ? (
+                    <EmptyRow columns={data.documentTableHeaders.length} />
+                  ) : (
+                  documentRows.map((document, index) => (
                     <tr key={document.id} className='hover:bg-gray-50'>
                       <td className='border border-gray-200 px-2 py-2 text-center'>
                         {index + 1}
@@ -885,21 +1152,22 @@ const LandAndLeaseManagement = () => {
                       </td>
 
                       <td className='border border-gray-200 px-2 py-2 text-center'>
-                        {document.type}
+                        {document.documentType}
                       </td>
 
                       <td className='whitespace-nowrap border border-gray-200 px-2 py-2 text-center'>
-                        {document.file}
+                        {orDash(document.fileName)}
                       </td>
 
                       <td className='whitespace-nowrap border border-gray-200 px-2 py-2 text-center'>
-                        {document.uploadedOn}
+                        {dmyStamp(document.createdAt)}
                       </td>
 
                       <td className='border border-gray-200 px-2 py-2'>
                         <div className='flex items-center justify-center gap-2'>
                           <button
                             type='button'
+                            onClick={() => window.open(document.fileUrl, "_blank", "noopener")}
                             className='text-blue-600 hover:text-blue-800'
                             title='Download'
                           >
@@ -908,6 +1176,7 @@ const LandAndLeaseManagement = () => {
 
                           <button
                             type='button'
+                            onClick={() => setDeleting({ type: "document", row: document })}
                             className='text-red-500 hover:text-red-700'
                             title='Delete'
                           >
@@ -916,7 +1185,8 @@ const LandAndLeaseManagement = () => {
                         </div>
                       </td>
                     </tr>
-                  ))}
+                  ))
+                  )}
                 </tbody>
               </table>
             </div>
@@ -990,7 +1260,7 @@ const LandAndLeaseManagement = () => {
                       >
                         <option value=''>Select Estate</option>
 
-                        {data.estates.map((estate) => (
+                        {(estateOptions.data ?? []).map((estate) => (
                           <option key={estate.id} value={estate.value}>
                             {estate.label}
                           </option>
@@ -1689,7 +1959,7 @@ const LandAndLeaseManagement = () => {
 
                       <input
                         type='text'
-                        value={data.mapInformation.perimeter}
+                        value={mapInfo.perimeter}
                         readOnly
                         className='h-11 w-full rounded-lg border border-gray-300 bg-gray-100 px-3 text-sm text-gray-600 outline-none'
                       />
@@ -1754,7 +2024,7 @@ const LandAndLeaseManagement = () => {
 
                     <button
                       type='button'
-                      onClick={() => reset(data.formData)}
+                      onClick={() => reset(editingLand ? toLandForm(editingLand) : data.formData)}
                       className='flex h-11 w-full items-center justify-center gap-2 rounded-lg border-0 bg-green-500 px-6 text-white transition hover:bg-green-600 sm:w-auto'
                     >
                       <RotateCcw size={18} />
@@ -1763,10 +2033,11 @@ const LandAndLeaseManagement = () => {
 
                     <button
                       type='submit'
-                      className='flex h-11 w-full items-center justify-center gap-2 rounded-lg border-0 bg-green-900 px-6 text-white transition hover:bg-green-950 sm:w-auto'
+                      disabled={isSubmitting}
+                      className='flex h-11 w-full items-center justify-center gap-2 rounded-lg border-0 bg-green-900 px-6 text-white transition hover:bg-green-950 disabled:opacity-60 sm:w-auto'
                     >
                       <Save size={18} />
-                      Save Land / Lease
+                      {isSubmitting ? "Saving..." : "Save Land / Lease"}
                     </button>
                   </div>
                 </div>
@@ -1797,7 +2068,7 @@ const LandAndLeaseManagement = () => {
 
               <button
                 type='button'
-                onClick={() => setShowPaymentModal(false)}
+                onClick={closePaymentModal}
                 className='rounded-lg p-2 hover:bg-gray-100'
               >
                 <X size={20} />
@@ -1806,72 +2077,77 @@ const LandAndLeaseManagement = () => {
 
             {/* BODY */}
 
-            <div className='p-5'>
+            <form className='p-5' onSubmit={handlePaymentSubmit(paymentOnSubmit)}>
               <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                 <div>
                   <label className='mb-1 block text-sm font-medium text-gray-700'>
                     Payment Year
                   </label>
 
-                  <input
+                  <input {...registerPayment("year", data.paymentValidation.year)}
                     type='text'
                     placeholder='2026'
                     className='h-11 w-full rounded-lg border border-gray-300 px-3 text-sm outline-none focus:border-green-600'
                   />
-                </div>
+                {paymentErrors.year && <p className='mt-1 text-xs text-red-500'>{paymentErrors.year.message}</p>}
+</div>
 
                 <div>
                   <label className='mb-1 block text-sm font-medium text-gray-700'>
                     Due Date
                   </label>
 
-                  <input
+                  <input {...registerPayment("dueDate", data.paymentValidation.dueDate)}
                     type='date'
                     className='h-11 w-full rounded-lg border border-gray-300 px-3 text-sm outline-none focus:border-green-600'
                   />
-                </div>
+                {paymentErrors.dueDate && <p className='mt-1 text-xs text-red-500'>{paymentErrors.dueDate.message}</p>}
+</div>
 
                 <div>
                   <label className='mb-1 block text-sm font-medium text-gray-700'>
                     Amount
                   </label>
 
-                  <input
+                  <input {...registerPayment("amount", data.paymentValidation.amount)}
                     type='number'
                     placeholder='Enter amount'
                     className='h-11 w-full rounded-lg border border-gray-300 px-3 text-sm outline-none focus:border-green-600'
                   />
-                </div>
+                {paymentErrors.amount && <p className='mt-1 text-xs text-red-500'>{paymentErrors.amount.message}</p>}
+</div>
 
                 <div>
                   <label className='mb-1 block text-sm font-medium text-gray-700'>
                     Paid Amount
                   </label>
 
-                  <input
+                  <input {...registerPayment("paidAmount", data.paymentValidation.paidAmount)}
                     type='number'
                     placeholder='Enter paid amount'
                     className='h-11 w-full rounded-lg border border-gray-300 px-3 text-sm outline-none focus:border-green-600'
                   />
-                </div>
+                {paymentErrors.paidAmount && <p className='mt-1 text-xs text-red-500'>{paymentErrors.paidAmount.message}</p>}
+</div>
 
                 <div>
                   <label className='mb-1 block text-sm font-medium text-gray-700'>
                     Payment Date
                   </label>
 
-                  <input
+                  <input {...registerPayment("paymentDate", data.paymentValidation.paymentDate)}
                     type='date'
                     className='h-11 w-full rounded-lg border border-gray-300 px-3 text-sm outline-none focus:border-green-600'
                   />
-                </div>
+                {paymentErrors.paymentDate && <p className='mt-1 text-xs text-red-500'>{paymentErrors.paymentDate.message}</p>}
+</div>
 
                 <div>
                   <label className='mb-1 block text-sm font-medium text-gray-700'>
                     Status
                   </label>
 
-                  <select className='h-11 w-full rounded-lg border border-gray-300 px-3 text-sm outline-none focus:border-green-600'>
+                  <select {...registerPayment("status", data.paymentValidation.status)} className='h-11 w-full rounded-lg border border-gray-300 px-3 text-sm outline-none focus:border-green-600'>
                     <option value=''>Select Status</option>
 
                     {data.paymentStatuses.map((status) => (
@@ -1880,14 +2156,15 @@ const LandAndLeaseManagement = () => {
                       </option>
                     ))}
                   </select>
-                </div>
+                {paymentErrors.status && <p className='mt-1 text-xs text-red-500'>{paymentErrors.status.message}</p>}
+</div>
 
                 <div>
                   <label className='mb-1 block text-sm font-medium text-gray-700'>
                     Payment Method
                   </label>
 
-                  <select className='h-11 w-full rounded-lg border border-gray-300 px-3 text-sm outline-none focus:border-green-600'>
+                  <select {...registerPayment("paymentMethod", data.paymentValidation.paymentMethod)} className='h-11 w-full rounded-lg border border-gray-300 px-3 text-sm outline-none focus:border-green-600'>
                     <option value=''>Select Method</option>
 
                     {data.paymentMethods.map((method) => (
@@ -1896,31 +2173,34 @@ const LandAndLeaseManagement = () => {
                       </option>
                     ))}
                   </select>
-                </div>
+                {paymentErrors.paymentMethod && <p className='mt-1 text-xs text-red-500'>{paymentErrors.paymentMethod.message}</p>}
+</div>
 
                 <div>
                   <label className='mb-1 block text-sm font-medium text-gray-700'>
                     Receipt No.
                   </label>
 
-                  <input
+                  <input {...registerPayment("referenceNo", data.paymentValidation.referenceNo)}
                     type='text'
                     placeholder='REC-2026-001'
                     className='h-11 w-full rounded-lg border border-gray-300 px-3 text-sm outline-none focus:border-green-600'
                   />
-                </div>
+                {paymentErrors.referenceNo && <p className='mt-1 text-xs text-red-500'>{paymentErrors.referenceNo.message}</p>}
+</div>
 
                 <div className='md:col-span-2'>
                   <label className='mb-1 block text-sm font-medium text-gray-700'>
                     Remarks
                   </label>
 
-                  <textarea
+                  <textarea {...registerPayment("remarks", data.paymentValidation.remarks)}
                     rows={3}
                     placeholder='Enter remarks'
                     className='w-full resize-none rounded-lg border border-gray-300 p-3 text-sm outline-none focus:border-green-600'
                   />
-                </div>
+                {paymentErrors.remarks && <p className='mt-1 text-xs text-red-500'>{paymentErrors.remarks.message}</p>}
+</div>
               </div>
 
               {/* FOOTER */}
@@ -1928,7 +2208,7 @@ const LandAndLeaseManagement = () => {
               <div className='mt-6 flex justify-end gap-3 border-t border-gray-200 pt-4'>
                 <button
                   type='button'
-                  onClick={() => setShowPaymentModal(false)}
+                  onClick={closePaymentModal}
                   className='flex cursor-pointer items-center justify-center gap-2 rounded-lg border border-gray-300 px-5 py-2 text-sm text-gray-700 transition hover:bg-gray-50'
                 >
                   <X size={17} />
@@ -1936,18 +2216,15 @@ const LandAndLeaseManagement = () => {
                 </button>
 
                 <button
-                  type='button'
-                  onClick={() => {
-                    toast.success("Payment saved successfully");
-                    setShowPaymentModal(false);
-                  }}
-                  className='flex cursor-pointer items-center justify-center gap-2 rounded-lg bg-green-800 px-5 py-2 text-sm font-medium text-white transition hover:bg-green-900'
+                  type='submit'
+                  disabled={paymentSubmitting}
+                  className='flex cursor-pointer items-center justify-center gap-2 rounded-lg bg-green-800 px-5 py-2 text-sm font-medium text-white transition hover:bg-green-900 disabled:opacity-60'
                 >
                   <Save size={17} />
-                  Save Payment
+                  {paymentSubmitting ? "Saving..." : "Save Payment"}
                 </button>
               </div>
-            </div>
+            </form>
           </div>
         </div>
       )}
@@ -1973,7 +2250,7 @@ const LandAndLeaseManagement = () => {
 
               <button
                 type='button'
-                onClick={() => setShowDocumentModal(false)}
+                onClick={closeDocumentModal}
                 className='cursor-pointer rounded-lg p-2 text-gray-500 transition hover:bg-gray-100 hover:text-gray-700'
               >
                 <X size={20} />
@@ -1982,7 +2259,7 @@ const LandAndLeaseManagement = () => {
 
             {/* ================= BODY ================= */}
 
-            <div className='min-h-0 overflow-y-auto p-5'>
+            <form className='min-h-0 overflow-y-auto p-5' onSubmit={handleDocumentSubmit(documentOnSubmit)}>
               <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                 {/* Document Name */}
 
@@ -1991,12 +2268,13 @@ const LandAndLeaseManagement = () => {
                     Document Name <span className='text-red-500'>*</span>
                   </label>
 
-                  <input
+                  <input {...registerDocument("documentName", data.documentValidation.documentName)}
                     type='text'
                     placeholder='Enter document name'
                     className='h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm outline-none transition focus:border-green-600'
                   />
-                </div>
+                {documentErrors.documentName && <p className='mt-1 text-xs text-red-500'>{documentErrors.documentName.message}</p>}
+</div>
 
                 {/* Document Type */}
 
@@ -2005,7 +2283,7 @@ const LandAndLeaseManagement = () => {
                     Document Type <span className='text-red-500'>*</span>
                   </label>
 
-                  <select className='h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm outline-none transition focus:border-green-600'>
+                  <select {...registerDocument("documentType", data.documentValidation.documentType)} className='h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm outline-none transition focus:border-green-600'>
                     <option value=''>Select Document Type</option>
 
                     {data.documentTypes.map((type) => (
@@ -2014,7 +2292,8 @@ const LandAndLeaseManagement = () => {
                       </option>
                     ))}
                   </select>
-                </div>
+                {documentErrors.documentType && <p className='mt-1 text-xs text-red-500'>{documentErrors.documentType.message}</p>}
+</div>
 
                 {/* Document Number */}
 
@@ -2023,12 +2302,13 @@ const LandAndLeaseManagement = () => {
                     Document Number
                   </label>
 
-                  <input
+                  <input {...registerDocument("documentNumber", data.documentValidation.documentNumber)}
                     type='text'
                     placeholder='Enter document number'
                     className='h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm outline-none transition focus:border-green-600'
                   />
-                </div>
+                {documentErrors.documentNumber && <p className='mt-1 text-xs text-red-500'>{documentErrors.documentNumber.message}</p>}
+</div>
 
                 {/* Issue Date */}
 
@@ -2037,11 +2317,12 @@ const LandAndLeaseManagement = () => {
                     Issue Date
                   </label>
 
-                  <input
+                  <input {...registerDocument("issueDate", data.documentValidation.issueDate)}
                     type='date'
                     className='h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm outline-none transition focus:border-green-600'
                   />
-                </div>
+                {documentErrors.issueDate && <p className='mt-1 text-xs text-red-500'>{documentErrors.issueDate.message}</p>}
+</div>
 
                 {/* Expiry Date */}
 
@@ -2050,11 +2331,12 @@ const LandAndLeaseManagement = () => {
                     Expiry Date
                   </label>
 
-                  <input
+                  <input {...registerDocument("expiryDate", data.documentValidation.expiryDate)}
                     type='date'
                     className='h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm outline-none transition focus:border-green-600'
                   />
-                </div>
+                {documentErrors.expiryDate && <p className='mt-1 text-xs text-red-500'>{documentErrors.expiryDate.message}</p>}
+</div>
 
                 {/* File Upload */}
 
@@ -2063,7 +2345,7 @@ const LandAndLeaseManagement = () => {
                     Document File <span className='text-red-500'>*</span>
                   </label>
 
-                  <input
+                  <input {...registerDocument("file", data.documentValidation.file)}
                     type='file'
                     accept='.pdf,.jpg,.jpeg,.png,.doc,.docx'
                     className='h-11 w-full cursor-pointer rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm outline-none file:mr-3 file:rounded-md file:border-0 file:bg-green-50 file:px-3 file:py-1 file:text-xs file:font-medium file:text-green-700'
@@ -2072,7 +2354,8 @@ const LandAndLeaseManagement = () => {
                   <p className='mt-1 text-[11px] text-gray-500'>
                     PDF, JPG, PNG, DOC or DOCX
                   </p>
-                </div>
+                {documentErrors.file && <p className='mt-1 text-xs text-red-500'>{documentErrors.file.message}</p>}
+</div>
 
                 {/* Remarks */}
 
@@ -2081,12 +2364,13 @@ const LandAndLeaseManagement = () => {
                     Remarks
                   </label>
 
-                  <textarea
+                  <textarea {...registerDocument("remarks", data.documentValidation.remarks)}
                     rows={4}
                     placeholder='Enter document remarks...'
                     className='w-full resize-none rounded-lg border border-gray-300 bg-white p-3 text-sm outline-none transition focus:border-green-600'
                   />
-                </div>
+                {documentErrors.remarks && <p className='mt-1 text-xs text-red-500'>{documentErrors.remarks.message}</p>}
+</div>
               </div>
 
               {/* ================= FOOTER ================= */}
@@ -2094,7 +2378,7 @@ const LandAndLeaseManagement = () => {
               <div className='mt-6 flex flex-col gap-3 border-t border-gray-200 pt-4 sm:flex-row sm:justify-end'>
                 <button
                   type='button'
-                  onClick={() => setShowDocumentModal(false)}
+                  onClick={closeDocumentModal}
                   className='flex h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-5 text-sm text-gray-700 transition hover:bg-gray-50 sm:w-auto'
                 >
                   <X size={17} />
@@ -2102,21 +2386,26 @@ const LandAndLeaseManagement = () => {
                 </button>
 
                 <button
-                  type='button'
-                  onClick={() => {
-                    toast.success("Document saved successfully");
-                    setShowDocumentModal(false);
-                  }}
-                  className='flex h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-lg bg-green-800 px-5 text-sm font-medium text-white transition hover:bg-green-900 sm:w-auto'
+                  type='submit'
+                  disabled={documentSubmitting}
+                  className='flex h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-lg bg-green-800 px-5 text-sm font-medium text-white transition hover:bg-green-900 disabled:opacity-60 sm:w-auto'
                 >
                   <Save size={17} />
-                  Save Document
+                  {documentSubmitting ? "Saving..." : "Save Document"}
                 </button>
               </div>
-            </div>
+            </form>
           </div>
         </div>
       )}
+      <ConfirmDialog
+        open={Boolean(deleting)}
+        title={`Delete ${deleting?.type ?? ""}?`}
+        message={`${deletingName ?? ""} will be removed.`}
+        loading={deleteBusy}
+        onConfirm={confirmDelete}
+        onCancel={() => setDeleting(null)}
+      />
     </div>
   );
 };

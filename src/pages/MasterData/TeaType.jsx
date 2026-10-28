@@ -59,16 +59,14 @@ const TeaType = () => {
   // MAIN FORM SUBMIT
   // =========================================================
 
-  const onMainSubmit = (data) => {
-    console.log("Main Tea Type Form Data:", data);
+  const onMainSubmit = () => {
   };
 
   // =========================================================
   // MODAL FORM SUBMIT
   // =========================================================
 
-  const onModalSubmit = (data) => {
-    console.log("New Tea Type Data:", data);
+  const onModalSubmit = () => {
 
     // Later:
     // API POST request will come here

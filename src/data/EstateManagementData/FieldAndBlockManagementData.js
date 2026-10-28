@@ -6,95 +6,6 @@ export const fieldAndBlockManagementData = {
   // =========================================================
 
   // =========================
-  // Estate Options
-  // =========================
-  estates: [
-    {
-      id: 1,
-      value: "jamuna-tea-estate",
-      label: "Jamuna Tea Estate",
-    },
-    {
-      id: 2,
-      value: "rangpur-tea-estate",
-      label: "Rangpur Tea Estate",
-    },
-    {
-      id: 3,
-      value: "green-valley-tea-estate",
-      label: "Green Valley Tea Estate",
-    },
-    {
-      id: 4,
-      value: "sylhet-tea-estate",
-      label: "Sylhet Tea Estate",
-    },
-    {
-      id: 5,
-      value: "sunrise-tea-estate",
-      label: "Sunrise Tea Estate",
-    },
-  ],
-
-  // =========================
-  // Division Options
-  // =========================
-  divisions: [
-    {
-      id: 1,
-      value: "div-01",
-      name: "Rangpur Division",
-      code: "DIV-01",
-    },
-    {
-      id: 2,
-      value: "div-02",
-      name: "North Division",
-      code: "DIV-02",
-    },
-    {
-      id: 3,
-      value: "div-03",
-      name: "South Division",
-      code: "DIV-03",
-    },
-  ],
-
-  // =========================
-  // Section Options
-  // =========================
-  sections: [
-    {
-      id: 1,
-      value: "sec-a",
-      divisionId: 1,
-      name: "Section A",
-      code: "SEC-A",
-    },
-    {
-      id: 2,
-      value: "sec-b",
-      divisionId: 1,
-      name: "Section B",
-      code: "SEC-B",
-    },
-    {
-      id: 3,
-      value: "sec-c",
-      divisionId: 2,
-      name: "Section C",
-      code: "SEC-C",
-    },
-    {
-      id: 4,
-      value: "sec-d",
-      divisionId: 3,
-      name: "Section D",
-      code: "SEC-D",
-    },
-  ],
-
-  // =========================
   // Field Type Options
   // =========================
   fieldTypes: [
@@ -179,26 +90,6 @@ export const fieldAndBlockManagementData = {
       id: 1,
       value: "",
       label: "None",
-    },
-    {
-      id: 2,
-      value: "blk-01",
-      label: "Block 01",
-    },
-    {
-      id: 3,
-      value: "blk-02",
-      label: "Block 02",
-    },
-    {
-      id: 4,
-      value: "blk-03",
-      label: "Block 03",
-    },
-    {
-      id: 5,
-      value: "blk-04",
-      label: "Block 04",
     },
   ],
 
@@ -363,108 +254,11 @@ export const fieldAndBlockManagementData = {
   // Temporary frontend data.
   // Later this will come from backend/API.
 
-  fieldList: [
-    {
-      id: 1,
-      fieldName: "Block 01",
-      code: "BLK-01",
-      fieldType: "Tea Field",
-      totalArea: 25.5,
-      plantedArea: 23.75,
-      status: "Active",
-    },
-    {
-      id: 2,
-      fieldName: "Block 02",
-      code: "BLK-02",
-      fieldType: "Tea Field",
-      totalArea: 18.3,
-      plantedArea: 17.2,
-      status: "Active",
-    },
-    {
-      id: 3,
-      fieldName: "Block 03",
-      code: "BLK-03",
-      fieldType: "Tea Field",
-      totalArea: 22.75,
-      plantedArea: 21.1,
-      status: "Active",
-    },
-    {
-      id: 4,
-      fieldName: "Block 04",
-      code: "BLK-04",
-      fieldType: "Tea Field",
-      totalArea: 16,
-      plantedArea: 15.3,
-      status: "Inactive",
-    },
-    {
-      id: 5,
-      fieldName: "Nursery Block",
-      code: "NUR-01",
-      fieldType: "Nursery",
-      totalArea: 2.5,
-      plantedArea: 2.5,
-      status: "Active",
-    },
-    {
-      id: 6,
-      fieldName: "Extension Field",
-      code: "EXT-01",
-      fieldType: "Extension",
-      totalArea: 12.4,
-      plantedArea: 0,
-      status: "Active",
-    },
-    {
-      id: 7,
-      fieldName: "Road Reserve",
-      code: "RD-01",
-      fieldType: "Infrastructure",
-      totalArea: 3.2,
-      plantedArea: 0,
-      status: "Active",
-    },
-    {
-      id: 8,
-      fieldName: "Drain Area",
-      code: "DR-01",
-      fieldType: "Drain",
-      totalArea: 1.8,
-      plantedArea: 0,
-      status: "Active",
-    },
-  ],
-
   // =========================================================
   // Selected Field / Block Details
   // =========================================================
   // Temporary frontend data.
   // Later this will come from backend/API.
-
-  details: {
-    estate: "Jamuna Tea Estate",
-    division: "Rangpur Division",
-    section: "Section A",
-    fieldName: "Block 01",
-    fieldCode: "BLK-01",
-    fieldType: "Tea Field",
-    totalArea: "25 Acre",
-    plantedArea: "23 Acre",
-    yearOfPlanting: "2018",
-    bushType: "TV-1",
-    spacing: "4ft × 2.5ft",
-    altitude: "240 ft",
-    averageSlope: "5°",
-    irrigation: "Natural Rain",
-    soilType: "Loamy",
-    drainage: "Good",
-    status: "Active",
-    createdBy: "Md. Faruk Hossain",
-    createdOn: "May 2026",
-  },
 
   // =========================================================
   // Details Left Column
@@ -564,38 +358,10 @@ export const fieldAndBlockManagementData = {
   // Temporary frontend data.
   // Later this will come from backend/API.
 
-  map: {
-    latitude: 25.7467,
-    longitude: 89.2712,
-    perimeter: 2.15,
-    totalArea: 25.5,
-    zoom: 16,
-
-    polygon: [
-      [25.7468, 89.2708],
-      [25.7475, 89.272],
-      [25.7466, 89.273],
-      [25.7457, 89.2724],
-      [25.7459, 89.271],
-    ],
-  },
-
   // =========================================================
   // Summary
   // =========================================================
   // Temporary frontend data.
   // Later this will come from backend/API.
 
-  summary: {
-    totalField: 48,
-    teaField: 38,
-    nursery: 3,
-    extension: 2,
-    infrastructure: 3,
-    drainArea: 2,
-    totalArea: 1256.75,
-    plantedArea: 1138.5,
-    activeField: 42,
-    inactiveField: 6,
-  },
 };

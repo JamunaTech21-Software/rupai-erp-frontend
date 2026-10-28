@@ -74,8 +74,7 @@ const AttendenceAndFaceRecognition = () => {
   // FILTER SUBMIT
   // =====================================================
 
-  const onFilterSubmit = (data) => {
-    console.log("Attendance Filters:", data);
+  const onFilterSubmit = () => {
 
     // Later:
     // API / TanStack Query filtering

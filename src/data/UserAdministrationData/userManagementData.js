@@ -235,7 +235,6 @@ export const userManagementData = {
       status: "Active",
       lastLogin: "06/06/2026 10:25 AM",
       isCurrentUser: true,
-      role: "Estate Manager",
       roleColor: "bg-green-100 text-green-700",
     },
     {
@@ -249,7 +248,6 @@ export const userManagementData = {
       status: "Active",
       lastLogin: "06/06/2026 09:12 AM",
       isCurrentUser: false,
-      role: "HR Manager",
       roleColor: "bg-blue-100 text-blue-700",
     },
     {
@@ -263,7 +261,6 @@ export const userManagementData = {
       status: "Active",
       lastLogin: "06/06/2026 08:45 AM",
       isCurrentUser: false,
-      role: "Field Supervisor",
       roleColor: "bg-purple-100 text-purple-700",
     },
     {
@@ -277,7 +274,6 @@ export const userManagementData = {
       status: "Active",
       lastLogin: "05/06/2026 05:30 PM",
       isCurrentUser: false,
-      role: "Accounts Officer",
       roleColor: "bg-orange-100 text-orange-700",
     },
     {
@@ -291,7 +287,6 @@ export const userManagementData = {
       status: "Active",
       lastLogin: "05/06/2026 04:15 PM",
       isCurrentUser: false,
-      role: "Wage Officer",
       roleColor: "bg-cyan-100 text-cyan-700",
     },
     {
@@ -305,7 +300,6 @@ export const userManagementData = {
       status: "Active",
       lastLogin: "05/06/2026 03:02 PM",
       isCurrentUser: false,
-      role: "Store Keeper",
       roleColor: "bg-amber-100 text-amber-700",
     },
     {
@@ -319,7 +313,6 @@ export const userManagementData = {
       status: "Inactive",
       lastLogin: "28/05/2026 11:20 AM",
       isCurrentUser: false,
-      role: "Nursery Incharge",
       roleColor: "bg-pink-100 text-pink-700",
     },
     {
@@ -333,7 +326,6 @@ export const userManagementData = {
       status: "Active",
       lastLogin: "06/06/2026 09:40 AM",
       isCurrentUser: false,
-      role: "IT Administrator",
       roleColor: "bg-sky-100 text-sky-700",
     },
     {
@@ -347,7 +339,6 @@ export const userManagementData = {
       status: "Active",
       lastLogin: "04/06/2026 02:10 PM",
       isCurrentUser: false,
-      role: "Data Entry Operator",
       roleColor: "bg-gray-100 text-gray-700",
     },
     {
@@ -361,7 +352,6 @@ export const userManagementData = {
       status: "Active",
       lastLogin: "04/06/2026 09:15 AM",
       isCurrentUser: false,
-      role: "Security Officer",
       roleColor: "bg-slate-100 text-slate-700",
     },
   ],

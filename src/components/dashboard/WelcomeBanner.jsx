@@ -1,7 +1,7 @@
 import { Building2, Maximize2, LayoutGrid, Users } from "lucide-react";
 import { welcomeStats } from "../../data/dashboardData";
 
-const BANNER_IMG = "/welcome-banner-bg.jpg";
+const BANNER_IMG = "/welcome-banner-bg.webp";
 
 const iconMap = {
   Estate: Building2,

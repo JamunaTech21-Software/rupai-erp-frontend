@@ -1,7 +1,15 @@
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
-import toast, { Toaster } from "react-hot-toast";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import toast from "react-hot-toast";
 import PlantationManagementTabs from "../../components/plantationManagementTab/PlantationManagementTabs";
 import { nurseryManagementData } from "../../data/PlantationManagementData/nurseryManagementData";
+import { api } from "../../lib/api";
+import { useApi } from "../../lib/useApi";
+import CardSkeleton from "../../components/common/CardSkeleton";
+import TableSkeleton from "../../components/common/TableSkeleton";
+import EmptyRow from "../../components/common/EmptyRow";
+import ErrorState from "../../components/common/ErrorState";
 import {
   RotateCcw,
   Save,
@@ -26,19 +34,108 @@ const summaryIconMap = {
   Leaf,
   Truck,
 };
+const FIELDS = [
+  "estate", "division", "nurseryName", "supervisor", "nurseryCode", "nurseryType", "location", "irrigationSource",
+  "establishedYear", "status", "totalArea", "netUsableArea", "active", "remarks",
+];
+const DASH = "-";
+// Plain numbers with the grouping the page used (2,10,000).
+const num = (value) => (value === null || value === undefined ? DASH : Number(value).toLocaleString("en-IN"));
+// 2026-01-12 -> 12 Jan 2026 (no timezone: the text is rearranged, not parsed as a date)
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const longDate = (iso) => {
+  if (!iso) return DASH;
+  const [y, m, d] = iso.slice(0, 10).split("-");
+  return `${Number(d)} ${MONTHS[Number(m) - 1]} ${y}`;
+};
+const BED_STATUS_CLASS = {
+  Active: "bg-green-100 text-green-700",
+  Inactive: "bg-red-100 text-red-600",
+  Maintenance: "bg-yellow-100 text-yellow-700",
+};
+const orDash = (value) => (value === null || value === undefined || value === "" ? DASH : value);
+
 const NurseryManagement = () => {
   const {
     register,
     handleSubmit,
     reset,
-    formState: { errors },
+    setError,
+    setValue,
+    watch,
+    formState: { errors, isSubmitting },
   } = useForm();
-  const onSubmit = (data) => {
-    console.log(data);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const editId = searchParams.get("id");
+  const navigate = useNavigate();
+  // After a save, return to the page the user came from (the dashboard when the page was opened directly).
+  const goBack = () => (window.history.state?.idx > 0 ? navigate(-1) : navigate("/"));
 
-    toast.success("Nursery saved successfully!");
+  // Every nursery, for the picker at the top of the form.
+  const allNurseries = useApi(() => api.get("/nurseries", { perPage: 100 }), []);
+  const pickNursery = (id) => setSearchParams(id ? { id } : {});
 
-    reset();
+  // The nursery being edited (?id=); the panels show it, or the first nursery when adding a new one.
+  const nursery = useApi(() => (editId ? api.get(`/nurseries/${editId}`) : Promise.resolve(null)), [editId]);
+  const first = useApi(() => (editId ? Promise.resolve(null) : api.get("/nurseries", { perPage: 1 })), [editId]);
+  const shownId = editId ?? first.data?.data?.[0]?.id;
+
+  const summary = useApi(() => (shownId ? api.get(`/nurseries/${shownId}/summary`) : Promise.resolve(null)), [shownId]);
+  const beds = useApi(() => (shownId ? api.get(`/nurseries/${shownId}/beds`) : Promise.resolve(null)), [shownId]);
+  const stock = useApi(() => (shownId ? api.get(`/nurseries/${shownId}/stock`) : Promise.resolve(null)), [shownId]);
+  const activities = useApi(() => (shownId ? api.get(`/nurseries/${shownId}/activities`) : Promise.resolve(null)), [shownId]);
+  const bedRows = beds.data ?? [];
+  const stockRows = stock.data?.stockInventory ?? [];
+  const stockTotals = stock.data?.stockInventoryTotal ? [stock.data.stockInventoryTotal] : [];
+  const activityRows = activities.data ?? [];
+  // Nothing to show yet while the first nursery is still being looked up.
+  const waiting = !shownId && (first.loading || nursery.loading);
+
+  // Estate -> Division
+  const estateId = watch("estate");
+  const estateOptions = useApi(() => api.get("/options/estates"), []);
+  const divisionOptions = useApi(
+    () => (estateId ? api.get("/options/divisions", { estate: estateId }) : Promise.resolve([])),
+    [estateId],
+  );
+
+  useEffect(() => {
+    if (nursery.data) {
+      reset(Object.fromEntries(FIELDS.map((name) => [name, nursery.data[name] ?? ""])));
+    }
+  }, [nursery.data, reset]);
+  // The saved division shows once its options have loaded.
+  useEffect(() => {
+    const saved = nursery.data?.division;
+    if (saved && divisionOptions.data?.some((option) => option.value === saved)) setValue("division", saved);
+  }, [nursery.data, divisionOptions.data, setValue]);
+
+  const reloadPanels = () => {
+    nursery.reload();
+    first.reload();
+    allNurseries.reload();
+    summary.reload();
+    beds.reload();
+    stock.reload();
+    activities.reload();
+  };
+
+  const onSubmit = async (values) => {
+    try {
+      if (editId) {
+        const saved = await api.put(`/nurseries/${editId}`, values);
+        reset(Object.fromEntries(FIELDS.map((name) => [name, saved[name] ?? ""])));
+      } else {
+        await api.post("/nurseries", values);
+        reset(Object.fromEntries(FIELDS.map((name) => [name, ""])));
+      }
+      toast.success("Nursery saved successfully!");
+      reloadPanels();
+      goBack();
+    } catch (error) {
+      for (const [key, message] of Object.entries(error.fields ?? {})) setError(key, { message });
+      toast.error(error.message);
+    }
   };
   return (
     <div className='space-y-6'>
@@ -53,9 +150,24 @@ const NurseryManagement = () => {
           <div className='rounded-xl border border-gray-200 bg-white shadow-sm'>
             {/* Header */}
             <div className='border-b border-gray-200 px-6 py-4'>
-              <h2 className='text-base font-semibold text-green-700'>
-                Nursery Information
-              </h2>
+              <div className='flex flex-wrap items-center justify-between gap-3'>
+                <h2 className='text-base font-semibold text-green-700'>
+                  Nursery Information
+                </h2>
+                <select
+                  aria-label='Select nursery'
+                  value={editId ?? ""}
+                  onChange={(e) => pickNursery(e.target.value)}
+                  className='rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm outline-none focus:border-green-600'
+                >
+                  <option value=''>+ New nursery</option>
+                  {(allNurseries.data?.data ?? []).map((nursery) => (
+                    <option key={nursery.id} value={nursery.id}>
+                      {nursery.nurseryName} ({nursery.nurseryCode})
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
 
             {/* Body */}
@@ -70,15 +182,16 @@ const NurseryManagement = () => {
                   <select
                     {...register("estate", {
                       required: "Estate is required",
+                      onChange: () => setValue("division", ""),
                     })}
                     className='w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm outline-none focus:border-green-600'
                   >
                     <option value=''>Select Estate</option>
-                    <option value='Jamuna Tea Estate'>Jamuna Tea Estate</option>
-                    <option value='Surma Tea Estate'>Surma Tea Estate</option>
-                    <option value='Green Valley Tea Estate'>
-                      Green Valley Tea Estate
-                    </option>
+                    {(estateOptions.data ?? []).map((estate) => (
+                      <option key={estate.id} value={estate.value}>
+                        {estate.label}
+                      </option>
+                    ))}
                   </select>
 
                   {errors.estate && (
@@ -100,16 +213,18 @@ const NurseryManagement = () => {
                     })}
                     className='w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm outline-none focus:border-green-600'
                   >
-                    <option value=''>Select Division</option>
-                    <option value='Rangpur Division (DIV-01)'>
-                      Rangpur Division (DIV-01)
-                    </option>
-                    <option value='Sylhet Division (DIV-02)'>
-                      Sylhet Division (DIV-02)
-                    </option>
-                    <option value='Chattogram Division (DIV-03)'>
-                      Chattogram Division (DIV-03)
-                    </option>
+                    <option value=''>
+{!estateId
+ ? "Select Estate first"
+ : divisionOptions.data?.length === 0
+ ? "No divisions for this estate"
+ : "Select Division"}
+</option>
+                    {(divisionOptions.data ?? []).map((division) => (
+                      <option key={division.id} value={division.value}>
+                        {division.label}
+                      </option>
+                    ))}
                   </select>
 
                   {errors.division && (
@@ -415,7 +530,13 @@ const NurseryManagement = () => {
               <div className='flex justify-end gap-3'>
                 <button
                   type='button'
-                  onClick={() => reset()}
+                  onClick={() =>
+                    reset(
+                      nursery.data
+                        ? Object.fromEntries(FIELDS.map((name) => [name, nursery.data[name] ?? ""]))
+                        : Object.fromEntries(FIELDS.map((name) => [name, ""])),
+                    )
+                  }
                   className='flex  cursor-pointer items-center gap-2 rounded-lg border border-gray-300 px-5 py-2 text-sm font-medium transition hover:bg-gray-100'
                 >
                   <RotateCcw size={16} />
@@ -424,10 +545,11 @@ const NurseryManagement = () => {
 
                 <button
                   type='submit'
-                  className='flex items-center gap-2 rounded-lg bg-green-700 px-5 py-2 text-sm cursor-pointer font-medium text-white transition hover:bg-green-800'
+                  disabled={isSubmitting}
+                  className='flex items-center gap-2 rounded-lg bg-green-700 px-5 py-2 text-sm cursor-pointer font-medium text-white transition hover:bg-green-800 disabled:opacity-60'
                 >
                   <Save size={16} />
-                  Save Nursery
+                  {isSubmitting ? "Saving..." : "Save Nursery"}
                 </button>
               </div>
             </form>
@@ -444,8 +566,10 @@ const NurseryManagement = () => {
             </div>
 
             {/* Body */}
+            {(waiting || (summary.loading && !summary.data)) && <CardSkeleton count={6} className='p-4' />}
+            {summary.error && <ErrorState message={summary.error.message} onRetry={summary.reload} />}
             <div className='grid grid-cols-1 gap-2 md:grid-cols-2 xl:grid-cols-3 p-4'>
-              {nurseryManagementData.nurserySummary.map((item) => {
+              {(summary.data ?? []).map((item) => {
                 const Icon = summaryIconMap[item.icon];
 
                 return (
@@ -463,7 +587,7 @@ const NurseryManagement = () => {
                       <p className='text-xs text-gray-500'>{item.title}</p>
 
                       <h3 className='mt-1 text-xl font-bold text-green-700'>
-                        {item.value}
+                        {num(item.value)}
                         {item.unit && (
                           <span className='ml-1 text-sm font-medium text-gray-500'>
                             {item.unit}
@@ -516,7 +640,18 @@ const NurseryManagement = () => {
                 </thead>
 
                 <tbody>
-                  {nurseryManagementData.nurseryBeds.map((bed, index) => (
+                  {waiting || (beds.loading && !beds.data) ? (
+                    <TableSkeleton rows={4} columns={nurseryManagementData.bedTableHeaders.length} />
+                  ) : beds.error ? (
+                    <tr>
+                      <td colSpan={nurseryManagementData.bedTableHeaders.length} className='p-4'>
+                        <ErrorState message={beds.error.message} onRetry={beds.reload} />
+                      </td>
+                    </tr>
+                  ) : bedRows.length === 0 ? (
+                    <EmptyRow columns={nurseryManagementData.bedTableHeaders.length} />
+                  ) : (
+                  bedRows.map((bed, index) => (
                     <tr
                       key={bed.id}
                       className='hover:bg-gray-50 transition-colors'
@@ -534,24 +669,24 @@ const NurseryManagement = () => {
                       </td>
 
                       <td className='border border-gray-200 px-4 py-3 text-sm'>
-                        {bed.clone}
+                        {orDash(bed.clone)}
                       </td>
 
                       <td className='border border-gray-200 px-4 py-3 text-sm'>
-                        {bed.area}
+                        {bed.area == null ? DASH : `${Number(bed.area).toFixed(2)} Acre`}
                       </td>
 
                       <td className='border border-gray-200 px-4 py-3 text-sm'>
-                        {bed.plants}
+                        {num(bed.plants)}
                       </td>
 
                       <td className='border border-gray-200 px-4 py-3 text-sm'>
-                        {bed.plantingDate}
+                        {longDate(bed.plantingDate)}
                       </td>
 
                       <td className='border border-gray-200 px-4 py-3 text-center'>
                         <span
-                          className={`inline-flex rounded-full px-1 py-1 text-xs font-semibold ${bed.statusColor}`}
+                          className={`inline-flex rounded-full px-1 py-1 text-xs font-semibold ${BED_STATUS_CLASS[bed.status] ?? "bg-gray-100 text-gray-600"}`}
                         >
                           {bed.status}
                         </span>
@@ -577,7 +712,8 @@ const NurseryManagement = () => {
                         </div>
                       </td>
                     </tr>
-                  ))}
+                  ))
+                  )}
                 </tbody>
               </table>
               {/* Table Footer */}
@@ -585,14 +721,14 @@ const NurseryManagement = () => {
               <div className='flex flex-col items-center justify-between gap-3 border-t border-gray-200 bg-gray-50 px-5 py-3 text-sm text-gray-600 md:flex-row'>
                 {/* Left */}
                 <p>
-                  Showing <span className='font-semibold text-gray-900'>1</span>{" "}
+                  Showing <span className='font-semibold text-gray-900'>{bedRows.length > 0 ? 1 : 0}</span>{" "}
                   to{" "}
                   <span className='font-semibold text-gray-900'>
-                    {nurseryManagementData.nurseryBeds.length}
+                    {bedRows.length}
                   </span>{" "}
                   of{" "}
                   <span className='font-semibold text-green-700'>
-                    {nurseryManagementData.nurseryBeds.length}
+                    {bedRows.length}
                   </span>{" "}
                   entries
                 </p>
@@ -601,7 +737,7 @@ const NurseryManagement = () => {
                 <p>
                   Total Beds :
                   <span className='ml-2 font-semibold text-green-700'>
-                    {nurseryManagementData.nurseryBeds.length}
+                    {bedRows.length}
                   </span>
                 </p>
               </div>
@@ -622,7 +758,7 @@ const NurseryManagement = () => {
             {/* Body */}
             <div className='relative max-h-[450px]'>
               <img
-                src='/land-lease-map.png'
+                src='/land-lease-map.webp'
                 alt='Nursery Map Layout'
                 className='h-full w-full object-cover'
               />
@@ -720,7 +856,18 @@ const NurseryManagement = () => {
 
                 {/* Table Body */}
                 <tbody>
-                  {nurseryManagementData.stockInventory.map((item, index) => (
+                  {waiting || (stock.loading && !stock.data) ? (
+                    <TableSkeleton rows={4} columns={nurseryManagementData.stockTableHeaders.length} />
+                  ) : stock.error ? (
+                    <tr>
+                      <td colSpan={nurseryManagementData.stockTableHeaders.length} className='p-4'>
+                        <ErrorState message={stock.error.message} onRetry={stock.reload} />
+                      </td>
+                    </tr>
+                  ) : stockRows.length === 0 ? (
+                    <EmptyRow columns={nurseryManagementData.stockTableHeaders.length} />
+                  ) : null}
+                  {stockRows.map((item, index) => (
                     <tr
                       key={item.id}
                       className='transition duration-200 hover:bg-gray-50'
@@ -742,22 +889,22 @@ const NurseryManagement = () => {
 
                       {/* Total Plants */}
                       <td className='border border-gray-200 px-4 py-2 text-sm text-gray-700'>
-                        {item.totalPlants}
+                        {num(item.totalPlants)}
                       </td>
 
                       {/* Available Plants */}
                       <td className='border border-gray-200 px-4 py-2 text-sm text-gray-700'>
-                        {item.availablePlants}
+                        {num(item.availablePlants)}
                       </td>
 
                       {/* Reserved Plants */}
                       <td className='border border-gray-200 px-4 py-2 text-sm text-gray-700'>
-                        {item.reservedPlants}
+                        {num(item.reservedPlants)}
                       </td>
 
                       {/* Distributed Plants */}
                       <td className='border border-gray-200 px-4 py-2 text-sm text-gray-700'>
-                        {item.distributedPlants}
+                        {num(item.distributedPlants)}
                       </td>
 
                       {/* Unit */}
@@ -777,8 +924,8 @@ const NurseryManagement = () => {
                       </td>
                     </tr>
                   ))}
-                  {nurseryManagementData.stockInventoryTotal.map((total) => (
-                    <tr key={total.id} className='bg-gray-50 font-semibold'>
+                  {stockTotals.map((total) => (
+                    <tr key={total.label} className='bg-gray-50 font-semibold'>
                       <td className='border border-gray-200 px-3 py-2'></td>
 
                       <td
@@ -789,19 +936,19 @@ const NurseryManagement = () => {
                       </td>
 
                       <td className='border border-gray-200 px-4 py-2'>
-                        {total.totalPlants}
+                        {num(total.totalPlants)}
                       </td>
 
                       <td className='border border-gray-200 px-4 py-2'>
-                        {total.availablePlants}
+                        {num(total.availablePlants)}
                       </td>
 
                       <td className='border border-gray-200 px-4 py-2'>
-                        {total.reservedPlants}
+                        {num(total.reservedPlants)}
                       </td>
 
                       <td className='border border-gray-200 px-4 py-2'>
-                        {total.distributedPlants}
+                        {num(total.distributedPlants)}
                       </td>
 
                       <td className='border border-gray-200 px-4 py-2'>
@@ -818,8 +965,8 @@ const NurseryManagement = () => {
             {/* Footer */}
             <div className='flex items-center justify-between border-t border-gray-200 px-6 py-4'>
               <p className='text-sm text-gray-600'>
-                Showing 1 to {nurseryManagementData.stockInventory.length} of{" "}
-                {nurseryManagementData.stockInventory.length} entries
+                Showing {stockRows.length > 0 ? 1 : 0} to {stockRows.length} of{" "}
+                {stockRows.length} entries
               </p>
 
               <button
@@ -845,11 +992,16 @@ const NurseryManagement = () => {
 
             {/* Body */}
             <div>
-              {nurseryManagementData.recentActivities.map((item, index) => (
+              {activityRows.length === 0 && (
+                <p className='px-5 py-6 text-center text-sm text-gray-500'>
+                  {activities.error ? activities.error.message : "No recent activities"}
+                </p>
+              )}
+              {activityRows.map((item, index) => (
                 <div
                   key={item.id}
                   className={`flex items-center justify-between px-5 py-3 ${
-                    index !== nurseryManagementData.recentActivities.length - 1
+                    index !== activityRows.length - 1
                       ? "border-b border-gray-200"
                       : ""
                   }`}

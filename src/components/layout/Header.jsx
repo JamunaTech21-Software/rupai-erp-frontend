@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { useMatches } from "react-router-dom";
+import { useMatches, useNavigate } from "react-router-dom";
 import {
   Menu,
   MapPin,
@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { headerInfo } from "../../data/dashboardData";
 import { format } from "date-fns";
+import { api, tokens } from "../../lib/api";
 
 const estates = [
   { id: 1, name: "Jamuna Tea Estate", location: "Sreemangal" },
@@ -30,7 +31,10 @@ const profileMenus = [
 ];
 
 export default function Header({ onToggleSidebar }) {
-  const { date, user, notifications } = headerInfo;
+  const { user: sampleUser, notifications } = headerInfo;
+  const navigate = useNavigate();
+  const [me, setMe] = useState(null);
+  const user = { ...sampleUser, name: me?.name ?? sampleUser.name };
   const matches = useMatches();
   const pageTitle =
     matches.find((match) => match.handle?.title)?.handle?.title ?? "Dashboard";
@@ -39,6 +43,23 @@ export default function Header({ onToggleSidebar }) {
   const [profileOpen, setProfileOpen] = useState(false);
   const estateRef = useRef(null);
   const profileRef = useRef(null);
+
+  useEffect(() => {
+    api
+      .get("/auth/me")
+      .then((result) => setMe(result.user))
+      .catch(() => {});
+  }, []);
+
+  const logout = async () => {
+    try {
+      await api.post("/auth/logout", { refreshToken: tokens.refresh });
+    } catch {
+      // Signing out locally is enough when the server cannot be reached.
+    }
+    tokens.clear();
+    navigate("/login", { replace: true });
+  };
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -199,7 +220,10 @@ export default function Header({ onToggleSidebar }) {
                   <button
                     key={item.id}
                     type='button'
-                    onClick={() => setProfileOpen(false)}
+                    onClick={() => {
+                      setProfileOpen(false);
+                      if (item.id === "logout") logout();
+                    }}
                     className={`flex w-full cursor-pointer items-center gap-2.5 px-3 py-2.5 text-left text-sm transition hover:bg-slate-50 ${
                       item.danger
                         ? "text-red-600 hover:bg-red-50"

@@ -14,8 +14,7 @@ const BrokerSalePositionSetup = () => {
     formState: { errors },
   } = useForm();
 
-  const onSubmit = (data) => {
-    console.log("Broker Position Data:", data);
+  const onSubmit = () => {
 
     setIsAddMode(false);
   };
@@ -221,7 +220,7 @@ const BrokerSalePositionSetup = () => {
 
               <thead>
                 <tr className='bg-slate-50'>
-                  {teaBrokerData.list.tableHeaders.map((header, index) => (
+                  {teaBrokerData.list.tableHeaders.map((header) => (
                     <th
                       key={header}
                       className='border-b border-slate-200 px-2 py-3 text-center text-[10px] font-semibold text-slate-600'

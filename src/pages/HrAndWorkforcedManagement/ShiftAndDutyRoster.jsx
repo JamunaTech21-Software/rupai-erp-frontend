@@ -47,8 +47,7 @@ const ShiftAndDutyRoster = () => {
   // FILTER FORM
   const { register, handleSubmit, reset } = useForm();
 
-  const onFilterSubmit = (data) => {
-    console.log("Filter Data:", data);
+  const onFilterSubmit = () => {
   };
 
   return (
@@ -779,7 +778,6 @@ const ShiftAndDutyRoster = () => {
                     key={action.id}
                     type='button'
                     onClick={() => {
-                      console.log("Quick Action:", action.action);
                     }}
                     className='group flex min-w-0 cursor-pointer flex-col items-center justify-center gap-1 rounded-lg border border-gray-100 bg-white px-1 py-2 transition hover:border-green-200 hover:bg-green-50'
                   >

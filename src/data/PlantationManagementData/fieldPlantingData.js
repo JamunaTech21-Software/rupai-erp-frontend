@@ -319,11 +319,7 @@ export const fieldPlantingData = {
 
     area: "25.60 Acre",
 
-    latitude: "25.7456",
-
-    longitude: "89.2741",
-
-    image: "/field-map-img.png",
+    image: "/field-map-img.webp",
 
     legend: [
       {
@@ -354,32 +350,26 @@ export const fieldPlantingData = {
   // ==========================================
 
   plantingProgress: {
-    percentage: 45,
-    status: "Completed",
 
     stats: [
       {
         id: 1,
         title: "Area Completed",
-        value: "11.52 Acre",
         color: "bg-green-600",
       },
       {
         id: 2,
         title: "Plants Planted",
-        value: "11,160",
         color: "bg-green-600",
       },
       {
         id: 3,
         title: "Remaining Area",
-        value: "13.28 Acre",
         color: "bg-sky-500",
       },
       {
         id: 4,
         title: "Remaining Plants",
-        value: "13,440",
         color: "bg-green-700",
       },
     ],
@@ -392,37 +382,31 @@ export const fieldPlantingData = {
     {
       id: 1,
       title: "Total Area (Acre)",
-      value: "25.60",
       icon: "Map",
     },
     {
       id: 2,
       title: "Expected Plants",
-      value: "24,800",
       icon: "Leaf",
     },
     {
       id: 3,
       title: "Target Plants",
-      value: "24,600",
       icon: "Target",
     },
     {
       id: 4,
       title: "Today's Progress",
-      value: "1.20 Acre",
       icon: "TrendingUp",
     },
     {
       id: 5,
       title: "Plants Planted",
-      value: "11,160",
       icon: "Sprout",
     },
     {
       id: 6,
       title: "Completion %",
-      value: "45%",
       icon: "CirclePercent",
     },
   ],
@@ -431,33 +415,6 @@ export const fieldPlantingData = {
   // Plantation Summary (Left Sidebar)
   // ==========================================
 
-  plantationSummary: [
-    {
-      id: 1,
-      title: "Total Field / Block",
-      value: "48",
-    },
-    {
-      id: 2,
-      title: "Total Planted Area (Acre)",
-      value: "4,120.00",
-    },
-    {
-      id: 3,
-      title: "Mature Area (Acre)",
-      value: "3,200.50",
-    },
-    {
-      id: 4,
-      title: "Young Area (Acre)",
-      value: "919.50",
-    },
-    {
-      id: 5,
-      title: "Nursery Area (Acre)",
-      value: "25.60",
-    },
-  ],
   // ==========================================
   // Field Planting History Table Header
   // ==========================================
@@ -481,179 +438,13 @@ export const fieldPlantingData = {
   // Field Planting History
   // ==========================================
 
-  historyTableData: [
-    {
-      id: 1,
-      plantingYear: "2026",
-      fieldBlock: "BLK-08",
-      area: "25.60",
-      clone: "TV-23",
-      plantingDate: "15/02/2026",
-      method: "Manual",
-      expectedPlants: "24,800",
-      plantedPlants: "11,160",
-      completion: "45%",
-      status: "In Progress",
-      statusColor: "bg-yellow-100 text-yellow-700",
-    },
-
-    {
-      id: 2,
-      plantingYear: "2025",
-      fieldBlock: "BLK-06",
-      area: "18.30",
-      clone: "TV-26",
-      plantingDate: "20/02/2025",
-      method: "Manual",
-      expectedPlants: "17,600",
-      plantedPlants: "17,600",
-      completion: "100%",
-      status: "Completed",
-      statusColor: "bg-green-100 text-green-700",
-    },
-
-    {
-      id: 3,
-      plantingYear: "2025",
-      fieldBlock: "BLK-05",
-      area: "16.00",
-      clone: "TV-23",
-      plantingDate: "18/02/2025",
-      method: "Mechanized",
-      expectedPlants: "15,500",
-      plantedPlants: "15,500",
-      completion: "100%",
-      status: "Completed",
-      statusColor: "bg-green-100 text-green-700",
-    },
-
-    {
-      id: 4,
-      plantingYear: "2024",
-      fieldBlock: "BLK-03",
-      area: "22.75",
-      clone: "S-15",
-      plantingDate: "10/02/2024",
-      method: "Manual",
-      expectedPlants: "21,900",
-      plantedPlants: "21,900",
-      completion: "100%",
-      status: "Completed",
-      statusColor: "bg-green-100 text-green-700",
-    },
-
-    {
-      id: 5,
-      plantingYear: "2024",
-      fieldBlock: "BLK-01",
-      area: "20.10",
-      clone: "R-1",
-      plantingDate: "05/02/2024",
-      method: "Manual",
-      expectedPlants: "19,400",
-      plantedPlants: "19,400",
-      completion: "100%",
-      status: "Completed",
-      statusColor: "bg-green-100 text-green-700",
-    },
-
-    {
-      id: 6,
-      plantingYear: "2023",
-      fieldBlock: "BLK-09",
-      area: "24.20",
-      clone: "TV-30",
-      plantingDate: "12/02/2023",
-      method: "Manual",
-      expectedPlants: "23,500",
-      plantedPlants: "23,500",
-      completion: "100%",
-      status: "Completed",
-      statusColor: "bg-green-100 text-green-700",
-    },
-
-    {
-      id: 7,
-      plantingYear: "2023",
-      fieldBlock: "BLK-10",
-      area: "19.80",
-      clone: "BT-6",
-      plantingDate: "08/02/2023",
-      method: "Mechanized",
-      expectedPlants: "18,900",
-      plantedPlants: "18,900",
-      completion: "100%",
-      status: "Completed",
-      statusColor: "bg-green-100 text-green-700",
-    },
-
-    {
-      id: 8,
-      plantingYear: "2022",
-      fieldBlock: "BLK-11",
-      area: "21.40",
-      clone: "TV-25",
-      plantingDate: "16/02/2022",
-      method: "Manual",
-      expectedPlants: "20,800",
-      plantedPlants: "20,800",
-      completion: "100%",
-      status: "Completed",
-      statusColor: "bg-green-100 text-green-700",
-    },
-
-    {
-      id: 9,
-      plantingYear: "2022",
-      fieldBlock: "BLK-12",
-      area: "17.60",
-      clone: "TV-23",
-      plantingDate: "21/02/2022",
-      method: "Manual",
-      expectedPlants: "16,700",
-      plantedPlants: "16,700",
-      completion: "100%",
-      status: "Completed",
-      statusColor: "bg-green-100 text-green-700",
-    },
-
-    {
-      id: 10,
-      plantingYear: "2021",
-      fieldBlock: "BLK-15",
-      area: "23.00",
-      clone: "TV-26",
-      plantingDate: "14/02/2021",
-      method: "Mechanized",
-      expectedPlants: "22,300",
-      plantedPlants: "22,300",
-      completion: "100%",
-      status: "Completed",
-      statusColor: "bg-green-100 text-green-700",
-    },
-  ],
-
   // ==========================================
   // Table Footer
   // ==========================================
 
-  historyTableFooter: {
-    showingFrom: 1,
-    showingTo: 10,
-    totalEntries: 28,
-  },
-
   // ==========================================
   // Pagination
   // ==========================================
-
-  pagination: {
-    currentPage: 1,
-
-    totalPages: 6,
-
-    pages: [1, 2, 3, 4, 5, 6],
-  },
 
   // ==========================================
   // Footer Action Buttons

@@ -30,8 +30,7 @@ const actionIconMap = {
 const LabourAllocationEntry = () => {
   const { register, handleSubmit, reset } = useForm();
 
-  const onSubmit = (data) => {
-    console.log(data);
+  const onSubmit = () => {
 
     reset();
   };

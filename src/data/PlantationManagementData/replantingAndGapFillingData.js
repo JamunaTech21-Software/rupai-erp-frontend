@@ -578,48 +578,6 @@ export const replantingAndGapFillingData = {
         "Action",
       ],
 
-      rows: [
-        {
-          id: 1,
-          gapId: "GAP-001",
-          gapSize: 0.25,
-          plants: 250,
-          gapType: "Small",
-          action: "View",
-        },
-        {
-          id: 2,
-          gapId: "GAP-002",
-          gapSize: 0.4,
-          plants: 400,
-          gapType: "Medium",
-          action: "View",
-        },
-        {
-          id: 3,
-          gapId: "GAP-003",
-          gapSize: 0.6,
-          plants: 600,
-          gapType: "Large",
-          action: "View",
-        },
-        {
-          id: 4,
-          gapId: "GAP-004",
-          gapSize: 0.3,
-          plants: 300,
-          gapType: "Small",
-          action: "View",
-        },
-        {
-          id: 5,
-          gapId: "GAP-005",
-          gapSize: 0.15,
-          plants: 150,
-          gapType: "Small",
-          action: "View",
-        },
-      ],
     },
 
     // ======================================================
@@ -639,36 +597,6 @@ export const replantingAndGapFillingData = {
 
       columns: ["Activity", "Start Date", "End Date", "Status"],
 
-      rows: [
-        {
-          id: 1,
-          activity: "Clearing",
-          startDate: "12/05/2026",
-          endDate: "16/05/2026",
-          status: "Completed",
-        },
-        {
-          id: 2,
-          activity: "Stumping / Felling",
-          startDate: "17/05/2026",
-          endDate: "21/05/2026",
-          status: "Completed",
-        },
-        {
-          id: 3,
-          activity: "Land Preparation",
-          startDate: "22/05/2026",
-          endDate: "28/05/2026",
-          status: "In Progress",
-        },
-        {
-          id: 4,
-          activity: "Pit Digging",
-          startDate: "29/05/2026",
-          endDate: "05/06/2026",
-          status: "Pending",
-        },
-      ],
     },
 
     // ======================================================
@@ -718,56 +646,6 @@ export const replantingAndGapFillingData = {
 
       columns: ["Material", "Unit", "Required Qty", "Unit Cost", "Total Cost"],
 
-      rows: [
-        {
-          id: 1,
-          material: "NPK (15:15:15)",
-          unit: "Kg",
-          requiredQty: 525,
-          unitCost: 55,
-          totalCost: 28875,
-        },
-        {
-          id: 2,
-          material: "TSP",
-          unit: "Kg",
-          requiredQty: 315,
-          unitCost: 40,
-          totalCost: 12600,
-        },
-        {
-          id: 3,
-          material: "MOP",
-          unit: "Kg",
-          requiredQty: 315,
-          unitCost: 38,
-          totalCost: 11970,
-        },
-        {
-          id: 4,
-          material: "FYM",
-          unit: "Kg",
-          requiredQty: 3000,
-          unitCost: 4,
-          totalCost: 12000,
-        },
-        {
-          id: 5,
-          material: "Lime",
-          unit: "Kg",
-          requiredQty: 250,
-          unitCost: 6,
-          totalCost: 1500,
-        },
-        {
-          id: 6,
-          material: "Neem Cake",
-          unit: "Kg",
-          requiredQty: 150,
-          unitCost: 20,
-          totalCost: 3000,
-        },
-      ],
 
       summary: {
         label: "Total Estimated Cost",
@@ -797,32 +675,6 @@ export const replantingAndGapFillingData = {
 
       columns: ["Labour Type", "Male", "Female", "Rate (BDT)", "Amount"],
 
-      rows: [
-        {
-          id: 1,
-          labourType: "Field Worker",
-          male: 30,
-          female: 25,
-          rate: 450,
-          amount: 24750,
-        },
-        {
-          id: 2,
-          labourType: "Skilled Worker",
-          male: 10,
-          female: 5,
-          rate: 550,
-          amount: 8250,
-        },
-        {
-          id: 3,
-          labourType: "Supervisor",
-          male: 2,
-          female: 1,
-          rate: 800,
-          amount: 2400,
-        },
-      ],
 
       summary: {
         label: "Total Labour",
@@ -862,40 +714,6 @@ export const replantingAndGapFillingData = {
         "Planted By",
       ],
 
-      rows: [
-        {
-          id: 1,
-          rowNo: 1,
-          fromPlant: 1,
-          toPlant: 250,
-          plants: 250,
-          plantedBy: "Team-01",
-        },
-        {
-          id: 2,
-          rowNo: 2,
-          fromPlant: 251,
-          toPlant: 500,
-          plants: 250,
-          plantedBy: "Team-02",
-        },
-        {
-          id: 3,
-          rowNo: 3,
-          fromPlant: 501,
-          toPlant: 750,
-          plants: 250,
-          plantedBy: "Team-03",
-        },
-        {
-          id: 4,
-          rowNo: 4,
-          fromPlant: 751,
-          toPlant: 1000,
-          plants: 250,
-          plantedBy: "Team-04",
-        },
-      ],
 
       summary: {
         label: "Total Plants Planted",
@@ -955,32 +773,6 @@ export const replantingAndGapFillingData = {
         "Remarks",
       ],
 
-      rows: [
-        {
-          id: 1,
-          date: "25/05/2026",
-          areaCompleted: "0.80",
-          plantsPlanted: "800",
-          survival: "-",
-          remarks: "Land Preparation",
-        },
-        {
-          id: 2,
-          date: "30/05/2026",
-          areaCompleted: "1.20",
-          plantsPlanted: "1,000",
-          survival: "-",
-          remarks: "Pit Digging",
-        },
-        {
-          id: 3,
-          date: "01/06/2026",
-          areaCompleted: "1.25",
-          plantsPlanted: "1,000",
-          survival: "92%",
-          remarks: "Planting Completed",
-        },
-      ],
     },
 
     // ======================================================
@@ -991,44 +783,6 @@ export const replantingAndGapFillingData = {
 
       columns: ["Level", "Name", "Designation", "Status", "Date", "Signature"],
 
-      rows: [
-        {
-          id: 1,
-          level: "Field Officer",
-          name: "Fazlu Hossain",
-          designation: "FO",
-          status: "Approved",
-          date: "01/06/2026",
-          signature: "✍",
-        },
-        {
-          id: 2,
-          level: "Estate Manager",
-          name: "Kamrul Hasan",
-          designation: "EM",
-          status: "Approved",
-          date: "03/06/2026",
-          signature: "✍",
-        },
-        {
-          id: 3,
-          level: "GM (Estate)",
-          name: "Rafiq Uddin",
-          designation: "GM",
-          status: "Pending",
-          date: "-",
-          signature: "○",
-        },
-        {
-          id: 4,
-          level: "Head Office",
-          name: "Md. Saad",
-          designation: "Director",
-          status: "Pending",
-          date: "-",
-          signature: "○",
-        },
-      ],
 
       completion: {
         title: "Completion",

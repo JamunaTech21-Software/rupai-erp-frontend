@@ -18,7 +18,6 @@ const AddNewBroker = () => {
     handleSubmit,
     control,
     reset,
-    watch,
     setValue,
     formState: { errors },
   } = useForm({
@@ -53,8 +52,7 @@ const AddNewBroker = () => {
   // FORM SUBMIT
   // =========================================================
 
-  const onSubmit = (data) => {
-    console.log("Broker Form Data:", data);
+  const onSubmit = () => {
   };
 
   // =========================================================
@@ -108,7 +106,6 @@ const AddNewBroker = () => {
       setValue(`mobileNumbers.${index}.isPrimary`, index === selectedIndex);
     });
   };
-  const selectedAuctionCenterCodes = watch("auctionCenters") || [];
 
   const selectedCenters = addNewBrokerData.auctionCenters.selectedCenters;
 

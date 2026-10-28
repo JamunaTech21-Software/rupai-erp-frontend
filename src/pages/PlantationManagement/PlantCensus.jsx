@@ -1,4 +1,6 @@
-import React from "react";
+import React, { useEffect, useRef, useState } from "react";
+import toast from "react-hot-toast";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { MapContainer, TileLayer, Polygon } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
@@ -17,17 +19,20 @@ import {
 
 import {
   fieldMap,
-  censusSummary,
-  summaryCards,
-  rowWiseTable,
-  charts,
-  fieldPhotos,
-  documents,
-  censusHistory,
+  censusSummary as censusSummaryLayout,
+  summaryCards as summaryCardsLayout,
+  rowWiseTable as rowWiseLayout,
   approvalStatus,
   documentTableHeaders,
   censusHistoryTableHeaders,
 } from "../../data/PlantationManagementData/plantCensusData";
+import { api } from "../../lib/api";
+import { useApi } from "../../lib/useApi";
+import CardSkeleton from "../../components/common/CardSkeleton";
+import TableSkeleton from "../../components/common/TableSkeleton";
+import EmptyRow from "../../components/common/EmptyRow";
+import ErrorState from "../../components/common/ErrorState";
+import MapResizer from "../../components/common/MapResizer";
 
 import {
   Map,
@@ -93,22 +98,201 @@ const statusColor = {
   Moderate: "bg-yellow-100 text-yellow-700",
   Critical: "bg-red-100 text-red-700",
 };
+const DASH = "-";
+const FIELDS = [
+  "estate", "division", "section", "fieldBlock", "censusYear", "censusDate", "surveyType", "censusMethod", "censusBy",
+  "supervisor", "cloneVariety", "plantingYear", "plantSpacing", "rowSpacing", "elevation", "rowFrom", "rowTo",
+  "totalSelectedRows", "remarks",
+];
+const EMPTY_FORM = Object.fromEntries(FIELDS.map((name) => [name, ""]));
+const toForm = (record) => Object.fromEntries(FIELDS.map((name) => [name, record[name] ?? ""]));
+const num = (value) => (value === null || value === undefined ? DASH : Number(value).toLocaleString("en-US"));
+const fixed = (value, digits = 2) => (value === null || value === undefined ? DASH : Number(value).toFixed(digits));
+// 2026-05-20 -> 20/05/2026 (no timezone: the text is rearranged, not parsed as a date)
+const dmy = (iso) => (iso ? iso.slice(0, 10).split("-").reverse().join("/") : DASH);
+
 const PlantCensus = () => {
   const {
     register,
     handleSubmit,
     reset,
-    watch,
+    setError,
     setValue,
-    formState: { errors },
+    watch,
+    formState: { errors, isSubmitting },
   } = useForm();
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const editId = searchParams.get("id");
+  // After a save, return to the page the user came from (the dashboard when the page was opened directly).
+  const goBack = () => (window.history.state?.idx > 0 ? navigate(-1) : navigate("/"));
+  const photoInput = useRef(null);
+  const documentInput = useRef(null);
+  const [uploading, setUploading] = useState(false);
 
-  const onSubmit = (data) => {
-    console.log(data);
+  // The census being edited (?id=); the panels show it, or the first census when adding a new one.
+  const first = useApi(() => (editId ? Promise.resolve(null) : api.get("/plant-censuses", { perPage: 1 })), [editId]);
+  const shownId = editId ?? first.data?.data?.[0]?.id;
+  const record = useApi(() => (shownId ? api.get(`/plant-censuses/${shownId}`) : Promise.resolve(null)), [shownId]);
+  const report = useApi(() => (shownId ? api.get(`/plant-censuses/${shownId}/report`) : Promise.resolve(null)), [shownId]);
+  const shown = record.data;
+  // The map shows the census field's boundary.
+  const field = useApi(() => (shown?.fieldBlock ? api.get(`/fields/${shown.fieldBlock}`) : Promise.resolve(null)), [shown?.fieldBlock]);
+  const boundary = field.data?.map?.landBoundary ?? field.data?.map?.polygon ?? field.data?.polygon;
+  const mapCenter = field.data?.map?.latitude != null ? [Number(field.data.map.latitude), Number(field.data.map.longitude)] : fieldMap.center;
+  const waiting = !shownId && first.loading;
+
+  // Estate -> Division -> Section -> Field / Block
+  const estateId = watch("estate");
+  const divisionId = watch("division");
+  const sectionId = watch("section");
+  const rowFrom = watch("rowFrom");
+  const rowTo = watch("rowTo");
+  const estateOptions = useApi(() => api.get("/options/estates"), []);
+  const divisionOptions = useApi(() => (estateId ? api.get("/options/divisions", { estate: estateId }) : Promise.resolve([])), [estateId]);
+  const sectionOptions = useApi(() => (divisionId ? api.get("/options/sections", { division: divisionId }) : Promise.resolve([])), [divisionId]);
+  const fieldOptions = useApi(() => (sectionId ? api.get("/options/fields", { section: sectionId }) : Promise.resolve([])), [sectionId]);
+
+  const editing = editId && record.data?.id === editId ? record.data : null;
+  useEffect(() => {
+    if (editing) reset(toForm(editing));
+  }, [editing, reset]);
+  // The saved division / section / field show once their options have loaded.
+  useEffect(() => {
+    if (!editing) return;
+    for (const [name, options] of [
+      ["division", divisionOptions.data],
+      ["section", sectionOptions.data],
+      ["fieldBlock", fieldOptions.data],
+    ]) {
+      if (options?.some((option) => option.value === editing[name])) setValue(name, editing[name]);
+    }
+  }, [editing, divisionOptions.data, sectionOptions.data, fieldOptions.data, setValue]);
+  // Total selected rows is worked out from the two row numbers.
+  useEffect(() => {
+    const from = Number(rowFrom);
+    const to = Number(rowTo);
+    setValue("totalSelectedRows", rowFrom !== "" && rowTo !== "" && to >= from ? to - from + 1 : "");
+  }, [rowFrom, rowTo, setValue]);
+
+  const reloadPanels = () => {
+    first.reload();
+    record.reload();
+    report.reload();
   };
+
+  const bodyOf = (values, extra = {}) => ({
+    ...values,
+    totalSelectedRows: values.rowFrom !== "" && values.rowTo !== "" ? Number(values.rowTo) - Number(values.rowFrom) + 1 : values.totalSelectedRows,
+    photos: shown?.photos ?? [],
+    documents: shown?.documents ?? [],
+    rows: shown?.rows ?? [],
+    ...extra,
+  });
+  const onSubmit = async (values) => {
+    try {
+      if (editId) {
+        const saved = await api.put(`/plant-censuses/${editId}`, bodyOf(values));
+        reset(toForm(saved));
+      } else {
+        await api.post("/plant-censuses", { ...bodyOf(values), photos: [], documents: [], rows: [] });
+        reset(EMPTY_FORM);
+      }
+      toast.success("Plant census saved successfully!");
+      reloadPanels();
+      goBack();
+    } catch (error) {
+      for (const [key, message] of Object.entries(error.fields ?? {})) setError(key, { message });
+      toast.error(error.message);
+    }
+  };
+  const resetForm = () => reset(editing ? toForm(editing) : EMPTY_FORM);
+
+  // Upload pictures / documents of the census shown, then save the record with the new ids.
+  const addFiles = async (kind, event) => {
+    const files = Array.from(event.target.files ?? []);
+    event.target.value = "";
+    if (files.length === 0 || !shown) {
+      if (!shown) toast.error("Save the census first.");
+      return;
+    }
+    setUploading(true);
+    try {
+      const ids = [];
+      for (const file of files) ids.push((await api.upload(file)).id);
+      await api.put(`/plant-censuses/${shown.id}`, { ...toForm(shown), rows: shown.rows ?? [], photos: shown.photos ?? [], documents: shown.documents ?? [], [kind]: [...(shown[kind] ?? []), ...ids] });
+      toast.success(kind === "photos" ? "Photo uploaded successfully!" : "Document uploaded successfully!");
+      reloadPanels();
+    } catch (error) {
+      toast.error(error.message);
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  // What the panels show, in the shapes the page already uses.
+  const data = report.data;
+  const summaryValues = data
+    ? [
+        `${fixed(data.censusSummary.totalArea)}`,
+        num(data.censusSummary.totalRows),
+        num(data.censusSummary.expectedPlants),
+        num(data.censusSummary.livePlants),
+        num(data.censusSummary.deadPlants),
+        num(data.censusSummary.missingPlants),
+        `${fixed(data.censusSummary.gapPercentage)}%`,
+        data.censusSummary.dataEntryStatus,
+      ]
+    : [];
+  const censusSummary = censusSummaryLayout.map((item, index) => ({ ...item, value: summaryValues[index] ?? DASH }));
+  const cardValues = data
+    ? [
+        fixed(data.summaryCards.totalArea),
+        num(data.summaryCards.expectedPlants),
+        num(data.summaryCards.livePlants),
+        num(data.summaryCards.deadPlants),
+        num(data.summaryCards.missingPlants),
+        num(data.summaryCards.avgPlantsPerAcre),
+        fixed(data.summaryCards.plantsPerMeter),
+      ]
+    : [];
+  const summaryCards = summaryCardsLayout.map((item, index) => ({ ...item, value: cardValues[index] ?? DASH, badge: undefined }));
+  const rowRows = shown?.rows ?? [];
+  const rowWiseTable = {
+    headers: rowWiseLayout.headers,
+    rows: rowRows.map((row) => ({ ...row, gapPercentage: fixed(row.gapPercentage) })),
+  };
+  const sum = (key) => rowRows.reduce((total, row) => total + Number(row[key] ?? 0), 0);
+  const avg = (key) => (rowRows.length ? sum(key) / rowRows.length : 0);
+  const charts = data?.charts ?? {
+    liveVsDeadChart: { title: "Live vs Dead Plants", total: 0, data: [] },
+    plantDistributionChart: { title: "Plant Distribution (Row Wise)", data: [] },
+  };
+  const photoUrls = shown?.photosUrl ?? [];
+  const documents = (shown?.documentsUrl ?? []).map((url, index) => ({
+    id: shown.documents[index],
+    documentName: decodeURIComponent(url.split("/").pop()?.split("?")[0] ?? "").replace(/\/content$/, "") || `Document ${index + 1}`,
+    type: "Document",
+    fileName: url,
+    uploadedOn: dmy(shown.updatedAt),
+    url,
+  }));
+  const censusHistory = data?.censusHistory ?? [];
+  const failure = first.error ?? record.error ?? report.error;
   return (
     <div>
       <PlantationManagementTabs />
+      {(waiting || (shownId && report.loading && !report.data)) && <CardSkeleton count={4} />}
+      {failure && (
+        <ErrorState
+          message={failure.message}
+          onRetry={() => {
+            first.reload();
+            record.reload();
+            report.reload();
+          }}
+        />
+      )}
       <div className='space-y-6 mt-4'>
         {/* ================================================= */}
 
@@ -118,6 +302,7 @@ const PlantCensus = () => {
         <div className='grid grid-cols-12 gap-1'>
           {/* Census Information */}
           <form
+            id='census-form'
             onSubmit={handleSubmit(onSubmit)}
             className='col-span-12 xl:col-span-6 rounded-xl border border-gray-200 bg-white shadow-sm'
           >
@@ -148,6 +333,7 @@ const PlantCensus = () => {
                     id='estate'
                     {...register("estate", {
                       required: "Please select an estate.",
+                      onChange: () => { setValue("division", ""); setValue("section", ""); setValue("fieldBlock", ""); },
                     })}
                     className={`w-full rounded-lg border bg-white px-3 py-2.5 text-sm outline-none transition-all ${
                       errors.estate
@@ -156,9 +342,11 @@ const PlantCensus = () => {
                     }`}
                   >
                     <option value=''>Select Estate</option>
-                    <option value='jamuna'>Jamuna Tea Estate</option>
-                    <option value='rangpur'>Rangpur Tea Estate</option>
-                    <option value='rupai'>RupAI Tea Estate</option>
+                    {(estateOptions.data ?? []).map((estate) => (
+                      <option key={estate.id} value={estate.value}>
+                        {estate.label}
+                      </option>
+                    ))}
                   </select>
 
                   {errors.estate && (
@@ -181,6 +369,7 @@ const PlantCensus = () => {
                     id='division'
                     {...register("division", {
                       required: "Please select a division.",
+                      onChange: () => { setValue("section", ""); setValue("fieldBlock", ""); },
                     })}
                     className={`w-full rounded-lg border bg-white px-3 py-2.5 text-sm outline-none transition-all ${
                       errors.division
@@ -189,9 +378,11 @@ const PlantCensus = () => {
                     }`}
                   >
                     <option value=''>Select Division</option>
-                    <option value='div-01'>Rangpur Division (DIV-01)</option>
-                    <option value='div-02'>Sylhet Division (DIV-02)</option>
-                    <option value='div-03'>Chattogram Division (DIV-03)</option>
+                    {(divisionOptions.data ?? []).map((division) => (
+                      <option key={division.id} value={division.value}>
+                        {division.label}
+                      </option>
+                    ))}
                   </select>
 
                   {errors.division && (
@@ -214,6 +405,7 @@ const PlantCensus = () => {
                     id='section'
                     {...register("section", {
                       required: "Please select a section.",
+                      onChange: () => { setValue("fieldBlock", ""); },
                     })}
                     className={`w-full rounded-lg border bg-white px-3 py-2.5 text-sm outline-none transition-all ${
                       errors.section
@@ -222,9 +414,11 @@ const PlantCensus = () => {
                     }`}
                   >
                     <option value=''>Select Section</option>
-                    <option value='sec-a'>Section-A (SEC-A)</option>
-                    <option value='sec-b'>Section-B (SEC-B)</option>
-                    <option value='sec-c'>Section-C (SEC-C)</option>
+                    {(sectionOptions.data ?? []).map((section) => (
+                      <option key={section.id} value={section.value}>
+                        {section.label}
+                      </option>
+                    ))}
                   </select>
 
                   {errors.section && (
@@ -259,9 +453,11 @@ const PlantCensus = () => {
                     }`}
                   >
                     <option value=''>Select Field / Block</option>
-                    <option value='blk01'>BLK-01</option>
-                    <option value='blk02'>BLK-02</option>
-                    <option value='blk08'>BLK-08</option>
+                    {(fieldOptions.data ?? []).map((fieldOption) => (
+                      <option key={fieldOption.id} value={fieldOption.value}>
+                        {fieldOption.label}
+                      </option>
+                    ))}
                   </select>
 
                   {errors.fieldBlock && (
@@ -744,7 +940,8 @@ const PlantCensus = () => {
               {/* Static Map Placeholder */}
               <div className='h-[360px] overflow-hidden rounded-lg border border-gray-300'>
                 <MapContainer
-                  center={fieldMap.center}
+                  key={`${shown?.id}-${field.data?.id}`}
+                  center={mapCenter}
                   zoom={fieldMap.gis.zoom}
                   scrollWheelZoom={false}
                   className='h-full w-full'
@@ -754,15 +951,18 @@ const PlantCensus = () => {
                     url='https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
                   />
 
-                  <Polygon
-                    positions={fieldMap.polygon}
-                    pathOptions={{
-                      color: "#16a34a",
-                      weight: 3,
-                      fillColor: "#22c55e",
-                      fillOpacity: 0.35,
-                    }}
-                  />
+                  {boundary?.length > 0 && (
+                    <Polygon
+                      positions={boundary}
+                      pathOptions={{
+                        color: "#16a34a",
+                        weight: 3,
+                        fillColor: "#22c55e",
+                        fillOpacity: 0.35,
+                      }}
+                    />
+                  )}
+                  <MapResizer trigger={shown?.id} />
                 </MapContainer>
               </div>
 
@@ -915,6 +1115,11 @@ const PlantCensus = () => {
 
                 {/* Table Body */}
                 <tbody>
+                  {waiting || (record.loading && !record.data) ? (
+                    <TableSkeleton rows={4} columns={rowWiseTable.headers.length + 2} />
+                  ) : rowWiseTable.rows.length === 0 ? (
+                    <EmptyRow columns={rowWiseTable.headers.length + 2} />
+                  ) : null}
                   {rowWiseTable.rows.map((row, index) => (
                     <tr
                       key={row.id}
@@ -971,6 +1176,7 @@ const PlantCensus = () => {
                   ))}
                 </tbody>
                 {/* Total / Average Row */}
+                <tfoot>
                 <tr className='bg-gray-100 font-semibold text-gray-800'>
                   <td className='border border-gray-200 px-1 py-2 text-center'>
                     -
@@ -981,35 +1187,36 @@ const PlantCensus = () => {
                   </td>
 
                   <td className='border border-gray-200 px-3 py-2 text-center'>
-                    4,999.00
+                    {fixed(sum("rowLength"))}
                   </td>
 
                   <td className='border border-gray-200 px-3 py-2 text-center'>
-                    2.10
+                    {fixed(avg("plantsPerMeter"))}
                   </td>
 
                   <td className='border border-gray-200 px-3 py-2 text-center'>
-                    10,250
+                    {num(sum("expectedPlants"))}
                   </td>
 
                   <td className='border border-gray-200 px-3 py-2 text-center'>
-                    9,678
+                    {num(sum("livePlants"))}
                   </td>
 
                   <td className='border border-gray-200 px-3 py-2 text-center'>
-                    567
+                    {num(sum("deadPlants"))}
                   </td>
 
                   <td className='border border-gray-200 px-3 py-2 text-center'>
-                    5
+                    {num(sum("missingPlants"))}
                   </td>
 
                   <td className='border border-gray-200 px-3 py-2 text-center'>
-                    5.53
+                    {fixed(avg("gapPercentage"))}
                   </td>
 
                   <td className='border border-gray-200 px-3 py-2'></td>
                 </tr>
+                </tfoot>
               </table>
             </div>
 
@@ -1214,7 +1421,7 @@ const PlantCensus = () => {
               {/* Body */}
 
               <div className='grid grid-cols-3 gap-1 p-1'>
-                {fieldPhotos.slice(0, 3).map((photo) => (
+                {[0, 1, 2].map((index) => ({ id: index, title: `Photo ${index + 1}`, image: photoUrls[index] })).map((photo) => (
                   <div
                     key={photo.id}
                     className='overflow-hidden rounded-lg border border-gray-200 bg-white'
@@ -1227,17 +1434,26 @@ const PlantCensus = () => {
                     </div>
 
                     {/* Image */}
-                    <img
-                      src={photo.image}
-                      alt={photo.title}
-                      className='h-24 w-full object-cover'
-                    />
+                    {photo.image ? (
+                      <img
+                        src={photo.image}
+                        alt={photo.title}
+                        className='h-24 w-full object-cover'
+                      />
+                    ) : (
+                      <div className='flex h-24 w-full items-center justify-center bg-gray-50 text-xs text-gray-400'>
+                        No photo
+                      </div>
+                    )}
 
                     {/* Footer */}
                     <div className='border-t border-gray-100 py-2'>
+                      <input ref={photoInput} type='file' accept='image/jpeg,image/png,image/webp' multiple className='hidden' onChange={(event) => addFiles("photos", event)} />
                       <button
                         type='button'
-                        className='flex w-full items-center justify-center gap-1 text-xs font-medium text-gray-600 transition hover:text-green-700'
+                        disabled={uploading}
+                        onClick={() => photoInput.current?.click()}
+                        className='flex w-full items-center justify-center gap-1 text-xs font-medium text-gray-600 transition hover:text-green-700 disabled:opacity-60'
                       >
                         <Upload size={14} />
                         Upload
@@ -1275,6 +1491,7 @@ const PlantCensus = () => {
                 </thead>
 
                 <tbody>
+                  {documents.length === 0 && <EmptyRow columns={documentTableHeaders.length} />}
                   {documents.map((doc, index) => (
                     <tr key={doc.id}>
                       {documentTableHeaders.map((header) => (
@@ -1286,7 +1503,7 @@ const PlantCensus = () => {
                             index + 1
                           ) : header.key === "action" ? (
                             <div className='flex justify-center gap-2'>
-                              <button>
+                              <button type='button' title='Download' onClick={() => window.open(doc.url, "_blank", "noopener")}>
                                 <Download size={14} />
                               </button>
 
@@ -1307,9 +1524,12 @@ const PlantCensus = () => {
 
             {/* Footer */}
             <div className='border-t border-gray-200 p-2'>
+              <input ref={documentInput} type='file' accept='.pdf,.jpg,.jpeg,.png,.doc,.docx' multiple className='hidden' onChange={(event) => addFiles("documents", event)} />
               <button
                 type='button'
-                className='flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 py-1 text-sm font-medium hover:bg-gray-50'
+                disabled={uploading}
+                onClick={() => documentInput.current?.click()}
+                className='flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 py-1 text-sm font-medium hover:bg-gray-50 disabled:opacity-60'
               >
                 <Upload size={16} />
                 Upload More Document
@@ -1343,6 +1563,7 @@ const PlantCensus = () => {
                 </thead>
 
                 <tbody>
+                  {censusHistory.length === 0 && <EmptyRow columns={censusHistoryTableHeaders.length} />}
                   {censusHistory.map((item) => (
                     <tr key={item.id} className='hover:bg-green-50'>
                       {censusHistoryTableHeaders.map((header) => (
@@ -1413,6 +1634,7 @@ const PlantCensus = () => {
             {/* Buttons Here */}
             <button
               type='button'
+              onClick={resetForm}
               className='flex items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-6 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-100'
             >
               <RotateCcw size={18} />
@@ -1420,6 +1642,7 @@ const PlantCensus = () => {
             </button>
             <button
               type='button'
+              onClick={() => navigate(-1)}
               className='flex items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-6 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-red-50 hover:text-red-600'
             >
               <X size={18} />
@@ -1427,14 +1650,18 @@ const PlantCensus = () => {
             </button>
             <button
               type='button'
-              className='flex items-center justify-center gap-2 rounded-lg bg-green-700 px-6 py-2.5 text-sm font-medium text-white transition hover:bg-green-800'
+              disabled={isSubmitting}
+              onClick={handleSubmit(onSubmit)}
+              className='flex items-center justify-center gap-2 rounded-lg bg-green-700 px-6 py-2.5 text-sm font-medium text-white transition hover:bg-green-800 disabled:opacity-60'
             >
               <Save size={18} />
               Save as Draft
             </button>
             <button
               type='submit'
-              className='flex items-center justify-center gap-2 rounded-lg bg-green-600 px-6 py-2.5 text-sm font-medium text-white transition hover:bg-green-700'
+              form='census-form'
+              disabled={isSubmitting}
+              className='flex items-center justify-center gap-2 rounded-lg bg-green-600 px-6 py-2.5 text-sm font-medium text-white transition hover:bg-green-700 disabled:opacity-60'
             >
               <CheckCircle2 size={18} />
               Submit for Approval

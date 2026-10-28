@@ -21,20 +21,16 @@ const TeaWarehouse = () => {
 
   // =========================================================
 
-  const onSubmit = (data) => {
-    console.log("Warehouse Form Data:", data);
+  const onSubmit = () => {
   };
 
   const handleAddMobile = () => {
-    console.log("Add Another Mobile Number clicked");
   };
 
-  const handleDeleteMobile = (contact) => {
-    console.log("Delete Mobile Contact:", contact);
+  const handleDeleteMobile = () => {
   };
 
   const handleCancel = () => {
-    console.log("Cancel clicked");
   };
 
   return (

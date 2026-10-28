@@ -1,8 +1,13 @@
+import { useEffect, useRef, useState } from "react";
 import EstateManagementTabs from "../../components/EstateManagement/EstateManagementTabs";
+import CardSkeleton from "../../components/common/CardSkeleton";
+import ErrorState from "../../components/common/ErrorState";
+import { api } from "../../lib/api";
+import { useApi } from "../../lib/useApi";
 import { estateProfileData } from "../../data/EstateManagementData/estateProfileData";
 import { useForm } from "react-hook-form";
 import toast from "react-hot-toast";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 import {
   Map,
@@ -31,35 +36,112 @@ const actionIconMap = {
   reset: RotateCcw,
   submit: Save,
 };
+// The manager blocks of the form are keyed 1 and 2; the API calls them by type.
+const managerIdByType = Object.fromEntries(
+  estateProfileData.managerInformation.map((manager) => [manager.type, manager.id]),
+);
+
+// A saved estate as the form wants it (null -> empty, managers keyed by block).
+const toForm = (estate) => ({
+  ...estate,
+  managers: Object.fromEntries(
+    (estate.managers ?? []).map((manager) => [
+      managerIdByType[manager.type],
+      { name: manager.name ?? "", mobile: manager.mobile ?? "", email: manager.email ?? "" },
+    ]),
+  ),
+});
+
+const toImages = (estate) =>
+  (estate.estateImages ?? []).map((id, index) => ({ id, url: estate.estateImagesUrl?.[index] }));
+
 const EstateProfile = () => {
   const {
     register,
     handleSubmit,
     reset,
     watch,
+    setError,
     formState: { errors, isSubmitting },
   } = useForm();
   // hooks
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const estateId = searchParams.get("id");
+  // After a save, return to the page the user came from (the dashboard when the page was opened directly).
+  const goBack = () => (window.history.state?.idx > 0 ? navigate(-1) : navigate("/"));
   const latitude = watch("latitude");
   const longitude = watch("longitude");
+  const [images, setImages] = useState([]);
+  const [uploading, setUploading] = useState(false);
+  const fileInput = useRef(null);
+
+  // The estate being edited (?id=) and the totals of all estates (shown while adding a new one).
+  const estate = useApi(() => (estateId ? api.get(`/estates/${estateId}`) : Promise.resolve(null)), [estateId]);
+  const totals = useApi(() => api.get("/estates/summary"), []);
+
+  useEffect(() => {
+    if (estate.data) {
+      reset(toForm(estate.data));
+      setImages(toImages(estate.data));
+    }
+  }, [estate.data, reset]);
+
+  const overview = estateId ? estate.data : totals.data;
+
+  // Upload each picked picture first, then keep its id with the form.
+  const addImages = async (event) => {
+    const files = Array.from(event.target.files ?? []);
+    event.target.value = "";
+    if (files.length === 0) return;
+    setUploading(true);
+    try {
+      const uploaded = [];
+      for (const file of files) uploaded.push(await api.upload(file));
+      setImages((current) => [...current, ...uploaded.map((item) => ({ id: item.id, url: item.url }))]);
+    } catch (error) {
+      toast.error(error.message);
+    } finally {
+      setUploading(false);
+    }
+  };
 
   // onsubmit functionality
-  const estateProfileSubmit = async (data) => {
+  const estateProfileSubmit = async (values) => {
+    const managers = [];
+    for (const manager of estateProfileData.managerInformation) {
+      const block = values.managers?.[manager.id];
+      if (block) managers[manager.id] = { type: manager.type, ...block };
+    }
+    const body = { ...values, managers, estateImages: images.map((image) => image.id) };
     try {
-      console.log(data);
-
-      toast.success("Estate created");
-
-      reset();
+      const saved = estateId ? await api.put(`/estates/${estateId}`, body) : await api.post("/estates", body);
+      if (estateId) {
+        toast.success("Estate updated");
+        reset(toForm(saved));
+        setImages(toImages(saved));
+        estate.reload();
+      } else {
+        toast.success("Estate created");
+        reset();
+        setImages([]);
+      }
+      totals.reload();
+      goBack();
     } catch (error) {
-      toast.error("Something went wrong");
+      for (const [key, message] of Object.entries(error.fields ?? {})) setError(key, { message });
+      toast.error(error.message);
     }
   };
   return (
     <form onSubmit={handleSubmit(estateProfileSubmit)} className='space-y-6'>
       {/* Top Tabs */}
       <EstateManagementTabs />
+
+      {estateId && estate.loading && !estate.data && <CardSkeleton count={4} />}
+      {estateId && estate.error && (
+        <ErrorState message={estate.error.message} onRetry={estate.reload} />
+      )}
 
       {/* Main Layout */}
       <div className='grid grid-cols-12 gap-6'>
@@ -612,7 +694,6 @@ const EstateProfile = () => {
 
                       <input
                         type='text'
-                        defaultValue={manager.name}
                         {...register(`managers.${manager.id}.name`)}
                         className='h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-700 outline-none transition-all duration-200 focus:border-green-600'
                       />
@@ -626,7 +707,6 @@ const EstateProfile = () => {
 
                       <input
                         type='tel'
-                        defaultValue={manager.mobile}
                         {...register(`managers.${manager.id}.mobile`)}
                         className='h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-700 outline-none transition-all duration-200 focus:border-green-600'
                       />
@@ -640,12 +720,19 @@ const EstateProfile = () => {
 
                       <input
                         type='email'
-                        defaultValue={manager.email}
                         {...register(`managers.${manager.id}.email`)}
                         className='h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-700 outline-none transition-all duration-200 focus:border-green-600'
                       />
                     </div>
                   </div>
+                  {["name", "mobile", "email"].map(
+                    (field) =>
+                      errors.managers?.[manager.id]?.[field] && (
+                        <p key={field} className='mt-2 text-xs text-red-500'>
+                          {errors.managers[manager.id][field].message}
+                        </p>
+                      ),
+                  )}
                 </div>
               ))}
             </div>
@@ -721,26 +808,38 @@ const EstateProfile = () => {
             {/* Body */}
             <div className='p-6'>
               <div className='grid grid-cols-2 gap-4 sm:grid-cols-4'>
-                {estateProfileData.estateImages.map((image) => (
+                {images.map((image, index) => (
                   <div
                     key={image.id}
                     className='overflow-hidden rounded-xl border border-gray-200'
                   >
                     <img
                       src={image.url}
-                      alt={image.title}
+                      alt={`Estate image ${index + 1}`}
                       className='h-28 w-full object-cover transition duration-300 hover:scale-105 cursor-pointer'
                     />
                   </div>
                 ))}
 
                 {/* Add More */}
+                <input
+                  ref={fileInput}
+                  type='file'
+                  accept='image/jpeg,image/png,image/webp'
+                  multiple
+                  className='hidden'
+                  onChange={addImages}
+                />
                 <button
                   type='button'
-                  className='flex h-28 flex-col items-center justify-center rounded-xl border-2 border-dashed border-gray-300 text-gray-500 transition hover:border-green-600 hover:text-green-600 cursor-pointer'
+                  disabled={uploading}
+                  onClick={() => fileInput.current?.click()}
+                  className='flex h-28 flex-col items-center justify-center rounded-xl border-2 border-dashed border-gray-300 text-gray-500 transition hover:border-green-600 hover:text-green-600 cursor-pointer disabled:cursor-not-allowed disabled:opacity-60'
                 >
                   <span className='text-3xl font-light'>+</span>
-                  <span className='mt-2 text-sm font-medium'>Add More</span>
+                  <span className='mt-2 text-sm font-medium'>
+                    {uploading ? "Uploading..." : "Add More"}
+                  </span>
                 </button>
               </div>
             </div>
@@ -775,7 +874,7 @@ const EstateProfile = () => {
                       </div>
 
                       <span className='text-sm font-semibold text-green-700'>
-                        {item.value} {item.unit}
+                        {overview ? (overview[item.key] ?? 0) : "—"} {item.unit}
                       </span>
                     </div>
                   );

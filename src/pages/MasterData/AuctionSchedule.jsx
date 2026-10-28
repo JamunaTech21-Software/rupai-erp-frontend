@@ -116,10 +116,6 @@ const AuctionSchedule = () => {
   // =========================================================
 
   const handleFilterChange = (field, value) => {
-    console.log("FILTER CHANGE:", {
-      field,
-      value,
-    });
 
     setSelectedFilters((prev) => ({
       ...prev,
@@ -174,7 +170,6 @@ const AuctionSchedule = () => {
   // =========================================================
 
   const handleOpenAddModal = () => {
-    console.log("ADD NEW SCHEDULE BUTTON CLICKED");
 
     setEditingSchedule(null);
 
@@ -197,7 +192,6 @@ const AuctionSchedule = () => {
   // =========================================================
 
   const handleOpenEditModal = (schedule) => {
-    console.log("EDIT BUTTON CLICKED:", schedule);
 
     setEditingSchedule(schedule);
 
@@ -220,7 +214,6 @@ const AuctionSchedule = () => {
   // =========================================================
 
   const handleCloseFormModal = () => {
-    console.log("FORM MODAL CLOSED");
 
     setIsFormModalOpen(false);
     setEditingSchedule(null);
@@ -231,15 +224,8 @@ const AuctionSchedule = () => {
   // FORM SUBMIT
   // =========================================================
 
-  const onSubmit = (formData) => {
-    console.log(
-      editingSchedule ? "UPDATE AUCTION SCHEDULE:" : "CREATE AUCTION SCHEDULE:",
-      formData,
-    );
+  const onSubmit = () => {
 
-    console.log("FORM DATA READY FOR BACKEND:", {
-      ...formData,
-    });
 
     /*
       Backend 
@@ -258,7 +244,6 @@ const AuctionSchedule = () => {
   // =========================================================
 
   const handleView = (schedule) => {
-    console.log("VIEW AUCTION SCHEDULE:", schedule);
 
     setViewingSchedule(schedule);
     setIsViewModalOpen(true);
@@ -268,8 +253,7 @@ const AuctionSchedule = () => {
   // DELETE
   // =========================================================
 
-  const handleDelete = (schedule) => {
-    console.log("DELETE AUCTION SCHEDULE:", schedule);
+  const handleDelete = () => {
 
     /*
       Backend 
@@ -285,9 +269,7 @@ const AuctionSchedule = () => {
   // =========================================================
 
   const handleExport = () => {
-    console.log("EXPORT AUCTION SCHEDULE");
 
-    console.log("EXPORT DATA:", filteredSchedules);
 
     /*
        backend export API 
@@ -299,7 +281,6 @@ const AuctionSchedule = () => {
   // =========================================================
 
   const handleImport = () => {
-    console.log("IMPORT FROM EXCEL CLICKED");
 
     /*
       Excel import functionality 
@@ -311,7 +292,6 @@ const AuctionSchedule = () => {
   // =========================================================
 
   const handlePreviousPage = () => {
-    console.log("PREVIOUS PAGE CLICKED");
 
     if (currentPage > 1) {
       setCurrentPage((prev) => prev - 1);
@@ -319,7 +299,6 @@ const AuctionSchedule = () => {
   };
 
   const handleNextPage = () => {
-    console.log("NEXT PAGE CLICKED");
 
     if (currentPage < totalPages) {
       setCurrentPage((prev) => prev + 1);
@@ -327,13 +306,11 @@ const AuctionSchedule = () => {
   };
 
   const handlePageChange = (page) => {
-    console.log("PAGE CHANGED:", page);
 
     setCurrentPage(page);
   };
 
   const handlePerPageChange = (value) => {
-    console.log("PER PAGE CHANGED:", value);
 
     setPerPage(Number(value));
     setCurrentPage(1);

@@ -25,12 +25,11 @@ const AddUserForm = () => {
     control,
     name: "password",
   });
-  const [showPassword, setShowPassword] = useState(false);
+  const [showPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  const handleFormSubmit = async (data) => {
+  const handleFormSubmit = async () => {
     try {
-      console.log(data);
 
       await new Promise((resolve) => setTimeout(resolve, 3000));
 

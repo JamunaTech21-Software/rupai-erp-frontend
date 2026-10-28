@@ -2,8 +2,6 @@ import React, { useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 
 import {
-  CalendarDays,
-  CheckCircle2,
   ChevronLeft,
   ChevronRight,
   CircleX,
@@ -176,13 +174,10 @@ const TeaGrade = () => {
   // FORM SUBMIT
   // =========================================================
 
-  const onSubmit = (data) => {
-    console.log("Tea Grade Data:", data);
+  const onSubmit = () => {
 
     if (isAddMode) {
-      console.log("Create New Grade:", data);
     } else {
-      console.log("Update Grade:", data);
     }
   };
 
@@ -383,7 +378,6 @@ const TeaGrade = () => {
                           type='button'
                           onClick={(e) => {
                             e.stopPropagation();
-                            console.log("Delete Grade:", grade);
                           }}
                           className='flex h-7 w-7 items-center justify-center rounded-md border border-red-200 text-red-500 hover:bg-red-50'
                         >

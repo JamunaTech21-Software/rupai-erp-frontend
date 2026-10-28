@@ -8,7 +8,6 @@ import {
   Download,
   X,
   Save,
-  UserPlus,
 } from "lucide-react";
 
 import MasterDataTabs from "./MasterDataTabs";
@@ -106,7 +105,6 @@ const BuyerSetup = () => {
   // =======================================================
 
   const onSubmit = (data) => {
-    console.log("Buyer Form Data:", data);
 
     if (editingBuyerId) {
       setBuyers((previousBuyers) =>

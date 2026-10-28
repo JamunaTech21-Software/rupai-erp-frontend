@@ -1,6 +1,11 @@
 import React from "react";
+import { useSearchParams } from "react-router-dom";
 import PlantationManagementTabs from "../../components/plantationManagementTab/PlantationManagementTabs";
 import { replantingAndGapFillingData } from "../../data/PlantationManagementData/replantingAndGapFillingData";
+import { api } from "../../lib/api";
+import { useApi } from "../../lib/useApi";
+import CardSkeleton from "../../components/common/CardSkeleton";
+import ErrorState from "../../components/common/ErrorState";
 import {
   User,
   UserCheck,
@@ -10,9 +15,125 @@ import {
   Check,
 } from "lucide-react";
 
+const DASH = "-";
+const orDash = (value) => (value === null || value === undefined || value === "" ? DASH : value);
+// 2026-05-10 -> 10/05/2026 (no timezone: the text is rearranged, not parsed as a date)
+const dmy = (iso) => (iso ? iso.slice(0, 10).split("-").reverse().join("/") : DASH);
+const commas = (value) => (value === null || value === undefined ? DASH : Number(value).toLocaleString("en-US"));
+
+// The step cards keep their layout (titles, labels, columns); the values come from the project's saved steps.
+const fill = (fields, values) => fields.map((field, index) => ({ ...field, value: orDash(values[index]) }));
+function buildForms(sample, d) {
+  const [s1, s2, s3, s4, s5, s6, s7, s8] = d;
+  const block = s1?.fieldBlockName;
+  return {
+    projectInformation: {
+      ...sample.projectInformation,
+      fields: fill(sample.projectInformation.fields, [
+        s1?.estateName, s1?.divisionName, s1?.sectionName, s1?.fieldBlockName, s1?.replantingType, s1?.season,
+        dmy(s1?.surveyDate), dmy(s1?.targetDate), s1?.supervisor, s1?.remarks,
+      ]),
+    },
+    gapSurvey: {
+      ...sample.gapSurvey,
+      fields: fill(sample.gapSurvey.fields, [block, dmy(s2?.gapSurveyDate), s2?.surveyBy]),
+      rows: (s2?.rows ?? []).map((row) => ({ ...row, action: "View" })),
+    },
+    landPreparation: {
+      ...sample.landPreparation,
+      fields: fill(sample.landPreparation.fields, [block]),
+      rows: (s3?.rows ?? []).map((row) => ({ ...row, startDate: dmy(row.startDate), endDate: dmy(row.endDate) })),
+    },
+    materialPlanning: {
+      ...sample.materialPlanning,
+      fields: fill(sample.materialPlanning.fields, [
+        block, s4?.plantVariety, dmy(s4?.planningDate), s4?.store, s4?.preparedBy, s4?.materialRemarks,
+      ]),
+      rows: s4?.rows ?? [],
+      summary: { label: sample.materialPlanning.summary.label, value: commas(s4?.summary?.value ?? (s4?.rows ?? []).reduce((sum, row) => sum + Number(row.totalCost ?? 0), 0)) },
+    },
+    labourAllocation: {
+      ...sample.labourAllocation,
+      fields: fill(sample.labourAllocation.fields, [s5?.labourSource, s5?.wageType]),
+      rows: s5?.rows ?? [],
+      summary: {
+        label: sample.labourAllocation.summary.label,
+        male: orDash(s5?.summary?.male),
+        female: orDash(s5?.summary?.female),
+        rate: "",
+        value: commas(s5?.summary?.value),
+      },
+    },
+    plantingExecution: {
+      ...sample.plantingExecution,
+      fields: fill(sample.plantingExecution.fields, [dmy(s6?.plantingDate), s6?.cloneVariety]),
+      rows: s6?.rows ?? [],
+      summary: { label: sample.plantingExecution.summary.label, value: commas(s6?.summary?.value) },
+    },
+    progressMonitoring: {
+      ...sample.progressMonitoring,
+      fields: fill(sample.progressMonitoring.fields, [block, dmy(s7?.tillDate)]),
+      summaryCards: sample.progressMonitoring.summaryCards.map((card, index) => ({
+        ...card,
+        value: s7?.summary
+          ? [
+              Number(s7.summary.totalArea).toFixed(2),
+              commas(s7.summary.totalPlants),
+              commas(s7.summary.plantedPlants),
+              `${s7.summary.progress}%`,
+            ][index]
+          : DASH,
+      })),
+      rows: (s7?.rows ?? []).map((row) => ({
+        ...row,
+        date: dmy(row.date),
+        areaCompleted: row.areaCompleted == null ? DASH : Number(row.areaCompleted).toFixed(2),
+        plantsPlanted: row.plantsPlanted == null ? DASH : String(row.plantsPlanted),
+        survival: row.survival == null ? DASH : `${row.survival}%`,
+        remarks: orDash(row.remarks),
+      })),
+    },
+    approvalCompletion: {
+      ...sample.approvalCompletion,
+      rows: (s8?.rows ?? []).map((row) => ({
+        ...row,
+        date: dmy(row.date),
+        designation: orDash(row.designation),
+        signature: row.signature ? "✍" : "",
+      })),
+      completion: {
+        ...sample.approvalCompletion.completion,
+        fields: fill(sample.approvalCompletion.completion.fields, [
+          dmy(s8?.completionDate),
+          s8?.survival90Days == null ? DASH : `${s8.survival90Days}%`,
+          s8?.completionRemarks,
+        ]),
+      },
+    },
+  };
+}
+
 const ReplantingAndGapFilling = () => {
-  const { steps, stepForms, databaseTables, userRoles, approvalFlow, reports } =
+  const { steps, stepForms: sampleForms, databaseTables, approvalFlow, reports } =
     replantingAndGapFillingData;
+  const [searchParams] = useSearchParams();
+
+  // The project shown: ?id=, else the one furthest along.
+  const projects = useApi(() => api.get("/replanting-projects", { perPage: 50 }), []);
+  const projectRows = projects.data?.data ?? [];
+  const project =
+    projectRows.find((row) => row.id === searchParams.get("id")) ??
+    [...projectRows].sort((a, b) => (b.lastStep ?? 0) - (a.lastStep ?? 0))[0];
+  const detail = useApi(
+    () =>
+      project
+        ? Promise.all([1, 2, 3, 4, 5, 6, 7, 8].map((n) => api.get(`/replanting-projects/${project.id}/steps/${n}`)))
+        : Promise.resolve(null),
+    [project?.id],
+  );
+  const stepForms = buildForms(sampleForms, detail.data ?? []);
+  const loading = projects.loading || (project && detail.loading && !detail.data);
+  const failure = projects.error ?? detail.error;
 
   const approvalIconMap = {
     User: User,
@@ -747,6 +868,27 @@ const ReplantingAndGapFilling = () => {
   return (
     <div className='space-y-6'>
       <PlantationManagementTabs />
+
+      {loading && <CardSkeleton count={4} />}
+      {failure && (
+        <ErrorState
+          message={failure.message}
+          onRetry={() => {
+            projects.reload();
+            detail.reload();
+          }}
+        />
+      )}
+      {!loading && !failure && !project && (
+        <p className='rounded-xl border border-gray-200 bg-white p-4 text-center text-sm text-gray-500'>
+          No replanting project yet
+        </p>
+      )}
+      {project && (
+        <p className='text-sm text-gray-600'>
+          Project: <span className='font-semibold text-green-800'>{project.projectCode}</span> {project.projectName}
+        </p>
+      )}
 
       {/* ================= Main Wrapper ================= */}
       <div className='rounded-xl border border-gray-200 bg-white p-2 shadow-sm'>

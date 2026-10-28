@@ -22,7 +22,6 @@ const AuctionCenters = () => {
   const {
     register,
     handleSubmit,
-    reset,
     formState: { errors },
   } = useForm();
 
@@ -32,30 +31,18 @@ const AuctionCenters = () => {
   // =====================================================
 
   const handleAddNew = () => {
-    console.log("Add New Auction Center clicked");
   };
 
-  const handleEdit = (center) => {
-    console.log("Edit Auction Center:", center);
+  const handleEdit = () => {
   };
 
-  const handleSave = (formData) => {
-    console.log("Save Auction Center:", formData);
+  const handleSave = () => {
   };
 
   const handleCancel = () => {
-    console.log("Cancel Auction Center clicked");
-  };
-
-  const handleFilter = () => {
-    console.log("Filter clicked");
   };
 
   const handleExport = () => {
-    console.log(
-      "Export Auction Centers:",
-      auctionCentersData.otherCenters.data,
-    );
   };
 
   // =====================================================
@@ -63,7 +50,6 @@ const AuctionCenters = () => {
   // =====================================================
 
   const onSubmit = (formData) => {
-    console.log("Auction Center Form Data:", formData);
 
     handleSave(formData);
   };

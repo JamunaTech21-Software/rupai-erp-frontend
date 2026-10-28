@@ -1,16 +1,18 @@
-import React from "react";
+import React, { useEffect, useRef, useState } from "react";
+import toast from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import PlantationManagementTabs from "../../components/plantationManagementTab/PlantationManagementTabs";
 
 import { fieldPlantingData } from "../../data/PlantationManagementData/fieldPlantingData";
-const {
-  historyTableHeaders,
-  historyTableData,
-  fieldMap,
-  quickSummary,
-  plantingProgress,
-  pagination,
-} = fieldPlantingData;
+import { api } from "../../lib/api";
+import { useApi } from "../../lib/useApi";
+import CardSkeleton from "../../components/common/CardSkeleton";
+import TableSkeleton from "../../components/common/TableSkeleton";
+import EmptyRow from "../../components/common/EmptyRow";
+import ErrorState from "../../components/common/ErrorState";
+import ConfirmDialog from "../../components/common/ConfirmDialog";
+const { historyTableHeaders, fieldMap, quickSummary, plantingProgress } = fieldPlantingData;
 
 import {
   Upload,
@@ -32,7 +34,6 @@ import {
   Download,
   Eye,
   Pencil,
-  Copy,
   Trash2,
 } from "lucide-react";
 const summaryIconMap = {
@@ -43,19 +44,173 @@ const summaryIconMap = {
   Sprout,
   CirclePercent,
 };
+const PER_PAGE = 10;
+const DASH = "-";
+const FIELDS = [
+  "estate", "division", "section", "fieldBlock", "plantingYear", "plantingSeason", "plantingDate", "plantingMethod",
+  "plantSource", "nurseryBed", "cloneVariety", "plantType", "totalArea", "netPlantableArea", "previousCrop",
+  "rowSpacing", "plantSpacing", "pitSize", "expectedPlants", "targetPlants", "signalPlant", "soilType", "soilPH",
+  "elevation", "slope", "drainage", "irrigationSource", "irrigationMethod", "basalFertilizer", "organicManure",
+  "shadeTreePlanned", "npkAmount", "npkUnit", "tspAmount", "tspUnit", "mopAmount", "mopUnit", "fymAmount", "fymUnit",
+  "shadeTreeSpecies", "shadeTreeSpacing", "shadeTreeCount", "shadePurpose", "shadePlantingDate", "shadeRemarks",
+  "fieldOfficer", "assistantSupervisor", "totalLabour", "maleLabour", "femaleLabour", "labourSource", "remarks",
+];
+const num = (value) => (value === null || value === undefined ? DASH : Number(value).toLocaleString("en-IN"));
+const fixed = (value) => (value === null || value === undefined ? DASH : Number(value).toFixed(2));
+// 2026-02-15 -> 15/02/2026 (no timezone: the text is rearranged, not parsed as a date)
+const dmy = (iso) => (iso ? iso.slice(0, 10).split("-").reverse().join("/") : DASH);
+const orDash = (value) => (value === null || value === undefined || value === "" ? DASH : value);
+const STATUS_CLASS = {
+  Planned: "bg-gray-100 text-gray-600",
+  "In Progress": "bg-yellow-100 text-yellow-700",
+  Completed: "bg-green-100 text-green-700",
+};
+const toForm = (record) =>
+  Object.fromEntries(FIELDS.map((name) => [name, name === "shadeTreePlanned" ? Boolean(record[name]) : (record[name] ?? "")]));
+const EMPTY_FORM = Object.fromEntries(FIELDS.map((name) => [name, name === "shadeTreePlanned" ? false : ""]));
+
 const FieldPlanting = () => {
   const {
     register,
     handleSubmit,
     watch,
     reset,
+    setError,
     setValue,
-    formState: { errors },
+    formState: { errors, isSubmitting },
   } = useForm();
+  const formRef = useRef(null);
+  const navigate = useNavigate();
+  // After a save, return to the page the user came from (the dashboard when the page was opened directly).
+  const goBack = () => (window.history.state?.idx > 0 ? navigate(-1) : navigate("/"));
+  const [editingId, setEditingId] = useState(null);
+  const [selectedId, setSelectedId] = useState(null);
+  const [page, setPage] = useState(1);
+  const [deleting, setDeleting] = useState(null);
+  const [deleteBusy, setDeleteBusy] = useState(false);
 
-  const onSubmit = (data) => {
-    console.log(data);
+  // History table, and the record shown in the panels (the clicked row, else the first).
+  const history = useApi(() => api.get("/field-plantings", { page, perPage: PER_PAGE }), [page]);
+  const historyRows = history.data?.data ?? [];
+  const meta = history.data?.meta;
+  const activeId = editingId ?? (historyRows.some((row) => row.id === selectedId) ? selectedId : historyRows[0]?.id);
+  const record = useApi(() => (activeId ? api.get(`/field-plantings/${activeId}`) : Promise.resolve(null)), [activeId, history.data]);
+  const shown = record.data;
+  const progress = shown?.plantingProgress;
+
+  // Dropdowns that pick records follow each other.
+  const estateId = watch("estate");
+  const divisionId = watch("division");
+  const sectionId = watch("section");
+  const estateOptions = useApi(() => api.get("/options/estates"), []);
+  const divisionOptions = useApi(
+    () => (estateId ? api.get("/options/divisions", { estate: estateId }) : Promise.resolve([])),
+    [estateId],
+  );
+  const sectionOptions = useApi(
+    () => (divisionId ? api.get("/options/sections", { division: divisionId }) : Promise.resolve([])),
+    [divisionId],
+  );
+  const fieldOptions = useApi(
+    () => (sectionId ? api.get("/options/fields", { section: sectionId }) : Promise.resolve([])),
+    [sectionId],
+  );
+
+  // Opening a planting for edit: the saved values show once their options exist. Records saved with a
+  // display text ("Manual") still find their option ("manual") by its label.
+  const editing = editingId && record.data?.id === editingId ? record.data : null;
+  useEffect(() => {
+    if (!editing) return;
+    reset(toForm(editing));
+    const timer = setTimeout(() => {
+      const form = formRef.current;
+      if (!form) return;
+      for (const select of form.querySelectorAll("select[name]")) {
+        const saved = editing[select.name];
+        if (saved === null || saved === undefined || saved === "" || typeof saved === "boolean") continue;
+        const text = String(saved).toLowerCase();
+        const options = Array.from(select.options);
+        if (options.some((option) => option.value === String(saved))) continue;
+        const match = options.find((option) => {
+          const label = option.text.trim().toLowerCase();
+          return label && (label.startsWith(text) || text.startsWith(label));
+        });
+        if (match) setValue(select.name, match.value);
+      }
+    }, 50);
+    return () => clearTimeout(timer);
+  }, [editing, reset, setValue]);
+  useEffect(() => {
+    if (!editing) return;
+    for (const [name, options] of [
+      ["division", divisionOptions.data],
+      ["section", sectionOptions.data],
+      ["fieldBlock", fieldOptions.data],
+    ]) {
+      if (options?.some((option) => option.value === editing[name])) setValue(name, editing[name]);
+    }
+  }, [editing, divisionOptions.data, sectionOptions.data, fieldOptions.data, setValue]);
+
+  const reloadAll = () => {
+    history.reload();
+    record.reload();
   };
+  const resetForm = () => reset(editing ? toForm(editing) : EMPTY_FORM);
+  const cancelEdit = () => {
+    setEditingId(null);
+    reset(EMPTY_FORM);
+  };
+  const startEdit = (id) => {
+    setEditingId(id);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  // Each picked file is uploaded first; the record keeps the ids.
+  const uploadAll = async (files, kept) => {
+    const uploaded = [];
+    for (const file of Array.from(files ?? [])) uploaded.push((await api.upload(file)).id);
+    return [...kept, ...uploaded];
+  };
+  const savePlanting = async (values, { print = false } = {}) => {
+    try {
+      const body = {
+        ...values,
+        documents: await uploadAll(values.documents, editing?.documents ?? []),
+        photos: await uploadAll(values.photos, editing?.photos ?? []),
+      };
+      const saved = editingId ? await api.put(`/field-plantings/${editingId}`, body) : await api.post("/field-plantings", body);
+      toast.success("Field planting saved successfully!");
+      if (editingId) reset(toForm(saved));
+      else {
+        reset(EMPTY_FORM);
+        setSelectedId(saved.id);
+      }
+      reloadAll();
+      if (print) window.print();
+      goBack();
+    } catch (error) {
+      for (const [key, message] of Object.entries(error.fields ?? {})) setError(key, { message });
+      toast.error(error.message);
+    }
+  };
+  const onSubmit = (values) => savePlanting(values);
+
+  const confirmDelete = async () => {
+    setDeleteBusy(true);
+    try {
+      await api.del(`/field-plantings/${deleting.id}`);
+      toast.success("Field planting deleted successfully!");
+      if (editingId === deleting.id) cancelEdit();
+      setDeleting(null);
+      reloadAll();
+    } catch (error) {
+      toast.error(error.message);
+    } finally {
+      setDeleteBusy(false);
+    }
+  };
+  const documentCount = (editing?.documents?.length ?? 0) + (watch("documents")?.length ?? 0);
+  const photoCount = watch("photos")?.length ?? 0;
 
   return (
     <div className='space-y-6'>
@@ -64,7 +219,7 @@ const FieldPlanting = () => {
       {/* ===========================
           Field Planting Form
       =========================== */}
-      <form onSubmit={handleSubmit(onSubmit)}>
+      <form ref={formRef} onSubmit={handleSubmit(onSubmit)}>
         <div className='grid grid-cols-12 gap-2'>
           {/* ===========================
               Left Section
@@ -97,15 +252,20 @@ const FieldPlanting = () => {
                     <select
                       {...register("estate", {
                         required: "Estate is required",
+                        onChange: () => {
+                          setValue("division", "");
+                          setValue("section", "");
+                          setValue("fieldBlock", "");
+                        },
                       })}
                       className='h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm outline-none transition-colors focus:border-green-600'
                     >
                       <option value=''>Select Estate</option>
-                      <option value='rupai'>Rupai Tea Estate</option>
-                      <option value='green-valley'>
-                        Green Valley Tea Estate
-                      </option>
-                      <option value='sunrise'>Sunrise Tea Estate</option>
+                      {(estateOptions.data ?? []).map((estate) => (
+                        <option key={estate.id} value={estate.value}>
+                          {estate.label}
+                        </option>
+                      ))}
                     </select>
 
                     {errors.estate && (
@@ -124,14 +284,25 @@ const FieldPlanting = () => {
                     <select
                       {...register("division", {
                         required: "Division is required",
+                        onChange: () => {
+                          setValue("section", "");
+                          setValue("fieldBlock", "");
+                        },
                       })}
                       className='h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm outline-none transition-colors focus:border-green-600'
                     >
-                      <option value=''>Select Division</option>
-                      <option value='north'>North Division</option>
-                      <option value='south'>South Division</option>
-                      <option value='east'>East Division</option>
-                      <option value='west'>West Division</option>
+                      <option value=''>
+{!estateId
+ ? "Select Estate first"
+ : divisionOptions.data?.length === 0
+ ? "No divisions for this estate"
+ : "Select Division"}
+</option>
+                      {(divisionOptions.data ?? []).map((division) => (
+                        <option key={division.id} value={division.value}>
+                          {division.label}
+                        </option>
+                      ))}
                     </select>
 
                     {errors.division && (
@@ -150,14 +321,22 @@ const FieldPlanting = () => {
                     <select
                       {...register("section", {
                         required: "Section is required",
+                        onChange: () => setValue("fieldBlock", ""),
                       })}
                       className='h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm outline-none transition-colors focus:border-green-600'
                     >
-                      <option value=''>Select Section</option>
-                      <option value='a'>Section A</option>
-                      <option value='b'>Section B</option>
-                      <option value='c'>Section C</option>
-                      <option value='d'>Section D</option>
+                      <option value=''>
+{!divisionId
+ ? "Select Division first"
+ : sectionOptions.data?.length === 0
+ ? "No sections for this division"
+ : "Select Section"}
+</option>
+                      {(sectionOptions.data ?? []).map((section) => (
+                        <option key={section.id} value={section.value}>
+                          {section.label}
+                        </option>
+                      ))}
                     </select>
 
                     {errors.section && (
@@ -179,11 +358,18 @@ const FieldPlanting = () => {
                       })}
                       className='h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm outline-none transition-colors focus:border-green-600'
                     >
-                      <option value=''>Select Field / Block</option>
-                      <option value='field-01'>Field-01</option>
-                      <option value='field-02'>Field-02</option>
-                      <option value='field-03'>Field-03</option>
-                      <option value='field-04'>Field-04</option>
+                      <option value=''>
+{!sectionId
+ ? "Select Section first"
+ : fieldOptions.data?.length === 0
+ ? "No fields in this section"
+ : "Select Field / Block"}
+</option>
+                      {(fieldOptions.data ?? []).map((field) => (
+                        <option key={field.id} value={field.value}>
+                          {field.label}
+                        </option>
+                      ))}
                     </select>
 
                     {errors.fieldBlock && (
@@ -1231,7 +1417,7 @@ const FieldPlanting = () => {
                           </label>
 
                           <span className='text-xs text-gray-500'>
-                            3 files uploaded
+                            {documentCount} files uploaded
                           </span>
 
                           <button
@@ -1265,32 +1451,18 @@ const FieldPlanting = () => {
                     <div className='p-1'>
                       <div className='space-y-1.5'>
                         <div className='grid grid-cols-4 gap-1'>
-                          {/* Photo 01 */}
-                          <div className='h-16 overflow-hidden rounded-lg border border-gray-300'>
-                            <img
-                              src='https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=300'
-                              alt='Plantation'
-                              className='h-full w-full object-cover'
-                            />
-                          </div>
-
-                          {/* Photo 02 */}
-                          <div className='h-16 overflow-hidden rounded-lg border border-gray-300'>
-                            <img
-                              src='https://images.unsplash.com/photo-1464226184884-fa280b87c399?w=300'
-                              alt='Plantation'
-                              className='h-full w-full object-cover'
-                            />
-                          </div>
-
-                          {/* Photo 03 */}
-                          <div className='h-16 overflow-hidden rounded-lg border border-gray-300'>
-                            <img
-                              src='https://images.unsplash.com/photo-1472396961693-142e6e269027?w=300'
-                              alt='Plantation'
-                              className='h-full w-full object-cover'
-                            />
-                          </div>
+                          {(shown?.photosUrl ?? []).map((url, index) => (
+                            <div
+                              key={url}
+                              className='h-16 overflow-hidden rounded-lg border border-gray-300'
+                            >
+                              <img
+                                src={url}
+                                alt={`Plantation ${index + 1}`}
+                                className='h-full w-full object-cover'
+                              />
+                            </div>
+                          ))}
 
                           {/* Add More */}
                           <label
@@ -1309,7 +1481,7 @@ const FieldPlanting = () => {
                               +
                             </span>
                             <span className='mt-1 text-center text-[10px] font-medium'>
-                              Add More
+                              {photoCount > 0 ? `${photoCount} selected` : "Add More"}
                             </span>
                           </label>
                         </div>
@@ -1342,7 +1514,7 @@ const FieldPlanting = () => {
                 <div className='relative overflow-hidden rounded-lg border border-gray-300'>
                   <img
                     src={fieldMap.image}
-                    alt={fieldMap.title}
+                    alt={shown?.fieldBlockName ?? fieldMap.title}
                     className='h-64 w-full object-cover'
                   />
 
@@ -1399,14 +1571,10 @@ const FieldPlanting = () => {
                 <div className='flex items-center justify-between border-t border-gray-200 pt-3'>
                   <div className='text-xs text-gray-600'>
                     Latitude:
-                    <span className='ml-1 font-medium'>
-                      {fieldMap.latitude}
-                    </span>
+                    <span className='ml-1 font-medium'>{DASH}</span>
                     <span className='mx-2'>|</span>
                     Longitude:
-                    <span className='ml-1 font-medium'>
-                      {fieldMap.longitude}
-                    </span>
+                    <span className='ml-1 font-medium'>{DASH}</span>
                   </div>
 
                   <button
@@ -1440,7 +1608,7 @@ const FieldPlanting = () => {
                         className='absolute inset-0 rounded-full'
                         style={{
                           background:
-                            "conic-gradient(#15803d 45%, transparent 45%)",
+                            `conic-gradient(#15803d ${progress?.percentage ?? 0}%, transparent ${progress?.percentage ?? 0}%)`,
                           mask: "radial-gradient(circle, transparent 58%, black 60%)",
                           WebkitMask:
                             "radial-gradient(circle, transparent 58%, black 60%)",
@@ -1449,11 +1617,11 @@ const FieldPlanting = () => {
 
                       <div className='z-10 text-center'>
                         <h3 className='text-3xl  font-bold text-gray-800'>
-                          {plantingProgress.percentage}%
+                          {progress ? progress.percentage : DASH}%
                         </h3>
 
                         <p className='text-xs text-gray-500'>
-                          {plantingProgress.status}
+                          {shown?.plantingStatus ?? DASH}
                         </p>
                       </div>
                     </div>
@@ -1461,7 +1629,7 @@ const FieldPlanting = () => {
 
                   {/* Statistics */}
                   <div className='col-span-7 flex flex-col justify-center gap-2'>
-                    {plantingProgress.stats.map((item) => (
+                    {plantingProgress.stats.map((item, index) => (
                       <div
                         key={item.id}
                         className='flex items-center justify-between'
@@ -1475,7 +1643,14 @@ const FieldPlanting = () => {
                         </div>
 
                         <p className='text-sm py-4 font-semibold text-gray-800'>
-                          {item.value}
+                          {progress
+                            ? [
+                                `${fixed(progress.areaCompleted)} Acre`,
+                                num(progress.plantsPlanted),
+                                `${fixed(progress.remainingArea)} Acre`,
+                                num(progress.remainingPlants),
+                              ][index]
+                            : DASH}
                         </p>
                       </div>
                     ))}
@@ -1497,9 +1672,21 @@ const FieldPlanting = () => {
 
               {/* Body */}
               <div className='space-y-4 p-6'>
+                {record.loading && !record.data && activeId && <CardSkeleton count={2} />}
+                {record.error && <ErrorState message={record.error.message} onRetry={record.reload} />}
                 <div className='grid grid-cols-2 py-4 gap-5'>
-                  {quickSummary.map((item) => {
+                  {quickSummary.map((item, index) => {
                     const Icon = summaryIconMap[item.icon];
+                    const quickValues = shown
+                      ? [
+                          fixed(shown.totalArea),
+                          num(shown.expectedPlants),
+                          num(shown.targetPlants),
+                          DASH,
+                          num(progress?.plantsPlanted),
+                          `${shown.completion}%`,
+                        ]
+                      : [];
 
                     return (
                       <div
@@ -1516,7 +1703,7 @@ const FieldPlanting = () => {
                           <p className='text-xs text-gray-500'>{item.title}</p>
 
                           <h4 className='mt-1 text-xl font-bold text-green-700'>
-                            {item.value}
+                            {quickValues[index] ?? DASH}
                           </h4>
                         </div>
                       </div>
@@ -1535,7 +1722,8 @@ const FieldPlanting = () => {
         <div className='mt-6 rounded-xl border border-gray-200 bg-white shadow-sm'>
           <div className='flex flex-wrap items-center justify-center gap-3 p-5'>
             <button
-              type='reset'
+              type='button'
+              onClick={resetForm}
               className='flex cursor-pointer h-10 items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 text-sm font-medium text-gray-700 transition-all hover:bg-gray-50'
             >
               <RotateCcw size={16} />
@@ -1544,6 +1732,7 @@ const FieldPlanting = () => {
 
             <button
               type='button'
+              onClick={cancelEdit}
               className='flex cursor-pointer h-10 items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 text-sm font-medium text-gray-700 transition-all hover:bg-red-50 hover:text-red-600'
             >
               <X size={16} />
@@ -1552,7 +1741,9 @@ const FieldPlanting = () => {
 
             <button
               type='button'
-              className='flex cursor-pointer h-10 items-center gap-2 rounded-lg bg-green-700 px-4 text-sm font-medium text-white transition-all hover:bg-green-800'
+              disabled={isSubmitting}
+              onClick={handleSubmit(onSubmit)}
+              className='flex cursor-pointer h-10 items-center gap-2 rounded-lg bg-green-700 px-4 text-sm font-medium text-white transition-all hover:bg-green-800 disabled:opacity-60'
             >
               <Save size={16} />
               Save as Draft
@@ -1560,7 +1751,8 @@ const FieldPlanting = () => {
 
             <button
               type='submit'
-              className='flex cursor-pointer h-10 items-center gap-2 rounded-lg bg-green-700 px-4 text-sm font-medium text-white transition-all hover:bg-green-800'
+              disabled={isSubmitting}
+              className='flex cursor-pointer h-10 items-center gap-2 rounded-lg bg-green-700 px-4 text-sm font-medium text-white transition-all hover:bg-green-800 disabled:opacity-60'
             >
               <Send size={16} />
               Submit for Approval
@@ -1568,7 +1760,9 @@ const FieldPlanting = () => {
 
             <button
               type='button'
-              className='flex cursor-pointer h-10 items-center gap-2 rounded-lg bg-green-700 px-4 text-sm font-medium text-white transition-all hover:bg-green-800'
+              disabled={isSubmitting}
+              onClick={handleSubmit((values) => savePlanting(values, { print: true }))}
+              className='flex cursor-pointer h-10 items-center gap-2 rounded-lg bg-green-700 px-4 text-sm font-medium text-white transition-all hover:bg-green-800 disabled:opacity-60'
             >
               <Printer size={16} />
               Save & Print
@@ -1608,10 +1802,24 @@ const FieldPlanting = () => {
 
               {/* Table Body */}
               <tbody>
-                {historyTableData.map((item, index) => (
-                  <tr key={item.id} className='hover:bg-gray-50'>
+                {history.loading && !history.data ? (
+                  <TableSkeleton rows={5} columns={historyTableHeaders.length} />
+                ) : history.error ? (
+                  <tr>
+                    <td colSpan={historyTableHeaders.length} className='p-4'>
+                      <ErrorState message={history.error.message} onRetry={history.reload} />
+                    </td>
+                  </tr>
+                ) : historyRows.length === 0 ? (
+                  <EmptyRow columns={historyTableHeaders.length} />
+                ) : (
+                historyRows.map((item, index) => (
+                  <tr
+                    key={item.id}
+                    className={`hover:bg-gray-50 ${item.id === activeId ? "bg-green-50" : ""}`}
+                  >
                     <td className='border-b border-r border-gray-200 px-4 py-3 text-center'>
-                      {index + 1}
+                      {(page - 1) * PER_PAGE + index + 1}
                     </td>
 
                     <td className='border-b border-r border-gray-200 px-4 py-3 text-center'>
@@ -1619,51 +1827,51 @@ const FieldPlanting = () => {
                     </td>
 
                     <td className='border-b border-r border-gray-200 px-4 py-3 text-center'>
-                      {item.fieldBlock}
+                      {orDash(item.fieldBlockName)}
                     </td>
 
                     <td className='border-b border-r border-gray-200 px-4 py-3 text-center'>
-                      {item.area}
+                      {fixed(item.totalArea)}
                     </td>
 
                     <td className='border-b border-r border-gray-200 px-4 py-3 text-center'>
-                      {item.clone}
+                      {orDash(item.cloneVariety)}
                     </td>
 
                     <td className='border-b border-r border-gray-200 px-4 py-3 text-center whitespace-nowrap'>
-                      {item.plantingDate}
+                      {dmy(item.plantingDate)}
                     </td>
 
                     <td className='border-b border-r border-gray-200 px-4 py-3 text-center'>
-                      {item.method}
+                      {orDash(item.plantingMethod)}
                     </td>
 
                     <td className='border-b border-r border-gray-200 px-4 py-3 text-center'>
-                      {item.expectedPlants}
+                      {num(item.expectedPlants)}
                     </td>
 
                     <td className='border-b border-r border-gray-200 px-4 py-3 text-center'>
-                      {item.plantedPlants}
+                      {num(item.plantingProgress?.plantsPlanted)}
                     </td>
 
                     <td className='border-b border-r border-gray-200 px-4 py-3 text-center'>
                       <span
                         className={`font-semibold ${
-                          item.completion === "100%"
+                          item.completion >= 100
                             ? "text-green-600"
                             : "text-amber-500"
                         }`}
                       >
-                        {item.completion}
+                        {item.completion}%
                       </span>
                     </td>
 
                     {/* Status */}
                     <td className='border-b border-r border-gray-200 px-4 py-3 text-center'>
                       <span
-                        className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${item.statusColor}`}
+                        className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${STATUS_CLASS[item.plantingStatus] ?? "bg-gray-100 text-gray-600"}`}
                       >
-                        {item.status}
+                        {item.plantingStatus}
                       </span>
                     </td>
 
@@ -1673,6 +1881,7 @@ const FieldPlanting = () => {
                         {/* View */}
                         <button
                           type='button'
+                          onClick={() => setSelectedId(item.id)}
                           className='rounded p-1 text-sky-500 transition hover:bg-sky-50 hover:text-sky-600'
                           title='View'
                         >
@@ -1682,6 +1891,7 @@ const FieldPlanting = () => {
                         {/* Edit */}
                         <button
                           type='button'
+                          onClick={() => startEdit(item.id)}
                           className='rounded p-1 text-blue-500 transition hover:bg-blue-50 hover:text-blue-600'
                           title='Edit'
                         >
@@ -1690,6 +1900,7 @@ const FieldPlanting = () => {
                         {/* Delete */}
                         <button
                           type='button'
+                          onClick={() => setDeleting(item)}
                           className='rounded p-1 text-red-500 transition hover:bg-red-50 hover:text-red-600'
                           title='Delete'
                         >
@@ -1698,7 +1909,8 @@ const FieldPlanting = () => {
                       </div>
                     </td>
                   </tr>
-                ))}
+                ))
+                )}
               </tbody>
             </table>
           </div>
@@ -1707,7 +1919,8 @@ const FieldPlanting = () => {
           <div className='mt-5 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between'>
             {/* Left */}
             <p className='text-sm text-gray-600'>
-              Showing 1 to 5 of 28 entries
+              Showing {historyRows.length > 0 ? (page - 1) * PER_PAGE + 1 : 0} to{" "}
+              {(page - 1) * PER_PAGE + historyRows.length} of {meta?.total ?? 0} entries
             </p>
 
             {/* Right */}
@@ -1721,17 +1934,19 @@ const FieldPlanting = () => {
               </button>
 
               <div className='flex items-center gap-1'>
-                {pagination.pages.map((page, index) => (
+                {Array.from({ length: meta?.totalPages ?? 1 }, (_, i) => i + 1).map((number) => (
                   <button
-                    key={index}
+                    key={number}
+                    type='button'
+                    onClick={() => setPage(number)}
                     className={`flex h-8 w-8 items-center justify-center rounded-md text-sm
           ${
-            page === pagination.currentPage
+            number === page
               ? "bg-green-700 text-white"
               : "border border-gray-300 hover:bg-gray-50"
           }`}
                   >
-                    {page}
+                    {number}
                   </button>
                 ))}
               </div>
@@ -1739,6 +1954,14 @@ const FieldPlanting = () => {
           </div>
         </div>
       </div>
+      <ConfirmDialog
+        open={Boolean(deleting)}
+        title='Delete field planting?'
+        message={`${deleting?.fieldBlockName ?? ""} (${deleting?.plantingYear ?? ""}) will be removed.`}
+        loading={deleteBusy}
+        onConfirm={confirmDelete}
+        onCancel={() => setDeleting(null)}
+      />
     </div>
   );
 };

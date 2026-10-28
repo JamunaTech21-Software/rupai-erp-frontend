@@ -833,7 +833,6 @@ const EmployeeManagement = () => {
                     }
 
                     if (action.action === "open-import") {
-                      console.log("Open employee import");
                     }
                   }}
                   className='group flex min-h-[82px] cursor-pointer flex-col items-center justify-center rounded-lg border border-gray-200 bg-white px-2 py-2 transition hover:border-gray-300 hover:bg-gray-50'

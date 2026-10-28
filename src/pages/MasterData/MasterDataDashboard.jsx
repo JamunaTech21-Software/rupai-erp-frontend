@@ -3,12 +3,10 @@ import MasterDataTabs from "./MasterDataTabs";
 import { Link } from "react-router-dom";
 import { masterDataDashboardData } from "../../data/MasterData/masterDataDashboardData";
 
-const { summaryCards } = masterDataDashboardData;
 
 import {
   Leaf,
   CupSoda,
-  Coffee,
   UserRound,
   Landmark,
   Warehouse,

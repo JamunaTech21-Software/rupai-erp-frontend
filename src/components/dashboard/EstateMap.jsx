@@ -1,7 +1,7 @@
 import { Map } from "lucide-react";
 import { mapLegend, mapPins } from "../../data/dashboardData";
 
-const MAP_IMG = "/tea-estate-banner.png";
+const MAP_IMG = "/tea-estate-banner.webp";
 
 export default function EstateMap() {
   return (

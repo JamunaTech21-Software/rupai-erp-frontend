@@ -1,8 +1,15 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
 import EstateManagementTabs from "../../components/EstateManagement/EstateManagementTabs";
 import { useForm } from "react-hook-form";
 import { mapAndGISTrackingData } from "../../data/EstateManagementData/MapAndGISTrackingData";
+import { api } from "../../lib/api";
+import { useApi } from "../../lib/useApi";
+import CardSkeleton from "../../components/common/CardSkeleton";
+import TableSkeleton from "../../components/common/TableSkeleton";
+import EmptyRow from "../../components/common/EmptyRow";
+import ErrorState from "../../components/common/ErrorState";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
@@ -52,13 +59,79 @@ import {
   Popup,
   ZoomControl,
 } from "react-leaflet";
+const PER_PAGE = 10;
+
+// The filter lists show labels; the API takes the stored values.
+const FIELD_TYPE_VALUES = {
+  "Tea Field": "tea_field",
+  Nursery: "nursery",
+  Extension: "extension",
+  Infrastructure: "infrastructure",
+  Drain: "drain",
+  "Water Body": "water_body",
+};
+const STATUS_VALUES = { Active: "active", Inactive: "inactive", "Under Development": "under_development" };
+const labelOfValue = (values, value) =>
+  Object.entries(values).find(([, stored]) => stored === value)?.[0] ?? value ?? "-";
+
+// Shape of an answer that has not arrived yet.
+const EMPTY = {
+  mapInfo: {},
+  summaryCards: [],
+  fieldList: [],
+  estateBoundary: [],
+  sectionBoundaries: [],
+  fieldPolygons: [],
+  roads: [],
+  drains: [],
+  waterBodies: [],
+  buildings: [],
+  meta: { page: 1, perPage: PER_PAGE, total: 0, totalPages: 1 },
+};
+
 const MapAndGISTracking = () => {
   const {
     register,
     handleSubmit,
     reset,
+    setValue,
+    watch,
     formState: { errors },
   } = useForm();
+  const navigate = useNavigate();
+
+  // What the map and table show: the applied filters and page.
+  const [applied, setApplied] = useState(null);
+  const [page, setPage] = useState(1);
+
+  // Dropdowns follow each other: estate -> division -> section.
+  const estateId = watch("estate");
+  const divisionId = watch("division");
+  const estateOptions = useApi(() => api.get("/options/estates"), []);
+  const divisionOptions = useApi(
+    () => (estateId ? api.get("/options/divisions", { estate: estateId }) : Promise.resolve([])),
+    [estateId],
+  );
+  const sectionOptions = useApi(
+    () => (divisionId ? api.get("/options/sections", { division: divisionId }) : Promise.resolve([])),
+    [divisionId],
+  );
+
+  // The first estate is shown until another is searched for.
+  const firstEstate = estateOptions.data?.[0]?.value;
+  useEffect(() => {
+    if (firstEstate && !applied) {
+      setApplied({ estate: firstEstate });
+      setValue("estate", firstEstate);
+    }
+  }, [firstEstate, applied, setValue]);
+
+  const result = useApi(
+    () => (applied ? api.get("/map", { ...applied, page, perPage: PER_PAGE }) : Promise.resolve(null)),
+    [applied, page],
+  );
+  const data = result.data ?? EMPTY;
+  const { mapInfo, meta } = data;
 
   const [visibleLayers, setVisibleLayers] = useState(() => {
     const initialLayers = {};
@@ -75,9 +148,15 @@ const MapAndGISTracking = () => {
       [layerKey]: !prev[layerKey],
     }));
   };
-  const onSubmit = (data) => {
-    console.log(data);
-
+  const onSubmit = (values) => {
+    setPage(1);
+    setApplied({
+      estate: values.estate,
+      division: values.division,
+      section: values.section,
+      fieldType: FIELD_TYPE_VALUES[values.fieldType] ?? "",
+      status: STATUS_VALUES[values.status] ?? "",
+    });
     toast.success("Search completed successfully!");
   };
 
@@ -114,14 +193,18 @@ const MapAndGISTracking = () => {
                     <select
                       {...register("estate", {
                         required: "Estate is required",
+                        onChange: () => {
+                          setValue("division", "");
+                          setValue("section", "");
+                        },
                       })}
                       className='select h-11 w-full rounded-lg border border-gray-300 bg-white focus:border-green-600'
                     >
                       <option value=''>Select Estate</option>
 
-                      {mapAndGISTrackingData.estates.map((estate) => (
-                        <option key={estate} value={estate}>
-                          {estate}
+                      {(estateOptions.data ?? []).map((estate) => (
+                        <option key={estate.id} value={estate.value}>
+                          {estate.label}
                         </option>
                       ))}
                     </select>
@@ -144,14 +227,21 @@ const MapAndGISTracking = () => {
                     <select
                       {...register("division", {
                         required: "Division is required",
+                        onChange: () => setValue("section", ""),
                       })}
                       className='select h-11 w-full rounded-lg border border-gray-300 bg-white focus:border-green-600'
                     >
-                      <option value=''>Select Division</option>
+                      <option value=''>
+{!estateId
+ ? "Select Estate first"
+ : divisionOptions.data?.length === 0
+ ? "No divisions for this estate"
+ : "Select Division"}
+</option>
 
-                      {mapAndGISTrackingData.divisions.map((division) => (
-                        <option key={division} value={division}>
-                          {division}
+                      {(divisionOptions.data ?? []).map((division) => (
+                        <option key={division.id} value={division.value}>
+                          {division.label}
                         </option>
                       ))}
                     </select>
@@ -177,11 +267,17 @@ const MapAndGISTracking = () => {
                       })}
                       className='select h-11 w-full rounded-lg border border-gray-300 bg-white focus:border-green-600'
                     >
-                      <option value=''>Select Section</option>
+                      <option value=''>
+{!divisionId
+ ? "Select Division first"
+ : sectionOptions.data?.length === 0
+ ? "No sections for this division"
+ : "Select Section"}
+</option>
 
-                      {mapAndGISTrackingData.sections.map((section) => (
-                        <option key={section} value={section}>
-                          {section}
+                      {(sectionOptions.data ?? []).map((section) => (
+                        <option key={section.id} value={section.value}>
+                          {section.label}
                         </option>
                       ))}
                     </select>
@@ -266,7 +362,11 @@ const MapAndGISTracking = () => {
 
                     <button
                       type='button'
-                      onClick={() => reset()}
+                      onClick={() => {
+                        reset({ estate: firstEstate ?? "", division: "", section: "", fieldType: "", status: "" });
+                        setPage(1);
+                        if (firstEstate) setApplied({ estate: firstEstate });
+                      }}
                       className='btn h-11 cursor-pointer rounded-sm border border-gray-300 bg-white text-gray-700 hover:bg-gray-50'
                     >
                       Reset
@@ -346,8 +446,13 @@ const MapAndGISTracking = () => {
                   ====================================================== */}
               <div className='relative h-[550px] w-full'>
                 <MapContainer
-                  center={mapAndGISTrackingData.mapSettings.center}
-                  zoom={mapAndGISTrackingData.mapSettings.defaultZoom}
+                  key={mapInfo.estateId ?? "none"}
+                  center={
+                    mapInfo.latitude != null
+                      ? [Number(mapInfo.latitude), Number(mapInfo.longitude)]
+                      : mapAndGISTrackingData.mapSettings.center
+                  }
+                  zoom={mapInfo.zoom ?? mapAndGISTrackingData.mapSettings.defaultZoom}
                   minZoom={mapAndGISTrackingData.mapSettings.minZoom}
                   maxZoom={mapAndGISTrackingData.mapSettings.maxZoom}
                   zoomControl={false}
@@ -381,7 +486,7 @@ const MapAndGISTracking = () => {
 
                   {visibleLayers?.estateBoundary !== false && (
                     <Polygon
-                      positions={mapAndGISTrackingData.estateBoundary}
+                      positions={data.estateBoundary}
                       pathOptions={{
                         color: "#15803d",
                         fillColor: "#22c55e",
@@ -407,22 +512,22 @@ const MapAndGISTracking = () => {
                       <Popup>
                         <div className='space-y-1 text-sm'>
                           <h3 className='font-semibold text-green-800'>
-                            {mapAndGISTrackingData.mapInfo.estateName}
+                            {mapInfo.estateName}
                           </h3>
 
                           <p>
                             <strong>Total Area:</strong>{" "}
-                            {mapAndGISTrackingData.mapInfo.totalArea}
+                            {mapInfo.totalArea}
                           </p>
 
                           <p>
                             <strong>Tea Area:</strong>{" "}
-                            {mapAndGISTrackingData.mapInfo.teaArea}
+                            {mapInfo.teaArea}
                           </p>
 
                           <p>
                             <strong>Non Tea Area:</strong>{" "}
-                            {mapAndGISTrackingData.mapInfo.nonTeaArea}
+                            {mapInfo.nonTeaArea}
                           </p>
                         </div>
                       </Popup>
@@ -434,7 +539,7 @@ const MapAndGISTracking = () => {
         ================================================== */}
 
                   {visibleLayers?.sectionBoundary &&
-                    mapAndGISTrackingData.sectionBoundaries?.map((section) => (
+                    data.sectionBoundaries?.map((section) => (
                       <Polygon
                         key={section.id}
                         positions={section.coordinates}
@@ -461,15 +566,15 @@ const MapAndGISTracking = () => {
         ================================================== */}
 
                   {visibleLayers?.fieldBoundary !== false &&
-                    mapAndGISTrackingData.fieldPolygons?.map((field) => {
+                    data.fieldPolygons?.map((field) => {
                       /*
                        * fieldPolygons-এর মধ্যে যদি শুধু fieldId থাকে,
                        * তাহলে fieldList থেকে actual field information নেওয়া হবে।
                        */
 
                       const fieldDetails =
-                        mapAndGISTrackingData.fieldList?.find(
-                          (item) => item.id === field.fieldId,
+                        data.fieldList?.find(
+                          (item) => item.id === (field.fieldId ?? field.id),
                         );
 
                       return (
@@ -522,9 +627,10 @@ const MapAndGISTracking = () => {
 
                               <p>
                                 <strong>Field Type:</strong>{" "}
-                                {fieldDetails?.fieldType ||
-                                  field.fieldType ||
-                                  "-"}
+                                {labelOfValue(
+                                  FIELD_TYPE_VALUES,
+                                  fieldDetails?.fieldType || field.fieldType,
+                                )}
                               </p>
 
                               {/* TOTAL AREA */}
@@ -554,7 +660,10 @@ const MapAndGISTracking = () => {
 
                               <p>
                                 <strong>Status:</strong>{" "}
-                                {fieldDetails?.status || field.status || "-"}
+                                {labelOfValue(
+                                  STATUS_VALUES,
+                                  fieldDetails?.status || field.status,
+                                )}
                               </p>
                             </div>
                           </Popup>
@@ -567,7 +676,7 @@ const MapAndGISTracking = () => {
         ================================================== */}
 
                   {visibleLayers?.road &&
-                    mapAndGISTrackingData.roads?.map((road) => (
+                    data.roads?.map((road) => (
                       <Polyline
                         key={road.id}
                         positions={road.coordinates}
@@ -597,7 +706,7 @@ const MapAndGISTracking = () => {
         ================================================== */}
 
                   {visibleLayers?.drain &&
-                    mapAndGISTrackingData.drains?.map((drain) => (
+                    data.drains?.map((drain) => (
                       <Polyline
                         key={drain.id}
                         positions={drain.coordinates}
@@ -628,7 +737,7 @@ const MapAndGISTracking = () => {
                     ================================================== */}
 
                   {visibleLayers?.waterBody &&
-                    mapAndGISTrackingData.waterBodies?.map((water) => (
+                    data.waterBodies?.map((water) => (
                       <Polygon
                         key={water.id}
                         positions={water.coordinates}
@@ -660,7 +769,7 @@ const MapAndGISTracking = () => {
                         ================================================== */}
 
                   {visibleLayers?.building &&
-                    mapAndGISTrackingData.buildings?.map((building) => (
+                    data.buildings?.map((building) => (
                       <Marker
                         key={building.id}
                         position={[building.latitude, building.longitude]}
@@ -726,22 +835,22 @@ const MapAndGISTracking = () => {
                   <div className='space-y-1 text-xs text-gray-600'>
                     <p>
                       <span className='font-semibold'>Area:</span>{" "}
-                      {mapAndGISTrackingData.mapInfo.totalArea}
+                      {mapInfo.totalArea}
                     </p>
 
                     <p>
                       <span className='font-semibold'>Tea Area:</span>{" "}
-                      {mapAndGISTrackingData.mapInfo.teaArea}
+                      {mapInfo.teaArea}
                     </p>
 
                     <p>
                       <span className='font-semibold'>Latitude:</span>{" "}
-                      {mapAndGISTrackingData.mapInfo.latitude}
+                      {mapInfo.latitude}
                     </p>
 
                     <p>
                       <span className='font-semibold'>Longitude:</span>{" "}
-                      {mapAndGISTrackingData.mapInfo.longitude}
+                      {mapInfo.longitude}
                     </p>
                   </div>
                 </div>
@@ -752,8 +861,10 @@ const MapAndGISTracking = () => {
 
         {/* ================= Summary ================= */}
 
+        {result.loading && !result.data && <CardSkeleton count={6} />}
+        {result.error && <ErrorState message={result.error.message} onRetry={result.reload} />}
         <div className='grid grid-cols-1 gap-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6'>
-          {mapAndGISTrackingData.summaryCards.map((card) => {
+          {data.summaryCards.map((card) => {
             const Icon = summaryIconMap[card.icon];
 
             return (
@@ -813,6 +924,7 @@ const MapAndGISTracking = () => {
                   <button
                     key={button.id}
                     type='button'
+                    onClick={() => button.color === "primary" && navigate("/field-or-block-management")}
                     className={`inline-flex cursor-pointer h-9 items-center gap-2 rounded-md px-4 text-sm font-medium transition ${
                       button.color === "primary"
                         ? "bg-green-700 text-white hover:bg-green-800"
@@ -847,13 +959,18 @@ const MapAndGISTracking = () => {
                   </thead>
 
                   <tbody>
-                    {mapAndGISTrackingData.fieldList.map((field, index) => (
+                    {result.loading && !result.data ? (
+                      <TableSkeleton rows={5} columns={mapAndGISTrackingData.tableHeaders.length} />
+                    ) : data.fieldList.length === 0 ? (
+                      <EmptyRow columns={mapAndGISTrackingData.tableHeaders.length} />
+                    ) : (
+                    data.fieldList.map((field, index) => (
                       <tr
                         key={field.id}
                         className='transition hover:bg-green-50'
                       >
                         <td className='border border-gray-200 px-3 py-3 text-center'>
-                          {index + 1}
+                          {(page - 1) * PER_PAGE + index + 1}
                         </td>
 
                         <td className='border border-gray-200 px-3 py-3 font-medium whitespace-nowrap'>
@@ -873,7 +990,7 @@ const MapAndGISTracking = () => {
                         </td>
 
                         <td className='border border-gray-200 px-3 py-3 whitespace-nowrap'>
-                          {field.fieldType}
+                          {labelOfValue(FIELD_TYPE_VALUES, field.fieldType)}
                         </td>
 
                         <td className='border border-gray-200 px-3 py-3 text-center'>
@@ -895,12 +1012,12 @@ const MapAndGISTracking = () => {
                         <td className='border border-gray-200 px-3 py-3 text-center'>
                           <span
                             className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${
-                              field.status === "Active"
+                              field.status === "active"
                                 ? "bg-green-100 text-green-700"
                                 : "bg-gray-100 text-gray-600"
                             }`}
                           >
-                            {field.status}
+                            {labelOfValue(STATUS_VALUES, field.status)}
                           </span>
                         </td>
 
@@ -908,6 +1025,7 @@ const MapAndGISTracking = () => {
                           <div className='flex items-center justify-center gap-2'>
                             <button
                               type='button'
+                              onClick={() => navigate("/field-or-block-management")}
                               className='flex h-8 w-8 items-center justify-center rounded-lg bg-blue-50 text-blue-600 transition hover:bg-blue-100'
                             >
                               <Eye size={16} />
@@ -915,6 +1033,7 @@ const MapAndGISTracking = () => {
 
                             <button
                               type='button'
+                              onClick={() => navigate("/field-or-block-management")}
                               className='flex cursor-pointer h-8 w-8 items-center justify-center rounded-lg bg-amber-50 text-amber-600 transition hover:bg-amber-100'
                             >
                               <Pencil size={16} />
@@ -922,6 +1041,7 @@ const MapAndGISTracking = () => {
 
                             <button
                               type='button'
+                              onClick={() => navigate("/field-or-block-management")}
                               className='flex cursor-pointer h-8 w-8 items-center justify-center rounded-lg bg-red-50 text-red-600 transition hover:bg-red-100'
                             >
                               <Trash2 size={16} />
@@ -929,7 +1049,8 @@ const MapAndGISTracking = () => {
                           </div>
                         </td>
                       </tr>
-                    ))}
+                    ))
+                    )}
                   </tbody>
                 </table>
               </div>
@@ -938,34 +1059,38 @@ const MapAndGISTracking = () => {
               <p className='text-sm text-gray-600'>
                 Showing{" "}
                 <span className='font-semibold'>
-                  {mapAndGISTrackingData.pagination.showingFrom}
+                  {data.fieldList.length > 0 ? (page - 1) * PER_PAGE + 1 : 0}
                 </span>{" "}
                 to{" "}
                 <span className='font-semibold'>
-                  {mapAndGISTrackingData.pagination.showingTo}
+                  {(page - 1) * PER_PAGE + data.fieldList.length}
                 </span>{" "}
                 of{" "}
-                <span className='font-semibold'>
-                  {mapAndGISTrackingData.pagination.totalRecords}
-                </span>{" "}
+                <span className='font-semibold'>{meta.total}</span>{" "}
                 entries
               </p>
 
               <div className='join'>
-                <button className='join-item btn btn-sm'>«</button>
+                <button
+                  type='button'
+                  disabled={page <= 1}
+                  onClick={() => setPage((p) => p - 1)}
+                  className='join-item btn btn-sm'
+                >
+                  «
+                </button>
 
                 {Array.from(
                   {
-                    length: mapAndGISTrackingData.pagination.totalPages,
+                    length: meta.totalPages,
                   },
                   (_, index) => (
                     <button
                       key={index}
+                      type='button'
+                      onClick={() => setPage(index + 1)}
                       className={`join-item btn btn-sm ${
-                        mapAndGISTrackingData.pagination.currentPage ===
-                        index + 1
-                          ? "btn-success"
-                          : ""
+                        page === index + 1 ? "btn-success" : ""
                       }`}
                     >
                       {index + 1}
@@ -973,7 +1098,14 @@ const MapAndGISTracking = () => {
                   ),
                 )}
 
-                <button className='join-item btn btn-sm'>»</button>
+                <button
+                  type='button'
+                  disabled={page >= meta.totalPages}
+                  onClick={() => setPage((p) => p + 1)}
+                  className='join-item btn btn-sm'
+                >
+                  »
+                </button>
               </div>
             </div>
           </div>

@@ -95,7 +95,7 @@ export default function Sidebar({ collapsed, mobileOpen, onCloseMobile }) {
       >
         <div className='flex h-8 w-8 shrink-0 items-center justify-center'>
           <img
-            src='/sidebar-top-logo.png'
+            src='/sidebar-top-logo.webp'
             alt='RupAi Logo'
             className='h-8 w-8 object-contain'
           />

@@ -85,7 +85,6 @@ const ProductionEntry = () => {
     handleSubmit,
     reset,
     watch,
-    getValues,
     formState: { errors },
   } = useForm();
 
@@ -107,10 +106,7 @@ const ProductionEntry = () => {
 
   // Separate React Hook Form instance for Production Item modal
   const {
-    register: registerProductionItem,
-    handleSubmit: handleSubmitProductionItem,
     reset: resetProductionItem,
-    formState: { errors: productionItemErrors },
   } = useForm();
 
   // =========================================================
@@ -124,14 +120,11 @@ const ProductionEntry = () => {
 
   // Gets current main form values and saves them as draft
   const handleSaveDraft = () => {
-    const values = getValues();
 
-    console.log("Draft Data:", values);
   };
 
   // Handles final Production Entry submission
-  const onSubmit = (data) => {
-    console.log("Production Entry Data:", data);
+  const onSubmit = () => {
   };
 
   // =========================================================
@@ -140,7 +133,6 @@ const ProductionEntry = () => {
 
   // Adds a new Production Item to the list
   const handleAddProductionItem = (data) => {
-    console.log("Production Item Form Data:", data);
 
     // Create new production item
     const newItem = {
@@ -148,7 +140,6 @@ const ProductionEntry = () => {
       ...data,
     };
 
-    console.log("New Production Item:", newItem);
 
     // Add new item to existing production items
     setProductionItems((prev) => [...prev, newItem]);
@@ -166,7 +157,6 @@ const ProductionEntry = () => {
 
   // Adds a new Raw Material to the list
   const handleAddRawMaterial = (data) => {
-    console.log("Raw Material Form Data:", data);
 
     // Create new raw material
     const newMaterial = {
@@ -174,7 +164,6 @@ const ProductionEntry = () => {
       ...data,
     };
 
-    console.log("New Raw Material:", newMaterial);
 
     // Add new material to existing raw material list
     setRawMaterialDetails((prev) => [...prev, newMaterial]);

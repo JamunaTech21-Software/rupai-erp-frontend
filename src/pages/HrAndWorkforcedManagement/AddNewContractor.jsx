@@ -18,11 +18,9 @@ const AddNewContractor = () => {
     register,
     handleSubmit,
     reset,
-    watch,
     formState: { errors },
   } = useForm();
-  const onSubmit = (data) => {
-    console.log("FORM DATA:", data);
+  const onSubmit = () => {
 
     toast.success("Contractor information saved successfully!");
   };
@@ -388,7 +386,7 @@ const AddNewContractor = () => {
               {/* IMAGE / LOGO GRID */}
               <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
                 {contractorManagementData.contractorImageFields.map(
-                  (field, index) => (
+                  (field) => (
                     <div key={field.name} className='min-w-0'>
                       {/* LABEL */}
                       <label className='block text-xs font-medium text-gray-700 text-center mb-2'>
@@ -970,8 +968,6 @@ const AddNewContractor = () => {
             <button
               type='button'
               onClick={() => {
-                const data = watch();
-                console.log("SAVE AS DRAFT:", data);
               }}
               className='flex items-center cursor-pointer justify-center gap-1.5 border border-gray-300 bg-white text-gray-700 rounded-md px-4 py-2 text-xs font-medium hover:bg-gray-50 transition'
             >
