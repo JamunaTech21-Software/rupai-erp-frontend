@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import { useForm } from "react-hook-form";
 import PlantationManagementTabs from "../../components/plantationManagementTab/PlantationManagementTabs";
@@ -66,7 +66,7 @@ const summaryIconMap = {
   ShieldCheck,
   Sprout,
 };
-import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 const healthBadgeMap = {
   Excellent: "bg-green-100 text-green-700 border border-green-200",
 
@@ -87,6 +87,62 @@ const orDash = (value) => (value === null || value === undefined || value === ""
 
 const EMPTY_GAP = { totalGap: null, gapArea: null, replantRequired: null, suggestedAction: null, recommendedClone: null, bestTime: null };
 
+const HEALTH = ["Excellent", "Good", "Fair", "Poor", "Dead"];
+const ROW_FIELDS = [
+  ["rowNo", "Row No.", "text", true],
+  ["from", "From", "number", true],
+  ["to", "To", "number", true],
+  ["totalBush", "Total", "number", true],
+  ["productive", "Productive", "number", true],
+  ["dead", "Dead", "number", true],
+  ["missing", "Missing", "number", true],
+  ["height", "Avg Height", "number", false],
+  ["spread", "Avg Spread", "number", false],
+  ["health", "Health", "select", false],
+  ["remarks", "Remarks", "text", false],
+];
+const toRowForm = (row) => Object.fromEntries(ROW_FIELDS.map(([name]) => [name, row[name] ?? ""]));
+// Same formula the server uses for the gap.
+const gapOf = (row) => (Number(row.totalBush) ? ((Number(row.dead || 0) + Number(row.missing || 0)) / Number(row.totalBush)) * 100 : 0);
+
+// Survey file columns (any capitalisation / spacing) -> the row fields.
+const IMPORT_COLUMNS = {
+  rowno: "rowNo", row: "rowNo", from: "from", to: "to", total: "totalBush", totalbush: "totalBush",
+  productive: "productive", dead: "dead", missing: "missing", avgheight: "height", height: "height",
+  avgspread: "spread", spread: "spread", health: "health", remarks: "remarks",
+};
+const IMPORT_HINT = "Row No., From, To, Total, Productive, Dead, Missing (optional: Avg Height, Avg Spread, Health, Remarks)";
+// A small CSV reader: commas, quoted values, "" for a quote, CRLF or LF.
+const parseCsv = (text) => {
+  const lines = [];
+  let line = [];
+  let cell = "";
+  let quoted = false;
+  for (let i = 0; i < text.length; i += 1) {
+    const char = text[i];
+    if (quoted) {
+      if (char === '"' && text[i + 1] === '"') {
+        cell += '"';
+        i += 1;
+      } else if (char === '"') quoted = false;
+      else cell += char;
+    } else if (char === '"') quoted = true;
+    else if (char === ",") {
+      line.push(cell);
+      cell = "";
+    } else if (char === "\n" || char === "\r") {
+      if (char === "\r" && text[i + 1] === "\n") i += 1;
+      line.push(cell);
+      cell = "";
+      lines.push(line);
+      line = [];
+    } else cell += char;
+  }
+  line.push(cell);
+  lines.push(line);
+  return lines.filter((cells) => cells.some((value) => value.trim() !== ""));
+};
+
 const BushRegister = () => {
   const {
     register,
@@ -101,6 +157,14 @@ const BushRegister = () => {
   const [page, setPage] = useState(1);
   const [deleting, setDeleting] = useState(null);
   const [deleteBusy, setDeleteBusy] = useState(false);
+  // Row popup: { mode: "view" | "edit", id } plus the values being edited.
+  const [rowPopup, setRowPopup] = useState(null);
+  const [rowValues, setRowValues] = useState({});
+  const [rowErrors, setRowErrors] = useState({});
+  const [rowBusy, setRowBusy] = useState(false);
+  const importInput = useRef(null);
+  const [importing, setImporting] = useState(false);
+  const [importProblems, setImportProblems] = useState([]);
 
   const estateId = watch("estate");
   const divisionId = watch("division");
@@ -136,6 +200,121 @@ const BushRegister = () => {
     setPage(1);
     setApplied({});
   };
+  const openRow = (mode, row) => {
+    setRowPopup({ mode, id: row.id });
+    setRowValues(toRowForm(row));
+    setRowErrors({});
+  };
+  const openAdd = () => {
+    if (!current) {
+      toast.error("There is no bush register to add a row to. Search for one first.");
+      return;
+    }
+    setRowPopup({ mode: "add" });
+    setRowValues(toRowForm({}));
+    setRowErrors({});
+  };
+  const closeRow = () => setRowPopup(null);
+  // Import Survey Data: a CSV file whose rows are added to the register one by one.
+  const importSurvey = async (event) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+    if (!current) {
+      toast.error("There is no bush register to import into. Search for one first.");
+      return;
+    }
+    if (!/\.csv$/i.test(file.name)) {
+      toast.error("Please choose a .csv file (in Excel: Save As > CSV).");
+      return;
+    }
+    setImporting(true);
+    setImportProblems([]);
+    try {
+      const [header, ...lines] = parseCsv(await file.text());
+      const fields = header.map((name) => IMPORT_COLUMNS[name.toLowerCase().replace(/[^a-z]/g, "")]);
+      const missing = ["rowNo", "from", "to", "totalBush", "productive", "dead", "missing"].filter((name) => !fields.includes(name));
+      if (missing.length) {
+        toast.error(`The file needs these columns: ${IMPORT_HINT}.`);
+        return;
+      }
+      if (lines.length === 0) {
+        toast.error("The file has no rows.");
+        return;
+      }
+      const problems = [];
+      let added = 0;
+      for (const [index, cells] of lines.entries()) {
+        const body = {};
+        fields.forEach((name, column) => {
+          if (name) body[name] = (cells[column] ?? "").trim();
+        });
+        for (const name of ["from", "to", "totalBush", "productive", "dead", "missing", "height", "spread"]) {
+          if (body[name] === "" || body[name] === undefined) body[name] = null;
+          else if (!Number.isNaN(Number(body[name]))) body[name] = Number(body[name]);
+        }
+        try {
+          await api.post(`/bush-registers/${current.id}/rows`, body);
+          added += 1;
+        } catch (error) {
+          const detail = Object.entries(error.fields ?? {}).map(([key, message]) => `${key}: ${message}`).join("; ");
+          problems.push(`Row ${index + 2}${body.rowNo ? ` (${body.rowNo})` : ""} – ${detail || error.message}`);
+        }
+      }
+      setImportProblems(problems);
+      if (added) {
+        toast.success(`${added} ${added === 1 ? "row" : "rows"} imported successfully!`);
+        setPage(1);
+        rowsCall.reload();
+        report.reload();
+      }
+      if (problems.length) toast.error(`${problems.length} ${problems.length === 1 ? "row was" : "rows were"} not imported.`);
+    } catch (error) {
+      toast.error(error.message || "Could not read the file.");
+    } finally {
+      setImporting(false);
+    }
+  };
+  useEffect(() => {
+    if (!rowPopup) return undefined;
+    const onKey = (event) => event.key === "Escape" && setRowPopup(null);
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [rowPopup]);
+  const saveRow = async (event) => {
+    event.preventDefault();
+    const problems = {};
+    for (const [name, label, type, required] of ROW_FIELDS) {
+      const value = rowValues[name];
+      if (required && (value === "" || value === null || value === undefined)) problems[name] = `${label} is required.`;
+      else if (type === "number" && value !== "" && (Number.isNaN(Number(value)) || Number(value) < 0)) problems[name] = `${label} must be 0 or more.`;
+    }
+    setRowErrors(problems);
+    if (Object.keys(problems).length) return;
+    setRowBusy(true);
+    try {
+      const body = Object.fromEntries(
+        ROW_FIELDS.map(([name, , type]) => [name, rowValues[name] === "" ? null : type === "number" ? Number(rowValues[name]) : rowValues[name]]),
+      );
+      if (rowPopup.mode === "add") {
+        await api.post(`/bush-registers/${current.id}/rows`, body);
+        toast.success("Row added successfully!");
+        setPage(1);
+      } else {
+        await api.put(`/bush-registers/${current.id}/rows/${rowPopup.id}`, body);
+        toast.success("Row updated successfully!");
+      }
+      setRowPopup(null);
+      rowsCall.reload();
+      report.reload();
+    } catch (error) {
+      setRowErrors(error.fields ?? {});
+      toast.error(error.message);
+    } finally {
+      setRowBusy(false);
+    }
+  };
+
   const confirmDelete = async () => {
     setDeleteBusy(true);
     try {
@@ -206,6 +385,7 @@ const BushRegister = () => {
     value: item.area,
     color: item.color,
   }));
+  const hasAgeData = ageProfileData.some((item) => Number(item.value) > 0);
   const totalGapCount = gapSizeDetails.reduce(
     (sum, item) => sum + (item.count ?? 0),
     0,
@@ -815,17 +995,22 @@ const BushRegister = () => {
 
               <div className='flex flex-wrap gap-2'>
                 {/* Import Survey Data */}
+                <input ref={importInput} type='file' accept='.csv,text/csv' className='hidden' onChange={importSurvey} />
                 <button
                   type='button'
-                  className='flex cursor-pointer items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-100'
+                  disabled={importing}
+                  onClick={() => importInput.current?.click()}
+                  title={`CSV columns: ${IMPORT_HINT}`}
+                  className='flex cursor-pointer items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-100 disabled:opacity-60'
                 >
                   <Upload size={18} />
-                  Import Survey Data
+                  {importing ? "Importing..." : "Import Survey Data"}
                 </button>
 
                 {/* Add Manual Entry */}
                 <button
                   type='button'
+                  onClick={openAdd}
                   className='flex cursor-pointer items-center gap-2 rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-green-700'
                 >
                   <Plus size={18} />
@@ -833,6 +1018,22 @@ const BushRegister = () => {
                 </button>
               </div>
             </div>
+
+            {importProblems.length > 0 && (
+              <div className='border-b border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700'>
+                <div className='flex items-start justify-between gap-3'>
+                  <p className='font-medium'>These rows were not imported:</p>
+                  <button type='button' onClick={() => setImportProblems([])} aria-label='Dismiss' className='rounded p-0.5 hover:bg-red-100'>
+                    <X size={16} />
+                  </button>
+                </div>
+                <ul className='mt-1 max-h-32 list-disc space-y-0.5 overflow-y-auto pl-5 text-xs'>
+                  {importProblems.map((problem) => (
+                    <li key={problem}>{problem}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
 
             {/* Table */}
             <div className='overflow-x-auto'>
@@ -923,6 +1124,7 @@ const BushRegister = () => {
                           {/* View */}
                           <button
                             type='button'
+                            onClick={() => openRow("view", item)}
                             className='cursor-pointer rounded-md p-1 text-blue-600 transition hover:bg-blue-50'
                             title='View'
                           >
@@ -932,6 +1134,7 @@ const BushRegister = () => {
                           {/* Edit */}
                           <button
                             type='button'
+                            onClick={() => openRow("edit", item)}
                             className='cursor-pointer rounded-md p-1 text-emerald-600 transition hover:bg-emerald-50'
                             title='Edit'
                           >
@@ -1089,56 +1292,53 @@ const BushRegister = () => {
             </div>
 
             {/* Body */}
-            <div className='grid grid-cols-12 gap-3 p-4'>
-              {/* Left */}
-              <div className='col-span-12 flex justify-center lg:col-span-6'>
-                <div className='relative h-40 w-40'>
+            <div className='flex flex-col items-center gap-4 p-4'>
+              {/* Donut */}
+              <div className='relative h-44 w-44 shrink-0'>
+                {hasAgeData ? (
                   <ResponsiveContainer width='100%' height='100%'>
                     <PieChart>
                       <Pie
                         data={ageProfileData}
                         dataKey='value'
-                        innerRadius={40}
-                        outerRadius={60}
+                        nameKey='name'
+                        innerRadius='66%'
+                        outerRadius='95%'
                         paddingAngle={1}
+                        startAngle={90}
+                        endAngle={-270}
+                        stroke='none'
                       >
                         {ageProfileData.map((item) => (
                           <Cell key={item.name} fill={item.color} />
                         ))}
                       </Pie>
+                      <Tooltip formatter={(value, name) => [`${Number(value).toLocaleString()} Acre`, name]} />
                     </PieChart>
                   </ResponsiveContainer>
-
-                  {/* Center Text */}
-                  <div className='absolute inset-0 flex flex-col items-center justify-center'>
-                    <h2 className='text-xl font-semibold text-gray-800'>
-                      {summaryItems[0].value}
-                    </h2>
-
-                    <p className='text-sm text-gray-500'>Acre</p>
+                ) : (
+                  <div className='flex h-full items-center justify-center rounded-full border-[14px] border-gray-100 text-xs text-gray-400'>
+                    No data
                   </div>
+                )}
+
+                {/* Center Text */}
+                <div className='pointer-events-none absolute inset-0 flex flex-col items-center justify-center'>
+                  <h2 className='text-xl font-semibold text-gray-800'>{summaryItems[0].value}</h2>
+                  <p className='text-sm text-gray-500'>Acre</p>
                 </div>
               </div>
 
-              {/* Right */}
-              <div className='col-span-12 space-y-4 lg:col-span-6'>
+              {/* Legend */}
+              <div className='w-full space-y-3'>
                 {bushAgeProfile.map((item) => (
-                  <div
-                    key={item.id}
-                    className='flex items-center justify-between'
-                  >
+                  <div key={item.id} className='flex items-center justify-between gap-2'>
                     <div className='flex items-center gap-2'>
-                      <span
-                        className='h-3 w-3 rounded-sm'
-                        style={{
-                          backgroundColor: item.color,
-                        }}
-                      />
-
+                      <span className='h-3 w-3 shrink-0 rounded-sm' style={{ backgroundColor: item.color }} />
                       <span className='text-sm text-gray-600'>{item.age}</span>
                     </div>
 
-                    <span className='text-sm font-medium text-gray-700'>
+                    <span className='text-right text-sm font-medium text-gray-700'>
                       {item.area} Acre ({item.percentage}%)
                     </span>
                   </div>
@@ -1391,6 +1591,82 @@ const BushRegister = () => {
           </div>
         </div>
       </div>
+      {rowPopup && (
+        <div className='fixed inset-0 z-[90] flex items-center justify-center bg-black/40 p-3' onMouseDown={closeRow}>
+          <form
+            role='dialog'
+            aria-modal='true'
+            aria-label={rowPopup.mode === "view" ? "Bush row details" : rowPopup.mode === "add" ? "Add bush row" : "Edit bush row"}
+            onSubmit={saveRow}
+            onMouseDown={(event) => event.stopPropagation()}
+            className='flex max-h-[90vh] w-full max-w-3xl flex-col rounded-xl bg-white shadow-xl'
+          >
+            <div className='flex items-center justify-between border-b border-gray-200 px-5 py-3'>
+              <h2 className='text-base font-semibold text-green-700'>
+                {rowPopup.mode === "view" ? "Bush Row Details" : rowPopup.mode === "add" ? "Add Manual Entry" : "Edit Bush Row"}
+              </h2>
+              <button type='button' onClick={closeRow} aria-label='Close' className='rounded p-1 text-gray-500 hover:bg-gray-100'>
+                <X size={18} />
+              </button>
+            </div>
+            <div className='grid grid-cols-1 gap-x-6 gap-y-3 overflow-y-auto p-5 sm:grid-cols-2 lg:grid-cols-3'>
+              {ROW_FIELDS.map(([name, label, type]) => (
+                <div key={name}>
+                  <label htmlFor={`row-${name}`} className='text-xs text-gray-500'>
+                    {label}
+                  </label>
+                  {rowPopup.mode !== "view" ? (
+                    <>
+                      {type === "select" ? (
+                        <select
+                          id={`row-${name}`}
+                          value={rowValues[name] ?? ""}
+                          onChange={(event) => setRowValues((values) => ({ ...values, [name]: event.target.value }))}
+                          className='mt-1 h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm outline-none focus:border-green-600'
+                        >
+                          <option value=''>Select</option>
+                          {HEALTH.map((option) => (
+                            <option key={option} value={option}>
+                              {option}
+                            </option>
+                          ))}
+                        </select>
+                      ) : (
+                        <input
+                          id={`row-${name}`}
+                          type={type}
+                          step='any'
+                          min={type === "number" ? 0 : undefined}
+                          value={rowValues[name] ?? ""}
+                          onChange={(event) => setRowValues((values) => ({ ...values, [name]: event.target.value }))}
+                          className='mt-1 h-10 w-full rounded-lg border border-gray-300 px-3 text-sm outline-none focus:border-green-600'
+                        />
+                      )}
+                      {rowErrors[name] && <p className='mt-1 text-xs text-red-600'>{rowErrors[name]}</p>}
+                    </>
+                  ) : (
+                    <p className='text-sm font-medium text-gray-800'>{orDash(rowValues[name])}</p>
+                  )}
+                </div>
+              ))}
+              <div>
+                <span className='text-xs text-gray-500'>Gap %</span>
+                <p className='text-sm font-medium text-gray-800'>{fixed(gapOf(rowValues))}%</p>
+              </div>
+            </div>
+            <div className='flex justify-end gap-2 border-t border-gray-200 px-5 py-3'>
+              <button type='button' onClick={closeRow} className='h-10 rounded-lg border border-gray-300 px-4 text-sm font-medium text-gray-700 hover:bg-gray-50'>
+                {rowPopup.mode === "view" ? "Close" : "Cancel"}
+              </button>
+              {rowPopup.mode !== "view" && (
+                <button type='submit' disabled={rowBusy} className='h-10 rounded-lg bg-green-700 px-4 text-sm font-medium text-white hover:bg-green-800 disabled:opacity-60'>
+                  {rowBusy ? "Saving..." : rowPopup.mode === "add" ? "Add Row" : "Save"}
+                </button>
+              )}
+            </div>
+          </form>
+        </div>
+      )}
       <ConfirmDialog
         open={Boolean(deleting)}
         title='Delete row?'

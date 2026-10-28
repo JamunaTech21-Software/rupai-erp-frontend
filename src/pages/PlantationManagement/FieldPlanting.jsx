@@ -65,6 +65,25 @@ const STATUS_CLASS = {
   "In Progress": "bg-yellow-100 text-yellow-700",
   Completed: "bg-green-100 text-green-700",
 };
+const yesNo = (value) => (value ? "Yes" : "No");
+const VIEW_FIELDS = [
+  ["Estate", "estateName"], ["Division", "divisionName"], ["Section", "sectionName"], ["Field / Block", "fieldBlockName"],
+  ["Planting Year", "plantingYear"], ["Planting Season", "plantingSeason"], ["Planting Date", "plantingDate", dmy],
+  ["Planting Method", "plantingMethod"], ["Plant Source", "plantSource"], ["Nursery Bed", "nurseryBed"],
+  ["Clone / Variety", "cloneVariety"], ["Plant Type", "plantType"], ["Total Area", "totalArea", fixed],
+  ["Net Plantable Area", "netPlantableArea", fixed], ["Previous Crop", "previousCrop"], ["Row Spacing", "rowSpacing"],
+  ["Plant Spacing", "plantSpacing"], ["Pit Size", "pitSize"], ["Expected Plants", "expectedPlants", num],
+  ["Target Plants", "targetPlants", num], ["Planted Plants", "plantedPlants", num], ["Signal Plant", "signalPlant"],
+  ["Soil Type", "soilType"], ["Soil pH", "soilPH"], ["Elevation", "elevation"], ["Slope", "slope"], ["Drainage", "drainage"],
+  ["Irrigation Source", "irrigationSource"], ["Irrigation Method", "irrigationMethod"],
+  ["Basal Fertilizer", "basalFertilizer"], ["Organic Manure", "organicManure"], ["Shade Tree Planned", "shadeTreePlanned", yesNo],
+  ["Shade Tree Species", "shadeTreeSpecies"], ["Shade Tree Spacing", "shadeTreeSpacing"], ["Shade Tree Count", "shadeTreeCount"],
+  ["Shade Purpose", "shadePurpose"], ["Shade Planting Date", "shadePlantingDate", dmy],
+  ["Field Officer", "fieldOfficer"], ["Assistant Supervisor", "assistantSupervisor"], ["Total Labour", "totalLabour"],
+  ["Male Labour", "maleLabour"], ["Female Labour", "femaleLabour"], ["Labour Source", "labourSource"],
+  ["Completion", "completion", (value) => (value === null || value === undefined ? DASH : value + "%")],
+  ["Status", "plantingStatus"], ["Remarks", "remarks"],
+];
 const toForm = (record) =>
   Object.fromEntries(FIELDS.map((name) => [name, name === "shadeTreePlanned" ? Boolean(record[name]) : (record[name] ?? "")]));
 const EMPTY_FORM = Object.fromEntries(FIELDS.map((name) => [name, name === "shadeTreePlanned" ? false : ""]));
@@ -86,6 +105,7 @@ const FieldPlanting = () => {
   const [editingId, setEditingId] = useState(null);
   const [selectedId, setSelectedId] = useState(null);
   const [page, setPage] = useState(1);
+  const [viewOpen, setViewOpen] = useState(false);
   const [deleting, setDeleting] = useState(null);
   const [deleteBusy, setDeleteBusy] = useState(false);
 
@@ -97,6 +117,7 @@ const FieldPlanting = () => {
   const record = useApi(() => (activeId ? api.get(`/field-plantings/${activeId}`) : Promise.resolve(null)), [activeId, history.data]);
   const shown = record.data;
   const progress = shown?.plantingProgress;
+  const percent = Math.max(0, Math.min(100, Number(progress?.percentage) || 0));
 
   // Dropdowns that pick records follow each other.
   const estateId = watch("estate");
@@ -160,10 +181,29 @@ const FieldPlanting = () => {
     setEditingId(null);
     reset(EMPTY_FORM);
   };
+  // Edit and View open as popups.
   const startEdit = (id) => {
+    setViewOpen(false);
     setEditingId(id);
-    window.scrollTo({ top: 0, behavior: "smooth" });
   };
+  const startView = (id) => {
+    if (editingId) cancelEdit();
+    setSelectedId(id);
+    setViewOpen(true);
+  };
+  useEffect(() => {
+    if (!editingId && !viewOpen) return undefined;
+    const onKey = (event) => {
+      if (event.key !== "Escape") return;
+      if (viewOpen) setViewOpen(false);
+      else {
+        setEditingId(null);
+        reset(EMPTY_FORM);
+      }
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [editingId, viewOpen, reset]);
 
   // Each picked file is uploaded first; the record keeps the ids.
   const uploadAll = async (files, kept) => {
@@ -180,14 +220,14 @@ const FieldPlanting = () => {
       };
       const saved = editingId ? await api.put(`/field-plantings/${editingId}`, body) : await api.post("/field-plantings", body);
       toast.success("Field planting saved successfully!");
-      if (editingId) reset(toForm(saved));
-      else {
-        reset(EMPTY_FORM);
-        setSelectedId(saved.id);
-      }
+      const wasEditing = Boolean(editingId);
+      reset(EMPTY_FORM);
+      if (!wasEditing) setSelectedId(saved.id);
       reloadAll();
       if (print) window.print();
-      goBack();
+      // The edit popup closes after saving; the add form goes back to the previous page.
+      if (wasEditing) setEditingId(null);
+      else goBack();
     } catch (error) {
       for (const [key, message] of Object.entries(error.fields ?? {})) setError(key, { message });
       toast.error(error.message);
@@ -219,12 +259,27 @@ const FieldPlanting = () => {
       {/* ===========================
           Field Planting Form
       =========================== */}
-      <form ref={formRef} onSubmit={handleSubmit(onSubmit)}>
+      <form
+        ref={formRef}
+        onSubmit={handleSubmit(onSubmit)}
+        className={editingId ? "fixed inset-0 z-[90] overflow-y-auto bg-black/40 p-2 sm:p-6" : undefined}
+        onMouseDown={editingId ? (event) => event.target === event.currentTarget && cancelEdit() : undefined}
+      >
+        {/* In the edit popup the form and its buttons share one panel, so there is no gap between them. */}
+        <div className={editingId ? "mx-auto w-full max-w-5xl rounded-xl bg-slate-50 p-3" : "contents"}>
         <div className='grid grid-cols-12 gap-2'>
+          {editingId && (
+            <div className='col-span-12 flex items-center justify-between border-b border-gray-200 pb-2'>
+              <h2 className='text-base font-semibold text-green-700'>Edit Field Planting</h2>
+              <button type='button' onClick={cancelEdit} aria-label='Close' className='rounded p-1 text-gray-500 hover:bg-gray-100'>
+                <X size={18} />
+              </button>
+            </div>
+          )}
           {/* ===========================
               Left Section
           =========================== */}
-          <div className='col-span-12 lg:col-span-8 space-y-6'>
+          <div className={editingId ? "col-span-12 space-y-6" : "col-span-12 lg:col-span-8 space-y-6"}>
             {/* ===========================
                 Planting Information
             =========================== */}
@@ -1496,7 +1551,7 @@ const FieldPlanting = () => {
           {/* ===========================
               Right Section
           =========================== */}
-          <div className='col-span-12 lg:col-span-4 space-y-6'>
+          <div className={editingId ? "hidden" : "col-span-12 lg:col-span-4 space-y-6"}>
             {/* ===========================
                     Field Map
                 =========================== */}
@@ -1602,33 +1657,32 @@ const FieldPlanting = () => {
               <div className='space-y-5 p-2'>
                 <div className='grid grid-cols-12 gap-2'>
                   {/* Progress Circle */}
-                  <div className='col-span-5 flex items-center justify-center'>
-                    <div className='relative flex h-40 w-40 items-center justify-center rounded-full border-[10px] border-gray-200'>
-                      <div
-                        className='absolute inset-0 rounded-full'
-                        style={{
-                          background:
-                            `conic-gradient(#15803d ${progress?.percentage ?? 0}%, transparent ${progress?.percentage ?? 0}%)`,
-                          mask: "radial-gradient(circle, transparent 58%, black 60%)",
-                          WebkitMask:
-                            "radial-gradient(circle, transparent 58%, black 60%)",
-                        }}
-                      />
-
-                      <div className='z-10 text-center'>
-                        <h3 className='text-3xl  font-bold text-gray-800'>
-                          {progress ? progress.percentage : DASH}%
-                        </h3>
-
-                        <p className='text-xs text-gray-500'>
-                          {shown?.plantingStatus ?? DASH}
-                        </p>
+                  <div className='col-span-12 flex items-center justify-center sm:col-span-5'>
+                    <div className='relative h-40 w-40 shrink-0'>
+                      <svg viewBox='0 0 120 120' className='h-full w-full -rotate-90' role='img' aria-label='Planting progress'>
+                        <circle cx='60' cy='60' r='50' fill='none' stroke='#e5e7eb' strokeWidth='12' />
+                        <circle
+                          cx='60'
+                          cy='60'
+                          r='50'
+                          fill='none'
+                          stroke='#15803d'
+                          strokeWidth='12'
+                          strokeLinecap={percent > 0 && percent < 100 ? "round" : "butt"}
+                          pathLength='100'
+                          strokeDasharray={`${percent} 100`}
+                          className='transition-all duration-500'
+                        />
+                      </svg>
+                      <div className='absolute inset-0 flex flex-col items-center justify-center text-center'>
+                        <h3 className='text-3xl font-bold text-gray-800'>{progress ? `${progress.percentage}%` : DASH}</h3>
+                        <p className='text-xs text-gray-500'>{shown?.plantingStatus ?? DASH}</p>
                       </div>
                     </div>
                   </div>
 
                   {/* Statistics */}
-                  <div className='col-span-7 flex flex-col justify-center gap-2'>
+                  <div className='col-span-12 flex flex-col justify-center gap-2 sm:col-span-7'>
                     {plantingProgress.stats.map((item, index) => (
                       <div
                         key={item.id}
@@ -1719,7 +1773,7 @@ const FieldPlanting = () => {
             Action Buttons
         =========================== */}
 
-        <div className='mt-6 rounded-xl border border-gray-200 bg-white shadow-sm'>
+        <div className={`rounded-xl border border-gray-200 bg-white shadow-sm ${editingId ? "mt-2" : "mt-6"}`}>
           <div className='flex flex-wrap items-center justify-center gap-3 p-5'>
             <button
               type='button'
@@ -1768,6 +1822,7 @@ const FieldPlanting = () => {
               Save & Print
             </button>
           </div>
+        </div>
         </div>
       </form>
       {/* ===========================
@@ -1881,7 +1936,7 @@ const FieldPlanting = () => {
                         {/* View */}
                         <button
                           type='button'
-                          onClick={() => setSelectedId(item.id)}
+                          onClick={() => startView(item.id)}
                           className='rounded p-1 text-sky-500 transition hover:bg-sky-50 hover:text-sky-600'
                           title='View'
                         >
@@ -1954,6 +2009,41 @@ const FieldPlanting = () => {
           </div>
         </div>
       </div>
+      {viewOpen && (
+        <div
+          className='fixed inset-0 z-[90] flex items-center justify-center bg-black/40 p-3'
+          onMouseDown={() => setViewOpen(false)}
+        >
+          <div
+            role='dialog'
+            aria-modal='true'
+            aria-label='Field planting details'
+            className='flex max-h-[90vh] w-full max-w-4xl flex-col rounded-xl bg-white shadow-xl'
+            onMouseDown={(event) => event.stopPropagation()}
+          >
+            <div className='flex items-center justify-between border-b border-gray-200 px-5 py-3'>
+              <h2 className='text-base font-semibold text-green-700'>Field Planting Details</h2>
+              <button type='button' onClick={() => setViewOpen(false)} aria-label='Close' className='rounded p-1 text-gray-500 hover:bg-gray-100'>
+                <X size={18} />
+              </button>
+            </div>
+            <div className='overflow-y-auto p-5'>
+              {shown?.id === selectedId ? (
+                <dl className='grid grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-2 lg:grid-cols-3'>
+                  {VIEW_FIELDS.map(([label, key, format]) => (
+                    <div key={label}>
+                      <dt className='text-xs text-gray-500'>{label}</dt>
+                      <dd className='text-sm font-medium text-gray-800'>{format ? format(shown[key]) : orDash(shown[key])}</dd>
+                    </div>
+                  ))}
+                </dl>
+              ) : (
+                <CardSkeleton />
+              )}
+            </div>
+          </div>
+        </div>
+      )}
       <ConfirmDialog
         open={Boolean(deleting)}
         title='Delete field planting?'

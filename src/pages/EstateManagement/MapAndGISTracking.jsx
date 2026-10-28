@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
 import EstateManagementTabs from "../../components/EstateManagement/EstateManagementTabs";
 import { useForm } from "react-hook-form";
@@ -10,6 +9,8 @@ import CardSkeleton from "../../components/common/CardSkeleton";
 import TableSkeleton from "../../components/common/TableSkeleton";
 import EmptyRow from "../../components/common/EmptyRow";
 import ErrorState from "../../components/common/ErrorState";
+import ConfirmDialog from "../../components/common/ConfirmDialog";
+import FieldFormModal from "../../components/EstateManagement/FieldFormModal";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
@@ -27,6 +28,7 @@ import {
   Eye,
   Pencil,
   Trash2,
+  X,
 } from "lucide-react";
 
 const summaryIconMap = {
@@ -98,7 +100,6 @@ const MapAndGISTracking = () => {
     watch,
     formState: { errors },
   } = useForm();
-  const navigate = useNavigate();
 
   // What the map and table show: the applied filters and page.
   const [applied, setApplied] = useState(null);
@@ -161,6 +162,95 @@ const MapAndGISTracking = () => {
   };
 
   const [mapType, setMapType] = React.useState("street");
+
+  // Row buttons: View opens a popup, Edit opens the field's edit popup, Delete asks first.
+  const [viewing, setViewing] = useState(null);
+  // Edit / Add open the Field / Block form as a popup on this page.
+  const [formField, setFormField] = useState(null);
+  const [formOpen, setFormOpen] = useState(false);
+  const openEdit = async (field) => {
+    try {
+      setFormField(await api.get(`/fields/${field.id}`));
+      setFormOpen(true);
+    } catch (error) {
+      toast.error(error.message);
+    }
+  };
+  const closeForm = () => {
+    setFormOpen(false);
+    setFormField(null);
+  };
+  const [deleting, setDeleting] = useState(null);
+  const [deleteBusy, setDeleteBusy] = useState(false);
+  const [exporting, setExporting] = useState(false);
+  useEffect(() => {
+    if (!viewing) return undefined;
+    const onKey = (event) => event.key === "Escape" && setViewing(null);
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [viewing]);
+  const confirmDelete = async () => {
+    setDeleteBusy(true);
+    try {
+      await api.del(`/fields/${deleting.id}`);
+      toast.success("Field / Block deleted successfully.");
+      setDeleting(null);
+      // Deleting the last row of a page goes back one page.
+      if (data.fieldList.length === 1 && page > 1) setPage(page - 1);
+      else result.reload();
+    } catch (error) {
+      toast.error(error.message);
+    } finally {
+      setDeleteBusy(false);
+    }
+  };
+  // Export: every field of the current filters as a CSV file.
+  const exportFields = async () => {
+    if (!applied) return;
+    setExporting(true);
+    try {
+      const rows = [];
+      for (let pageNo = 1; ; pageNo += 1) {
+        const part = await api.get("/map", { ...applied, page: pageNo, perPage: 100 });
+        rows.push(...part.fieldList);
+        if (pageNo >= (part.meta?.totalPages ?? 1)) break;
+      }
+      if (rows.length === 0) {
+        toast.error("There is nothing to export.");
+        return;
+      }
+      const cell = (value) => {
+        const text = String(value ?? "");
+        return /[",\n\r]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
+      };
+      const lines = [
+        mapAndGISTrackingData.tableHeaders.slice(1, -1),
+        ...rows.map((field) => [
+          field.fieldName,
+          field.code,
+          field.division,
+          field.section,
+          labelOfValue(FIELD_TYPE_VALUES, field.fieldType),
+          field.totalArea,
+          field.teaArea,
+          field.latitude,
+          field.longitude,
+          labelOfValue(STATUS_VALUES, field.status),
+        ]),
+      ];
+      const blob = new Blob(["\ufeff" + lines.map((line) => line.map(cell).join(",")).join("\r\n")], { type: "text/csv;charset=utf-8" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = `fields-gis-${new Date().toISOString().slice(0, 10)}.csv`;
+      link.click();
+      URL.revokeObjectURL(link.href);
+      toast.success(`${rows.length} ${rows.length === 1 ? "field" : "fields"} exported successfully!`);
+    } catch (error) {
+      toast.error(error.message);
+    } finally {
+      setExporting(false);
+    }
+  };
   return (
     <div>
       <EstateManagementTabs />
@@ -444,7 +534,7 @@ const MapAndGISTracking = () => {
               {/* =====================================================
                       MAP BODY
                   ====================================================== */}
-              <div className='relative h-[550px] w-full'>
+              <div className='relative isolate h-[550px] w-full'>
                 <MapContainer
                   key={mapInfo.estateId ?? "none"}
                   center={
@@ -924,7 +1014,14 @@ const MapAndGISTracking = () => {
                   <button
                     key={button.id}
                     type='button'
-                    onClick={() => button.color === "primary" && navigate("/field-or-block-management")}
+                    disabled={button.color !== "primary" && exporting}
+                    onClick={() => {
+                      if (button.color !== "primary") exportFields();
+                      else {
+                        setFormField(null);
+                        setFormOpen(true);
+                      }
+                    }}
                     className={`inline-flex cursor-pointer h-9 items-center gap-2 rounded-md px-4 text-sm font-medium transition ${
                       button.color === "primary"
                         ? "bg-green-700 text-white hover:bg-green-800"
@@ -932,7 +1029,7 @@ const MapAndGISTracking = () => {
                     }`}
                   >
                     <Icon size={16} />
-                    {button.label}
+                    {button.color !== "primary" && exporting ? "Exporting..." : button.label}
                   </button>
                 );
               })}
@@ -1025,7 +1122,8 @@ const MapAndGISTracking = () => {
                           <div className='flex items-center justify-center gap-2'>
                             <button
                               type='button'
-                              onClick={() => navigate("/field-or-block-management")}
+                              title='View'
+                              onClick={() => setViewing(field)}
                               className='flex h-8 w-8 items-center justify-center rounded-lg bg-blue-50 text-blue-600 transition hover:bg-blue-100'
                             >
                               <Eye size={16} />
@@ -1033,7 +1131,8 @@ const MapAndGISTracking = () => {
 
                             <button
                               type='button'
-                              onClick={() => navigate("/field-or-block-management")}
+                              title='Edit'
+                              onClick={() => openEdit(field)}
                               className='flex cursor-pointer h-8 w-8 items-center justify-center rounded-lg bg-amber-50 text-amber-600 transition hover:bg-amber-100'
                             >
                               <Pencil size={16} />
@@ -1041,7 +1140,8 @@ const MapAndGISTracking = () => {
 
                             <button
                               type='button'
-                              onClick={() => navigate("/field-or-block-management")}
+                              title='Delete'
+                              onClick={() => setDeleting(field)}
                               className='flex cursor-pointer h-8 w-8 items-center justify-center rounded-lg bg-red-50 text-red-600 transition hover:bg-red-100'
                             >
                               <Trash2 size={16} />
@@ -1111,6 +1211,61 @@ const MapAndGISTracking = () => {
           </div>
         </div>
       </div>
+      {viewing && (
+        <div className='fixed inset-0 z-[1000] flex items-center justify-center bg-black/40 p-3' onMouseDown={() => setViewing(null)}>
+          <div
+            role='dialog'
+            aria-modal='true'
+            aria-label='Field / Block details'
+            className='flex max-h-[90vh] w-full max-w-2xl flex-col rounded-xl bg-white shadow-xl'
+            onMouseDown={(event) => event.stopPropagation()}
+          >
+            <div className='flex items-center justify-between border-b border-gray-200 px-5 py-3'>
+              <h2 className='text-base font-semibold text-green-700'>Field / Block Details</h2>
+              <button type='button' onClick={() => setViewing(null)} aria-label='Close' className='rounded p-1 text-gray-500 hover:bg-gray-100'>
+                <X size={18} />
+              </button>
+            </div>
+            <dl className='grid grid-cols-1 gap-x-6 gap-y-3 overflow-y-auto p-5 sm:grid-cols-2'>
+              {[
+                ["Field / Block", viewing.fieldName],
+                ["Code", viewing.code],
+                ["Division", viewing.division],
+                ["Section", viewing.section],
+                ["Type", labelOfValue(FIELD_TYPE_VALUES, viewing.fieldType)],
+                ["Status", labelOfValue(STATUS_VALUES, viewing.status)],
+                ["Area (Acre)", viewing.totalArea],
+                ["Tea Area", viewing.teaArea],
+                ["Latitude", viewing.latitude == null ? "-" : Number(viewing.latitude).toFixed(5)],
+                ["Longitude", viewing.longitude == null ? "-" : Number(viewing.longitude).toFixed(5)],
+              ].map(([label, value]) => (
+                <div key={label}>
+                  <dt className='text-xs text-gray-500'>{label}</dt>
+                  <dd className='text-sm font-medium text-gray-800'>{value === null || value === undefined || value === "" ? "-" : value}</dd>
+                </div>
+              ))}
+            </dl>
+          </div>
+        </div>
+      )}
+      {formOpen && (
+        <FieldFormModal
+          editing={formField}
+          onClose={closeForm}
+          onSaved={() => {
+            closeForm();
+            result.reload();
+          }}
+        />
+      )}
+      <ConfirmDialog
+        open={Boolean(deleting)}
+        title='Delete field / block?'
+        message={`${deleting?.fieldName ?? ""} will be removed from the list.`}
+        loading={deleteBusy}
+        onConfirm={confirmDelete}
+        onCancel={() => setDeleting(null)}
+      />
     </div>
   );
 };
