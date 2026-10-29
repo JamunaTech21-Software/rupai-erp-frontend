@@ -1,10 +1,8 @@
 import React from "react";
 import { useSearchParams } from "react-router-dom";
-import PlantationManagementTabs from "../../components/plantationManagementTab/PlantationManagementTabs";
 import { replantingAndGapFillingData } from "../../data/PlantationManagementData/replantingAndGapFillingData";
 import { api } from "../../lib/api";
 import { useApi } from "../../lib/useApi";
-import CardSkeleton from "../../components/common/CardSkeleton";
 import ErrorState from "../../components/common/ErrorState";
 import {
   User,
@@ -867,9 +865,6 @@ const ReplantingAndGapFilling = () => {
   };
   return (
     <div className='space-y-6'>
-      <PlantationManagementTabs />
-
-      {loading && <CardSkeleton count={4} />}
       {failure && (
         <ErrorState
           message={failure.message}
@@ -884,9 +879,14 @@ const ReplantingAndGapFilling = () => {
           No replanting project yet
         </p>
       )}
-      {project && (
-        <p className='text-sm text-gray-600'>
-          Project: <span className='font-semibold text-green-800'>{project.projectCode}</span> {project.projectName}
+      {/* The line keeps its height before the project arrives, so the page does not move down when it does. */}
+      {(project || loading) && (
+        <p className='min-h-5 text-sm text-gray-600'>
+          {project && (
+            <>
+              Project: <span className='font-semibold text-green-800'>{project.projectCode}</span> {project.projectName}
+            </>
+          )}
         </p>
       )}
 

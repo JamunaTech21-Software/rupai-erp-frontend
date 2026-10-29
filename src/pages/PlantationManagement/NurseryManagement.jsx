@@ -2,11 +2,9 @@ import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import toast from "react-hot-toast";
-import PlantationManagementTabs from "../../components/plantationManagementTab/PlantationManagementTabs";
 import { nurseryManagementData } from "../../data/PlantationManagementData/nurseryManagementData";
 import { api } from "../../lib/api";
 import { useApi } from "../../lib/useApi";
-import CardSkeleton from "../../components/common/CardSkeleton";
 import TableSkeleton from "../../components/common/TableSkeleton";
 import EmptyRow from "../../components/common/EmptyRow";
 import ErrorState from "../../components/common/ErrorState";
@@ -139,7 +137,6 @@ const NurseryManagement = () => {
   };
   return (
     <div className='space-y-6'>
-      <PlantationManagementTabs />
 
       {/* Main Layout */}
       <div className='grid grid-cols-12 gap-6'>
@@ -566,16 +563,20 @@ const NurseryManagement = () => {
             </div>
 
             {/* Body */}
-            {(waiting || (summary.loading && !summary.data)) && <CardSkeleton count={6} className='p-4' />}
             {summary.error && <ErrorState message={summary.error.message} onRetry={summary.reload} />}
             <div className='grid grid-cols-1 gap-2 md:grid-cols-2 xl:grid-cols-3 p-4'>
+              {/* Same-size empty boxes while loading, so the cards arriving does not change the page height. */}
+              {(waiting || (summary.loading && !summary.data)) &&
+                Array.from({ length: 6 }, (_, i) => (
+                  <div key={i} className='h-[84px] rounded-lg border border-gray-200 bg-gray-50' />
+                ))}
               {(summary.data ?? []).map((item) => {
                 const Icon = summaryIconMap[item.icon];
 
                 return (
                   <div
                     key={item.id}
-                    className='flex items-center gap-3 rounded-lg border border-gray-200 bg-white p-4 transition-all duration-200 hover:border-green-300 hover:shadow-md'
+                    className='flex h-[84px] items-center gap-3 rounded-lg border border-gray-200 bg-white p-4 transition-all duration-200 hover:border-green-300 hover:shadow-md'
                   >
                     {/* Icon */}
                     <div className='rounded-lg bg-green-100 p-1'>
@@ -624,7 +625,8 @@ const NurseryManagement = () => {
               </button>
             </div>
 
-            <div className='overflow-x-auto border border-t-0 border-gray-200'>
+            {/* Every row (placeholder or real) is the same height and the box always holds 5 rows, so the list does not change size when its rows arrive. */}
+            <div className='min-h-[316px] overflow-x-auto border border-t-0 border-gray-200 [&_tbody_tr]:h-[57px]'>
               <table className='min-w-full border-collapse'>
                 <thead>
                   <tr className='bg-gray-50'>
@@ -641,7 +643,7 @@ const NurseryManagement = () => {
 
                 <tbody>
                   {waiting || (beds.loading && !beds.data) ? (
-                    <TableSkeleton rows={4} columns={nurseryManagementData.bedTableHeaders.length} />
+                    <TableSkeleton rows={5} columns={nurseryManagementData.bedTableHeaders.length} />
                   ) : beds.error ? (
                     <tr>
                       <td colSpan={nurseryManagementData.bedTableHeaders.length} className='p-4'>
@@ -857,7 +859,7 @@ const NurseryManagement = () => {
                 {/* Table Body */}
                 <tbody>
                   {waiting || (stock.loading && !stock.data) ? (
-                    <TableSkeleton rows={4} columns={nurseryManagementData.stockTableHeaders.length} />
+                    <TableSkeleton rows={5} columns={nurseryManagementData.stockTableHeaders.length} />
                   ) : stock.error ? (
                     <tr>
                       <td colSpan={nurseryManagementData.stockTableHeaders.length} className='p-4'>

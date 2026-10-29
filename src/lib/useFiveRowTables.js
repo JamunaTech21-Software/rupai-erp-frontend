@@ -30,6 +30,7 @@ export function useFiveRowTables(root) {
         const body = dataRows.slice(0, VISIBLE_ROWS).reduce((total, row) => total + row.offsetHeight, 0);
         box.style.maxHeight = `${head + body + 2}px`;
         box.style.overflowY = "auto";
+        box.style.scrollbarGutter = "stable";
         box.dataset.fiveRows = "1";
       }
     };
@@ -38,7 +39,8 @@ export function useFiveRowTables(root) {
     };
 
     // New rows arrive when a page loads or changes its data; widths change when the window is resized.
-    const observer = new MutationObserver(schedule);
+    // The observer callback runs before the browser paints, so the height is set without a visible jump.
+    const observer = new MutationObserver(fit);
     observer.observe(container, { childList: true, subtree: true });
     window.addEventListener("resize", schedule);
     schedule();

@@ -43,6 +43,11 @@ table tfoot td {
   max-height: 70vh;
   overflow: auto;
 }
+/* Table boxes always keep room for their scrollbar, so it appearing after the rows load never changes the table width or height. */
+.overflow-x-auto:has(> table),
+.overflow-auto:has(> table) {
+  scrollbar-gutter: stable;
+}
 
 @theme {
   --color-primary: #1b5e4b;
@@ -90,4 +95,21 @@ body {
   .dashboard-card {
     @apply cursor-pointer rounded-xl border border-slate-100 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:border-primary/20;
   }
+}
+
+/* A page that must stay still: no animations or transitions anywhere inside it (loading pulses, hover fades, shadows). */
+.no-motion *,
+.no-motion *::before,
+.no-motion *::after {
+  animation: none !important;
+  transition: none !important;
+}
+
+/* Nothing grows, shrinks or lifts when hovered: no scaling or sliding of cards, images, icons or text on any page. */
+[class*="hover:scale"],
+[class*="hover:-translate"],
+.dashboard-card {
+  scale: none !important;
+  translate: none !important;
+  transform: none !important;
 }

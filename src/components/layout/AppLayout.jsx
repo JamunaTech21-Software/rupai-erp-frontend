@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import Sidebar from "./Sidebar";
 import Header from "./Header";
@@ -11,9 +11,9 @@ export default function AppLayout() {
   const mainRef = useRef(null);
   useFiveRowTables(mainRef);
 
-  // Every page opens at the top: the page scrolls inside <main>, not the window.
+  // Every page opens at the top: the page scrolls inside <main>, not the window. This runs before the screen is painted, so the old scroll position is never seen.
   const { pathname } = useLocation();
-  useEffect(() => {
+  useLayoutEffect(() => {
     mainRef.current?.scrollTo({ top: 0, left: 0, behavior: "instant" });
   }, [pathname]);
 
@@ -45,7 +45,7 @@ export default function AppLayout() {
       <div className='flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden'>
         <Header onToggleSidebar={handleToggleSidebar} />
 
-        <main ref={mainRef} className='min-h-0 flex-1 space-y-3 overflow-x-hidden overflow-y-auto p-3 sm:space-y-4 sm:p-4 lg:p-4'>
+        <main ref={mainRef} className='[scrollbar-gutter:stable] [overflow-anchor:none] min-h-0 flex-1 space-y-3 overflow-x-hidden overflow-y-auto p-3 sm:space-y-4 sm:p-4 lg:p-4'>
           <Outlet />
         </main>
       </div>

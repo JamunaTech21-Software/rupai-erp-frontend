@@ -1,11 +1,9 @@
 import React, { useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import { useForm } from "react-hook-form";
-import PlantationManagementTabs from "../../components/plantationManagementTab/PlantationManagementTabs";
 import { bushRegisterData } from "../../data/PlantationManagementData/bushRegisterData";
 import { api } from "../../lib/api";
 import { useApi } from "../../lib/useApi";
-import CardSkeleton from "../../components/common/CardSkeleton";
 import TableSkeleton from "../../components/common/TableSkeleton";
 import EmptyRow from "../../components/common/EmptyRow";
 import ErrorState from "../../components/common/ErrorState";
@@ -410,8 +408,6 @@ const BushRegister = () => {
   };
   return (
     <div className='space-y-6'>
-      <PlantationManagementTabs />
-      {(waiting || (current && report.loading && !report.data)) && <CardSkeleton count={4} />}
       {failure && (
         <ErrorState
           message={failure.message}

@@ -2,7 +2,6 @@ import React, { useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
-import PlantationManagementTabs from "../../components/plantationManagementTab/PlantationManagementTabs";
 
 import { fieldPlantingData } from "../../data/PlantationManagementData/fieldPlantingData";
 import { api } from "../../lib/api";
@@ -303,7 +302,6 @@ const FieldPlanting = () => {
   return (
     <div className='space-y-6'>
       {/* Plantation Tabs */}
-      <PlantationManagementTabs tabs={fieldPlantingData.tabs} />
       {/* ===========================
           Field Planting Form
       =========================== */}
@@ -1774,7 +1772,6 @@ const FieldPlanting = () => {
 
               {/* Body */}
               <div className='space-y-4 p-4 sm:p-6'>
-                {record.loading && !record.data && activeId && <CardSkeleton count={2} />}
                 {record.error && <ErrorState message={record.error.message} onRetry={record.reload} />}
                 <div className='grid grid-cols-2 py-4 gap-5'>
                   {quickSummary.map((item, index) => {

@@ -4,7 +4,6 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { MapContainer, TileLayer, Polygon } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
-import PlantationManagementTabs from "../../components/plantationManagementTab/PlantationManagementTabs";
 import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
 import {
   ComposedChart,
@@ -29,7 +28,6 @@ import {
 import { api } from "../../lib/api";
 import { useApi } from "../../lib/useApi";
 import ConfirmDialog from "../../components/common/ConfirmDialog";
-import CardSkeleton from "../../components/common/CardSkeleton";
 import TableSkeleton from "../../components/common/TableSkeleton";
 import EmptyRow from "../../components/common/EmptyRow";
 import ErrorState from "../../components/common/ErrorState";
@@ -385,8 +383,6 @@ const PlantCensus = () => {
   const failure = first.error ?? record.error ?? report.error;
   return (
     <div>
-      <PlantationManagementTabs />
-      {(waiting || (shownId && report.loading && !report.data)) && <CardSkeleton count={4} />}
       {failure && (
         <ErrorState
           message={failure.message}

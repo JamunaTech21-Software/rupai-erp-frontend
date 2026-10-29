@@ -2,54 +2,58 @@ import { lazy, Suspense } from "react";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import AppLayout from "./components/layout/AppLayout";
 import RequireAuth from "./components/layout/RequireAuth";
+import PlantationLayout from "./components/plantationManagementTab/PlantationLayout";
 import Login from "./pages/Login";
 
-const Dashboard = lazy(() => import("./pages/Dashboard"));
-const UserManagement = lazy(() => import("./pages/UserAdministration/UserManagement"));
-const EstateProfile = lazy(() => import("./pages/EstateManagement/EstateProfile"));
-const DivisionAndSection = lazy(() => import("./pages/EstateManagement/DivisionAndSection"));
-const MapAndGISTracking = lazy(() => import("./pages/EstateManagement/MapAndGISTracking"));
-const LandAndLeaseManagement = lazy(() => import("./pages/EstateManagement/LandAndLeaseManagement"));
-const FieldOrBlockManagement = lazy(() => import("./pages/EstateManagement/FieldOrBlockManagement"));
-const NurseryManagement = lazy(() => import("./pages/PlantationManagement/NurseryManagement"));
-const ReplantingAndGapFilling = lazy(() => import("./pages/PlantationManagement/ReplantingAndGapFilling"));
-const PlantCensus = lazy(() => import("./pages/PlantationManagement/PlantCensus"));
-const BushRegister = lazy(() => import("./pages/PlantationManagement/BushRegister"));
-const FieldPlanting = lazy(() => import("./pages/PlantationManagement/FieldPlanting"));
-const NotFound = lazy(() => import("./components/404Page/NotFound"));
-const AddNewContractor = lazy(() => import("./pages/HrAndWorkforcedManagement/AddNewContractor"));
-const AddNewEmployee = lazy(() => import("./pages/HrAndWorkforcedManagement/AddNewEmployee"));
-const AddNewWorker = lazy(() => import("./pages/HrAndWorkforcedManagement/AddNewWorker"));
-const AttendenceAndFaceRecognition = lazy(() => import("./pages/HrAndWorkforcedManagement/AttendenceAndFaceRecognition"));
-const ContractorManagement = lazy(() => import("./pages/HrAndWorkforcedManagement/ContractorManagement"));
-const WorkerManagement = lazy(() => import("./pages/HrAndWorkforcedManagement/WorkerManagement"));
-const LabourAllocation = lazy(() => import("./pages/HrAndWorkforcedManagement/LabourAllocation"));
-const LabourAllocationEntry = lazy(() => import("./pages/HrAndWorkforcedManagement/LabourAllocationEntry"));
-const ShiftAndDutyRosterEntryProcess = lazy(() => import("./pages/HrAndWorkforcedManagement/ShiftAndDutyRosterEntryProcess"));
-const ShiftAndDutyRoster = lazy(() => import("./pages/HrAndWorkforcedManagement/ShiftAndDutyRoster"));
-const EmployeeManagement = lazy(() => import("./pages/HrAndWorkforcedManagement/EmployeeManagement"));
-const ProductionEntry = lazy(() => import("./pages/FactoryAndManufacturing/ProductionEntry"));
-const MasterDataDashboard = lazy(() => import("./pages/MasterData/MasterDataDashboard"));
-const Season = lazy(() => import("./pages/MasterData/Season"));
-const TeaGrade = lazy(() => import("./pages/MasterData/TeaGrade"));
-const AuctionCenters = lazy(() => import("./pages/MasterData/AuctionCenters"));
-const TeaWarehouse = lazy(() => import("./pages/MasterData/TeaWarehouse"));
-const AuctionSchedule = lazy(() => import("./pages/MasterData/AuctionSchedule"));
-const BrokerSalePositionSetup = lazy(() => import("./pages/MasterData/BrokerSalePositionSetup"));
-const AddNewBroker = lazy(() => import("./pages/MasterData/AddNewBroker"));
-const TeaType = lazy(() => import("./pages/MasterData/TeaType"));
-const BuyerSetup = lazy(() => import("./pages/MasterData/BuyerSetup"));
+// Every page is its own chunk. They are all fetched shortly after start-up, so opening a page never waits for its code and never flashes a spinner first.
+const loaders = [];
+function lazyPage(load) {
+  loaders.push(load);
+  return lazy(load);
+}
 
-// Shown while a page's code is loading.
+const Dashboard = lazyPage(() => import("./pages/Dashboard"));
+const UserManagement = lazyPage(() => import("./pages/UserAdministration/UserManagement"));
+const EstateProfile = lazyPage(() => import("./pages/EstateManagement/EstateProfile"));
+const DivisionAndSection = lazyPage(() => import("./pages/EstateManagement/DivisionAndSection"));
+const MapAndGISTracking = lazyPage(() => import("./pages/EstateManagement/MapAndGISTracking"));
+const LandAndLeaseManagement = lazyPage(() => import("./pages/EstateManagement/LandAndLeaseManagement"));
+const FieldOrBlockManagement = lazyPage(() => import("./pages/EstateManagement/FieldOrBlockManagement"));
+const NurseryManagement = lazyPage(() => import("./pages/PlantationManagement/NurseryManagement"));
+const ReplantingAndGapFilling = lazyPage(() => import("./pages/PlantationManagement/ReplantingAndGapFilling"));
+const PlantCensus = lazyPage(() => import("./pages/PlantationManagement/PlantCensus"));
+const BushRegister = lazyPage(() => import("./pages/PlantationManagement/BushRegister"));
+const FieldPlanting = lazyPage(() => import("./pages/PlantationManagement/FieldPlanting"));
+const NotFound = lazyPage(() => import("./components/404Page/NotFound"));
+const AddNewContractor = lazyPage(() => import("./pages/HrAndWorkforcedManagement/AddNewContractor"));
+const AddNewEmployee = lazyPage(() => import("./pages/HrAndWorkforcedManagement/AddNewEmployee"));
+const AddNewWorker = lazyPage(() => import("./pages/HrAndWorkforcedManagement/AddNewWorker"));
+const AttendenceAndFaceRecognition = lazyPage(() => import("./pages/HrAndWorkforcedManagement/AttendenceAndFaceRecognition"));
+const ContractorManagement = lazyPage(() => import("./pages/HrAndWorkforcedManagement/ContractorManagement"));
+const WorkerManagement = lazyPage(() => import("./pages/HrAndWorkforcedManagement/WorkerManagement"));
+const LabourAllocation = lazyPage(() => import("./pages/HrAndWorkforcedManagement/LabourAllocation"));
+const LabourAllocationEntry = lazyPage(() => import("./pages/HrAndWorkforcedManagement/LabourAllocationEntry"));
+const ShiftAndDutyRosterEntryProcess = lazyPage(() => import("./pages/HrAndWorkforcedManagement/ShiftAndDutyRosterEntryProcess"));
+const ShiftAndDutyRoster = lazyPage(() => import("./pages/HrAndWorkforcedManagement/ShiftAndDutyRoster"));
+const EmployeeManagement = lazyPage(() => import("./pages/HrAndWorkforcedManagement/EmployeeManagement"));
+const ProductionEntry = lazyPage(() => import("./pages/FactoryAndManufacturing/ProductionEntry"));
+const MasterDataDashboard = lazyPage(() => import("./pages/MasterData/MasterDataDashboard"));
+const Season = lazyPage(() => import("./pages/MasterData/Season"));
+const TeaGrade = lazyPage(() => import("./pages/MasterData/TeaGrade"));
+const AuctionCenters = lazyPage(() => import("./pages/MasterData/AuctionCenters"));
+const TeaWarehouse = lazyPage(() => import("./pages/MasterData/TeaWarehouse"));
+const AuctionSchedule = lazyPage(() => import("./pages/MasterData/AuctionSchedule"));
+const BrokerSalePositionSetup = lazyPage(() => import("./pages/MasterData/BrokerSalePositionSetup"));
+const AddNewBroker = lazyPage(() => import("./pages/MasterData/AddNewBroker"));
+const TeaType = lazyPage(() => import("./pages/MasterData/TeaType"));
+const BuyerSetup = lazyPage(() => import("./pages/MasterData/BuyerSetup"));
+
+setTimeout(() => loaders.forEach((load) => load().catch(() => {})), 500);
+
+// Nothing is shown while a page's code loads (no spinner), so the screen does not flash.
 function Page({ children }) {
   return (
-    <Suspense
-      fallback={
-        <div className='flex h-64 items-center justify-center' role='status' aria-label='Loading'>
-          <div className='h-8 w-8 animate-spin rounded-full border-4 border-primary-muted border-t-primary' />
-        </div>
-      }
-    >
+    <Suspense fallback={null}>
       {children}
     </Suspense>
   );
@@ -109,41 +113,46 @@ const router = createBrowserRouter([
         },
       },
 
-      // Plantation Management
+      // Plantation Management: one shared tab bar above all five pages
       {
-        path: "nursery-management",
-        element: <Page><NurseryManagement /></Page>,
-        handle: {
-          title: "Nursery Management",
+        element: <PlantationLayout />,
+        children: [
+        {
+          path: "nursery-management",
+          element: <Page><NurseryManagement /></Page>,
+          handle: {
+            title: "Nursery Management",
+          },
         },
-      },
-      {
-        path: "field-planting",
-        element: <Page><FieldPlanting /></Page>,
-        handle: {
-          title: "Field Planting",
+        {
+          path: "field-planting",
+          element: <Page><FieldPlanting /></Page>,
+          handle: {
+            title: "Field Planting",
+          },
         },
-      },
-      {
-        path: "replanting-&-gap-filling",
-        element: <Page><ReplantingAndGapFilling /></Page>,
-        handle: {
-          title: "Replanting & Gap Filling",
+        {
+          path: "replanting-&-gap-filling",
+          element: <Page><ReplantingAndGapFilling /></Page>,
+          handle: {
+            title: "Replanting & Gap Filling",
+          },
         },
-      },
-      {
-        path: "plant-census",
-        element: <Page><PlantCensus /></Page>,
-        handle: {
-          title: "Plant Census",
+        {
+          path: "plant-census",
+          element: <Page><PlantCensus /></Page>,
+          handle: {
+            title: "Plant Census",
+          },
         },
-      },
-      {
-        path: "bush-register",
-        element: <Page><BushRegister /></Page>,
-        handle: {
-          title: "Bush register",
+        {
+          path: "bush-register",
+          element: <Page><BushRegister /></Page>,
+          handle: {
+            title: "Bush register",
+          },
         },
+        ],
       },
 
       // HR AND WORKFORCE MANAGEMENT
