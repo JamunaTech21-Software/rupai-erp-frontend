@@ -1,7 +1,9 @@
 // One place for every backend call. Pages use `api.get/post/put/del/upload` only.
 // The API address comes from VITE_API_URL (set in .env locally, in the Vercel project settings when deployed).
 // Only `npm run dev` falls back to the local Docker backend; a production build without it fails loudly.
-const BASE_URL = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? "http://localhost:4100/api/v1" : "");
+const RAW_URL = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? "http://localhost:4100/api/v1" : "");
+// VITE_API_URL may be given with or without the /api/v1 part and with or without a trailing slash.
+const BASE_URL = RAW_URL ? `${RAW_URL.replace(/\/+$/, "").replace(/\/api\/v1$/, "")}/api/v1` : "";
 if (!BASE_URL) {
   console.error("VITE_API_URL is not set: add it in the Vercel project settings (Environment Variables) and redeploy.");
 }
