@@ -11,6 +11,7 @@ import {
   FiLock,
 } from "react-icons/fi";
 import { MdOutlineAlternateEmail } from "react-icons/md";
+import Select from "../common/Select";
 
 const AddUserForm = () => {
   const {
@@ -213,7 +214,7 @@ const AddUserForm = () => {
                 Status <span className='text-red-500'>*</span>
               </label>
 
-              <select
+              <Select
                 {...register("status", {
                   required: "Please select a status",
                 })}
@@ -223,7 +224,7 @@ const AddUserForm = () => {
                 <option value='Active'>Active</option>
                 <option value='Inactive'>Inactive</option>
                 <option value='Suspended'>Suspended</option>
-              </select>
+              </Select>
 
               {errors.status && (
                 <p className='mt-1 text-sm text-red-500'>
@@ -247,7 +248,7 @@ const AddUserForm = () => {
                 Role <span className='text-red-500'>*</span>
               </label>
 
-              <select
+              <Select
                 {...register("role", {
                   required: "Please select a role",
                 })}
@@ -263,7 +264,7 @@ const AddUserForm = () => {
                 <option value='System Administrator'>
                   System Administrator
                 </option>
-              </select>
+              </Select>
 
               {errors.role && (
                 <p className='mt-1 text-sm text-red-500'>
@@ -277,7 +278,7 @@ const AddUserForm = () => {
                 Department <span className='text-red-500'>*</span>
               </label>
 
-              <select
+              <Select
                 {...register("department", {
                   required: "Please select a department",
                 })}
@@ -291,7 +292,7 @@ const AddUserForm = () => {
                 <option value='Accounts & Finance'>Accounts & Finance</option>
                 <option value='Security'>Security</option>
                 <option value='IT Support'>IT Support</option>
-              </select>
+              </Select>
 
               {errors.department && (
                 <p className='mt-1 text-sm text-red-500'>
@@ -475,7 +476,7 @@ const AddUserForm = () => {
                   Login Access <span className='text-red-500'>*</span>
                 </label>
 
-                <select
+                <Select
                   {...register("loginAccess", {
                     required: "Please select login access",
                   })}
@@ -486,7 +487,7 @@ const AddUserForm = () => {
                   <option value='Limited Access'>Limited Access</option>
                   <option value='Read Only'>Read Only</option>
                   <option value='No Login Access'>No Login Access</option>
-                </select>
+                </Select>
 
                 {errors.loginAccess && (
                   <p className='mt-1 text-sm text-red-500'>
@@ -511,7 +512,7 @@ const AddUserForm = () => {
                 Permission Level <span className='text-red-500'>*</span>
               </label>
 
-              <select
+              <Select
                 {...register("permissionLevel", {
                   required: "Please select permission level",
                 })}
@@ -522,7 +523,7 @@ const AddUserForm = () => {
                 <option value='Manager'>Manager</option>
                 <option value='Supervisor'>Supervisor</option>
                 <option value='Employee'>Employee</option>
-              </select>
+              </Select>
 
               <p className='mt-2 text-xs text-gray-500'>
                 Choose a role to load permission automatically.

@@ -48,6 +48,7 @@ const informationIconMap = {
   approvalProcess: ShieldCheck,
 };
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
+import Select from "../../components/common/Select";
 const LabourAllocation = () => {
   // =========================================================
   // REACT HOOK FORM
@@ -191,7 +192,7 @@ const LabourAllocation = () => {
                     )}
 
                     {field.type === "select" && (
-                      <select
+                      <Select
                         {...register(field.name)}
                         className='h-9 w-full rounded-lg border border-gray-200 bg-white px-3 text-sm text-gray-700 outline-none transition focus:border-green-700'
                       >
@@ -202,7 +203,7 @@ const LabourAllocation = () => {
                             {option.label}
                           </option>
                         ))}
-                      </select>
+                      </Select>
                     )}
 
                     {field.type === "search" && (
@@ -382,7 +383,7 @@ const LabourAllocation = () => {
 
                         {/* SELECT */}
                         {field.type === "select" && (
-                          <select
+                          <Select
                             {...register(field.name, {
                               required: field.required
                                 ? `${field.label} is required`
@@ -397,7 +398,7 @@ const LabourAllocation = () => {
                                 {option.label}
                               </option>
                             ))}
-                          </select>
+                          </Select>
                         )}
 
                         {/* DATE */}

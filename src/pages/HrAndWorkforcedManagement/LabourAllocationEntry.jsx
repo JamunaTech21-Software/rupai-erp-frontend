@@ -20,6 +20,7 @@ import {
   ShieldCheck,
   RotateCcw,
 } from "lucide-react";
+import Select from "../../components/common/Select";
 
 const actionIconMap = {
   arrowLeft: ArrowLeft,
@@ -128,7 +129,7 @@ const LabourAllocationEntry = () => {
 
                       {/* SELECT */}
                       {field.type === "select" && (
-                        <select
+                        <Select
                           {...register(field.name, {
                             required: field.required
                               ? `${field.label} is required`
@@ -143,7 +144,7 @@ const LabourAllocationEntry = () => {
                               {option.label}
                             </option>
                           ))}
-                        </select>
+                        </Select>
                       )}
                     </div>
                   ),
@@ -184,7 +185,7 @@ const LabourAllocationEntry = () => {
 
                         {/* SELECT */}
                         {field.type === "select" && (
-                          <select
+                          <Select
                             {...register(field.name, {
                               required: field.required
                                 ? `${field.label} is required`
@@ -199,7 +200,7 @@ const LabourAllocationEntry = () => {
                                 {option.label}
                               </option>
                             ))}
-                          </select>
+                          </Select>
                         )}
 
                         {/* NUMBER */}
@@ -258,7 +259,7 @@ const LabourAllocationEntry = () => {
                           )}
                         </label>
 
-                        <select
+                        <Select
                           {...register(field.name, {
                             required: field.required
                               ? `${field.label} is required`
@@ -273,7 +274,7 @@ const LabourAllocationEntry = () => {
                               {option.label}
                             </option>
                           ))}
-                        </select>
+                        </Select>
                       </div>
                     ),
                   )}
@@ -382,7 +383,7 @@ const LabourAllocationEntry = () => {
                 {labourAllocationEntryData.selectWorkers.filters.map(
                   (filter) => (
                     <div key={filter.id}>
-                      <select
+                      <Select
                         {...register(filter.name)}
                         className='h-9 w-full rounded-lg border border-gray-200 bg-white px-3 text-xs text-gray-700 outline-none transition focus:border-green-700'
                       >
@@ -393,7 +394,7 @@ const LabourAllocationEntry = () => {
                             {option.label}
                           </option>
                         ))}
-                      </select>
+                      </Select>
                     </div>
                   ),
                 )}
@@ -554,7 +555,7 @@ const LabourAllocationEntry = () => {
 
                     {/* SELECT */}
                     {field.type === "select" && (
-                      <select
+                      <Select
                         {...register(field.name, {
                           required: field.required
                             ? `${field.label} is required`
@@ -569,7 +570,7 @@ const LabourAllocationEntry = () => {
                             {option.label}
                           </option>
                         ))}
-                      </select>
+                      </Select>
                     )}
 
                     {/* TIME */}
@@ -695,7 +696,7 @@ const LabourAllocationEntry = () => {
 
                     {/* SELECT */}
                     {field.type === "select" && (
-                      <select
+                      <Select
                         {...register(field.name, {
                           required: field.required
                             ? `${field.label} is required`
@@ -711,7 +712,7 @@ const LabourAllocationEntry = () => {
                             {option.label}
                           </option>
                         ))}
-                      </select>
+                      </Select>
                     )}
 
                     {/* NUMBER */}
@@ -767,7 +768,7 @@ const LabourAllocationEntry = () => {
 
                   {/* SELECT */}
                   {field.type === "select" && (
-                    <select
+                    <Select
                       {...register(field.name, {
                         required: field.required
                           ? `${field.label} is required`
@@ -783,7 +784,7 @@ const LabourAllocationEntry = () => {
                           {option.label}
                         </option>
                       ))}
-                    </select>
+                    </Select>
                   )}
 
                   {/* TEXTAREA */}
@@ -839,7 +840,7 @@ const LabourAllocationEntry = () => {
 
                   {/* SELECT */}
                   {field.type === "select" && (
-                    <select
+                    <Select
                       {...register(field.name, {
                         required: field.required
                           ? `${field.label} is required`
@@ -855,7 +856,7 @@ const LabourAllocationEntry = () => {
                           {option.label}
                         </option>
                       ))}
-                    </select>
+                    </Select>
                   )}
 
                   {/* DATE */}

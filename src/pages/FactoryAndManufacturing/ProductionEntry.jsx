@@ -21,6 +21,7 @@ import {
   X,
   Trash2,
 } from "lucide-react";
+import Select from "../../components/common/Select";
 
 const ProductionEntry = () => {
   // =========================================================
@@ -272,7 +273,7 @@ const ProductionEntry = () => {
               </label>
 
               <div className='relative'>
-                <select
+                <Select
                   defaultValue={productionInformation.factory.id}
                   {...register("factoryId", {
                     required: "Factory / Unit is required",
@@ -294,7 +295,7 @@ const ProductionEntry = () => {
                       {factory.name}
                     </option>
                   ))}
-                </select>
+                </Select>
 
                 <ChevronDown className='pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500' />
               </div>
@@ -316,7 +317,7 @@ const ProductionEntry = () => {
               </label>
 
               <div className='relative'>
-                <select
+                <Select
                   defaultValue={productionInformation.productionLine.id}
                   {...register("productionLineId")}
                   className='h-10 w-full appearance-none rounded-md border border-slate-300 bg-white px-3 pr-10 text-sm text-slate-700 outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600'
@@ -332,7 +333,7 @@ const ProductionEntry = () => {
                       {line.name}
                     </option>
                   ))}
-                </select>
+                </Select>
 
                 <ChevronDown className='pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500' />
               </div>
@@ -348,7 +349,7 @@ const ProductionEntry = () => {
               </label>
 
               <div className='relative'>
-                <select
+                <Select
                   defaultValue={productionInformation.shift.id}
                   {...register("shiftId", {
                     required: "Shift is required",
@@ -366,7 +367,7 @@ const ProductionEntry = () => {
                       {shift.name}
                     </option>
                   ))}
-                </select>
+                </Select>
 
                 <ChevronDown className='pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500' />
               </div>
@@ -388,7 +389,7 @@ const ProductionEntry = () => {
               </label>
 
               <div className='relative'>
-                <select
+                <Select
                   defaultValue={productionInformation.productionType.id}
                   {...register("productionTypeId", {
                     required: "Production type is required",
@@ -406,7 +407,7 @@ const ProductionEntry = () => {
                       {type.name}
                     </option>
                   ))}
-                </select>
+                </Select>
 
                 <ChevronDown className='pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500' />
               </div>
@@ -446,7 +447,7 @@ const ProductionEntry = () => {
               </label>
 
               <div className='relative'>
-                <select
+                <Select
                   defaultValue={productionInformation.supervisor.id}
                   {...register("supervisorId", {
                     required: "Supervisor is required",
@@ -464,7 +465,7 @@ const ProductionEntry = () => {
                       {supervisor.name}
                     </option>
                   ))}
-                </select>
+                </Select>
 
                 <ChevronDown className='pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500' />
               </div>
@@ -1261,7 +1262,7 @@ const ProductionEntry = () => {
                     Item / Product <span className='text-red-500'>*</span>
                   </label>
 
-                  <select
+                  <Select
                     {...register("productId", {
                       required: "Product is required",
                     })}
@@ -1274,7 +1275,7 @@ const ProductionEntry = () => {
                         {product.name}
                       </option>
                     ))}
-                  </select>
+                  </Select>
                 </div>
 
                 {/* =================================================
@@ -1285,7 +1286,7 @@ const ProductionEntry = () => {
                     Grade <span className='text-red-500'>*</span>
                   </label>
 
-                  <select
+                  <Select
                     {...register("gradeId", {
                       required: "Grade is required",
                     })}
@@ -1298,7 +1299,7 @@ const ProductionEntry = () => {
                         {grade.name}
                       </option>
                     ))}
-                  </select>
+                  </Select>
                 </div>
 
                 {/* =================================================
@@ -1309,7 +1310,7 @@ const ProductionEntry = () => {
                     UOM <span className='text-red-500'>*</span>
                   </label>
 
-                  <select
+                  <Select
                     {...register("uomId", {
                       required: "UOM is required",
                     })}
@@ -1322,7 +1323,7 @@ const ProductionEntry = () => {
                         {uom.name}
                       </option>
                     ))}
-                  </select>
+                  </Select>
                 </div>
 
                 {/* =================================================
@@ -1333,7 +1334,7 @@ const ProductionEntry = () => {
                     Raw Material Used <span className='text-red-500'>*</span>
                   </label>
 
-                  <select
+                  <Select
                     {...register("rawMaterialId", {
                       required: "Raw material is required",
                     })}
@@ -1346,7 +1347,7 @@ const ProductionEntry = () => {
                         {material.name}
                       </option>
                     ))}
-                  </select>
+                  </Select>
                 </div>
 
                 {/* =================================================
@@ -1504,7 +1505,7 @@ const ProductionEntry = () => {
                     <span className='ml-1 text-red-500'>*</span>
                   </label>
 
-                  <select
+                  <Select
                     {...registerRawMaterial("rawMaterial", {
                       required: "Raw material is required",
                     })}
@@ -1522,7 +1523,7 @@ const ProductionEntry = () => {
                         {material.name}
                       </option>
                     ))}
-                  </select>
+                  </Select>
 
                   {rawMaterialErrors.rawMaterial && (
                     <p className='mt-1 text-xs text-red-500'>
@@ -1540,7 +1541,7 @@ const ProductionEntry = () => {
                     <span className='ml-1 text-red-500'>*</span>
                   </label>
 
-                  <select
+                  <Select
                     {...registerRawMaterial("sourceGarden", {
                       required: "Source garden is required",
                     })}
@@ -1558,7 +1559,7 @@ const ProductionEntry = () => {
                         {garden.name}
                       </option>
                     ))}
-                  </select>
+                  </Select>
 
                   {rawMaterialErrors.sourceGarden && (
                     <p className='mt-1 text-xs text-red-500'>
@@ -1576,7 +1577,7 @@ const ProductionEntry = () => {
                     <span className='ml-1 text-red-500'>*</span>
                   </label>
 
-                  <select
+                  <Select
                     {...registerRawMaterial("uom", {
                       required: "Unit is required",
                     })}
@@ -1594,7 +1595,7 @@ const ProductionEntry = () => {
                         {uom.name}
                       </option>
                     ))}
-                  </select>
+                  </Select>
 
                   {rawMaterialErrors.uom && (
                     <p className='mt-1 text-xs text-red-500'>

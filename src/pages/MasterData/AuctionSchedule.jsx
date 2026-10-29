@@ -15,6 +15,7 @@ import {
 
 import MasterDataTabs from "./MasterDataTabs";
 import { auctionScheduleData } from "../../data/MasterData/auctionSheduleData";
+import Select from "../../components/common/Select";
 const AuctionSchedule = () => {
   // =========================================================
   // DATA
@@ -433,7 +434,7 @@ const AuctionSchedule = () => {
             </label>
 
             <div className='relative'>
-              <select
+              <Select
                 value={selectedFilters.seasonId}
                 onChange={(e) => handleFilterChange("seasonId", e.target.value)}
                 className='h-10 w-full appearance-none rounded-md border border-slate-300 bg-white px-3 pr-9 text-sm text-slate-700 outline-none focus:border-emerald-600'
@@ -443,7 +444,7 @@ const AuctionSchedule = () => {
                     {season.name}
                   </option>
                 ))}
-              </select>
+              </Select>
 
               <ChevronDown className='pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500' />
             </div>
@@ -457,7 +458,7 @@ const AuctionSchedule = () => {
             </label>
 
             <div className='relative'>
-              <select
+              <Select
                 value={selectedFilters.auctionCenterId}
                 onChange={(e) =>
                   handleFilterChange("auctionCenterId", e.target.value)
@@ -469,7 +470,7 @@ const AuctionSchedule = () => {
                     {center.name}
                   </option>
                 ))}
-              </select>
+              </Select>
 
               <ChevronDown className='pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500' />
             </div>
@@ -483,7 +484,7 @@ const AuctionSchedule = () => {
             </label>
 
             <div className='relative'>
-              <select
+              <Select
                 value={selectedFilters.yearId}
                 onChange={(e) => handleFilterChange("yearId", e.target.value)}
                 className='h-10 w-full appearance-none rounded-md border border-slate-300 bg-white px-3 pr-9 text-sm text-slate-700 outline-none focus:border-emerald-600'
@@ -493,7 +494,7 @@ const AuctionSchedule = () => {
                     {year.name}
                   </option>
                 ))}
-              </select>
+              </Select>
 
               <ChevronDown className='pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500' />
             </div>
@@ -507,7 +508,7 @@ const AuctionSchedule = () => {
             </label>
 
             <div className='relative'>
-              <select
+              <Select
                 value={selectedFilters.status}
                 onChange={(e) => handleFilterChange("status", e.target.value)}
                 className='h-10 w-full appearance-none rounded-md border border-slate-300 bg-white px-3 pr-9 text-sm text-slate-700 outline-none focus:border-emerald-600'
@@ -520,7 +521,7 @@ const AuctionSchedule = () => {
                     {status.name}
                   </option>
                 ))}
-              </select>
+              </Select>
 
               <ChevronDown className='pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500' />
             </div>
@@ -729,7 +730,7 @@ const AuctionSchedule = () => {
             </button>
 
             <div className='relative ml-1'>
-              <select
+              <Select
                 value={perPage}
                 onChange={(e) => handlePerPageChange(e.target.value)}
                 className='h-8 appearance-none rounded-md border border-slate-200 bg-white px-3 pr-7 text-xs text-slate-600 outline-none'
@@ -739,7 +740,7 @@ const AuctionSchedule = () => {
                     {option} / page
                   </option>
                 ))}
-              </select>
+              </Select>
 
               <ChevronDown className='pointer-events-none absolute right-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400' />
             </div>
@@ -835,7 +836,7 @@ const AuctionSchedule = () => {
                     <span className='text-red-500'> *</span>
                   </label>
 
-                  <select
+                  <Select
                     {...register("seasonId", {
                       required: "Season is required",
                     })}
@@ -848,7 +849,7 @@ const AuctionSchedule = () => {
                         {season.name}
                       </option>
                     ))}
-                  </select>
+                  </Select>
 
                   {errors.seasonId && (
                     <p className='mt-1 text-xs text-red-500'>
@@ -865,7 +866,7 @@ const AuctionSchedule = () => {
                     <span className='text-red-500'> *</span>
                   </label>
 
-                  <select
+                  <Select
                     {...register("auctionCenterId", {
                       required: "Auction center is required",
                     })}
@@ -878,7 +879,7 @@ const AuctionSchedule = () => {
                         {center.name}
                       </option>
                     ))}
-                  </select>
+                  </Select>
 
                   {errors.auctionCenterId && (
                     <p className='mt-1 text-xs text-red-500'>
@@ -895,7 +896,7 @@ const AuctionSchedule = () => {
                     <span className='text-red-500'> *</span>
                   </label>
 
-                  <select
+                  <Select
                     {...register("yearId", {
                       required: "Year is required",
                     })}
@@ -908,7 +909,7 @@ const AuctionSchedule = () => {
                         {year.name}
                       </option>
                     ))}
-                  </select>
+                  </Select>
 
                   {errors.yearId && (
                     <p className='mt-1 text-xs text-red-500'>
@@ -925,7 +926,7 @@ const AuctionSchedule = () => {
                     <span className='text-red-500'> *</span>
                   </label>
 
-                  <select
+                  <Select
                     {...register("status", {
                       required: "Status is required",
                     })}
@@ -938,7 +939,7 @@ const AuctionSchedule = () => {
                           {status.name}
                         </option>
                       ))}
-                  </select>
+                  </Select>
 
                   {errors.status && (
                     <p className='mt-1 text-xs text-red-500'>

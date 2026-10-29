@@ -13,6 +13,7 @@ import {
 import MasterDataTabs from "./MasterDataTabs";
 
 import { buyerSetupData } from "../../data/MasterData/buyerSetupData";
+import Select from "../../components/common/Select";
 
 const BuyerSetup = () => {
   // =======================================================
@@ -325,7 +326,7 @@ const BuyerSetup = () => {
                   Buyer Type <span className='text-red-500'>*</span>
                 </label>
 
-                <select
+                <Select
                   className={inputClass("buyerType")}
                   {...register("buyerType", {
                     required: "Buyer type is required",
@@ -338,7 +339,7 @@ const BuyerSetup = () => {
                       {option.label}
                     </option>
                   ))}
-                </select>
+                </Select>
 
                 {errors.buyerType && (
                   <p className='mt-1 text-xs text-red-500'>
@@ -354,7 +355,7 @@ const BuyerSetup = () => {
                   Trading Type <span className='text-red-500'>*</span>
                 </label>
 
-                <select
+                <Select
                   className={inputClass("tradingType")}
                   {...register("tradingType", {
                     required: "Trading type is required",
@@ -367,7 +368,7 @@ const BuyerSetup = () => {
                       {option.label}
                     </option>
                   ))}
-                </select>
+                </Select>
 
                 {errors.tradingType && (
                   <p className='mt-1 text-xs text-red-500'>
@@ -386,7 +387,7 @@ const BuyerSetup = () => {
                 Country <span className='text-red-500'>*</span>
               </label>
 
-              <select
+              <Select
                 className={inputClass("country")}
                 {...register("country", {
                   required: "Country is required",
@@ -399,7 +400,7 @@ const BuyerSetup = () => {
                     {option.label}
                   </option>
                 ))}
-              </select>
+              </Select>
 
               {errors.country && (
                 <p className='mt-1 text-xs text-red-500'>
@@ -529,7 +530,7 @@ const BuyerSetup = () => {
 
                         {/* DESIGNATION */}
                         <td className='border-b border-slate-100 px-1 py-1'>
-                          <select
+                          <Select
                             className='h-[23px] w-full cursor-pointer rounded border border-slate-300 bg-white px-1 text-[9px] outline-none focus:border-emerald-600'
                             {...register(
                               `contactPersons.${index}.designation`,
@@ -545,12 +546,12 @@ const BuyerSetup = () => {
                                 {option.label}
                               </option>
                             ))}
-                          </select>
+                          </Select>
                         </td>
 
                         {/* TYPE */}
                         <td className='border-b border-slate-100 px-1 py-1'>
-                          <select
+                          <Select
                             className='h-[23px] w-full cursor-pointer rounded border border-slate-300 bg-white px-1 text-[9px] outline-none focus:border-emerald-600'
                             {...register(`contactPersons.${index}.type`)}
                           >
@@ -561,7 +562,7 @@ const BuyerSetup = () => {
                                 {option.label}
                               </option>
                             ))}
-                          </select>
+                          </Select>
                         </td>
 
                         {/* PRIMARY */}
@@ -657,7 +658,7 @@ const BuyerSetup = () => {
                   Status <span className='text-red-500'>*</span>
                 </label>
 
-                <select
+                <Select
                   className={inputClass("status")}
                   {...register("status", {
                     required: "Status is required",
@@ -668,7 +669,7 @@ const BuyerSetup = () => {
                       {option.label}
                     </option>
                   ))}
-                </select>
+                </Select>
               </div>
 
               <div>

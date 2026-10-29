@@ -20,6 +20,7 @@ import TableSkeleton from "../../components/common/TableSkeleton";
 import EmptyRow from "../../components/common/EmptyRow";
 import ErrorState from "../../components/common/ErrorState";
 import ConfirmDialog from "../../components/common/ConfirmDialog";
+import Select from "../../components/common/Select";
 
 // Search boxes wait a moment after typing before asking the server.
 const useDebounced = (value, delay = 300) => {
@@ -32,8 +33,8 @@ const useDebounced = (value, delay = 300) => {
 };
 
 const PER_PAGE = 100;
-const EMPTY_DIVISION = { estate: "", divisionName: "", divisionCode: "", totalArea: "", totalSection: "", status: "", description: "" };
-const EMPTY_SECTION = { division: "", parentSection: "", sectionName: "", sectionCode: "", totalArea: "", manager: "", status: "" };
+const EMPTY_DIVISION = { estate: "", divisionName: "", divisionCode: "", totalArea: "", totalSection: "", manager: "", latitude: "", longitude: "", status: "", description: "" };
+const EMPTY_SECTION = { division: "", parentSection: "", sectionName: "", sectionCode: "", totalArea: "", manager: "", latitude: "", longitude: "", status: "" };
 
 const DivisionAndSection = () => {
   const [showDivisionModal, setShowDivisionModal] = useState(false);
@@ -56,6 +57,7 @@ const DivisionAndSection = () => {
     reset,
     clearErrors,
     setError,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm();
 
@@ -98,6 +100,7 @@ const DivisionAndSection = () => {
   // Unfiltered divisions fill the filter and form dropdowns.
   const allDivisions = useApi(() => api.get("/divisions", { perPage: 500 }), []);
   const estateOptions = useApi(() => api.get("/options/estates"), []);
+  const employeeOptions = useApi(() => api.get("/options/employees"), []);
 
   const filteredDivisions = divisions.data?.data ?? [];
   const filteredSections = sections.data?.data ?? [];
@@ -109,6 +112,11 @@ const DivisionAndSection = () => {
     () => (sectionDivision ? api.get("/options/sections", { division: sectionDivision }) : Promise.resolve([])),
     [sectionDivision],
   );
+  // Opening a division for edit: the manager shows its saved value once the employees have loaded.
+  useEffect(() => {
+    const saved = editingDivision?.manager;
+    if (saved && employeeOptions.data?.some((option) => option.value === saved)) setValue("manager", saved);
+  }, [editingDivision, employeeOptions.data, setValue]);
   // Opening a section for edit: the parent shows its saved value once the options have loaded.
   useEffect(() => {
     const saved = editingSection?.parentSection;
@@ -159,6 +167,9 @@ const DivisionAndSection = () => {
       divisionCode: division.divisionCode ?? "",
       totalArea: division.totalArea ?? "",
       totalSection: division.totalSection ?? "",
+      manager: division.manager ?? "",
+      latitude: division.latitude ?? "",
+      longitude: division.longitude ?? "",
       status: division.status ?? "",
       description: division.description ?? "",
     });
@@ -188,6 +199,8 @@ const DivisionAndSection = () => {
       sectionCode: section.sectionCode ?? "",
       totalArea: section.totalArea ?? "",
       manager: section.manager ?? "",
+      latitude: section.latitude ?? "",
+      longitude: section.longitude ?? "",
       status: section.status ?? "",
     });
     setShowSectionModal(true);
@@ -299,7 +312,7 @@ const DivisionAndSection = () => {
 
                 {/* Division */}
                 <div className='md:col-span-3'>
-                  <select
+                  <Select
                     value={selectedDivision}
                     onChange={(e) => setSelectedDivision(e.target.value)}
                     className='h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-700 outline-none focus:border-green-600'
@@ -311,12 +324,12 @@ const DivisionAndSection = () => {
                         {division.divisionName}
                       </option>
                     ))}
-                  </select>
+                  </Select>
                 </div>
 
                 {/* Status */}
                 <div className='md:col-span-3'>
-                  <select
+                  <Select
                     value={divisionStatus}
                     onChange={(e) => setDivisionStatus(e.target.value)}
                     className='h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-700 outline-none focus:border-green-600'
@@ -328,7 +341,7 @@ const DivisionAndSection = () => {
                         {status.label}
                       </option>
                     ))}
-                  </select>
+                  </Select>
                 </div>
 
                 {/* Filter */}
@@ -390,6 +403,11 @@ const DivisionAndSection = () => {
                       {/* Division Code */}
                       <td className='border border-gray-200 px-4 py-3 text-sm'>
                         {division.divisionCode}
+                      </td>
+
+                      {/* Manager */}
+                      <td className='border border-gray-200 px-4 py-3 text-sm'>
+                        {division.managerName ?? "—"}
                       </td>
 
                       {/* Total Area */}
@@ -490,7 +508,7 @@ const DivisionAndSection = () => {
 
                 {/* Division */}
                 <div className='md:col-span-3'>
-                  <select
+                  <Select
                     value={selectedSectionDivision}
                     onChange={(e) => setSelectedSectionDivision(e.target.value)}
                     className='h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-700 outline-none focus:border-green-600'
@@ -502,12 +520,12 @@ const DivisionAndSection = () => {
                         {division.divisionName}
                       </option>
                     ))}
-                  </select>
+                  </Select>
                 </div>
 
                 {/* Status */}
                 <div className='md:col-span-3'>
-                  <select
+                  <Select
                     value={sectionStatus}
                     onChange={(e) => setSectionStatus(e.target.value)}
                     className='h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-700 outline-none focus:border-green-600'
@@ -519,7 +537,7 @@ const DivisionAndSection = () => {
                         {status.label}
                       </option>
                     ))}
-                  </select>
+                  </Select>
                 </div>
 
                 {/* Filter Icon */}
@@ -603,11 +621,6 @@ const DivisionAndSection = () => {
                         {/* Total Area */}
                         <td className='border border-gray-200 px-3 py-3 text-sm'>
                           {Number(section.totalArea).toFixed(2)}
-                        </td>
-
-                        {/* Manager */}
-                        <td className='border border-gray-200 px-3 py-3 text-sm'>
-                          {section.manager}
                         </td>
 
                         {/* Status */}
@@ -733,7 +746,7 @@ const DivisionAndSection = () => {
                       Estate <span className='text-red-500'>*</span>
                     </label>
 
-                    <select
+                    <Select
                       {...register("estate", {
                         required: "Estate is required",
                       })}
@@ -746,7 +759,7 @@ const DivisionAndSection = () => {
                           {estate.label}
                         </option>
                       ))}
-                    </select>
+                    </Select>
 
                     {errors.estate && (
                       <p className='mt-1 text-xs text-red-500'>
@@ -830,6 +843,55 @@ const DivisionAndSection = () => {
                     )}
                   </div>
 
+                  {/* Manager */}
+                  <div>
+                    <label className='mb-1.5 block text-sm font-medium text-gray-700'>Manager</label>
+                    <Select
+                      {...register("manager")}
+                      className='h-11 w-full rounded-lg border border-gray-300 bg-white px-4 outline-none transition focus:border-green-600'
+                    >
+                      <option value=''>Select Manager</option>
+                      {(employeeOptions.data ?? []).map((employee) => (
+                        <option key={employee.id} value={employee.value}>
+                          {employee.label}
+                        </option>
+                      ))}
+                    </Select>
+                    {errors.manager && <p className='mt-1 text-xs text-red-500'>{errors.manager.message}</p>}
+                  </div>
+
+                  {/* Latitude */}
+                  <div>
+                    <label className='mb-1.5 block text-sm font-medium text-gray-700'>Latitude</label>
+                    <input
+                      type='number'
+                      step='any'
+                      placeholder='e.g. 25.746850'
+                      {...register("latitude", {
+                        min: { value: -90, message: "Must be -90 or more." },
+                        max: { value: 90, message: "Must be 90 or less." },
+                      })}
+                      className='h-11 w-full rounded-lg border border-gray-300 px-4 outline-none transition focus:border-green-600'
+                    />
+                    {errors.latitude && <p className='mt-1 text-xs text-red-500'>{errors.latitude.message}</p>}
+                  </div>
+
+                  {/* Longitude */}
+                  <div>
+                    <label className='mb-1.5 block text-sm font-medium text-gray-700'>Longitude</label>
+                    <input
+                      type='number'
+                      step='any'
+                      placeholder='e.g. 89.272125'
+                      {...register("longitude", {
+                        min: { value: -180, message: "Must be -180 or more." },
+                        max: { value: 180, message: "Must be 180 or less." },
+                      })}
+                      className='h-11 w-full rounded-lg border border-gray-300 px-4 outline-none transition focus:border-green-600'
+                    />
+                    {errors.longitude && <p className='mt-1 text-xs text-red-500'>{errors.longitude.message}</p>}
+                  </div>
+
                   {/* Division Code */}
                   <div>
                     <label className='mb-1.5 block text-sm font-medium text-gray-700'>
@@ -862,7 +924,7 @@ const DivisionAndSection = () => {
                       Status <span className='text-red-500'>*</span>
                     </label>
 
-                    <select
+                    <Select
                       {...register("status", {
                         required: "Status is required",
                       })}
@@ -877,7 +939,7 @@ const DivisionAndSection = () => {
                           </option>
                         ),
                       )}
-                    </select>
+                    </Select>
 
                     {errors.status && (
                       <p className='mt-1 text-xs text-red-500'>
@@ -983,7 +1045,7 @@ const DivisionAndSection = () => {
                       Division <span className='text-red-500'>*</span>
                     </label>
 
-                    <select
+                    <Select
                       {...registerSection("division", {
                         required: "Division is required",
                         onChange: () => setSectionValue("parentSection", ""),
@@ -1001,7 +1063,7 @@ const DivisionAndSection = () => {
                           {division.divisionName}
                         </option>
                       ))}
-                    </select>
+                    </Select>
 
                     {sectionErrors.division && (
                       <p className='mt-1 text-xs text-red-500'>
@@ -1016,7 +1078,7 @@ const DivisionAndSection = () => {
                       Parent Section
                     </label>
 
-                    <select
+                    <Select
                       {...registerSection("parentSection")}
                       className='h-11 w-full rounded-lg border border-gray-300 bg-white px-4 outline-none transition focus:border-green-600'
                     >
@@ -1027,7 +1089,7 @@ const DivisionAndSection = () => {
                           </option>
                         ),
                       )}
-                    </select>
+                    </Select>
                   </div>
 
                   {/* Section Name */}
@@ -1058,7 +1120,7 @@ const DivisionAndSection = () => {
                       Manager / In-charge
                     </label>
 
-                    <select
+                    <Select
                       {...registerSection("manager")}
                       className='h-11 w-full rounded-lg border border-gray-300 bg-white px-4 outline-none transition focus:border-green-600'
                     >
@@ -1069,7 +1131,39 @@ const DivisionAndSection = () => {
                           {manager.label}
                         </option>
                       ))}
-                    </select>
+                    </Select>
+                  </div>
+
+                  {/* Latitude */}
+                  <div>
+                    <label className='mb-1.5 block text-sm font-medium text-gray-700'>Latitude</label>
+                    <input
+                      type='number'
+                      step='any'
+                      placeholder='e.g. 25.746850'
+                      {...registerSection("latitude", {
+                        min: { value: -90, message: "Must be -90 or more." },
+                        max: { value: 90, message: "Must be 90 or less." },
+                      })}
+                      className='h-11 w-full rounded-lg border border-gray-300 px-4 outline-none transition focus:border-green-600'
+                    />
+                    {sectionErrors.latitude && <p className='mt-1 text-xs text-red-500'>{sectionErrors.latitude.message}</p>}
+                  </div>
+
+                  {/* Longitude */}
+                  <div>
+                    <label className='mb-1.5 block text-sm font-medium text-gray-700'>Longitude</label>
+                    <input
+                      type='number'
+                      step='any'
+                      placeholder='e.g. 89.272125'
+                      {...registerSection("longitude", {
+                        min: { value: -180, message: "Must be -180 or more." },
+                        max: { value: 180, message: "Must be 180 or less." },
+                      })}
+                      className='h-11 w-full rounded-lg border border-gray-300 px-4 outline-none transition focus:border-green-600'
+                    />
+                    {sectionErrors.longitude && <p className='mt-1 text-xs text-red-500'>{sectionErrors.longitude.message}</p>}
                   </div>
                   {/* Section Code */}
                   <div>
@@ -1131,7 +1225,7 @@ const DivisionAndSection = () => {
                       Status <span className='text-red-500'>*</span>
                     </label>
 
-                    <select
+                    <Select
                       {...registerSection("status", {
                         required: "Status is required",
                       })}
@@ -1146,7 +1240,7 @@ const DivisionAndSection = () => {
                           </option>
                         ),
                       )}
-                    </select>
+                    </Select>
 
                     {sectionErrors.status && (
                       <p className='mt-1 text-xs text-red-500'>

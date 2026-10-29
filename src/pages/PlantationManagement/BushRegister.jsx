@@ -65,6 +65,7 @@ const summaryIconMap = {
   Sprout,
 };
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
+import Select from "../../components/common/Select";
 const healthBadgeMap = {
   Excellent: "bg-green-100 text-green-700 border border-green-200",
 
@@ -449,7 +450,7 @@ const BushRegister = () => {
                       Estate <span className='text-red-500'>*</span>
                     </label>
 
-                    <select
+                    <Select
                       {...register("estate", {
                         required: "Estate is required",
                         onChange: () => { setValue("division", ""); setValue("section", ""); setValue("fieldBlock", ""); },
@@ -462,7 +463,7 @@ const BushRegister = () => {
                           {option.label}
                         </option>
                       ))}
-                    </select>
+                    </Select>
 
                     {errors.estate && (
                       <p className='mt-1 text-xs text-red-500'>
@@ -477,7 +478,7 @@ const BushRegister = () => {
                       Division <span className='text-red-500'>*</span>
                     </label>
 
-                    <select
+                    <Select
                       {...register("division", {
                         required: "Division is required",
                         onChange: () => { setValue("section", ""); setValue("fieldBlock", ""); },
@@ -490,7 +491,7 @@ const BushRegister = () => {
                           {option.label}
                         </option>
                       ))}
-                    </select>
+                    </Select>
 
                     {errors.division && (
                       <p className='mt-1 text-xs text-red-500'>
@@ -505,7 +506,7 @@ const BushRegister = () => {
                       Section <span className='text-red-500'>*</span>
                     </label>
 
-                    <select
+                    <Select
                       {...register("section", {
                         required: "Section is required",
                         onChange: () => { setValue("fieldBlock", ""); },
@@ -518,7 +519,7 @@ const BushRegister = () => {
                           {option.label}
                         </option>
                       ))}
-                    </select>
+                    </Select>
 
                     {errors.section && (
                       <p className='mt-1 text-xs text-red-500'>
@@ -536,7 +537,7 @@ const BushRegister = () => {
                       Field / Block <span className='text-red-500'>*</span>
                     </label>
 
-                    <select
+                    <Select
                       {...register("fieldBlock", {
                         required: "Field / Block is required",
                       })}
@@ -548,7 +549,7 @@ const BushRegister = () => {
                           {option.label}
                         </option>
                       ))}
-                    </select>
+                    </Select>
 
                     {errors.fieldBlock && (
                       <p className='mt-1 text-xs text-red-500'>
@@ -563,7 +564,7 @@ const BushRegister = () => {
                       Planting Year <span className='text-red-500'>*</span>
                     </label>
 
-                    <select
+                    <Select
                       {...register("plantingYear", {
                         required: "Planting Year is required",
                       })}
@@ -577,7 +578,7 @@ const BushRegister = () => {
                       <option value='2022'>2022</option>
                       <option value='2021'>2021</option>
                       <option value='2020'>2020</option>
-                    </select>
+                    </Select>
 
                     {errors.plantingYear && (
                       <p className='mt-1 text-xs text-red-500'>
@@ -712,7 +713,7 @@ const BushRegister = () => {
                       <span className='text-red-500'>*</span>
                     </label>
 
-                    <select
+                    <Select
                       {...register("surveyor", {
                         required: "Surveyor is required",
                       })}
@@ -726,7 +727,7 @@ const BushRegister = () => {
                       <option value='rahim-uddin'>Rahim Uddin</option>
                       <option value='jahangir-alam'>Jahangir Alam</option>
                       <option value='kamal-hossain'>Kamal Hossain</option>
-                    </select>
+                    </Select>
 
                     {errors.surveyor && (
                       <p className='mt-1 text-xs text-red-500'>
@@ -741,7 +742,7 @@ const BushRegister = () => {
                       Bush Status <span className='text-red-500'>*</span>
                     </label>
 
-                    <select
+                    <Select
                       {...register("bushStatus", {
                         required: "Bush Status is required",
                       })}
@@ -755,7 +756,7 @@ const BushRegister = () => {
                       </option>
                       <option value='replant-required'>Replant Required</option>
                       <option value='inactive'>Inactive</option>
-                    </select>
+                    </Select>
 
                     {errors.bushStatus && (
                       <p className='mt-1 text-xs text-red-500'>
@@ -773,7 +774,7 @@ const BushRegister = () => {
                       Bush Health <span className='text-red-500'>*</span>
                     </label>
 
-                    <select
+                    <Select
                       {...register("bushHealth", {
                         required: "Bush Health is required",
                       })}
@@ -785,7 +786,7 @@ const BushRegister = () => {
                       <option value='fair'>Fair</option>
                       <option value='poor'>Poor</option>
                       <option value='dead'>Dead</option>
-                    </select>
+                    </Select>
 
                     {errors.bushHealth && (
                       <p className='mt-1 text-xs text-red-500'>
@@ -800,7 +801,7 @@ const BushRegister = () => {
                       Production Zone <span className='text-red-500'>*</span>
                     </label>
 
-                    <select
+                    <Select
                       {...register("productionZone", {
                         required: "Production Zone is required",
                       })}
@@ -811,7 +812,7 @@ const BushRegister = () => {
                       <option value='zone-b'>Zone B</option>
                       <option value='zone-c'>Zone C</option>
                       <option value='zone-d'>Zone D</option>
-                    </select>
+                    </Select>
 
                     {errors.productionZone && (
                       <p className='mt-1 text-xs text-red-500'>
@@ -826,7 +827,7 @@ const BushRegister = () => {
                       Row Direction <span className='text-red-500'>*</span>
                     </label>
 
-                    <select
+                    <Select
                       {...register("rowDirection", {
                         required: "Row Direction is required",
                       })}
@@ -837,7 +838,7 @@ const BushRegister = () => {
                       <option value='south-north'>South → North</option>
                       <option value='east-west'>East → West</option>
                       <option value='west-east'>West → East</option>
-                    </select>
+                    </Select>
 
                     {errors.rowDirection && (
                       <p className='mt-1 text-xs text-red-500'>
@@ -1614,7 +1615,7 @@ const BushRegister = () => {
                   {rowPopup.mode !== "view" ? (
                     <>
                       {type === "select" ? (
-                        <select
+                        <Select
                           id={`row-${name}`}
                           value={rowValues[name] ?? ""}
                           onChange={(event) => setRowValues((values) => ({ ...values, [name]: event.target.value }))}
@@ -1626,7 +1627,7 @@ const BushRegister = () => {
                               {option}
                             </option>
                           ))}
-                        </select>
+                        </Select>
                       ) : (
                         <input
                           id={`row-${name}`}

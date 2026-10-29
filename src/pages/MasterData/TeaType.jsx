@@ -4,6 +4,7 @@ import { useForm } from "react-hook-form";
 
 import MasterDataTabs from "./MasterDataTabs";
 import { teaTypeData } from "../../data/MasterData/teaTypeData";
+import Select from "../../components/common/Select";
 
 const TeaType = () => {
   // =========================================================
@@ -241,7 +242,7 @@ const TeaType = () => {
                           )}
                         </label>
 
-                        <select
+                        <Select
                           {...registerMain(field.name, {
                             required: field.required
                               ? `${field.label} is required`
@@ -260,7 +261,7 @@ const TeaType = () => {
                               {option.label}
                             </option>
                           ))}
-                        </select>
+                        </Select>
 
                         {mainErrors[field.name] && (
                           <p className='mt-1 text-[11px] text-red-500'>
@@ -377,7 +378,7 @@ const TeaType = () => {
                         )}
                       </label>
 
-                      <select
+                      <Select
                         {...registerMain(field.name, {
                           required: field.required
                             ? `${field.label} is required`
@@ -396,7 +397,7 @@ const TeaType = () => {
                             {option.label}
                           </option>
                         ))}
-                      </select>
+                      </Select>
 
                       {mainErrors[field.name] && (
                         <p className='mt-1 text-[11px] text-red-500'>
@@ -775,7 +776,7 @@ const TeaType = () => {
                       <span className='text-red-500'> *</span>
                     </label>
 
-                    <select
+                    <Select
                       {...registerModal("processingMethod", {
                         required: "Processing Method is required",
                       })}
@@ -792,7 +793,7 @@ const TeaType = () => {
                           {option.label}
                         </option>
                       ))}
-                    </select>
+                    </Select>
 
                     {modalErrors.processingMethod && (
                       <p className='mt-1 text-[11px] text-red-500'>
@@ -867,7 +868,7 @@ const TeaType = () => {
                     <span className='text-red-500'> *</span>
                   </label>
 
-                  <select
+                  <Select
                     {...registerModal("status", {
                       required: "Status is required",
                     })}
@@ -880,7 +881,7 @@ const TeaType = () => {
                         {option.label}
                       </option>
                     ))}
-                  </select>
+                  </Select>
 
                   {modalErrors.status && (
                     <p className='mt-1 text-[11px] text-red-500'>

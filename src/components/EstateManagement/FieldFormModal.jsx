@@ -5,11 +5,12 @@ import { RotateCcw, Save, X } from "lucide-react";
 import { fieldAndBlockManagementData } from "../../data/EstateManagementData/FieldAndBlockManagementData";
 import { api } from "../../lib/api";
 import { useApi } from "../../lib/useApi";
+import Select from "../common/Select";
 
 const FIELDS = [
   "estate", "division", "section", "fieldName", "fieldCode", "fieldType", "parentField", "totalArea", "plantedArea",
   "plantingYear", "bushType", "spacing", "altitude", "averageSlope", "irrigation", "soilType", "drainage", "status",
-  "description",
+  "latitude", "longitude", "description",
 ];
 const toForm = (row) => Object.fromEntries(FIELDS.map((name) => [name, row?.[name] ?? ""]));
 
@@ -43,17 +44,19 @@ const FieldFormModal = ({ editing, onClose, onSaved }) => {
     () => (sectionId ? api.get("/options/fields", { section: sectionId }) : Promise.resolve([])),
     [sectionId],
   );
-  // Opening a field for edit: each dropdown shows its saved value once its options have loaded.
+  // Opening a field for edit: each dropdown shows its saved value once its options have loaded. The Estate comes
+  // first, then the lists that depend on it, and nothing is cleared except by a change the user makes.
   useEffect(() => {
     if (!editing) return;
     for (const [name, options] of [
+      ["estate", estateOptions.data],
       ["division", divisionOptions.data],
       ["section", sectionOptions.data],
       ["parentField", parentOptions.data],
     ]) {
       if (options?.some((option) => option.value === editing[name])) setValue(name, editing[name]);
     }
-  }, [editing, divisionOptions.data, sectionOptions.data, parentOptions.data, setValue]);
+  }, [editing, estateOptions.data, divisionOptions.data, sectionOptions.data, parentOptions.data, setValue]);
   const parentFieldChoices = [
     fieldAndBlockManagementData.parentFields[0],
     ...(parentOptions.data ?? [])
@@ -111,7 +114,7 @@ const FieldFormModal = ({ editing, onClose, onSaved }) => {
                       Estate <span className='text-red-500'>*</span>
                     </label>
 
-                    <select
+                    <Select
                       {...register("estate", {
                         required: "Estate is required",
                         onChange: () => {
@@ -133,7 +136,7 @@ const FieldFormModal = ({ editing, onClose, onSaved }) => {
                           {estate.label}
                         </option>
                       ))}
-                    </select>
+                    </Select>
 
                     {errors.estate && (
                       <p className='mt-1 text-xs text-red-500'>
@@ -149,7 +152,7 @@ const FieldFormModal = ({ editing, onClose, onSaved }) => {
                       Division <span className='text-red-500'>*</span>
                     </label>
 
-                    <select
+                    <Select
                       {...register("division", {
                         required: "Division is required",
                         onChange: () => {
@@ -176,7 +179,7 @@ const FieldFormModal = ({ editing, onClose, onSaved }) => {
                           {division.label}
                         </option>
                       ))}
-                    </select>
+                    </Select>
 
                     {errors.division && (
                       <p className='mt-1 text-xs text-red-500'>
@@ -192,7 +195,7 @@ const FieldFormModal = ({ editing, onClose, onSaved }) => {
                       Section <span className='text-red-500'>*</span>
                     </label>
 
-                    <select
+                    <Select
                       {...register("section", {
                         required: "Section is required",
                         onChange: () => setValue("parentField", ""),
@@ -216,7 +219,7 @@ const FieldFormModal = ({ editing, onClose, onSaved }) => {
                           {section.label}
                         </option>
                       ))}
-                    </select>
+                    </Select>
 
                     {errors.section && (
                       <p className='mt-1 text-xs text-red-500'>
@@ -286,7 +289,7 @@ const FieldFormModal = ({ editing, onClose, onSaved }) => {
                       Field Type <span className='text-red-500'>*</span>
                     </label>
 
-                    <select
+                    <Select
                       {...register("fieldType", {
                         required: "Field Type is required",
                       })}
@@ -303,7 +306,7 @@ const FieldFormModal = ({ editing, onClose, onSaved }) => {
                           {type.label}
                         </option>
                       ))}
-                    </select>
+                    </Select>
 
                     {errors.fieldType && (
                       <p className='mt-1 text-xs text-red-500'>
@@ -319,7 +322,7 @@ const FieldFormModal = ({ editing, onClose, onSaved }) => {
                       Parent Field / Block
                     </label>
 
-                    <select
+                    <Select
                       {...register("parentField")}
                       className='select h-11 w-full rounded-lg border border-gray-300 bg-white'
                     >
@@ -330,7 +333,7 @@ const FieldFormModal = ({ editing, onClose, onSaved }) => {
                           {field.label}
                         </option>
                       ))}
-                    </select>
+                    </Select>
                   </div>
 
                   {/* Total Area */}
@@ -440,7 +443,7 @@ const FieldFormModal = ({ editing, onClose, onSaved }) => {
                       Bush Type / Clone <span className='text-red-500'>*</span>
                     </label>
 
-                    <select
+                    <Select
                       {...register("bushType", {
                         required: "Bush Type is required",
                       })}
@@ -457,7 +460,7 @@ const FieldFormModal = ({ editing, onClose, onSaved }) => {
                           {type.label}
                         </option>
                       ))}
-                    </select>
+                    </Select>
 
                     {errors.bushType && (
                       <p className='mt-1 text-xs text-red-500'>
@@ -565,7 +568,7 @@ const FieldFormModal = ({ editing, onClose, onSaved }) => {
                       Irrigation Source
                     </label>
 
-                    <select
+                    <Select
                       {...register("irrigation")}
                       className='select h-11 w-full rounded-lg border border-gray-300 bg-white'
                     >
@@ -578,7 +581,7 @@ const FieldFormModal = ({ editing, onClose, onSaved }) => {
                           </option>
                         ),
                       )}
-                    </select>
+                    </Select>
                   </div>
 
                   {/* Soil */}
@@ -588,7 +591,7 @@ const FieldFormModal = ({ editing, onClose, onSaved }) => {
                       Soil Type
                     </label>
 
-                    <select
+                    <Select
                       {...register("soilType")}
                       className='select h-11 w-full rounded-lg border border-gray-300 bg-white'
                     >
@@ -599,7 +602,7 @@ const FieldFormModal = ({ editing, onClose, onSaved }) => {
                           {soil.label}
                         </option>
                       ))}
-                    </select>
+                    </Select>
                   </div>
 
                   {/* Drainage */}
@@ -609,7 +612,7 @@ const FieldFormModal = ({ editing, onClose, onSaved }) => {
                       Drainage
                     </label>
 
-                    <select
+                    <Select
                       {...register("drainage")}
                       className='select h-11 w-full rounded-lg border border-gray-300 bg-white'
                     >
@@ -620,7 +623,7 @@ const FieldFormModal = ({ editing, onClose, onSaved }) => {
                           {item.label}
                         </option>
                       ))}
-                    </select>
+                    </Select>
                   </div>
 
                   {/* Status */}
@@ -630,7 +633,7 @@ const FieldFormModal = ({ editing, onClose, onSaved }) => {
                       Status <span className='text-red-500'>*</span>
                     </label>
 
-                    <select
+                    <Select
                       {...register("status", {
                         required: "Status is required",
                       })}
@@ -647,13 +650,45 @@ const FieldFormModal = ({ editing, onClose, onSaved }) => {
                           {status.label}
                         </option>
                       ))}
-                    </select>
+                    </Select>
 
                     {errors.status && (
                       <p className='mt-1 text-xs text-red-500'>
                         {errors.status.message}
                       </p>
                     )}
+                  </div>
+
+                  {/* Latitude */}
+                  <div>
+                    <label className='mb-1.5 block text-sm font-medium text-gray-700'>Latitude</label>
+                    <input
+                      type='number'
+                      step='any'
+                      placeholder='e.g. 25.746500'
+                      {...register("latitude", {
+                        min: { value: -90, message: "Must be -90 or more." },
+                        max: { value: 90, message: "Must be 90 or less." },
+                      })}
+                      className='h-11 w-full rounded-lg border border-gray-300 bg-white px-3 focus:border-green-600 focus:outline-none'
+                    />
+                    {errors.latitude && <p className='mt-1 text-xs text-red-500'>{errors.latitude.message}</p>}
+                  </div>
+
+                  {/* Longitude */}
+                  <div>
+                    <label className='mb-1.5 block text-sm font-medium text-gray-700'>Longitude</label>
+                    <input
+                      type='number'
+                      step='any'
+                      placeholder='e.g. 89.271840'
+                      {...register("longitude", {
+                        min: { value: -180, message: "Must be -180 or more." },
+                        max: { value: 180, message: "Must be 180 or less." },
+                      })}
+                      className='h-11 w-full rounded-lg border border-gray-300 bg-white px-3 focus:border-green-600 focus:outline-none'
+                    />
+                    {errors.longitude && <p className='mt-1 text-xs text-red-500'>{errors.longitude.message}</p>}
                   </div>
 
                   {/* Description */}

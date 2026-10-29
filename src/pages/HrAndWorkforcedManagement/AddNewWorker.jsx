@@ -18,6 +18,7 @@ import {
   Save,
   CheckCircle,
 } from "lucide-react";
+import Select from "../../components/common/Select";
 const S = addNewWorkerData.sections;
 const FORM_SECTIONS = [S.basicInformation, S.employmentInformation, S.contactAddressInformation, S.distributedAgriLand, S.resonCard, S.additionalImportantInformation];
 // Fields the form sends: not the file pickers, not the read-only ones the server fills in.
@@ -308,7 +309,7 @@ const AddNewWorker = () => {
 
                           {/* Select */}
                           {field.type === "select" && (
-                            <select
+                            <Select
                               id={field.name}
                               disabled={field.disabled || false}
                               {...register(field.name, {
@@ -335,7 +336,7 @@ const AddNewWorker = () => {
                                   {option.label}
                                 </option>
                               ))}
-                            </select>
+                            </Select>
                           )}
 
                           {/* Error */}
@@ -455,7 +456,7 @@ const AddNewWorker = () => {
                               ================================================= */}
 
                           {field.type === "select" && (
-                            <select
+                            <Select
                               id={field.name}
                               disabled={field.disabled || false}
                               defaultValue={field.defaultValue || ""}
@@ -483,7 +484,7 @@ const AddNewWorker = () => {
                                   {option.label}
                                 </option>
                               ))}
-                            </select>
+                            </Select>
                           )}
 
                           {/* =================================================
@@ -640,7 +641,7 @@ const AddNewWorker = () => {
 
                                   {/* Select */}
                                   {field.type === "select" && (
-                                    <select
+                                    <Select
                                       id={field.name}
                                       disabled={field.disabled || false}
                                       {...register(field.name, {
@@ -670,7 +671,7 @@ const AddNewWorker = () => {
                                           {option.label}
                                         </option>
                                       ))}
-                                    </select>
+                                    </Select>
                                   )}
 
                                   {/* Error */}
@@ -839,7 +840,7 @@ const AddNewWorker = () => {
 
                           {/* Select */}
                           {field.type === "select" && (
-                            <select
+                            <Select
                               id={field.name}
                               disabled={field.disabled || false}
                               {...register(field.name, {
@@ -866,7 +867,7 @@ const AddNewWorker = () => {
                                   {option.label}
                                 </option>
                               ))}
-                            </select>
+                            </Select>
                           )}
 
                           {/* Validation Error */}
@@ -1262,7 +1263,7 @@ const AddNewWorker = () => {
 
                           {/* Select */}
                           {field.type === "select" && (
-                            <select
+                            <Select
                               id={field.name}
                               name={field.name}
                               defaultValue=''
@@ -1277,7 +1278,7 @@ const AddNewWorker = () => {
                                   {option.label}
                                 </option>
                               ))}
-                            </select>
+                            </Select>
                           )}
                         </div>
                       );

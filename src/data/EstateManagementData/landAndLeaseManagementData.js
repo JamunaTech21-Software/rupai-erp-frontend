@@ -694,6 +694,7 @@ export const landLeaseManagementData = {
   paymentTableHeaders: [
     "SL",
     "Payment Year",
+    "Bangla Year",
     "Due Date",
     "Amount (BDT)",
     "Paid Amount (BDT)",

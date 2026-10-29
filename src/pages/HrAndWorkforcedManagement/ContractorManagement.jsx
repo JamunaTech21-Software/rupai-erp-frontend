@@ -38,6 +38,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
+import Select from "../../components/common/Select";
 // ===============================================
 // ICON MAP
 // ===============================================
@@ -258,7 +259,7 @@ const ContractorManagement = () => {
                     </label>
 
                     <div className='relative'>
-                      <select
+                      <Select
                         {...register("contractorType")}
                         className='w-full appearance-none rounded-md border border-gray-300 bg-white px-3 py-4 pr-8 text-[11px] text-gray-700 outline-none transition focus:border-green-600'
                       >
@@ -271,7 +272,7 @@ const ContractorManagement = () => {
                               {type}
                             </option>
                           ))}
-                      </select>
+                      </Select>
 
                       <ChevronDown
                         size={14}
@@ -289,7 +290,7 @@ const ContractorManagement = () => {
                     </label>
 
                     <div className='relative'>
-                      <select
+                      <Select
                         {...register("tradeWork")}
                         className='w-full appearance-none rounded-md border border-gray-300 bg-white px-3 py-2 pr-8 text-[11px] text-gray-700 outline-none transition focus:border-green-600'
                       >
@@ -302,7 +303,7 @@ const ContractorManagement = () => {
                               {category}
                             </option>
                           ))}
-                      </select>
+                      </Select>
 
                       <ChevronDown
                         size={14}
@@ -320,7 +321,7 @@ const ContractorManagement = () => {
                     </label>
 
                     <div className='relative'>
-                      <select
+                      <Select
                         {...register("status")}
                         className='w-full appearance-none rounded-md border border-gray-300 bg-white px-3 py-2 pr-8 text-[11px] text-gray-700 outline-none transition focus:border-green-600'
                       >
@@ -333,7 +334,7 @@ const ContractorManagement = () => {
                               {status}
                             </option>
                           ))}
-                      </select>
+                      </Select>
 
                       <ChevronDown
                         size={14}
@@ -351,7 +352,7 @@ const ContractorManagement = () => {
                     </label>
 
                     <div className='relative'>
-                      <select
+                      <Select
                         {...register("workingLocation")}
                         className='w-full appearance-none rounded-md border border-gray-300 bg-white px-3 py-2 pr-8 text-[11px] text-gray-700 outline-none transition focus:border-green-600'
                       >
@@ -364,7 +365,7 @@ const ContractorManagement = () => {
                               {location}
                             </option>
                           ))}
-                      </select>
+                      </Select>
 
                       <ChevronDown
                         size={14}

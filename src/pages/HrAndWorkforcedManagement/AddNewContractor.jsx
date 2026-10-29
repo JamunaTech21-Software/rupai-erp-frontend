@@ -16,6 +16,7 @@ import {
   FileText,
   CheckCircle,
 } from "lucide-react";
+import Select from "../../components/common/Select";
 
 const D = contractorManagementData;
 const FORM_SECTIONS = [
@@ -140,7 +141,7 @@ const AddNewContractor = () => {
 
                       {/* SELECT */}
                       {field.type === "select" && (
-                        <select
+                        <Select
                           {...register(field.name, {
                             required: field.required ? "Required" : false,
                           })}
@@ -153,7 +154,7 @@ const AddNewContractor = () => {
                               {option.label}
                             </option>
                           ))}
-                        </select>
+                        </Select>
                       )}
 
                       {/* TEXTAREA */}
@@ -265,7 +266,7 @@ const AddNewContractor = () => {
                       <span className='text-red-500'> *</span>
                     </label>
 
-                    <select
+                    <Select
                       {...register("presentDistrict", {
                         required: "Required",
                       })}
@@ -280,7 +281,7 @@ const AddNewContractor = () => {
                           </option>
                         ),
                       )}
-                    </select>
+                    </Select>
 
                     {errors?.presentDistrict && (
                       <p className='text-red-500 text-[10px] mt-1'>
@@ -296,7 +297,7 @@ const AddNewContractor = () => {
                       <span className='text-red-500'> *</span>
                     </label>
 
-                    <select
+                    <Select
                       {...register("presentUpazila", {
                         required: "Required",
                       })}
@@ -311,7 +312,7 @@ const AddNewContractor = () => {
                             {option.label}
                           </option>
                         ))}
-                    </select>
+                    </Select>
 
                     {errors?.presentUpazila && (
                       <p className='text-red-500 text-[10px] mt-1'>
@@ -376,7 +377,7 @@ const AddNewContractor = () => {
                       District
                     </label>
 
-                    <select
+                    <Select
                       {...register("permanentDistrict")}
                       className='w-full border border-gray-300 rounded-md px-3 py-2 text-xs bg-white outline-none focus:border-green-500 focus:ring-1 focus:ring-green-100'
                     >
@@ -389,7 +390,7 @@ const AddNewContractor = () => {
                           </option>
                         ),
                       )}
-                    </select>
+                    </Select>
                   </div>
 
                   {/* UPAZILA */}
@@ -398,7 +399,7 @@ const AddNewContractor = () => {
                       Upazila
                     </label>
 
-                    <select
+                    <Select
                       {...register("permanentUpazila")}
                       className='w-full border border-gray-300 rounded-md px-3 py-2 text-xs bg-white outline-none focus:border-green-500 focus:ring-1 focus:ring-green-100'
                     >
@@ -411,7 +412,7 @@ const AddNewContractor = () => {
                             {option.label}
                           </option>
                         ))}
-                    </select>
+                    </Select>
                   </div>
 
                   {/* POSTAL CODE */}
@@ -636,7 +637,7 @@ const AddNewContractor = () => {
 
                     {/* SELECT */}
                     {field.type === "select" && (
-                      <select
+                      <Select
                         {...register(field.name, {
                           required: field.required ? "Required" : false,
                         })}
@@ -652,7 +653,7 @@ const AddNewContractor = () => {
                               </option>
                             ),
                           )}
-                      </select>
+                      </Select>
                     )}
 
                     {/* ERROR */}
@@ -703,7 +704,7 @@ const AddNewContractor = () => {
 
                     {/* SELECT */}
                     {field.type === "select" && (
-                      <select
+                      <Select
                         {...register(field.name, {
                           required: field.required ? "Required" : false,
                         })}
@@ -718,7 +719,7 @@ const AddNewContractor = () => {
                             </option>
                           ),
                         )}
-                      </select>
+                      </Select>
                     )}
 
                     {/* ERROR */}
@@ -859,7 +860,7 @@ const AddNewContractor = () => {
 
                     {/* SELECT */}
                     {field.type === "select" && (
-                      <select
+                      <Select
                         {...register(field.name, {
                           required: field.required ? "Required" : false,
                         })}
@@ -874,7 +875,7 @@ const AddNewContractor = () => {
                             </option>
                           ),
                         )}
-                      </select>
+                      </Select>
                     )}
 
                     {/* TEXTAREA */}
@@ -940,7 +941,7 @@ const AddNewContractor = () => {
                   <span className='text-red-500'> *</span>
                 </label>
 
-                <select
+                <Select
                   {...register("emergencyRelation", {
                     required: "Required",
                   })}
@@ -953,7 +954,7 @@ const AddNewContractor = () => {
                       {option.label}
                     </option>
                   ))}
-                </select>
+                </Select>
 
                 {errors?.emergencyRelation && (
                   <p className='text-red-500 text-[10px] mt-1'>

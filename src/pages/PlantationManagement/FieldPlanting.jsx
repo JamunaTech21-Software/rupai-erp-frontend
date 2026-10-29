@@ -35,6 +35,7 @@ import {
   Pencil,
   Trash2,
 } from "lucide-react";
+import Select from "../../components/common/Select";
 const summaryIconMap = {
   Map,
   Leaf,
@@ -118,6 +119,21 @@ const FieldPlanting = () => {
   const shown = record.data;
   const progress = shown?.plantingProgress;
   const percent = Math.max(0, Math.min(100, Number(progress?.percentage) || 0));
+
+  // Field Map: the picture can be zoomed, the legend switched off, and the map opened full screen;
+  // the position is the middle of the field's boundary.
+  const mapRef = useRef(null);
+  const [mapZoom, setMapZoom] = useState(1);
+  const [showLegend, setShowLegend] = useState(true);
+  const fieldShape = useApi(() => (shown?.fieldBlock ? api.get(`/fields/${shown.fieldBlock}`).catch(() => null) : Promise.resolve(null)), [shown?.fieldBlock]);
+  const boundary = Array.isArray(fieldShape.data?.polygon) ? fieldShape.data.polygon.filter((p) => Array.isArray(p) && p.length >= 2) : [];
+  const centre = boundary.length
+    ? [boundary.reduce((t, p) => t + Number(p[0]), 0) / boundary.length, boundary.reduce((t, p) => t + Number(p[1]), 0) / boundary.length]
+    : null;
+  const openMapFullScreen = () => {
+    if (document.fullscreenElement) document.exitFullscreen();
+    else mapRef.current?.requestFullscreen?.().catch(() => toast.error("Full screen is not available in this browser."));
+  };
 
   // Dropdowns that pick records follow each other.
   const estateId = watch("estate");
@@ -350,7 +366,7 @@ const FieldPlanting = () => {
                       Estate <span className='text-red-500'>*</span>
                     </label>
 
-                    <select
+                    <Select
                       {...register("estate", {
                         required: "Estate is required",
                         onChange: () => {
@@ -367,7 +383,7 @@ const FieldPlanting = () => {
                           {estate.label}
                         </option>
                       ))}
-                    </select>
+                    </Select>
 
                     {errors.estate && (
                       <p className='text-xs text-red-500'>
@@ -382,7 +398,7 @@ const FieldPlanting = () => {
                       Division <span className='text-red-500'>*</span>
                     </label>
 
-                    <select
+                    <Select
                       {...register("division", {
                         required: "Division is required",
                         onChange: () => {
@@ -404,7 +420,7 @@ const FieldPlanting = () => {
                           {division.label}
                         </option>
                       ))}
-                    </select>
+                    </Select>
 
                     {errors.division && (
                       <p className='text-xs text-red-500'>
@@ -419,7 +435,7 @@ const FieldPlanting = () => {
                       Section <span className='text-red-500'>*</span>
                     </label>
 
-                    <select
+                    <Select
                       {...register("section", {
                         required: "Section is required",
                         onChange: () => setValue("fieldBlock", ""),
@@ -438,7 +454,7 @@ const FieldPlanting = () => {
                           {section.label}
                         </option>
                       ))}
-                    </select>
+                    </Select>
 
                     {errors.section && (
                       <p className='text-xs text-red-500'>
@@ -453,7 +469,7 @@ const FieldPlanting = () => {
                       Field / Block <span className='text-red-500'>*</span>
                     </label>
 
-                    <select
+                    <Select
                       {...register("fieldBlock", {
                         required: "Field / Block is required",
                       })}
@@ -471,7 +487,7 @@ const FieldPlanting = () => {
                           {field.label}
                         </option>
                       ))}
-                    </select>
+                    </Select>
 
                     {errors.fieldBlock && (
                       <p className='text-xs text-red-500'>
@@ -514,7 +530,7 @@ const FieldPlanting = () => {
                       Planting Season <span className='text-red-500'>*</span>
                     </label>
 
-                    <select
+                    <Select
                       {...register("plantingSeason", {
                         required: "Planting Season is required",
                       })}
@@ -525,7 +541,7 @@ const FieldPlanting = () => {
                       <option value='summer'>Summer</option>
                       <option value='monsoon'>Monsoon</option>
                       <option value='winter'>Winter</option>
-                    </select>
+                    </Select>
 
                     {errors.plantingSeason && (
                       <p className='text-xs text-red-500'>
@@ -561,7 +577,7 @@ const FieldPlanting = () => {
                       Planting Method <span className='text-red-500'>*</span>
                     </label>
 
-                    <select
+                    <Select
                       {...register("plantingMethod", {
                         required: "Planting Method is required",
                       })}
@@ -571,7 +587,7 @@ const FieldPlanting = () => {
                       <option value='manual'>Manual</option>
                       <option value='mechanical'>Mechanical</option>
                       <option value='mixed'>Mixed</option>
-                    </select>
+                    </Select>
 
                     {errors.plantingMethod && (
                       <p className='text-xs text-red-500'>
@@ -586,7 +602,7 @@ const FieldPlanting = () => {
                       Plant Source <span className='text-red-500'>*</span>
                     </label>
 
-                    <select
+                    <Select
                       {...register("plantSource", {
                         required: "Plant Source is required",
                       })}
@@ -596,7 +612,7 @@ const FieldPlanting = () => {
                       <option value='own-nursery'>Own Nursery</option>
                       <option value='central-nursery'>Central Nursery</option>
                       <option value='external'>External Supplier</option>
-                    </select>
+                    </Select>
 
                     {errors.plantSource && (
                       <p className='text-xs text-red-500'>
@@ -630,7 +646,7 @@ const FieldPlanting = () => {
                       Clone / Variety <span className='text-red-500'>*</span>
                     </label>
 
-                    <select
+                    <Select
                       {...register("cloneVariety", {
                         required: "Clone / Variety is required",
                       })}
@@ -642,7 +658,7 @@ const FieldPlanting = () => {
                       <option value='bt3'>BT-3</option>
                       <option value='tv1'>TV-1</option>
                       <option value='tv23'>TV-23</option>
-                    </select>
+                    </Select>
 
                     {errors.cloneVariety && (
                       <p className='text-xs text-red-500'>
@@ -657,7 +673,7 @@ const FieldPlanting = () => {
                       Plant Type <span className='text-red-500'>*</span>
                     </label>
 
-                    <select
+                    <Select
                       {...register("plantType", {
                         required: "Plant Type is required",
                       })}
@@ -667,7 +683,7 @@ const FieldPlanting = () => {
                       <option value='seedling'>Seedling</option>
                       <option value='clonal'>Clonal</option>
                       <option value='grafted'>Grafted</option>
-                    </select>
+                    </Select>
 
                     {errors.plantType && (
                       <p className='text-xs text-red-500'>
@@ -836,7 +852,7 @@ const FieldPlanting = () => {
                       Soil Type <span className='text-red-500'>*</span>
                     </label>
 
-                    <select
+                    <Select
                       {...register("soilType", {
                         required: "Soil Type is required",
                       })}
@@ -847,7 +863,7 @@ const FieldPlanting = () => {
                       <option value='clay'>Clay</option>
                       <option value='sandy'>Sandy</option>
                       <option value='silty'>Silty</option>
-                    </select>
+                    </Select>
 
                     {errors.soilType && (
                       <p className='text-xs text-red-500'>
@@ -891,7 +907,7 @@ const FieldPlanting = () => {
                       Slope (%)
                     </label>
 
-                    <select
+                    <Select
                       {...register("slope")}
                       className='h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm outline-none transition-colors focus:border-green-600'
                     >
@@ -900,7 +916,7 @@ const FieldPlanting = () => {
                       <option value='5%'>5%</option>
                       <option value='8%'>8%</option>
                       <option value='10%'>10%</option>
-                    </select>
+                    </Select>
                   </div>
 
                   {/* Drainage */}
@@ -909,7 +925,7 @@ const FieldPlanting = () => {
                       Drainage
                     </label>
 
-                    <select
+                    <Select
                       {...register("drainage")}
                       className='h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm outline-none transition-colors focus:border-green-600'
                     >
@@ -918,7 +934,7 @@ const FieldPlanting = () => {
                       <option value='good'>Good</option>
                       <option value='average'>Average</option>
                       <option value='poor'>Poor</option>
-                    </select>
+                    </Select>
                   </div>
                 </div>
 
@@ -932,7 +948,7 @@ const FieldPlanting = () => {
                       Irrigation Source
                     </label>
 
-                    <select
+                    <Select
                       {...register("irrigationSource")}
                       className='h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm outline-none transition-colors focus:border-green-600'
                     >
@@ -942,7 +958,7 @@ const FieldPlanting = () => {
                       <option value='canal'>Canal</option>
                       <option value='pond'>Pond</option>
                       <option value='rain-water'>Rain Water Harvesting</option>
-                    </select>
+                    </Select>
                   </div>
 
                   {/* Irrigation Method */}
@@ -951,7 +967,7 @@ const FieldPlanting = () => {
                       Irrigation Method
                     </label>
 
-                    <select
+                    <Select
                       {...register("irrigationMethod")}
                       className='h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm outline-none transition-colors focus:border-green-600'
                     >
@@ -960,7 +976,7 @@ const FieldPlanting = () => {
                       <option value='drip'>Drip Irrigation</option>
                       <option value='flood'>Flood Irrigation</option>
                       <option value='manual'>Manual</option>
-                    </select>
+                    </Select>
                   </div>
 
                   {/* Basal Fertilizer */}
@@ -969,7 +985,7 @@ const FieldPlanting = () => {
                       Basal Fertilizer ( Acre)
                     </label>
 
-                    <select
+                    <Select
                       {...register("basalFertilizer")}
                       className='h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm outline-none transition-colors focus:border-green-600'
                     >
@@ -978,7 +994,7 @@ const FieldPlanting = () => {
                       <option value='npk-40'>NPK 40:40:40 - 25 Kg</option>
                       <option value='dap'>DAP - 25 Kg</option>
                       <option value='urea'>Urea - 20 Kg</option>
-                    </select>
+                    </Select>
                   </div>
 
                   {/* Organic Manure */}
@@ -1090,7 +1106,7 @@ const FieldPlanting = () => {
                     </div>
 
                     <div className='col-span-12 sm:col-span-3'>
-                      <select
+                      <Select
                         {...register("npkUnit")}
                         className='h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm outline-none focus:border-green-600'
                       >
@@ -1098,7 +1114,7 @@ const FieldPlanting = () => {
                         <option>Gram</option>
                         <option>Ton</option>
                         <option>Bag</option>
-                      </select>
+                      </Select>
                     </div>
                   </div>
 
@@ -1123,7 +1139,7 @@ const FieldPlanting = () => {
                     </div>
 
                     <div className='col-span-12 sm:col-span-3'>
-                      <select
+                      <Select
                         {...register("tspUnit")}
                         className='h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm outline-none focus:border-green-600'
                       >
@@ -1131,7 +1147,7 @@ const FieldPlanting = () => {
                         <option>Gram</option>
                         <option>Ton</option>
                         <option>Bag</option>
-                      </select>
+                      </Select>
                     </div>
                   </div>
 
@@ -1156,7 +1172,7 @@ const FieldPlanting = () => {
                     </div>
 
                     <div className='col-span-12 sm:col-span-3'>
-                      <select
+                      <Select
                         {...register("mopUnit")}
                         className='h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm outline-none focus:border-green-600'
                       >
@@ -1164,7 +1180,7 @@ const FieldPlanting = () => {
                         <option>Gram</option>
                         <option>Ton</option>
                         <option>Bag</option>
-                      </select>
+                      </Select>
                     </div>
                   </div>
 
@@ -1189,7 +1205,7 @@ const FieldPlanting = () => {
                     </div>
 
                     <div className='col-span-12 sm:col-span-3'>
-                      <select
+                      <Select
                         {...register("fymUnit")}
                         className='h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm outline-none focus:border-green-600'
                       >
@@ -1197,7 +1213,7 @@ const FieldPlanting = () => {
                         <option>Gram</option>
                         <option>Ton</option>
                         <option>Bag</option>
-                      </select>
+                      </Select>
                     </div>
                   </div>
                 </div>
@@ -1224,7 +1240,7 @@ const FieldPlanting = () => {
                         Shade Species
                       </label>
 
-                      <select
+                      <Select
                         {...register("shadeTreeSpecies")}
                         className='h-14 w-full rounded-lg border border-gray-300 bg-white px-1 text-sm outline-none focus:border-green-600'
                       >
@@ -1233,7 +1249,7 @@ const FieldPlanting = () => {
                         <option value='albizia'>Albizia</option>
                         <option value='acacia'>Acacia</option>
                         <option value='gliricidia'>Gliricidia</option>
-                      </select>
+                      </Select>
                     </div>
 
                     {/* Spacing */}
@@ -1242,7 +1258,7 @@ const FieldPlanting = () => {
                         Spacing
                       </label>
 
-                      <select
+                      <Select
                         {...register("shadeTreeSpacing")}
                         className='h-14 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm outline-none focus:border-green-600'
                       >
@@ -1250,7 +1266,7 @@ const FieldPlanting = () => {
                         <option>20 × 20 ft</option>
                         <option>25 × 25 ft</option>
                         <option>30 × 30 ft</option>
-                      </select>
+                      </Select>
                     </div>
 
                     {/* No of Shade Trees */}
@@ -1337,7 +1353,7 @@ const FieldPlanting = () => {
                         Field Officer
                       </label>
 
-                      <select
+                      <Select
                         {...register("fieldOfficer")}
                         className='h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm outline-none transition-colors focus:border-green-600'
                       >
@@ -1346,7 +1362,7 @@ const FieldPlanting = () => {
                         <option value='kamrul'>Md. Kamrul Hasan</option>
                         <option value='rakib'>Md. Rakib Hasan</option>
                         <option value='saiful'>Md. Saiful Islam</option>
-                      </select>
+                      </Select>
                     </div>
 
                     {/* Assistant / Supervisor */}
@@ -1355,7 +1371,7 @@ const FieldPlanting = () => {
                         Assistant / Supervisor
                       </label>
 
-                      <select
+                      <Select
                         {...register("assistantSupervisor")}
                         className='h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm outline-none transition-colors focus:border-green-600'
                       >
@@ -1364,7 +1380,7 @@ const FieldPlanting = () => {
                         <option value='faruk'>Md. Faruk Hossain</option>
                         <option value='rakib'>Md. Rakib Hasan</option>
                         <option value='saiful'>Md. Saiful Islam</option>
-                      </select>
+                      </Select>
                     </div>
                   </div>
                 </div>
@@ -1432,7 +1448,7 @@ const FieldPlanting = () => {
                         Labour Source
                       </label>
 
-                      <select
+                      <Select
                         {...register("labourSource")}
                         className='h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm outline-none transition-colors focus:border-green-600'
                       >
@@ -1441,7 +1457,7 @@ const FieldPlanting = () => {
                         <option value='permanent'>Permanent</option>
                         <option value='seasonal'>Seasonal</option>
                         <option value='contract'>Contract</option>
-                      </select>
+                      </Select>
                     </div>
                   </div>
                 </div>
@@ -1612,17 +1628,20 @@ const FieldPlanting = () => {
               {/* Body */}
               <div className='flex flex-1 flex-col gap-4 p-4'>
                 {/* Map: takes the spare height so the right side ends level with the left side */}
-                <div className='relative min-h-64 flex-1 overflow-hidden rounded-lg border border-gray-300'>
+                <div ref={mapRef} className='relative min-h-64 flex-1 overflow-hidden rounded-lg border border-gray-300 bg-white'>
                   <img
                     src={fieldMap.image}
                     alt={shown?.fieldBlockName ?? fieldMap.title}
                     className='absolute inset-0 h-full w-full object-cover'
+                    style={{ transform: `scale(${mapZoom})`, transformOrigin: 'center' }}
                   />
 
                   {/* Controls */}
                   <div className='absolute left-3 top-3 flex flex-col gap-2'>
                     <button
                       type='button'
+                      aria-label='Zoom in'
+                      onClick={() => setMapZoom((z) => Math.min(3, Math.round((z + 0.25) * 100) / 100))}
                       className='flex h-9 w-9 items-center justify-center rounded-md bg-white shadow transition hover:bg-gray-100'
                     >
                       <Plus size={18} />
@@ -1630,6 +1649,8 @@ const FieldPlanting = () => {
 
                     <button
                       type='button'
+                      aria-label='Zoom out'
+                      onClick={() => setMapZoom((z) => Math.max(1, Math.round((z - 0.25) * 100) / 100))}
                       className='flex h-9 w-9 items-center justify-center rounded-md bg-white shadow transition hover:bg-gray-100'
                     >
                       <Minus size={18} />
@@ -1637,6 +1658,8 @@ const FieldPlanting = () => {
 
                     <button
                       type='button'
+                      aria-label='Show or hide the legend'
+                      onClick={() => setShowLegend((v) => !v)}
                       className='flex h-9 w-9 items-center justify-center rounded-md bg-white shadow transition hover:bg-gray-100'
                     >
                       <Layers size={18} />
@@ -1644,6 +1667,8 @@ const FieldPlanting = () => {
 
                     <button
                       type='button'
+                      aria-label='Full screen'
+                      onClick={openMapFullScreen}
                       className='flex h-9 w-9 items-center justify-center rounded-md bg-white shadow transition hover:bg-gray-100'
                     >
                       <Expand size={18} />
@@ -1652,7 +1677,7 @@ const FieldPlanting = () => {
                 </div>
 
                 {/* Legend */}
-                <div className='flex flex-wrap items-center justify-center gap-5'>
+                <div className={showLegend ? 'flex flex-wrap items-center justify-center gap-5' : 'hidden'}>
                   {fieldMap.legend.map((item) => (
                     <div
                       key={item.id}
@@ -1672,14 +1697,15 @@ const FieldPlanting = () => {
                 <div className='flex items-center justify-between border-t border-gray-200 pt-3'>
                   <div className='text-xs text-gray-600'>
                     Latitude:
-                    <span className='ml-1 font-medium'>{DASH}</span>
+                    <span className='ml-1 font-medium'>{centre ? centre[0].toFixed(6) : DASH}</span>
                     <span className='mx-2'>|</span>
                     Longitude:
-                    <span className='ml-1 font-medium'>{DASH}</span>
+                    <span className='ml-1 font-medium'>{centre ? centre[1].toFixed(6) : DASH}</span>
                   </div>
 
                   <button
                     type='button'
+                    onClick={openMapFullScreen}
                     className='rounded-md border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium transition hover:bg-gray-50'
                   >
                     View Full Screen

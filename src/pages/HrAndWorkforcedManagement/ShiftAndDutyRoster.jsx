@@ -43,6 +43,7 @@ const todaySummaryIconMap = {
   "user-x": UserX,
 };
 import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip } from "recharts";
+import Select from "../../components/common/Select";
 const ShiftAndDutyRoster = () => {
   // FILTER FORM
   const { register, handleSubmit, reset } = useForm();
@@ -176,7 +177,7 @@ const ShiftAndDutyRoster = () => {
                     Garden / Unit
                   </label>
 
-                  <select
+                  <Select
                     {...register("garden")}
                     className='h-9 w-full rounded-lg border border-gray-200 bg-white px-2 text-[10px] text-gray-700 outline-none focus:border-green-700'
                   >
@@ -185,7 +186,7 @@ const ShiftAndDutyRoster = () => {
                         {garden.label}
                       </option>
                     ))}
-                  </select>
+                  </Select>
                 </div>
 
                 {/* ================= DEPARTMENT ================= */}
@@ -194,7 +195,7 @@ const ShiftAndDutyRoster = () => {
                     Department
                   </label>
 
-                  <select
+                  <Select
                     {...register("department")}
                     className='h-9 w-full rounded-lg border border-gray-200 bg-white px-2 text-[10px] text-gray-700 outline-none focus:border-green-700'
                   >
@@ -205,7 +206,7 @@ const ShiftAndDutyRoster = () => {
                         </option>
                       ),
                     )}
-                  </select>
+                  </Select>
                 </div>
 
                 {/* ================= SECTION ================= */}
@@ -214,7 +215,7 @@ const ShiftAndDutyRoster = () => {
                     Section
                   </label>
 
-                  <select
+                  <Select
                     {...register("section")}
                     className='h-9 w-full rounded-lg border border-gray-200 bg-white px-2 text-[10px] text-gray-700 outline-none focus:border-green-700'
                   >
@@ -223,7 +224,7 @@ const ShiftAndDutyRoster = () => {
                         {section.label}
                       </option>
                     ))}
-                  </select>
+                  </Select>
                 </div>
 
                 {/* ================= SHIFT ================= */}
@@ -232,7 +233,7 @@ const ShiftAndDutyRoster = () => {
                     Shift
                   </label>
 
-                  <select
+                  <Select
                     {...register("shift")}
                     className='h-9 w-full rounded-lg border border-gray-200 bg-white px-2 text-[10px] text-gray-700 outline-none focus:border-green-700'
                   >
@@ -241,7 +242,7 @@ const ShiftAndDutyRoster = () => {
                         {shift.label}
                       </option>
                     ))}
-                  </select>
+                  </Select>
                 </div>
 
                 {/* ================= CLEAR ================= */}

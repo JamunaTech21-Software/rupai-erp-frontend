@@ -35,6 +35,7 @@ import {
   ZoomControl,
   Popup,
 } from "react-leaflet";
+import Select from "../../components/common/Select";
 
 delete L.Icon.Default.prototype._getIconUrl;
 
@@ -221,7 +222,7 @@ const FieldOrBlockManagement = () => {
                 />
               </div>
 
-              <select
+              <Select
                 value={fieldTypeFilter}
                 onChange={(e) => setFieldTypeFilter(e.target.value)}
                 className='h-10 w-full rounded-md border border-gray-300 bg-white px-3 text-sm outline-none transition focus:border-green-600'
@@ -235,9 +236,9 @@ const FieldOrBlockManagement = () => {
                     {item.label}
                   </option>
                 ))}
-              </select>
+              </Select>
 
-              <select
+              <Select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
                 className='h-10 w-full rounded-md border border-gray-300 bg-white px-3 text-sm outline-none transition focus:border-green-600'
@@ -251,7 +252,7 @@ const FieldOrBlockManagement = () => {
                     {item.label}
                   </option>
                 ))}
-              </select>
+              </Select>
 
               <button
                 type='button'
@@ -703,7 +704,7 @@ const FieldOrBlockManagement = () => {
                 <span>
                   Perimeter:
                   <strong className='ml-1 text-gray-800'>
-                    {orDash(map?.perimeter)} Km
+                    {map?.perimeter == null ? "—" : `${map.perimeter} Km`}
                   </strong>
                 </span>
 

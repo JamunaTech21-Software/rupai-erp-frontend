@@ -21,6 +21,7 @@ import {
   RotateCcw,
   Save,
 } from "lucide-react";
+import Select from "../../components/common/Select";
 const summaryIconMap = {
   map: Map,
   leaf: Leaf,
@@ -246,7 +247,7 @@ const EstateProfile = () => {
                   Estate Type <span className='text-red-500'>*</span>
                 </label>
 
-                <select
+                <Select
                   {...register("estateType", {
                     required: "Estate Type is required",
                   })}
@@ -259,7 +260,7 @@ const EstateProfile = () => {
                       {type.label}
                     </option>
                   ))}
-                </select>
+                </Select>
 
                 {errors.estateType && (
                   <p className='mt-1 text-xs text-red-500'>
@@ -274,7 +275,7 @@ const EstateProfile = () => {
                   Estate Category <span className='text-red-500'>*</span>
                 </label>
 
-                <select
+                <Select
                   {...register("estateCategory", {
                     required: "Estate Category is required",
                   })}
@@ -287,7 +288,7 @@ const EstateProfile = () => {
                       {category.label}
                     </option>
                   ))}
-                </select>
+                </Select>
 
                 {errors.estateCategory && (
                   <p className='mt-1 text-xs text-red-500'>

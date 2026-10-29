@@ -5,6 +5,7 @@ import { useForm, useFieldArray, useWatch } from "react-hook-form";
 import MasterDataTabs from "./MasterDataTabs";
 
 import { addNewBrokerData } from "../../data/MasterData/addBrokerData";
+import Select from "../../components/common/Select";
 const AddNewBroker = () => {
   const { brokerInformation, mobileNumbers, brokerSummary, previewData } =
     addNewBrokerData;
@@ -143,7 +144,7 @@ const AddNewBroker = () => {
                     </label>
 
                     {field.type === "select" ? (
-                      <select
+                      <Select
                         {...register(field.name, {
                           required: field.required
                             ? `${field.label} is required`
@@ -160,7 +161,7 @@ const AddNewBroker = () => {
                             </option>
                           ),
                         )}
-                      </select>
+                      </Select>
                     ) : (
                       <input
                         type={field.type}
@@ -288,7 +289,7 @@ const AddNewBroker = () => {
                         {/* ================= DESIGNATION ================= */}
 
                         <td className='px-3 py-2'>
-                          <select
+                          <Select
                             {...register(
                               `mobileNumbers.${index}.designationId`,
                             )}
@@ -305,13 +306,13 @@ const AddNewBroker = () => {
                                 </option>
                               ),
                             )}
-                          </select>
+                          </Select>
                         </td>
 
                         {/* ================= TYPE ================= */}
 
                         <td className='px-3 py-2'>
-                          <select
+                          <Select
                             {...register(`mobileNumbers.${index}.typeCode`)}
                             className='h-8 w-full rounded-md border border-slate-300 bg-white px-2 text-xs outline-none transition focus:border-emerald-500'
                           >
@@ -320,7 +321,7 @@ const AddNewBroker = () => {
                                 {option.name}
                               </option>
                             ))}
-                          </select>
+                          </Select>
                         </td>
 
                         {/* ================= PRIMARY ================= */}
@@ -463,7 +464,7 @@ const AddNewBroker = () => {
                   <span className='text-red-500'> *</span>
                 </label>
 
-                <select
+                <Select
                   {...register("associationId", {
                     required: "Association is required",
                   })}
@@ -480,7 +481,7 @@ const AddNewBroker = () => {
                       {association.name}
                     </option>
                   ))}
-                </select>
+                </Select>
 
                 {errors.associationId && (
                   <p className='mt-1 text-[10px] text-red-500'>
@@ -544,7 +545,7 @@ const AddNewBroker = () => {
                   )}
                 </label>
 
-                <select
+                <Select
                   {...register("status", {
                     required: brokerInformation?.status?.required
                       ? `${brokerInformation?.status?.label} is required`
@@ -563,7 +564,7 @@ const AddNewBroker = () => {
                       {option.name}
                     </option>
                   ))}
-                </select>
+                </Select>
 
                 {errors.status && (
                   <p className='mt-1 text-[10px] text-red-500'>
