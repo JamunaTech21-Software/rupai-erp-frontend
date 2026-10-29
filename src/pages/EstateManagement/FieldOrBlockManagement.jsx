@@ -418,8 +418,8 @@ const FieldOrBlockManagement = () => {
             5 COLUMNS
         ====================================================== */}
 
-        <div className='self-start xl:col-span-6'>
-          <div className='rounded-xl border border-gray-200 bg-white shadow-sm'>
+        <div className='xl:col-span-6 xl:self-stretch'>
+          <div className='h-full rounded-xl border border-gray-200 bg-white shadow-sm'>
             <div className='border-b border-gray-200 px-5 py-4'>
               <h2 className='text-lg font-semibold text-green-800'>
                 Field / Block Details (
@@ -432,14 +432,14 @@ const FieldOrBlockManagement = () => {
 
               <div className='space-y-3'>
                 {fieldAndBlockManagementData.detailsLeft.map((item) => (
-                  <div key={item.key} className='flex items-center text-sm'>
-                    <span className='w-36 font-medium text-gray-700'>
+                  <div key={item.key} className='flex items-start text-sm lg:items-center'>
+                    <span className='w-28 shrink-0 font-medium text-gray-700 sm:w-36'>
                       {item.label}
                     </span>
 
-                    <span className='w-4 text-center text-gray-500'>:</span>
+                    <span className='w-4 shrink-0 text-center text-gray-500'>:</span>
 
-                    <span className='text-gray-900'>
+                    <span className='min-w-0 break-words text-gray-900'>
                       {details[item.key]}
                     </span>
                   </div>
@@ -450,19 +450,19 @@ const FieldOrBlockManagement = () => {
 
               <div className='space-y-4'>
                 {fieldAndBlockManagementData.detailsRight.map((item) => (
-                  <div key={item.key} className='flex items-center text-sm'>
-                    <span className='w-36 font-medium text-gray-700'>
+                  <div key={item.key} className='flex items-start text-sm lg:items-center'>
+                    <span className='w-28 shrink-0 font-medium text-gray-700 sm:w-36'>
                       {item.label}
                     </span>
 
-                    <span className='w-4 text-center text-gray-500'>:</span>
+                    <span className='w-4 shrink-0 text-center text-gray-500'>:</span>
 
                     {item.key === "status" ? (
                       <span className='rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-700'>
                         {details[item.key]}
                       </span>
                     ) : (
-                      <span className='text-gray-900'>
+                      <span className='min-w-0 break-words text-gray-900'>
                         {details[item.key]}
                       </span>
                     )}
@@ -478,12 +478,12 @@ const FieldOrBlockManagement = () => {
             7 COLUMNS
         ====================================================== */}
 
-        <div className='self-start xl:col-span-6'>
+        <div className='xl:col-span-6 xl:self-stretch'>
           <div
             className={
               isMapFullscreen
                 ? "fixed inset-0 z-[9999] flex h-screen w-screen flex-col overflow-hidden bg-white"
-                : "overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm"
+                : "flex h-full flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm"
             }
           >
             {/* =====================================================
@@ -516,7 +516,7 @@ const FieldOrBlockManagement = () => {
               className={
                 isMapFullscreen
                   ? "relative min-h-0 min-w-0 w-screen flex-1 self-stretch"
-                  : "relative h-80 w-full"
+                  : "relative h-80 min-h-80 w-full flex-1"
               }
             >
               {/* =================================================
@@ -528,7 +528,7 @@ const FieldOrBlockManagement = () => {
                 center={[Number(map?.latitude ?? 24.9), Number(map?.longitude ?? 91.87)]}
                 zoom={map?.zoom ?? 16}
                 zoomControl={false}
-                className='h-full w-full'
+                className='absolute inset-0 h-full w-full'
               >
                 {/* =========================
                         MAP LAYER
@@ -610,14 +610,14 @@ const FieldOrBlockManagement = () => {
                       MAP LEGEND
                   ================================================== */}
 
-              <div className='absolute right-3 top-3 z-[1000] w-36 rounded-md border border-gray-200 bg-white p-3 shadow-md'>
-                <div className='space-y-2'>
+              <div className='absolute right-2 top-2 z-[1000] w-28 rounded-md border border-gray-200 bg-white p-2 shadow-md sm:right-3 sm:top-3 sm:w-36 sm:p-3'>
+                <div className='space-y-1 sm:space-y-2'>
                   {/* Selected Field */}
 
                   <div className='flex items-center gap-2'>
                     <span className='h-3 w-5 rounded-sm border-2 border-green-600 bg-green-500/30' />
 
-                    <span className='text-xs text-gray-700'>
+                    <span className='text-[10px] text-gray-700 sm:text-xs'>
                       Selected Field
                     </span>
                   </div>
@@ -627,7 +627,7 @@ const FieldOrBlockManagement = () => {
                   <div className='flex items-center gap-2'>
                     <span className='h-3 w-5 rounded-sm border border-green-700' />
 
-                    <span className='text-xs text-gray-700'>Other Field</span>
+                    <span className='text-[10px] text-gray-700 sm:text-xs'>Other Field</span>
                   </div>
 
                   {/* Road */}
@@ -635,7 +635,7 @@ const FieldOrBlockManagement = () => {
                   <div className='flex items-center gap-2'>
                     <span className='w-5 border-t-2 border-dashed border-red-500' />
 
-                    <span className='text-xs text-gray-700'>Road</span>
+                    <span className='text-[10px] text-gray-700 sm:text-xs'>Road</span>
                   </div>
 
                   {/* Drain */}
@@ -643,7 +643,7 @@ const FieldOrBlockManagement = () => {
                   <div className='flex items-center gap-2'>
                     <span className='w-5 border-t-2 border-dashed border-blue-500' />
 
-                    <span className='text-xs text-gray-700'>Drain</span>
+                    <span className='text-[10px] text-gray-700 sm:text-xs'>Drain</span>
                   </div>
 
                   {/* Section Boundary */}
@@ -651,7 +651,7 @@ const FieldOrBlockManagement = () => {
                   <div className='flex items-center gap-2'>
                     <span className='h-3 w-5 rounded-sm border-2 border-yellow-500' />
 
-                    <span className='text-xs text-gray-700'>
+                    <span className='text-[10px] text-gray-700 sm:text-xs'>
                       Section Boundary
                     </span>
                   </div>
@@ -774,7 +774,7 @@ const FieldOrBlockManagement = () => {
               </h2>
             </div>
 
-            <div className='flex flex-wrap justify-between gap-5'>
+            <div className='grid grid-cols-2 gap-5 sm:flex sm:flex-wrap sm:justify-between'>
               <div className='text-center'>
                 <p className='text-sm text-gray-500'>Tea Field</p>
 

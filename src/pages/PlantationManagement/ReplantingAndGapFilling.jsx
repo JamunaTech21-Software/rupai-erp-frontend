@@ -255,7 +255,7 @@ const ReplantingAndGapFilling = () => {
 
             {/* ================= Mini Table ================= */}
 
-            <div className='overflow-hidden rounded border border-gray-200'>
+            <div className='overflow-x-auto rounded border border-gray-200'>
               <table className='w-full border-collapse text-[10px]'>
                 <thead className='bg-gray-100'>
                   <tr>
@@ -386,7 +386,7 @@ const ReplantingAndGapFilling = () => {
             </h4>
 
             {/* Material Table */}
-            <div className='overflow-hidden rounded border border-gray-200'>
+            <div className='overflow-x-auto rounded border border-gray-200'>
               <table className='w-full border-collapse text-[10px]'>
                 <thead className='bg-gray-100'>
                   <tr>
@@ -478,7 +478,7 @@ const ReplantingAndGapFilling = () => {
             </div>
 
             {/* ================= Labour Table ================= */}
-            <div className='overflow-hidden rounded border border-gray-200'>
+            <div className='overflow-x-auto rounded border border-gray-200'>
               <table className='w-full border-collapse text-[10px]'>
                 <thead className='bg-gray-100'>
                   <tr>
@@ -580,7 +580,7 @@ const ReplantingAndGapFilling = () => {
             </div>
 
             {/* ================= Table ================= */}
-            <div className='overflow-hidden rounded border border-gray-200'>
+            <div className='overflow-x-auto rounded border border-gray-200'>
               <table className='w-full border-collapse text-[10px]'>
                 <thead className='bg-gray-100'>
                   <tr>
@@ -894,7 +894,7 @@ const ReplantingAndGapFilling = () => {
       <div className='rounded-xl border border-gray-200 bg-white p-2 shadow-sm'>
         {/* ================= Step Header ================= */}
         <div className='mb-8 flex justify-center'>
-          <div className='rounded-md bg-green-700 px-12 py-2 font-semibold text-white'>
+          <div className='rounded-md bg-green-700 px-4 py-2 text-center font-semibold text-white sm:px-12'>
             কাজের ধাপ (Step-by-Step Screens)
           </div>
         </div>
@@ -954,18 +954,91 @@ const ReplantingAndGapFilling = () => {
         </div>
 
         {/* ================= Database + User Flow ================= */}
-        <div className='mt-12 grid grid-cols-12 gap-1'>
-          {/* Left Side */}
-          <section className='col-span-12  lg:col-span-7'>
+        <div className='mt-12 grid grid-cols-12 gap-x-1 gap-y-12'>
+          {/* User Role & Approval Flow */}
+          <section className='col-span-12'>
+            <div className='mb-6 flex justify-center'>
+              <div className='rounded-md bg-green-700 px-4 py-2 text-center font-semibold text-white sm:px-10'>
+                User Role & Approval Flow
+              </div>
+            </div>
+
+            <div className='rounded-xl border border-gray-200 bg-white p-5 shadow-sm'>
+              <div className='overflow-x-auto'>
+              <div className='flex min-w-[640px] items-start justify-between'>
+                {approvalFlow.map((item, index) => {
+                  const Icon = approvalIconMap[item.icon];
+
+                  return (
+                    <div key={item.id} className='flex flex-1 items-center'>
+                      {/* Role */}
+                      <div className='flex flex-col items-center text-center'>
+                        <div
+                          className={`flex h-14 w-14 items-center justify-center rounded-full ${approvalColorMap[item.color]} text-white shadow-md`}
+                        >
+                          <Icon size={28} />
+                        </div>
+
+                        <h4 className='mt-2 text-xs font-semibold text-gray-800'>
+                          {item.role}
+                        </h4>
+
+                        <ul className='mt-2 space-y-1 text-left text-[11px] text-gray-600'>
+                          {item.tasks.map((task) => (
+                            <li key={task}>• {task}</li>
+                          ))}
+                        </ul>
+                      </div>
+
+                      {/* Arrow */}
+                      {index < approvalFlow.length - 1 && (
+                        <div className='mx-3'>
+                          <ArrowRight size={22} className='text-green-700' />
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+              </div>
+              {/* Reports Area */}
+              <div className='mt-4 rounded-xl   bg-amber-50  p-1 shadow-sm'>
+                <div className='mt-2 '>
+                  <div className='rounded-md text-green-700  py-2 font-semibold '>
+                    Final Output / Reports
+                  </div>
+                </div>
+                <div className='grid grid-cols-2 gap-x-2 gap-y-3  p-3 rounded-xl'>
+                  {reports.map((report) => (
+                    <div
+                      key={report.id}
+                      className='flex items-center gap-2 text-[12px] text-gray-700'
+                    >
+                      <Check
+                        size={14}
+                        className='shrink-0 text-green-600'
+                        strokeWidth={3}
+                      />
+
+                      <span className='leading-5'>{report.title}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* Database Tables Overview: under the User Role & Approval Flow */}
+          <section className='col-span-12'>
             {/* Header */}
             <div className='mb-6 flex justify-center'>
-              <div className='rounded-md bg-green-700 px-10 py-2 font-semibold text-white'>
+              <div className='rounded-md bg-green-700 px-4 py-2 text-center font-semibold text-white sm:px-10'>
                 Database Tables Overview
               </div>
             </div>
 
             {/* Database Area */}
-            <div className='grid grid-cols-1  gap-1 md:grid-cols-2  xl:grid-cols-4'>
+            <div className='grid grid-cols-1 gap-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5'>
               {databaseTables.map((table) => (
                 <div
                   key={table.id}
@@ -1027,76 +1100,6 @@ const ReplantingAndGapFilling = () => {
                   </div>
                 </div>
               ))}
-            </div>
-          </section>
-          {/* Right Side */}
-          <section className='col-span-12 lg:col-span-5'>
-            <div className='mb-6 flex justify-center'>
-              <div className='rounded-md bg-green-700 px-10 py-2 font-semibold text-white'>
-                User Role & Approval Flow
-              </div>
-            </div>
-
-            <div className='rounded-xl border border-gray-200 bg-white p-5 shadow-sm'>
-              <div className='flex items-start justify-between'>
-                {approvalFlow.map((item, index) => {
-                  const Icon = approvalIconMap[item.icon];
-
-                  return (
-                    <div key={item.id} className='flex flex-1 items-center'>
-                      {/* Role */}
-                      <div className='flex flex-col items-center text-center'>
-                        <div
-                          className={`flex h-14 w-14 items-center justify-center rounded-full ${approvalColorMap[item.color]} text-white shadow-md`}
-                        >
-                          <Icon size={28} />
-                        </div>
-
-                        <h4 className='mt-2 text-xs font-semibold text-gray-800'>
-                          {item.role}
-                        </h4>
-
-                        <ul className='mt-2 space-y-1 text-left text-[11px] text-gray-600'>
-                          {item.tasks.map((task) => (
-                            <li key={task}>• {task}</li>
-                          ))}
-                        </ul>
-                      </div>
-
-                      {/* Arrow */}
-                      {index < approvalFlow.length - 1 && (
-                        <div className='mx-3'>
-                          <ArrowRight size={22} className='text-green-700' />
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-              {/* Reports Area */}
-              <div className='mt-4 rounded-xl   bg-amber-50  p-1 shadow-sm'>
-                <div className='mt-2 '>
-                  <div className='rounded-md text-green-700  py-2 font-semibold '>
-                    Final Output / Reports
-                  </div>
-                </div>
-                <div className='grid grid-cols-2 gap-x-2 gap-y-3  p-3 rounded-xl'>
-                  {reports.map((report) => (
-                    <div
-                      key={report.id}
-                      className='flex items-center gap-2 text-[12px] text-gray-700'
-                    >
-                      <Check
-                        size={14}
-                        className='shrink-0 text-green-600'
-                        strokeWidth={3}
-                      />
-
-                      <span className='leading-5'>{report.title}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
             </div>
           </section>
         </div>

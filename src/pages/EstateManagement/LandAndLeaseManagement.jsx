@@ -686,7 +686,7 @@ const LandAndLeaseManagement = () => {
                 <strong>{landMeta?.total ?? 0}</strong> records
               </p>
 
-              <div className='flex items-center gap-1'>
+              <div className='flex flex-wrap items-center justify-center gap-1'>
                 {Array.from({ length: landMeta?.totalPages ?? 1 }, (_, i) => i + 1).map((number) => (
                   <button
                     key={number}
@@ -2052,7 +2052,7 @@ const LandAndLeaseManagement = () => {
 
       {showPaymentModal && (
         <div className='fixed  inset-0 z-[9999] flex items-center justify-center bg-black/50 p-4'>
-          <div className='w-full max-w-3xl rounded-xl bg-white shadow-2xl'>
+          <div className='max-h-[92vh] w-full max-w-3xl overflow-y-auto rounded-xl bg-white shadow-2xl'>
             {/* HEADER */}
 
             <div className='flex items-center justify-between border-b border-gray-200 px-5 py-4'>
@@ -2205,11 +2205,11 @@ const LandAndLeaseManagement = () => {
 
               {/* FOOTER */}
 
-              <div className='mt-6 flex justify-end gap-3 border-t border-gray-200 pt-4'>
+              <div className='mt-6 flex flex-col-reverse gap-3 border-t border-gray-200 pt-4 sm:flex-row sm:justify-end'>
                 <button
                   type='button'
                   onClick={closePaymentModal}
-                  className='flex cursor-pointer items-center justify-center gap-2 rounded-lg border border-gray-300 px-5 py-2 text-sm text-gray-700 transition hover:bg-gray-50'
+                  className='flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg border border-gray-300 px-5 py-2 text-sm text-gray-700 transition hover:bg-gray-50 sm:w-auto'
                 >
                   <X size={17} />
                   Cancel
@@ -2218,7 +2218,7 @@ const LandAndLeaseManagement = () => {
                 <button
                   type='submit'
                   disabled={paymentSubmitting}
-                  className='flex cursor-pointer items-center justify-center gap-2 rounded-lg bg-green-800 px-5 py-2 text-sm font-medium text-white transition hover:bg-green-900 disabled:opacity-60'
+                  className='flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg bg-green-800 px-5 py-2 text-sm font-medium text-white transition hover:bg-green-900 disabled:opacity-60 sm:w-auto'
                 >
                   <Save size={17} />
                   {paymentSubmitting ? "Saving..." : "Save Payment"}

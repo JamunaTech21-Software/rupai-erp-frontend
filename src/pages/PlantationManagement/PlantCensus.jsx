@@ -28,6 +28,7 @@ import {
 } from "../../data/PlantationManagementData/plantCensusData";
 import { api } from "../../lib/api";
 import { useApi } from "../../lib/useApi";
+import ConfirmDialog from "../../components/common/ConfirmDialog";
 import CardSkeleton from "../../components/common/CardSkeleton";
 import TableSkeleton from "../../components/common/TableSkeleton";
 import EmptyRow from "../../components/common/EmptyRow";
@@ -124,6 +125,9 @@ const toRowForm = (row) => Object.fromEntries(ROW_FIELDS.map(([name]) => [name, 
 // Same formula the server uses for the gap.
 const gapOf = (row) => (Number(row.expectedPlants) ? ((Number(row.deadPlants || 0) + Number(row.missingPlants || 0)) / Number(row.expectedPlants)) * 100 : 0);
 
+// Document table column widths (percent of the table): File Name is kept narrow and cut with "..." when long.
+const DOCUMENT_COLUMN_WIDTH = { sl: "6%", documentName: "28%", type: "12%", fileName: "22%", uploadedOn: "18%", action: "14%" };
+
 const PlantCensus = () => {
   const {
     register,
@@ -147,6 +151,9 @@ const PlantCensus = () => {
   const [rowValues, setRowValues] = useState({});
   const [rowErrors, setRowErrors] = useState({});
   const [rowBusy, setRowBusy] = useState(false);
+  // Document being deleted (asks first).
+  const [deletingDoc, setDeletingDoc] = useState(null);
+  const [deleteBusy, setDeleteBusy] = useState(false);
 
   // The census being edited (?id=); the panels show it, or the first census when adding a new one.
   const first = useApi(() => (editId ? Promise.resolve(null) : api.get("/plant-censuses", { perPage: 1 })), [editId]);
@@ -300,6 +307,26 @@ const PlantCensus = () => {
       toast.error(error.message);
     } finally {
       setUploading(false);
+    }
+  };
+
+  // Delete a document: the census is saved again without that file.
+  const confirmDeleteDocument = async () => {
+    setDeleteBusy(true);
+    try {
+      await api.put(`/plant-censuses/${shown.id}`, {
+        ...toForm(shown),
+        rows: shown.rows ?? [],
+        photos: shown.photos ?? [],
+        documents: (shown.documents ?? []).filter((id) => id !== deletingDoc.id),
+      });
+      toast.success("Document deleted successfully!");
+      setDeletingDoc(null);
+      reloadPanels();
+    } catch (error) {
+      toast.error(error.message);
+    } finally {
+      setDeleteBusy(false);
     }
   };
 
@@ -1015,7 +1042,7 @@ const PlantCensus = () => {
             {/* Body */}
             <div className='p-4'>
               {/* Static Map Placeholder */}
-              <div className='h-[360px] overflow-hidden rounded-lg border border-gray-300'>
+              <div className='h-[260px] overflow-hidden rounded-lg border border-gray-300 sm:h-[360px]'>
                 <MapContainer
                   key={`${shown?.id}-${field.data?.id}`}
                   center={mapCenter}
@@ -1492,7 +1519,7 @@ const PlantCensus = () => {
         {/* ================================================= */}
         <div className='grid grid-cols-12 gap-2'>
           {/* Field Photos */}
-          <div className='col-span-12 md:col-span-6 xl:col-span-2 rounded-xl border border-gray-200 bg-white p-2 shadow-sm'>
+          <div className='col-span-12 md:col-span-6 xl:col-span-4 rounded-xl border border-gray-200 bg-white p-2 shadow-sm'>
             <div>
               {/* Header */}
               <div className='border-b border-gray-200 px-2 py-3'>
@@ -1548,80 +1575,8 @@ const PlantCensus = () => {
             </div>
           </div>
 
-          {/* Documents */}
-          <div className='col-span-12 md:col-span-6 xl:col-span-4 rounded-xl border border-gray-200 bg-white p-2 shadow-sm'>
-            {/* Header */}
-            <div className='border-b border-gray-200 px-2 py-3'>
-              <h2 className='text-lg font-semibold text-green-700'>
-                Documents
-              </h2>
-            </div>
-
-            {/* Table */}
-            <div className='overflow-x-auto'>
-              <table className='min-w-full text-xs'>
-                <thead className='bg-gray-50'>
-                  <tr>
-                    {documentTableHeaders.map((header) => (
-                      <th
-                        key={header.id}
-                        className='border border-gray-200 px-2 py-2 text-center text-xs font-semibold'
-                      >
-                        {header.label}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-
-                <tbody>
-                  {documents.length === 0 && <EmptyRow columns={documentTableHeaders.length} />}
-                  {documents.map((doc, index) => (
-                    <tr key={doc.id}>
-                      {documentTableHeaders.map((header) => (
-                        <td
-                          key={header.id}
-                          className='border border-gray-200 px-2 py-2 text-center'
-                        >
-                          {header.key === "sl" ? (
-                            index + 1
-                          ) : header.key === "action" ? (
-                            <div className='flex justify-center gap-2'>
-                              <button type='button' title='Download' onClick={() => window.open(doc.url, "_blank", "noopener")}>
-                                <Download size={14} />
-                              </button>
-
-                              <button>
-                                <Trash2 size={14} />
-                              </button>
-                            </div>
-                          ) : (
-                            doc[header.key]
-                          )}
-                        </td>
-                      ))}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            {/* Footer */}
-            <div className='border-t border-gray-200 p-2'>
-              <input ref={documentInput} type='file' accept='.pdf,.jpg,.jpeg,.png,.doc,.docx' multiple className='hidden' onChange={(event) => addFiles("documents", event)} />
-              <button
-                type='button'
-                disabled={uploading}
-                onClick={() => documentInput.current?.click()}
-                className='flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 py-1 text-sm font-medium hover:bg-gray-50 disabled:opacity-60'
-              >
-                <Upload size={16} />
-                Upload More Document
-              </button>
-            </div>
-          </div>
-
           {/* Census History */}
-          <div className='col-span-12 md:col-span-6 xl:col-span-3 rounded-xl border border-gray-200 bg-white p-2 shadow-sm'>
+          <div className='col-span-12 md:col-span-6 xl:col-span-4 rounded-xl border border-gray-200 bg-white p-2 shadow-sm'>
             {/* Header */}
             <div className='border-b border-gray-200 px-2 py-3'>
               <h2 className='text-lg font-semibold text-green-700'>
@@ -1665,7 +1620,7 @@ const PlantCensus = () => {
           </div>
 
           {/* Approval Status */}
-          <div className='col-span-12 md:col-span-6 xl:col-span-3 rounded-xl border border-gray-200 bg-white p-2 shadow-sm'>
+          <div className='col-span-12 md:col-span-12 xl:col-span-4 rounded-xl border border-gray-200 bg-white p-2 shadow-sm'>
             {/* Header */}
             <div className='border-b border-gray-200 px-2 py-3'>
               <h2 className='text-lg font-semibold text-green-700'>
@@ -1707,18 +1662,91 @@ const PlantCensus = () => {
               ))}
             </div>
           </div>
+          {/* Documents: full width, under the cards above */}
+          <div className='col-span-12 flex flex-col rounded-xl border border-gray-200 bg-white p-2 shadow-sm'>
+            {/* Header */}
+            <div className='border-b border-gray-200 px-2 py-3'>
+              <h2 className='text-lg font-semibold text-green-700'>
+                Documents
+              </h2>
+            </div>
+
+            {/* Table */}
+            <div className='flex-1 overflow-x-auto'>
+              <table className='w-full min-w-[560px] table-fixed text-xs'>
+                <thead className='bg-gray-50'>
+                  <tr>
+                    {documentTableHeaders.map((header) => (
+                      <th
+                        key={header.id}
+                        style={{ width: DOCUMENT_COLUMN_WIDTH[header.key] }}
+                        className='border border-gray-200 px-2 py-2 text-center text-xs font-semibold'
+                      >
+                        {header.label}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+
+                <tbody>
+                  {documents.length === 0 && <EmptyRow columns={documentTableHeaders.length} />}
+                  {documents.map((doc, index) => (
+                    <tr key={doc.id}>
+                      {documentTableHeaders.map((header) => (
+                        <td
+                          key={header.id}
+                          title={header.key === "documentName" || header.key === "fileName" ? String(doc[header.key] ?? "") : undefined}
+                          className='truncate border border-gray-200 px-2 py-2 text-center'
+                        >
+                          {header.key === "sl" ? (
+                            index + 1
+                          ) : header.key === "action" ? (
+                            <div className='flex justify-center gap-2'>
+                              <button type='button' title='Download' onClick={() => window.open(doc.url, "_blank", "noopener")}>
+                                <Download size={14} />
+                              </button>
+
+                              <button type='button' title='Delete' onClick={() => setDeletingDoc(doc)}>
+                                <Trash2 size={14} />
+                              </button>
+                            </div>
+                          ) : (
+                            doc[header.key]
+                          )}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Footer: the upload button stays at the bottom of the card */}
+            <div className='mt-auto flex justify-center border-t border-gray-200 p-2'>
+              <input ref={documentInput} type='file' accept='.pdf,.jpg,.jpeg,.png,.doc,.docx' multiple className='hidden' onChange={(event) => addFiles("documents", event)} />
+              <button
+                type='button'
+                disabled={uploading}
+                onClick={() => documentInput.current?.click()}
+                className='flex w-fit cursor-pointer items-center justify-center gap-2 rounded-lg border border-gray-300 px-4 py-1.5 text-sm font-medium text-gray-700 transition hover:border-green-700 hover:bg-green-700 hover:text-white disabled:opacity-60'
+              >
+                <Upload size={16} />
+                Upload More Document
+              </button>
+            </div>
+          </div>
         </div>
 
         {/* ================================================= */}
         {/* Footer Buttons */}
         {/* ================================================= */}
-        <div className='mt-4 rounded-xl border border-gray-200 bg-white px-6 py-4 shadow-sm'>
+        <div className='mt-4 rounded-xl border border-gray-200 bg-white px-4 py-4 shadow-sm sm:px-6'>
           <div className='flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-end'>
             {/* Buttons Here */}
             <button
               type='button'
               onClick={resetForm}
-              className='flex items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-6 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-100'
+              className='flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-6 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-100 sm:w-auto'
             >
               <RotateCcw size={18} />
               Reset
@@ -1726,7 +1754,7 @@ const PlantCensus = () => {
             <button
               type='button'
               onClick={() => navigate(-1)}
-              className='flex items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-6 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-red-50 hover:text-red-600'
+              className='flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-6 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-red-50 hover:text-red-600 sm:w-auto'
             >
               <X size={18} />
               Cancel
@@ -1735,7 +1763,7 @@ const PlantCensus = () => {
               type='button'
               disabled={isSubmitting}
               onClick={handleSubmit(onSubmit)}
-              className='flex items-center justify-center gap-2 rounded-lg bg-green-700 px-6 py-2.5 text-sm font-medium text-white transition hover:bg-green-800 disabled:opacity-60'
+              className='flex w-full items-center justify-center gap-2 rounded-lg bg-green-700 px-6 py-2.5 text-sm font-medium text-white transition hover:bg-green-800 disabled:opacity-60 sm:w-auto'
             >
               <Save size={18} />
               Save as Draft
@@ -1744,7 +1772,7 @@ const PlantCensus = () => {
               type='submit'
               form='census-form'
               disabled={isSubmitting}
-              className='flex items-center justify-center gap-2 rounded-lg bg-green-600 px-6 py-2.5 text-sm font-medium text-white transition hover:bg-green-700 disabled:opacity-60'
+              className='flex w-full items-center justify-center gap-2 rounded-lg bg-green-600 px-6 py-2.5 text-sm font-medium text-white transition hover:bg-green-700 disabled:opacity-60 sm:w-auto'
             >
               <CheckCircle2 size={18} />
               Submit for Approval
@@ -1752,6 +1780,14 @@ const PlantCensus = () => {
           </div>
         </div>
       </div>
+      <ConfirmDialog
+        open={Boolean(deletingDoc)}
+        title='Delete document?'
+        message={`${deletingDoc?.documentName ?? "This document"} will be removed from this census.`}
+        loading={deleteBusy}
+        onConfirm={confirmDeleteDocument}
+        onCancel={() => setDeletingDoc(null)}
+      />
       {rowPopup && (
         <div className='fixed inset-0 z-[90] flex items-center justify-center bg-black/40 p-3' onMouseDown={closeRow}>
           <form

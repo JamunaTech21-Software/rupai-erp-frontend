@@ -333,7 +333,7 @@ const FieldPlanting = () => {
             =========================== */}
             <div className='rounded-xl border border-gray-200 bg-white shadow-sm'>
               {/* Card Header */}
-              <div className='border-b border-gray-200 px-6 py-4'>
+              <div className='border-b border-gray-200 px-4 py-3 sm:px-6 sm:py-4'>
                 <h2 className='text-lg font-semibold text-green-700'>
                   Field Planting Information
                 </h2>
@@ -1042,29 +1042,29 @@ const FieldPlanting = () => {
               =========================== */}
               <div className='rounded-xl border border-gray-200 bg-white shadow-sm'>
                 {/* Header */}
-                <div className='border-b border-gray-200 px-6 py-4'>
+                <div className='border-b border-gray-200 px-4 py-3 sm:px-6 sm:py-4'>
                   <h2 className='text-lg font-semibold text-green-700'>
                     Fertilizer Schedule (At Planting Time)
                   </h2>
                 </div>
 
                 {/* Body */}
-                <div className='space-y-3 p-6'>
+                <div className='space-y-3 p-4 sm:p-6'>
                   {/* Column Header */}
                   <div className='grid grid-cols-12 gap-3'>
-                    <div className='col-span-5'>
+                    <div className='col-span-12 sm:col-span-5'>
                       <label className='text-sm font-semibold text-gray-700'>
                         Fertilizer / Material
                       </label>
                     </div>
 
-                    <div className='col-span-4'>
+                    <div className='col-span-12 sm:col-span-4'>
                       <label className='text-sm font-semibold text-gray-700'>
                         Amount (Per Acre)
                       </label>
                     </div>
 
-                    <div className='col-span-3'>
+                    <div className='col-span-12 sm:col-span-3'>
                       <label className='text-sm font-semibold text-gray-700'>
                         Unit
                       </label>
@@ -1073,7 +1073,7 @@ const FieldPlanting = () => {
 
                   {/* Row 01 */}
                   <div className='grid grid-cols-12 gap-3'>
-                    <div className='col-span-5'>
+                    <div className='col-span-12 sm:col-span-5'>
                       <input
                         type='text'
                         defaultValue='NPK (15:15:15)'
@@ -1082,7 +1082,7 @@ const FieldPlanting = () => {
                       />
                     </div>
 
-                    <div className='col-span-4'>
+                    <div className='col-span-12 sm:col-span-4'>
                       <input
                         type='number'
                         defaultValue='50'
@@ -1091,7 +1091,7 @@ const FieldPlanting = () => {
                       />
                     </div>
 
-                    <div className='col-span-3'>
+                    <div className='col-span-12 sm:col-span-3'>
                       <select
                         {...register("npkUnit")}
                         className='h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm outline-none focus:border-green-600'
@@ -1106,7 +1106,7 @@ const FieldPlanting = () => {
 
                   {/* Row 02 */}
                   <div className='grid grid-cols-12 gap-3'>
-                    <div className='col-span-5'>
+                    <div className='col-span-12 sm:col-span-5'>
                       <input
                         type='text'
                         defaultValue='TSP'
@@ -1115,7 +1115,7 @@ const FieldPlanting = () => {
                       />
                     </div>
 
-                    <div className='col-span-4'>
+                    <div className='col-span-12 sm:col-span-4'>
                       <input
                         type='number'
                         defaultValue='25'
@@ -1124,7 +1124,7 @@ const FieldPlanting = () => {
                       />
                     </div>
 
-                    <div className='col-span-3'>
+                    <div className='col-span-12 sm:col-span-3'>
                       <select
                         {...register("tspUnit")}
                         className='h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm outline-none focus:border-green-600'
@@ -1139,7 +1139,7 @@ const FieldPlanting = () => {
 
                   {/* Row 03 */}
                   <div className='grid grid-cols-12 gap-3'>
-                    <div className='col-span-5'>
+                    <div className='col-span-12 sm:col-span-5'>
                       <input
                         type='text'
                         defaultValue='MOP'
@@ -1148,7 +1148,7 @@ const FieldPlanting = () => {
                       />
                     </div>
 
-                    <div className='col-span-4'>
+                    <div className='col-span-12 sm:col-span-4'>
                       <input
                         type='number'
                         defaultValue='25'
@@ -1157,7 +1157,7 @@ const FieldPlanting = () => {
                       />
                     </div>
 
-                    <div className='col-span-3'>
+                    <div className='col-span-12 sm:col-span-3'>
                       <select
                         {...register("mopUnit")}
                         className='h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm outline-none focus:border-green-600'
@@ -1172,7 +1172,7 @@ const FieldPlanting = () => {
 
                   {/* Row 04 */}
                   <div className='grid grid-cols-12 gap-3'>
-                    <div className='col-span-5'>
+                    <div className='col-span-12 sm:col-span-5'>
                       <input
                         type='text'
                         defaultValue='FYM'
@@ -1181,7 +1181,7 @@ const FieldPlanting = () => {
                       />
                     </div>
 
-                    <div className='col-span-4'>
+                    <div className='col-span-12 sm:col-span-4'>
                       <input
                         type='number'
                         defaultValue='1000'
@@ -1190,7 +1190,7 @@ const FieldPlanting = () => {
                       />
                     </div>
 
-                    <div className='col-span-3'>
+                    <div className='col-span-12 sm:col-span-3'>
                       <select
                         {...register("fymUnit")}
                         className='h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm outline-none focus:border-green-600'
@@ -1210,7 +1210,7 @@ const FieldPlanting = () => {
                   =========================== */}
               <div className='rounded-xl border border-gray-200 bg-white shadow-sm'>
                 {/* Header */}
-                <div className='border-b border-gray-200 px-6 py-4'>
+                <div className='border-b border-gray-200 px-4 py-3 sm:px-6 sm:py-4'>
                   <h2 className='text-lg font-semibold text-green-700'>
                     Shade Tree Information
                   </h2>
@@ -1221,7 +1221,7 @@ const FieldPlanting = () => {
                   {/* ---------------- Row 01 ---------------- */}
                   <div className='grid grid-cols-12 gap-3'>
                     {/* Shade Tree Species */}
-                    <div className='col-span-4 space-y-1.5'>
+                    <div className='col-span-12 sm:col-span-4 space-y-1.5'>
                       <label className='text-sm font-medium text-gray-700'>
                         Shade Species
                       </label>
@@ -1239,7 +1239,7 @@ const FieldPlanting = () => {
                     </div>
 
                     {/* Spacing */}
-                    <div className='col-span-3 space-y-1.5'>
+                    <div className='col-span-12 sm:col-span-3 space-y-1.5'>
                       <label className='text-sm font-medium text-gray-700'>
                         Spacing
                       </label>
@@ -1256,7 +1256,7 @@ const FieldPlanting = () => {
                     </div>
 
                     {/* No of Shade Trees */}
-                    <div className='col-span-5 space-y-1.5'>
+                    <div className='col-span-12 sm:col-span-5 space-y-1.5'>
                       <label className='text-sm font-medium text-gray-700'>
                         No. of shade tr (PA)
                       </label>
@@ -1273,7 +1273,7 @@ const FieldPlanting = () => {
                   {/* ---------------- Row 02 ---------------- */}
                   <div className='grid grid-cols-12 gap-3 pt-6'>
                     {/* Purpose */}
-                    <div className='col-span-4 space-y-1.5'>
+                    <div className='col-span-12 sm:col-span-4 space-y-1.5'>
                       <label className='text-sm font-medium text-gray-700'>
                         Purpose
                       </label>
@@ -1287,7 +1287,7 @@ const FieldPlanting = () => {
                     </div>
 
                     {/* Planting Date */}
-                    <div className='col-span-4 space-y-1.5'>
+                    <div className='col-span-12 sm:col-span-4 space-y-1.5'>
                       <label className='text-sm font-medium text-gray-700'>
                         Planting Date
                       </label>
@@ -1300,7 +1300,7 @@ const FieldPlanting = () => {
                     </div>
 
                     {/* Remarks */}
-                    <div className='col-span-4 space-y-1.5'>
+                    <div className='col-span-12 sm:col-span-4 space-y-1.5'>
                       <label className='text-sm font-medium text-gray-700'>
                         Remarks
                       </label>
@@ -1324,7 +1324,7 @@ const FieldPlanting = () => {
                   =========================== */}
               <div className='rounded-xl border border-gray-200 bg-white shadow-sm'>
                 {/* Header */}
-                <div className='border-b border-gray-200 px-6 py-4'>
+                <div className='border-b border-gray-200 px-4 py-3 sm:px-6 sm:py-4'>
                   <h2 className='text-lg font-semibold text-green-700'>
                     Field Officer / Supervisor
                   </h2>
@@ -1377,7 +1377,7 @@ const FieldPlanting = () => {
             =========================== */}
               <div className='rounded-xl border border-gray-200 bg-white shadow-sm'>
                 {/* Header */}
-                <div className='border-b border-gray-200 px-6 py-4'>
+                <div className='border-b border-gray-200 px-4 py-3 sm:px-6 sm:py-4'>
                   <h2 className='text-lg font-semibold text-green-700'>
                     Labour Allocation
                   </h2>
@@ -1458,7 +1458,7 @@ const FieldPlanting = () => {
                 =========================== */}
                 <div className='rounded-xl border border-gray-200 bg-white shadow-sm '>
                   {/* Header */}
-                  <div className='border-b border-gray-200 px-6 py-4'>
+                  <div className='border-b border-gray-200 px-4 py-3 sm:px-6 sm:py-4'>
                     <h2 className='text-lg font-semibold text-green-700'>
                       Remarks
                     </h2>
@@ -1488,7 +1488,7 @@ const FieldPlanting = () => {
               =========================== */}
                 <div className='rounded-xl border border-gray-200 bg-white shadow-sm '>
                   {/* Header */}
-                  <div className='border-b border-gray-200 px-6 py-4'>
+                  <div className='border-b border-gray-200 px-4 py-3 sm:px-6 sm:py-4'>
                     <h2 className='text-lg font-semibold text-green-700'>
                       Documents
                     </h2>
@@ -1599,26 +1599,26 @@ const FieldPlanting = () => {
           {/* ===========================
               Right Section
           =========================== */}
-          <div className={editingId ? "hidden" : "col-span-12 lg:col-span-4 space-y-6"}>
+          <div className={editingId ? "hidden" : "col-span-12 flex flex-col gap-6 lg:col-span-4"}>
             {/* ===========================
                     Field Map
                 =========================== */}
-            <div className='rounded-xl border border-gray-200 bg-white shadow-sm'>
+            <div className='flex flex-1 flex-col rounded-xl border border-gray-200 bg-white shadow-sm'>
               {/* Header */}
-              <div className='border-b border-gray-200 px-6 py-4'>
+              <div className='border-b border-gray-200 px-4 py-3 sm:px-6 sm:py-4'>
                 <h2 className='text-lg font-semibold text-green-700'>
                   Field Map
                 </h2>
               </div>
 
               {/* Body */}
-              <div className='space-y-4 p-4'>
-                {/* Map */}
-                <div className='relative overflow-hidden rounded-lg border border-gray-300'>
+              <div className='flex flex-1 flex-col gap-4 p-4'>
+                {/* Map: takes the spare height so the right side ends level with the left side */}
+                <div className='relative min-h-64 flex-1 overflow-hidden rounded-lg border border-gray-300'>
                   <img
                     src={fieldMap.image}
                     alt={shown?.fieldBlockName ?? fieldMap.title}
-                    className='h-64 w-full object-cover'
+                    className='absolute inset-0 h-full w-full object-cover'
                   />
 
                   {/* Controls */}
@@ -1695,7 +1695,7 @@ const FieldPlanting = () => {
                 =========================== */}
             <div className='rounded-xl border py-6 border-gray-200 bg-white shadow-sm'>
               {/* Header */}
-              <div className='border-b border-gray-200 px-6 py-4'>
+              <div className='border-b border-gray-200 px-4 py-3 sm:px-6 sm:py-4'>
                 <h2 className='text-lg font-semibold text-green-700'>
                   Planting Progress
                 </h2>
@@ -1766,14 +1766,14 @@ const FieldPlanting = () => {
                 =========================== */}
             <div className='rounded-xl border py-6 border-gray-200 bg-white shadow-sm'>
               {/* Header */}
-              <div className='border-b border-gray-200 px-6 py-4'>
+              <div className='border-b border-gray-200 px-4 py-3 sm:px-6 sm:py-4'>
                 <h2 className='text-lg font-semibold text-green-700'>
                   Quick Summary
                 </h2>
               </div>
 
               {/* Body */}
-              <div className='space-y-4 p-6'>
+              <div className='space-y-4 p-4 sm:p-6'>
                 {record.loading && !record.data && activeId && <CardSkeleton count={2} />}
                 {record.error && <ErrorState message={record.error.message} onRetry={record.reload} />}
                 <div className='grid grid-cols-2 py-4 gap-5'>
@@ -1822,7 +1822,7 @@ const FieldPlanting = () => {
         =========================== */}
 
         <div className={`rounded-xl border border-gray-200 bg-white shadow-sm ${editingId ? "mt-2" : "mt-6"}`}>
-          <div className='flex flex-wrap items-center justify-center gap-3 p-5'>
+          <div className='flex flex-wrap items-center justify-end gap-3 p-4 *:flex-1 *:justify-center sm:p-5 sm:*:flex-none'>
             <button
               type='button'
               onClick={resetForm}
@@ -1878,14 +1878,14 @@ const FieldPlanting = () => {
         =========================== */}
       <div className='rounded-xl border border-gray-200 bg-white shadow-sm'>
         {/* Header */}
-        <div className='border-b border-gray-200 px-6 py-4'>
+        <div className='border-b border-gray-200 px-4 py-3 sm:px-6 sm:py-4'>
           <h2 className='text-lg font-semibold text-green-700'>
             Field Planting History
           </h2>
         </div>
 
         {/* Body */}
-        <div className='p-6'>
+        <div className='p-4 sm:p-6'>
           {/* Table */}
           <div className='overflow-x-auto rounded-lg border border-gray-200'>
             <table className='w-full border-collapse text-sm'>
