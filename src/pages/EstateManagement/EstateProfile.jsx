@@ -146,19 +146,19 @@ const EstateProfile = () => {
       {/* Main Layout */}
       <div className='grid grid-cols-12 gap-6'>
         {/* Left Side */}
-        <div className='col-span-12 space-y-6 xl:col-span-7'>
+        <div className='col-span-12 flex flex-col gap-6 xl:col-span-7'>
           {/* Estate Basic Information */}
 
           <div className='rounded-xl  shadow-sm  '>
             {/* Header */}
-            <div className='border-b bg-green-50 px-6 py-4'>
+            <div className='border-b bg-green-50 px-4 py-3 sm:px-6 sm:py-4'>
               <h2 className='text-lg font-semibold  text-green-800 '>
                 Estate Basic Information
               </h2>
             </div>
 
             {/* Body */}
-            <div className='grid grid-cols-1 gap-5 p-6 md:grid-cols-2 xl:grid-cols-3'>
+            <div className='grid grid-cols-1 gap-5 p-4 sm:p-6 md:grid-cols-2 xl:grid-cols-3'>
               {/* Estate Name */}
               <div>
                 <label className='mb-2 block text-sm font-medium text-gray-700'>
@@ -476,14 +476,14 @@ const EstateProfile = () => {
           {/* Estate Overview */}
           <div className='rounded-xl bg-white shadow-sm'>
             {/* Header */}
-            <div className='border-b px-6 py-4 bg-green-50'>
+            <div className='border-b bg-green-50 px-4 py-3 sm:px-6 sm:py-4'>
               <h2 className='text-lg font-semibold text-green-800'>
                 Estate Overview
               </h2>
             </div>
 
             {/* Body */}
-            <div className='grid grid-cols-1 gap-5 p-6 sm:grid-cols-2 xl:grid-cols-4'>
+            <div className='grid grid-cols-1 gap-5 p-4 sm:grid-cols-2 sm:p-6 xl:grid-cols-4'>
               {/* Total Land Area */}
               <div>
                 <label className='mb-2 flex min-h-[48px] items-start text-sm font-medium leading-5 text-gray-700'>
@@ -666,14 +666,14 @@ const EstateProfile = () => {
           {/* Manager / In-charge Information */}
           <div className='rounded-xl bg-white shadow-sm'>
             {/* Header */}
-            <div className='border-b bg-green-50 px-6 py-4'>
+            <div className='border-b bg-green-50 px-4 py-3 sm:px-6 sm:py-4'>
               <h2 className='text-lg font-semibold bg-green-50 text-green-800'>
                 Manager / In-charge Information
               </h2>
             </div>
 
             {/* Body */}
-            <div className='grid grid-cols-1 gap-5 p-6 sm:grid-cols-2 xl:grid-cols-3'>
+            <div className='grid grid-cols-1 gap-5 p-4 sm:grid-cols-2 sm:p-6 xl:grid-cols-3'>
               {estateProfileData.managerInformation.map((manager) => (
                 <div
                   key={manager.id}
@@ -739,9 +739,9 @@ const EstateProfile = () => {
           </div>
 
           {/* Facilities / Amenities */}
-          <div className='rounded-xl bg-white shadow-sm'>
+          <div className='flex flex-1 flex-col rounded-xl bg-white shadow-sm'>
             {/* Header */}
-            <div className='border-b bg-green-50 px-6 py-4'>
+            <div className='border-b bg-green-50 px-4 py-3 sm:px-6 sm:py-4'>
               <h2 className='text-lg font-semibold bg-green-50 text-green-800'>
                 Facilities / Amenities
               </h2>
@@ -749,7 +749,7 @@ const EstateProfile = () => {
 
             {/* Body */}
 
-            <div className='grid grid-cols-1 gap-6 p-6 md:grid-cols-2 xl:grid-cols-4'>
+            <div className='grid grid-cols-1 gap-6 p-4 sm:p-6 md:grid-cols-2 xl:grid-cols-4'>
               {/* Dynamic Facilities */}
               <div className='md:col-span-2 xl:col-span-3'>
                 <div className='grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3'>
@@ -795,19 +795,19 @@ const EstateProfile = () => {
         </div>
 
         {/* Right Side */}
-        <div className='col-span-12 space-y-6 xl:col-span-5'>
+        <div className='col-span-12 flex flex-col gap-6 xl:col-span-5'>
           {/* Estate Images */}
-          <div className='rounded-xl bg-white shadow-sm'>
+          <div className='flex flex-1 flex-col rounded-xl bg-white shadow-sm'>
             {/* Header */}
-            <div className='border-b px-6 py-4'>
-              <h2 className='text-lg font-semibold text-gray-800'>
+            <div className='border-b bg-green-50 px-4 py-3 sm:px-6 sm:py-4'>
+              <h2 className='text-lg font-semibold text-green-800'>
                 Estate Images
               </h2>
             </div>
 
             {/* Body */}
-            <div className='p-6'>
-              <div className='grid grid-cols-2 gap-4 sm:grid-cols-4'>
+            <div className='p-4 sm:p-6'>
+              <div className='grid grid-cols-2 gap-3 min-[480px]:grid-cols-3 sm:grid-cols-4 sm:gap-4'>
                 {images.map((image, index) => (
                   <div
                     key={image.id}
@@ -846,16 +846,16 @@ const EstateProfile = () => {
           </div>
 
           {/* Estate Summary */}
-          <div className='rounded-xl bg-white shadow-sm'>
+          <div className='flex flex-1 flex-col rounded-xl bg-white shadow-sm'>
             {/* Header */}
-            <div className='border-b bg-green-50 px-6 py-4'>
+            <div className='border-b bg-green-50 px-4 py-3 sm:px-6 sm:py-4'>
               <h2 className='text-lg font-semibold text-green-800'>
                 Estate Summary
               </h2>
             </div>
 
             {/* Body */}
-            <div className='p-6'>
+            <div className='p-4 sm:p-6'>
               <div className='space-y-2'>
                 {estateProfileData.estateOverview.map((item) => {
                   const Icon = summaryIconMap[item.icon];
@@ -863,17 +863,17 @@ const EstateProfile = () => {
                   return (
                     <div
                       key={item.id}
-                      className='flex items-center justify-between py-1'
+                      className='flex items-center justify-between gap-3 py-1'
                     >
-                      <div className='flex items-center gap-3'>
-                        <Icon size={18} className='text-gray-500' />
+                      <div className='flex min-w-0 items-center gap-3'>
+                        <Icon size={18} className='shrink-0 text-gray-500' />
 
                         <span className='text-sm text-gray-700'>
                           {item.title}
                         </span>
                       </div>
 
-                      <span className='text-sm font-semibold text-green-700'>
+                      <span className='shrink-0 text-right text-sm font-semibold text-green-700'>
                         {overview ? (overview[item.key] ?? 0) : "—"} {item.unit}
                       </span>
                     </div>
@@ -884,9 +884,9 @@ const EstateProfile = () => {
           </div>
 
           {/* Geo Location */}
-          <div className='rounded-xl bg-white shadow-sm'>
+          <div className='flex flex-1 flex-col rounded-xl bg-white shadow-sm'>
             {/* Header */}
-            <div className='border-b bg-green-50 px-6 py-4'>
+            <div className='border-b bg-green-50 px-4 py-3 sm:px-6 sm:py-4'>
               <h2 className='text-lg font-semibold text-green-800'>
                 Geo Location
               </h2>
@@ -964,7 +964,7 @@ const EstateProfile = () => {
                 <iframe
                   title='Estate Location'
                   src={`https://maps.google.com/maps?q=${latitude || 26.3417},${longitude || 88.0008}&z=14&output=embed`}
-                  className='h-64 w-full'
+                  className='h-52 w-full sm:h-64'
                   loading='lazy'
                 />
               </div>
@@ -972,21 +972,21 @@ const EstateProfile = () => {
           </div>
 
           {/* Description / Note */}
-          <div className='rounded-xl bg-white shadow-sm'>
+          <div className='flex flex-1 flex-col rounded-xl bg-white shadow-sm'>
             {/* Header */}
-            <div className='border-b bg-green-50 px-6 py-4'>
+            <div className='border-b bg-green-50 px-4 py-3 sm:px-6 sm:py-4'>
               <h2 className='text-lg font-semibold text-green-800'>
                 Description / Note
               </h2>
             </div>
 
             {/* Body */}
-            <div className='p-6'>
+            <div className='flex flex-1 flex-col p-4 sm:p-6'>
               <textarea
                 rows={10}
                 placeholder='Write estate description...'
                 {...register("description")}
-                className='w-full resize-none rounded-lg border bg-white px-4 py-3 text-sm leading-6 text-gray-700 outline-none transition-all duration-200 placeholder:text-gray-400 focus:border-green-600'
+                className='min-h-48 w-full flex-1 resize-none rounded-lg border bg-white px-4 py-3 text-sm leading-6 text-gray-700 outline-none transition-all duration-200 placeholder:text-gray-400 focus:border-green-600'
               />
               {errors.description && (
                 <p className='mt-1 text-xs text-red-500'>
@@ -1014,7 +1014,7 @@ const EstateProfile = () => {
                     key={action.id}
                     type='button'
                     onClick={() => navigate(-1)}
-                    className='inline-flex h-11 items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-6 text-sm font-medium text-gray-700 transition-all duration-200 hover:border-gray-400 hover:bg-gray-100'
+                    className='inline-flex h-11 flex-1 sm:flex-none items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-6 text-sm font-medium text-gray-700 transition-all duration-200 hover:border-gray-400 hover:bg-gray-100'
                   >
                     <Icon size={18} />
                     {action.label}
@@ -1029,7 +1029,7 @@ const EstateProfile = () => {
                     key={action.id}
                     type='button'
                     onClick={() => reset()}
-                    className='inline-flex h-11 items-center justify-center gap-2 rounded-lg border border-green-200 bg-green-50 px-6 text-sm font-medium text-green-700 transition-all duration-200 hover:border-green-300 hover:bg-green-100'
+                    className='inline-flex h-11 flex-1 sm:flex-none items-center justify-center gap-2 rounded-lg border border-green-200 bg-green-50 px-6 text-sm font-medium text-green-700 transition-all duration-200 hover:border-green-300 hover:bg-green-100'
                   >
                     <Icon size={18} />
                     {action.label}
@@ -1044,7 +1044,7 @@ const EstateProfile = () => {
                     key={action.id}
                     type='submit'
                     disabled={isSubmitting}
-                    className='inline-flex h-11 min-w-[120px] items-center justify-center gap-2 rounded-lg bg-green-700 px-6 text-sm font-semibold text-white transition-all duration-200 hover:bg-green-800 disabled:cursor-not-allowed disabled:opacity-70'
+                    className='inline-flex h-11 min-w-[120px] flex-1 sm:flex-none items-center justify-center gap-2 rounded-lg bg-green-700 px-6 text-sm font-semibold text-white transition-all duration-200 hover:bg-green-800 disabled:cursor-not-allowed disabled:opacity-70'
                   >
                     <Icon size={18} />
 

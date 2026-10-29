@@ -258,7 +258,7 @@ const MapAndGISTracking = () => {
         {/* ================= Top Section ================= */}
         <div className='grid grid-cols-1 gap-6 xl:grid-cols-12'>
           {/* Left Filter */}
-          <div className='space-y-4 xl:col-span-3'>
+          <div className='flex flex-col gap-4 xl:col-span-3'>
             {/* ================= Filter Card ================= */}
 
             <form onSubmit={handleSubmit(onSubmit)}>
@@ -468,7 +468,7 @@ const MapAndGISTracking = () => {
 
             {/* ================= Layer Control Card ================= */}
 
-            <div className='rounded-xl border border-gray-200 bg-white shadow-sm'>
+            <div className='flex-1 rounded-xl border border-gray-200 bg-white shadow-sm'>
               <div className='border-b border-gray-200 px-2 py-4'>
                 <h2 className='text-lg font-semibold text-green-800'>
                   Layer Control
@@ -504,7 +504,7 @@ const MapAndGISTracking = () => {
 
           {/* Right Map */}
           <div className='xl:col-span-9'>
-            <div className='rounded-xl border border-gray-200 bg-white shadow-sm'>
+            <div className='flex h-full flex-col rounded-xl border border-gray-200 bg-white shadow-sm'>
               {/* =====================================================
                     MAP HEADER
                 ====================================================== */}
@@ -534,7 +534,7 @@ const MapAndGISTracking = () => {
               {/* =====================================================
                       MAP BODY
                   ====================================================== */}
-              <div className='relative isolate h-[550px] w-full'>
+              <div className='relative isolate h-[380px] min-h-[380px] w-full flex-1 sm:h-[550px] sm:min-h-[550px]'>
                 <MapContainer
                   key={mapInfo.estateId ?? "none"}
                   center={
@@ -546,7 +546,7 @@ const MapAndGISTracking = () => {
                   minZoom={mapAndGISTrackingData.mapSettings.minZoom}
                   maxZoom={mapAndGISTrackingData.mapSettings.maxZoom}
                   zoomControl={false}
-                  className='h-full w-full'
+                  className='absolute inset-0 h-full w-full'
                 >
                   {/* =================================================
             TILE LAYER
@@ -893,16 +893,16 @@ const MapAndGISTracking = () => {
                         MAP LEGEND
                     ====================================================== */}
 
-                <div className='absolute bottom-4 left-4 z-[1000] rounded-lg border border-gray-200 bg-white/95 p-3 shadow-lg backdrop-blur-sm'>
-                  <h3 className='mb-2 text-xs font-semibold text-gray-700'>
+                <div className='absolute bottom-2 left-2 z-[1000] rounded-lg border border-gray-200 bg-white/95 p-2 shadow-lg backdrop-blur-sm sm:bottom-4 sm:left-4 sm:p-3'>
+                  <h3 className='mb-1 text-[10px] font-semibold text-gray-700 sm:mb-2 sm:text-xs'>
                     Map Legend
                   </h3>
 
-                  <div className='space-y-2'>
+                  <div className='space-y-1 sm:space-y-2'>
                     {mapAndGISTrackingData.legends.map((legend) => (
                       <div
                         key={legend.id}
-                        className='flex items-center gap-2 text-xs text-gray-600'
+                        className='flex items-center gap-2 text-[10px] text-gray-600 sm:text-xs'
                       >
                         <span
                           className='h-3 w-3 rounded-sm border border-gray-300'
@@ -1170,7 +1170,7 @@ const MapAndGISTracking = () => {
                 entries
               </p>
 
-              <div className='join'>
+              <div className='join max-w-full overflow-x-auto'>
                 <button
                   type='button'
                   disabled={page <= 1}

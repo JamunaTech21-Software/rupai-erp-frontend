@@ -15,6 +15,40 @@ button:disabled {
   cursor: not-allowed;
 }
 
+/* Tables on every page: values and headers are centered, and the header row stays in view while the rows scroll. */
+table th,
+table td {
+  text-align: center;
+}
+table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  font-weight: 700;
+}
+/* A header without its own background colour gets a light one, so rows do not show through it while scrolling. */
+table thead th:not([class*="bg-"]) {
+  background-color: #f9fafb;
+}
+/* A totals row stays at the bottom of the visible rows while the rows scroll. */
+table tfoot td {
+  position: sticky;
+  bottom: 0;
+  z-index: 10;
+  background-color: #f3f4f6;
+}
+/* A table in a scrolling box with no height limit gets one, so its header can stay while the rows scroll. */
+.overflow-x-auto:not([class*="max-h-"]):has(> table),
+.overflow-auto:not([class*="max-h-"]):has(> table) {
+  max-height: 70vh;
+  overflow: auto;
+}
+/* Table boxes always keep room for their scrollbar, so it appearing after the rows load never changes the table width or height. */
+.overflow-x-auto:has(> table),
+.overflow-auto:has(> table) {
+  scrollbar-gutter: stable;
+}
+
 @theme {
   --color-primary: #1b5e4b;
   --color-primary-dark: #134438;
@@ -61,4 +95,21 @@ body {
   .dashboard-card {
     @apply cursor-pointer rounded-xl border border-slate-100 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:border-primary/20;
   }
+}
+
+/* A page that must stay still: no animations or transitions anywhere inside it (loading pulses, hover fades, shadows). */
+.no-motion *,
+.no-motion *::before,
+.no-motion *::after {
+  animation: none !important;
+  transition: none !important;
+}
+
+/* Nothing grows, shrinks or lifts when hovered: no scaling or sliding of cards, images, icons or text on any page. */
+[class*="hover:scale"],
+[class*="hover:-translate"],
+.dashboard-card {
+  scale: none !important;
+  translate: none !important;
+  transform: none !important;
 }

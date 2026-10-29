@@ -1,11 +1,9 @@
 import React, { useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import { useForm } from "react-hook-form";
-import PlantationManagementTabs from "../../components/plantationManagementTab/PlantationManagementTabs";
 import { bushRegisterData } from "../../data/PlantationManagementData/bushRegisterData";
 import { api } from "../../lib/api";
 import { useApi } from "../../lib/useApi";
-import CardSkeleton from "../../components/common/CardSkeleton";
 import TableSkeleton from "../../components/common/TableSkeleton";
 import EmptyRow from "../../components/common/EmptyRow";
 import ErrorState from "../../components/common/ErrorState";
@@ -410,8 +408,6 @@ const BushRegister = () => {
   };
   return (
     <div className='space-y-6'>
-      <PlantationManagementTabs />
-      {(waiting || (current && report.loading && !report.data)) && <CardSkeleton count={4} />}
       {failure && (
         <ErrorState
           message={failure.message}
@@ -852,12 +848,12 @@ const BushRegister = () => {
                 </div>
 
                 {/* ================= Action Buttons ================= */}
-                <div className='flex flex-wrap items-center justify-end gap-3 border-t border-gray-200 pt-5'>
+                <div className='flex flex-col-reverse gap-3 border-t border-gray-200 pt-5 sm:flex-row sm:flex-wrap sm:items-center sm:justify-end'>
                   {/* Reset Button */}
                   <button
                     type='button'
                     onClick={clearSearch}
-                    className='flex cursor-pointer items-center gap-2 rounded-lg border border-gray-300 bg-white px-6 py-2.5 text-sm font-medium text-gray-700 transition-all duration-200 hover:bg-gray-100'
+                    className='flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-6 py-2.5 text-sm font-medium text-gray-700 transition-all duration-200 hover:bg-gray-100 sm:w-auto'
                   >
                     <RotateCcw size={18} />
                     Reset
@@ -866,7 +862,7 @@ const BushRegister = () => {
                   {/* Search Button */}
                   <button
                     type='submit'
-                    className='flex cursor-pointer items-center gap-2 rounded-lg bg-green-600 px-6 py-2.5 text-sm font-medium text-white transition-all duration-200 hover:bg-green-700'
+                    className='flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg bg-green-600 px-6 py-2.5 text-sm font-medium text-white transition-all duration-200 hover:bg-green-700 sm:w-auto'
                   >
                     <Search size={18} />
                     Search
@@ -877,7 +873,7 @@ const BushRegister = () => {
           </div>
 
           {/* Middle */}
-          <div className='col-span-12 xl:col-span-4 rounded-xl border border-gray-200 bg-white shadow-sm'>
+          <div className='col-span-12 flex flex-col xl:col-span-4 rounded-xl border border-gray-200 bg-white shadow-sm'>
             {/* Header */}
             <div className='border-b border-gray-200 px-5 py-4'>
               <h2 className='text-base font-semibold text-green-700'>
@@ -886,12 +882,12 @@ const BushRegister = () => {
             </div>
 
             {/* Body */}
-            <div className='grid lg:grid-cols-2  xl:grid-cols-3 gap-2  p-2'>
+            <div className='grid flex-1 auto-rows-fr grid-cols-2 gap-2 p-2 xl:grid-cols-3'>
               {summaryItems.map((item) => {
                 const Icon = summaryIconMap[item.icon];
 
                 return (
-                  <div key={item.id} className='flex mb-6 items-center gap-2'>
+                  <div key={item.id} className='mb-4 flex items-center gap-2 xl:mb-0'>
                     <div className='rounded-lg bg-green-50 p-2'>
                       <Icon size={22} className='text-green-700' />
                     </div>
@@ -910,7 +906,7 @@ const BushRegister = () => {
           </div>
 
           {/* Right */}
-          <div className='col-span-12 md:col-span-6 xl:col-span-3 rounded-xl border border-gray-200 bg-white shadow-sm'>
+          <div className='col-span-12 flex flex-col md:col-span-6 xl:col-span-3 rounded-xl border border-gray-200 bg-white shadow-sm'>
             {/* Header */}
             <div className='border-b border-gray-200 px-4 py-3'>
               <h2 className='text-sm font-semibold text-green-700'>
@@ -919,9 +915,9 @@ const BushRegister = () => {
             </div>
 
             {/* Body */}
-            <div className='space-y-3 p-4'>
-              {/* Map */}
-              <div className='relative overflow-hidden rounded-lg border border-gray-200'>
+            <div className='flex flex-1 flex-col gap-3 p-4'>
+              {/* Map: takes the spare height so the card is filled to the bottom */}
+              <div className='relative min-h-[260px] flex-1 overflow-hidden rounded-lg border border-gray-200'>
                 {/* Map Controls */}
                 <div className='absolute left-3 top-3 z-10 flex flex-col gap-2'>
                   <button className='flex h-9 w-9 cursor-pointer items-center justify-center rounded bg-white shadow transition hover:bg-gray-100'>
@@ -945,7 +941,7 @@ const BushRegister = () => {
                 <img
                   src='/bush-register-map.webp'
                   alt='Bush Density Map'
-                  className='h-[260px] w-full object-cover'
+                  className='absolute inset-0 h-full w-full object-cover'
                 />
               </div>
 

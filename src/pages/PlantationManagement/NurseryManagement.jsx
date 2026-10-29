@@ -2,11 +2,9 @@ import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import toast from "react-hot-toast";
-import PlantationManagementTabs from "../../components/plantationManagementTab/PlantationManagementTabs";
 import { nurseryManagementData } from "../../data/PlantationManagementData/nurseryManagementData";
 import { api } from "../../lib/api";
 import { useApi } from "../../lib/useApi";
-import CardSkeleton from "../../components/common/CardSkeleton";
 import TableSkeleton from "../../components/common/TableSkeleton";
 import EmptyRow from "../../components/common/EmptyRow";
 import ErrorState from "../../components/common/ErrorState";
@@ -139,17 +137,16 @@ const NurseryManagement = () => {
   };
   return (
     <div className='space-y-6'>
-      <PlantationManagementTabs />
 
       {/* Main Layout */}
-      <div className='grid grid-cols-12 gap-2'>
+      <div className='grid grid-cols-12 gap-6'>
         {/* Left Side */}
-        <div className='col-span-12 xl:col-span-5 space-y-6'>
+        <div className='col-span-12 xl:col-span-5 flex flex-col gap-6'>
           {/* Nursery Information */}
 
           <div className='rounded-xl border border-gray-200 bg-white shadow-sm'>
             {/* Header */}
-            <div className='border-b border-gray-200 px-6 py-4'>
+            <div className='border-b border-gray-200 px-4 py-3 sm:px-6 sm:py-4'>
               <div className='flex flex-wrap items-center justify-between gap-3'>
                 <h2 className='text-base font-semibold text-green-700'>
                   Nursery Information
@@ -158,7 +155,7 @@ const NurseryManagement = () => {
                   aria-label='Select nursery'
                   value={editId ?? ""}
                   onChange={(e) => pickNursery(e.target.value)}
-                  className='rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm outline-none focus:border-green-600'
+                  className='w-full rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm outline-none focus:border-green-600 sm:w-auto'
                 >
                   <option value=''>+ New nursery</option>
                   {(allNurseries.data?.data ?? []).map((nursery) => (
@@ -171,7 +168,7 @@ const NurseryManagement = () => {
             </div>
 
             {/* Body */}
-            <form onSubmit={handleSubmit(onSubmit)} className='space-y-5 p-6'>
+            <form onSubmit={handleSubmit(onSubmit)} className='space-y-5 p-4 sm:p-6'>
               <div className='grid grid-cols-1 gap-5 md:grid-cols-2'>
                 {/* Estate */}
                 <div>
@@ -527,7 +524,7 @@ const NurseryManagement = () => {
 
               {/* Buttons */}
 
-              <div className='flex justify-end gap-3'>
+              <div className='flex flex-col-reverse gap-3 sm:flex-row sm:justify-end'>
                 <button
                   type='button'
                   onClick={() =>
@@ -537,7 +534,7 @@ const NurseryManagement = () => {
                         : Object.fromEntries(FIELDS.map((name) => [name, ""])),
                     )
                   }
-                  className='flex  cursor-pointer items-center gap-2 rounded-lg border border-gray-300 px-5 py-2 text-sm font-medium transition hover:bg-gray-100'
+                  className='flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg border border-gray-300 px-5 py-2 text-sm font-medium transition hover:bg-gray-100 sm:w-auto'
                 >
                   <RotateCcw size={16} />
                   Reset
@@ -546,7 +543,7 @@ const NurseryManagement = () => {
                 <button
                   type='submit'
                   disabled={isSubmitting}
-                  className='flex items-center gap-2 rounded-lg bg-green-700 px-5 py-2 text-sm cursor-pointer font-medium text-white transition hover:bg-green-800 disabled:opacity-60'
+                  className='flex w-full items-center justify-center gap-2 rounded-lg bg-green-700 px-5 py-2 text-sm cursor-pointer font-medium text-white transition hover:bg-green-800 disabled:opacity-60 sm:w-auto'
                 >
                   <Save size={16} />
                   {isSubmitting ? "Saving..." : "Save Nursery"}
@@ -557,7 +554,7 @@ const NurseryManagement = () => {
 
           {/* Nursery Production Summary */}
 
-          <div className='rounded-xl border border-gray-200 bg-white shadow-sm'>
+          <div className='flex-1 rounded-xl border border-gray-200 bg-white shadow-sm'>
             {/* Header */}
             <div className='border-b border-gray-200 px-5 py-4'>
               <h2 className='text-base font-semibold text-green-700'>
@@ -566,16 +563,20 @@ const NurseryManagement = () => {
             </div>
 
             {/* Body */}
-            {(waiting || (summary.loading && !summary.data)) && <CardSkeleton count={6} className='p-4' />}
             {summary.error && <ErrorState message={summary.error.message} onRetry={summary.reload} />}
             <div className='grid grid-cols-1 gap-2 md:grid-cols-2 xl:grid-cols-3 p-4'>
+              {/* Same-size empty boxes while loading, so the cards arriving does not change the page height. */}
+              {(waiting || (summary.loading && !summary.data)) &&
+                Array.from({ length: 6 }, (_, i) => (
+                  <div key={i} className='h-[84px] rounded-lg border border-gray-200 bg-gray-50' />
+                ))}
               {(summary.data ?? []).map((item) => {
                 const Icon = summaryIconMap[item.icon];
 
                 return (
                   <div
                     key={item.id}
-                    className='flex items-center gap-3 rounded-lg border border-gray-200 bg-white p-4 transition-all duration-200 hover:border-green-300 hover:shadow-md'
+                    className='flex h-[84px] items-center gap-3 rounded-lg border border-gray-200 bg-white p-4 transition-all duration-200 hover:border-green-300 hover:shadow-md'
                   >
                     {/* Icon */}
                     <div className='rounded-lg bg-green-100 p-1'>
@@ -603,10 +604,10 @@ const NurseryManagement = () => {
         </div>
 
         {/* Right Side */}
-        <div className='col-span-12 xl:col-span-7 space-y-6'>
+        <div className='col-span-12 xl:col-span-7 flex flex-col gap-6'>
           {/* Bed List */}
           <div className='overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm'>
-            <div className='flex items-center justify-between border-b border-gray-200 px-6 py-2'>
+            <div className='flex flex-wrap items-center justify-between gap-2 border-b border-gray-200 px-4 py-2 sm:px-6'>
               {/* Left */}
               <div>
                 <h2 className='text-base font-semibold text-green-700'>
@@ -624,7 +625,8 @@ const NurseryManagement = () => {
               </button>
             </div>
 
-            <div className='overflow-x-auto border border-t-0 border-gray-200'>
+            {/* Every row (placeholder or real) is the same height and the box always holds 5 rows, so the list does not change size when its rows arrive. */}
+            <div className='min-h-[316px] overflow-x-auto border border-t-0 border-gray-200 [&_tbody_tr]:h-[57px]'>
               <table className='min-w-full border-collapse'>
                 <thead>
                   <tr className='bg-gray-50'>
@@ -641,7 +643,7 @@ const NurseryManagement = () => {
 
                 <tbody>
                   {waiting || (beds.loading && !beds.data) ? (
-                    <TableSkeleton rows={4} columns={nurseryManagementData.bedTableHeaders.length} />
+                    <TableSkeleton rows={5} columns={nurseryManagementData.bedTableHeaders.length} />
                   ) : beds.error ? (
                     <tr>
                       <td colSpan={nurseryManagementData.bedTableHeaders.length} className='p-4'>
@@ -746,7 +748,7 @@ const NurseryManagement = () => {
 
           {/* Nursery Map */}
 
-          <div className='overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm'>
+          <div className='flex flex-1 flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm'>
             {/* Header */}
 
             <div className='border-b border-gray-200 px-5 py-4'>
@@ -756,16 +758,16 @@ const NurseryManagement = () => {
             </div>
 
             {/* Body */}
-            <div className='relative max-h-[450px]'>
+            <div className='relative min-h-80 flex-1 overflow-hidden'>
               <img
                 src='/land-lease-map.webp'
                 alt='Nursery Map Layout'
-                className='h-full w-full object-cover'
+                className='absolute inset-0 h-full w-full object-cover'
               />
               {/* Map Legend */}
 
-              <div className='absolute right-20 top-5 w-56 rounded-xl border border-gray-200 bg-white p-5 shadow-lg'>
-                <h3 className='mb-4 text-base font-semibold text-gray-800'>
+              <div className='absolute right-16 top-3 w-44 rounded-xl border border-gray-200 bg-white p-3 shadow-lg sm:right-20 sm:top-5 sm:w-56 sm:p-5'>
+                <h3 className='mb-3 text-sm font-semibold text-gray-800 sm:mb-4 sm:text-base'>
                   Map Legend
                 </h3>
                 {/* Map Controls */}
@@ -785,7 +787,7 @@ const NurseryManagement = () => {
                   ))}
                 </div>
               </div>
-              <div className='absolute right-5 top-20 flex -translate-y-1/2 flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-lg'>
+              <div className='absolute right-3 top-3 flex flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-lg sm:right-5 sm:top-5'>
                 {/* Zoom In */}
                 <button
                   type='button'
@@ -821,9 +823,9 @@ const NurseryManagement = () => {
         {/* Stock */}
 
         <div className='col-span-12 xl:col-span-7'>
-          <div className='rounded-xl border border-gray-200 bg-white shadow-sm'>
+          <div className='h-full rounded-xl border border-gray-200 bg-white shadow-sm'>
             {/* Header */}
-            <div className='flex items-center justify-between border-b border-gray-200 px-6 py-4'>
+            <div className='flex flex-wrap items-center justify-between gap-2 border-b border-gray-200 px-4 py-3 sm:px-6 sm:py-4'>
               <h2 className='text-base font-semibold text-green-700'>
                 Plant Stock / Inventory
               </h2>
@@ -857,7 +859,7 @@ const NurseryManagement = () => {
                 {/* Table Body */}
                 <tbody>
                   {waiting || (stock.loading && !stock.data) ? (
-                    <TableSkeleton rows={4} columns={nurseryManagementData.stockTableHeaders.length} />
+                    <TableSkeleton rows={5} columns={nurseryManagementData.stockTableHeaders.length} />
                   ) : stock.error ? (
                     <tr>
                       <td colSpan={nurseryManagementData.stockTableHeaders.length} className='p-4'>
@@ -963,7 +965,7 @@ const NurseryManagement = () => {
             </div>
 
             {/* Footer */}
-            <div className='flex items-center justify-between border-t border-gray-200 px-6 py-4'>
+            <div className='flex flex-wrap items-center justify-between gap-3 border-t border-gray-200 px-4 py-4 sm:px-6'>
               <p className='text-sm text-gray-600'>
                 Showing {stockRows.length > 0 ? 1 : 0} to {stockRows.length} of{" "}
                 {stockRows.length} entries
@@ -982,7 +984,7 @@ const NurseryManagement = () => {
         {/* Activity */}
 
         <div className='col-span-12 xl:col-span-5'>
-          <div className='rounded-xl border border-gray-200 bg-white shadow-sm'>
+          <div className='flex h-full flex-col rounded-xl border border-gray-200 bg-white shadow-sm'>
             {/* Header */}
             <div className='border-b border-gray-200 px-5 py-6'>
               <h2 className='text-base font-semibold text-green-700'>
@@ -991,7 +993,7 @@ const NurseryManagement = () => {
             </div>
 
             {/* Body */}
-            <div>
+            <div className='flex-1'>
               {activityRows.length === 0 && (
                 <p className='px-5 py-6 text-center text-sm text-gray-500'>
                   {activities.error ? activities.error.message : "No recent activities"}
@@ -1014,8 +1016,8 @@ const NurseryManagement = () => {
                 </div>
               ))}
             </div>
-            {/* Footer */}
-            <div className='flex flex-col-reverse gap-3 rounded-xl border border-gray-200 px-4 py-5 sm:flex-row sm:justify-end sm:px-6'>
+            {/* Footer: always at the bottom of the card */}
+            <div className='mt-auto flex flex-col-reverse gap-3 rounded-xl border border-gray-200 px-4 py-5 sm:flex-row sm:justify-end sm:px-6'>
               {/* Cancel */}
               <button
                 type='button'

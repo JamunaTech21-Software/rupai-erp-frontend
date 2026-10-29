@@ -125,6 +125,16 @@ const DivisionAndSection = () => {
 
   const inactiveDivision = summary.data ? summary.data.totalDivision - summary.data.activeDivision : "—";
   const inactiveSection = summary.data ? summary.data.totalSection - summary.data.activeSection : "—";
+  const summaryCards = [
+    { label: "Total Division", value: summary.data?.totalDivision ?? "—" },
+    { label: "Total Section", value: summary.data?.totalSection ?? "—" },
+    { label: "Total Area (Acre)", value: summary.data ? Number(summary.data.totalArea).toFixed(2) : "—" },
+    { label: "Average Section Area", value: summary.data?.averageSectionArea ?? "—", unit: "Acre" },
+    { label: "Active Division", value: summary.data?.activeDivision ?? "—" },
+    { label: "Active Section", value: summary.data?.activeSection ?? "—" },
+    { label: "Inactive Division", value: inactiveDivision, red: true },
+    { label: "Inactive Section", value: inactiveSection, red: true },
+  ];
 
   const reloadAll = () => {
     divisions.reload();
@@ -339,10 +349,10 @@ const DivisionAndSection = () => {
                     {divisionSectionData.divisionTableHeaders.map((header) => (
                       <th
                         key={header}
-                        className={`border border-gray-200 bg-gray-50 px-3 py-3 text-sm font-medium text-gray-700 ${
+                        className={`sticky top-0 z-10 border border-gray-200 bg-gray-50 px-3 py-3 text-sm font-medium text-gray-700 ${
                           header === "SL"
-                            ? " left-0 z-20 text-center"
-                            : header === "Status" || header === "Action"
+                            ? "text-center"
+                            : header === "Total Section" || header === "Status" || header === "Action"
                               ? "text-center"
                               : "text-left"
                         }`}
@@ -430,13 +440,13 @@ const DivisionAndSection = () => {
                   )}
                 </tbody>
               </table>
-              <div className='flex items-center justify-between border-t border-gray-200 px-4 py-3 text-sm text-gray-600'>
+            </div>
+              <div className='flex flex-wrap items-center justify-between gap-2 border-t border-gray-200 px-4 py-3 text-sm text-gray-600'>
                 <p>
                   Showing {filteredDivisions.length > 0 ? 1 : 0} to {filteredDivisions.length} of{" "}
                   {divisions.data?.meta?.total ?? 0} entries
                 </p>
               </div>
-            </div>
           </div>
 
           {/* ================= Section List ================= */}
@@ -538,7 +548,7 @@ const DivisionAndSection = () => {
                     {divisionSectionData.sectionTableHeaders.map((header) => (
                       <th
                         key={header}
-                        className={`border border-gray-200 bg-gray-50 px-1 py-3 text-sm font-medium text-gray-700 ${
+                        className={`sticky top-0 z-10 border border-gray-200 bg-gray-50 px-1 py-3 text-sm font-medium text-gray-700 ${
                           header === "SL" ||
                           header === "Total Section" ||
                           header === "Status" ||
@@ -647,15 +657,13 @@ const DivisionAndSection = () => {
                   )}
                 </tbody>
               </table>
-
-              {/* Entry Count */}
-              <div className='flex items-center justify-between border-t border-gray-200 px-4 py-3 text-sm text-gray-600'>
+            </div>
+              <div className='flex flex-wrap items-center justify-between gap-2 border-t border-gray-200 px-4 py-3 text-sm text-gray-600'>
                 <p>
                   Showing {filteredSections.length > 0 ? 1 : 0} to{" "}
                   {filteredSections.length} of {sections.data?.meta?.total ?? 0} entries
                 </p>
               </div>
-            </div>
           </div>
         </div>
       </div>
@@ -663,7 +671,7 @@ const DivisionAndSection = () => {
       {/* ================= Division & Section Summary ================= */}
       <div className='flex flex-col bg-green-100 sm:flex-row'>
         {/* Left Icon */}
-        <div className='flex w-full items-center justify-center border-b border-green-200 p-4 sm:w-1/12 sm:border-b-0 sm:border-r sm:p-6'>
+        <div className='flex w-full items-center justify-center border-b border-green-200 p-4 sm:w-24 sm:shrink-0 sm:border-b-0 sm:border-r sm:p-6'>
           <Map
             size={40}
             strokeWidth={1.8}
@@ -672,7 +680,7 @@ const DivisionAndSection = () => {
         </div>
 
         {/* Right Content */}
-        <div className='w-full sm:w-11/12'>
+        <div className='w-full min-w-0 sm:flex-1'>
           {/* Header */}
           <div className='border-b border-green-200 px-4 py-3 sm:px-6'>
             <h2 className='text-center text-sm font-semibold text-green-800 sm:text-left'>
@@ -680,140 +688,17 @@ const DivisionAndSection = () => {
             </h2>
           </div>
 
-          {/* Desktop Summary */}
-          <div className='hidden gap-6 p-6 lg:grid lg:grid-cols-8'>
-            {/* Total Division */}
-            <div>
-              <p className='text-sm text-gray-500'>Total Division</p>
-              <h3 className='mt-2 text-2xl font-bold text-green-700'>
-                {summary.data?.totalDivision ?? "—"}
-              </h3>
-            </div>
-
-            {/* Total Section */}
-            <div>
-              <p className='text-sm text-gray-500'>Total Section</p>
-              <h3 className='mt-2 text-2xl font-bold text-green-700'>
-                {summary.data?.totalSection ?? "—"}
-              </h3>
-            </div>
-
-            {/* Total Area */}
-            <div>
-              <p className='text-sm text-gray-500'>Total Area (Acre)</p>
-              <h3 className='mt-2 text-2xl font-bold text-green-700'>
-                {summary.data ? Number(summary.data.totalArea).toFixed(2) : "—"}
-              </h3>
-            </div>
-
-            {/* Average Section Area */}
-            <div>
-              <p className='text-sm text-gray-500'>Average Section Area</p>
-              <h3 className='mt-2 whitespace-nowrap text-2xl font-bold text-green-700'>
-                {summary.data?.averageSectionArea ?? "—"}
-                <span className='ml-1 text-lg'>Acre</span>
-              </h3>
-            </div>
-
-            {/* Active Division */}
-            <div>
-              <p className='text-sm text-gray-500'>Active Division</p>
-              <h3 className='mt-2 text-2xl font-bold text-green-700'>
-                {summary.data?.activeDivision ?? "—"}
-              </h3>
-            </div>
-
-            {/* Active Section */}
-            <div>
-              <p className='text-sm text-gray-500'>Active Section</p>
-              <h3 className='mt-2 text-2xl font-bold text-green-700'>
-                {summary.data?.activeSection ?? "—"}
-              </h3>
-            </div>
-
-            {/* Inactive Division */}
-            <div>
-              <p className='text-sm text-gray-500'>Inactive Division</p>
-              <h3 className='mt-2 text-2xl font-bold text-red-600'>
-                {inactiveDivision}
-              </h3>
-            </div>
-
-            {/* Inactive Section */}
-            <div>
-              <p className='text-sm text-gray-500'>Inactive Section</p>
-              <h3 className='mt-2 text-2xl font-bold text-red-600'>
-                {inactiveSection}
-              </h3>
-            </div>
-          </div>
-
-          {/* Mobile / Tablet Summary */}
-          <div className='grid grid-cols-1 gap-3 p-4 sm:grid-cols-2 lg:hidden'>
-            {/* Total Division */}
-            <div className='rounded-lg border border-green-200 bg-white p-4 shadow-sm'>
-              <p className='text-sm text-gray-500'>Total Division</p>
-              <h3 className='mt-1 text-xl font-bold text-green-700'>
-                {summary.data?.totalDivision ?? "—"}
-              </h3>
-            </div>
-
-            {/* Total Section */}
-            <div className='rounded-lg border border-green-200 bg-white p-4 shadow-sm'>
-              <p className='text-sm text-gray-500'>Total Section</p>
-              <h3 className='mt-1 text-xl font-bold text-green-700'>
-                {summary.data?.totalSection ?? "—"}
-              </h3>
-            </div>
-
-            {/* Total Area */}
-            <div className='rounded-lg border border-green-200 bg-white p-4 shadow-sm'>
-              <p className='text-sm text-gray-500'>Total Area (Acre)</p>
-              <h3 className='mt-1 text-xl font-bold text-green-700'>
-                {summary.data ? Number(summary.data.totalArea).toFixed(2) : "—"}
-              </h3>
-            </div>
-
-            {/* Average Section Area */}
-            <div className='rounded-lg border border-green-200 bg-white p-4 shadow-sm'>
-              <p className='text-sm text-gray-500'>Average Section Area</p>
-              <h3 className='mt-1 text-xl font-bold text-green-700'>
-                {summary.data?.averageSectionArea ?? "—"}
-                <span className='ml-1 text-base'>Acre</span>
-              </h3>
-            </div>
-
-            {/* Active Division */}
-            <div className='rounded-lg border border-green-200 bg-white p-4 shadow-sm'>
-              <p className='text-sm text-gray-500'>Active Division</p>
-              <h3 className='mt-1 text-xl font-bold text-green-700'>
-                {summary.data?.activeDivision ?? "—"}
-              </h3>
-            </div>
-
-            {/* Active Section */}
-            <div className='rounded-lg border border-green-200 bg-white p-4 shadow-sm'>
-              <p className='text-sm text-gray-500'>Active Section</p>
-              <h3 className='mt-1 text-xl font-bold text-green-700'>
-                {summary.data?.activeSection ?? "—"}
-              </h3>
-            </div>
-
-            {/* Inactive Division */}
-            <div className='rounded-lg border border-green-200 bg-white p-4 shadow-sm'>
-              <p className='text-sm text-gray-500'>Inactive Division</p>
-              <h3 className='mt-1 text-xl font-bold text-red-600'>
-                {inactiveDivision}
-              </h3>
-            </div>
-
-            {/* Inactive Section */}
-            <div className='rounded-lg border border-green-200 bg-white p-4 shadow-sm'>
-              <p className='text-sm text-gray-500'>Inactive Section</p>
-              <h3 className='mt-1 text-xl font-bold text-red-600'>
-                {inactiveSection}
-              </h3>
-            </div>
+          {/* Summary: 2 cards across on phones, 4 on tablets and laptops, 8 on very wide screens */}
+          <div className='grid grid-cols-2 gap-3 p-3 sm:p-4 md:grid-cols-4 2xl:grid-cols-8'>
+            {summaryCards.map((card) => (
+              <div key={card.label} className='min-w-0 rounded-lg border border-green-200 bg-white p-3 shadow-sm sm:p-4'>
+                <p className='text-xs text-gray-500 sm:text-sm'>{card.label}</p>
+                <h3 className={`mt-1 break-words text-lg font-bold sm:text-xl ${card.red ? "text-red-600" : "text-green-700"}`}>
+                  {card.value}
+                  {card.unit && <span className='ml-1 text-sm sm:text-base'>{card.unit}</span>}
+                </h3>
+              </div>
+            ))}
           </div>
         </div>
       </div>
@@ -823,7 +708,7 @@ const DivisionAndSection = () => {
           {/* Division Modal Container */}
           <div className='mx-auto mt-6 mb-6 w-full max-w-3xl rounded-xl bg-white shadow-xl sm:mt-6'>
             {/* Modal Header */}
-            <div className='flex items-center justify-between border-b bg-green-50 px-6 py-4'>
+            <div className='flex items-center justify-between border-b bg-green-50 px-4 py-4 sm:px-6'>
               <h2 className='text-lg font-semibold text-green-800'>
                 Division Information
               </h2>
@@ -1272,7 +1157,7 @@ const DivisionAndSection = () => {
                 </div>
               </div>
               {/* Section Form Footer */}
-              <div className='mt-6 p-6 border-t pt-6'>
+              <div className='mt-6 border-t p-4 pt-4 sm:p-6 sm:pt-6'>
                 <div className='flex flex-col-reverse gap-3 sm:flex-row sm:justify-end'>
                   {/* Cancel */}
                   <button
