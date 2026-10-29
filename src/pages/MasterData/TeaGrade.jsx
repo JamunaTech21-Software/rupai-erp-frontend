@@ -24,6 +24,7 @@ import { Pie, PieChart, Cell, ResponsiveContainer, Tooltip } from "recharts";
 
 import MasterDataTabs from "./MasterDataTabs";
 import teaGradeData from "../../data/MasterData/teaGradeData";
+import Select from "../../components/common/Select";
 const TeaGrade = () => {
   // =========================================================
   // STATE
@@ -424,14 +425,14 @@ const TeaGrade = () => {
               <ChevronRight className='h-3.5 w-3.5' />
             </button>
 
-            <select
+            <Select
               defaultValue='10'
               className='h-8 rounded-md border border-slate-200 bg-white px-2 text-[10px] text-slate-600 outline-none'
             >
               <option value='10'>10 / page</option>
               <option value='20'>20 / page</option>
               <option value='50'>50 / page</option>
-            </select>
+            </Select>
           </div>
         </div>
       </div>
@@ -537,7 +538,7 @@ const TeaGrade = () => {
                             TEA TYPE
                         ================================================= */}
                   {field.name === "teaType" && (
-                    <select
+                    <Select
                       {...register(field.name, {
                         required: field.required
                           ? `${field.label} is required`
@@ -552,14 +553,14 @@ const TeaGrade = () => {
                           {option.label}
                         </option>
                       ))}
-                    </select>
+                    </Select>
                   )}
 
                   {/* =================================================
                             CATEGORY
                         ================================================= */}
                   {field.name === "category" && (
-                    <select
+                    <Select
                       {...register(field.name, {
                         required: field.required
                           ? `${field.label} is required`
@@ -574,14 +575,14 @@ const TeaGrade = () => {
                           {option.label}
                         </option>
                       ))}
-                    </select>
+                    </Select>
                   )}
 
                   {/* =================================================
                             STATUS
                         ================================================= */}
                   {field.name === "status" && (
-                    <select
+                    <Select
                       {...register(field.name, {
                         required: field.required
                           ? `${field.label} is required`
@@ -596,7 +597,7 @@ const TeaGrade = () => {
                           {option.label}
                         </option>
                       ))}
-                    </select>
+                    </Select>
                   )}
 
                   {/* =================================================

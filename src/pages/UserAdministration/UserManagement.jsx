@@ -26,6 +26,7 @@ import {
   FileDown,
   CircleCheck,
 } from "lucide-react";
+import Select from "../../components/common/Select";
 
 const iconMap = {
   Users,
@@ -320,7 +321,7 @@ const UserManagement = () => {
                   {item.label}
                 </label>
 
-                <select
+                <Select
                   value={filters[item.label.toLowerCase()]}
                   onChange={(e) =>
                     setFilters({
@@ -333,7 +334,7 @@ const UserManagement = () => {
                   {item.options.map((option) => (
                     <option key={option}>{option}</option>
                   ))}
-                </select>
+                </Select>
               </div>
             ))}
 
@@ -625,7 +626,7 @@ const UserManagement = () => {
                 {userManagementData.summaryPanel.title}
               </h3>
 
-              <select
+              <Select
                 value={summaryBy}
                 onChange={(e) => setSummaryBy(e.target.value)}
                 className='h-8 rounded-md border border-gray-300 bg-white px-2 text-[14px] text-slate-600 outline-none transition focus:border-green-600'
@@ -637,7 +638,7 @@ const UserManagement = () => {
                     </option>
                   ),
                 )}
-              </select>
+              </Select>
             </div>
 
             {/* Chart + Legend */}

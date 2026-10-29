@@ -4,6 +4,7 @@ import { Phone, Plus, Trash2, Save, X, Warehouse } from "lucide-react";
 
 import MasterDataTabs from "./MasterDataTabs";
 import teaWarehouseData from "../../data/MasterData/teaWarehouseData";
+import Select from "../../components/common/Select";
 
 const TeaWarehouse = () => {
   // =========================================================
@@ -118,7 +119,7 @@ const TeaWarehouse = () => {
                   {/* SELECT */}
 
                   {field.type === "select" && (
-                    <select
+                    <Select
                       {...register(field.name, {
                         required: field.required
                           ? `${field.label} is required`
@@ -133,7 +134,7 @@ const TeaWarehouse = () => {
                           {option.label}
                         </option>
                       ))}
-                    </select>
+                    </Select>
                   )}
 
                   {/* TEXT / NUMBER */}
@@ -300,7 +301,7 @@ const TeaWarehouse = () => {
                         {/* TYPE */}
 
                         <td className='px-2 py-1'>
-                          <select
+                          <Select
                             defaultValue={contact.type}
                             className='h-8 w-full rounded-md border border-slate-200 bg-white px-2 text-[9px] text-slate-700 outline-none focus:border-emerald-500'
                           >
@@ -311,7 +312,7 @@ const TeaWarehouse = () => {
                                 </option>
                               ),
                             )}
-                          </select>
+                          </Select>
                         </td>
 
                         {/* PRIMARY */}

@@ -31,6 +31,7 @@ import {
   Bar,
   BarChart,
 } from "recharts";
+import Select from "../../components/common/Select";
 const EmployeeManagement = () => {
   const {
     employeesByEmploymentType,
@@ -171,7 +172,7 @@ const EmployeeManagement = () => {
               {employeeManagementData.filters.department.label}
             </label>
 
-            <select className='h-10 w-full rounded-lg border border-gray-200 bg-white px-3 text-xs text-gray-700 outline-none transition focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500'>
+            <Select className='h-10 w-full rounded-lg border border-gray-200 bg-white px-3 text-xs text-gray-700 outline-none transition focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500'>
               {employeeManagementData.filters.department.options.map(
                 (option) => (
                   <option key={option.value} value={option.value}>
@@ -179,7 +180,7 @@ const EmployeeManagement = () => {
                   </option>
                 ),
               )}
-            </select>
+            </Select>
           </div>
 
           {/* ================= Designation ================= */}
@@ -188,7 +189,7 @@ const EmployeeManagement = () => {
               {employeeManagementData.filters.designation.label}
             </label>
 
-            <select className='h-10 w-full rounded-lg border border-gray-200 bg-white px-3 text-xs text-gray-700 outline-none transition focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500'>
+            <Select className='h-10 w-full rounded-lg border border-gray-200 bg-white px-3 text-xs text-gray-700 outline-none transition focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500'>
               {employeeManagementData.filters.designation.options.map(
                 (option) => (
                   <option key={option.value} value={option.value}>
@@ -196,7 +197,7 @@ const EmployeeManagement = () => {
                   </option>
                 ),
               )}
-            </select>
+            </Select>
           </div>
 
           {/* ================= Employment Type ================= */}
@@ -205,7 +206,7 @@ const EmployeeManagement = () => {
               {employeeManagementData.filters.employmentType.label}
             </label>
 
-            <select className='h-10 w-full rounded-lg border border-gray-200 bg-white px-2 text-xs text-gray-700 outline-none transition focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500'>
+            <Select className='h-10 w-full rounded-lg border border-gray-200 bg-white px-2 text-xs text-gray-700 outline-none transition focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500'>
               {employeeManagementData.filters.employmentType.options.map(
                 (option) => (
                   <option key={option.value} value={option.value}>
@@ -213,7 +214,7 @@ const EmployeeManagement = () => {
                   </option>
                 ),
               )}
-            </select>
+            </Select>
           </div>
 
           {/* ================= Status ================= */}
@@ -222,13 +223,13 @@ const EmployeeManagement = () => {
               {employeeManagementData.filters.status.label}
             </label>
 
-            <select className='h-10 w-full rounded-lg border border-gray-200 bg-white px-2 text-xs text-gray-700 outline-none transition focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500'>
+            <Select className='h-10 w-full rounded-lg border border-gray-200 bg-white px-2 text-xs text-gray-700 outline-none transition focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500'>
               {employeeManagementData.filters.status.options.map((option) => (
                 <option key={option.value} value={option.value}>
                   {option.label}
                 </option>
               ))}
-            </select>
+            </Select>
           </div>
 
           {/* ================= Date Range ================= */}
@@ -557,7 +558,7 @@ const EmployeeManagement = () => {
               </button>
 
               {/* Page Size */}
-              <select
+              <Select
                 defaultValue={employeeManagementData.pagination.pageSize}
                 className='ml-2 h-8 rounded-md border border-gray-200 bg-white px-2 text-xs text-gray-600 outline-none'
               >
@@ -565,7 +566,7 @@ const EmployeeManagement = () => {
                 <option value='20'>20 / page</option>
                 <option value='50'>50 / page</option>
                 <option value='100'>100 / page</option>
-              </select>
+              </Select>
             </div>
           </div>
         </div>

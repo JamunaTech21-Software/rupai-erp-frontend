@@ -23,6 +23,7 @@ import {
   Save,
   CheckCircle,
 } from "lucide-react";
+import Select from "../../components/common/Select";
 
 const SECTIONS = [
   "basicInformationFields",
@@ -179,7 +180,7 @@ const AddNewEmployee = () => {
                           {/* SELECT */}
 
                           {field.type === "select" && (
-                            <select
+                            <Select
                               defaultValue={field.defaultValue || ""}
                               {...register(field.name, {
                                 required: field.required ? "Required" : false,
@@ -193,7 +194,7 @@ const AddNewEmployee = () => {
                                   {option.label}
                                 </option>
                               ))}
-                            </select>
+                            </Select>
                           )}
 
                           {/* ERROR */}
@@ -259,7 +260,7 @@ const AddNewEmployee = () => {
 
                           {/* SELECT */}
                           {field.type === "select" && (
-                            <select
+                            <Select
                               defaultValue={field.defaultValue || ""}
                               {...register(field.name, {
                                 required: field.required ? "Required" : false,
@@ -273,7 +274,7 @@ const AddNewEmployee = () => {
                                   {option.label}
                                 </option>
                               ))}
-                            </select>
+                            </Select>
                           )}
 
                           {/* ERROR */}
@@ -357,7 +358,7 @@ const AddNewEmployee = () => {
 
                           {/* ================= SELECT ================= */}
                           {field.type === "select" && (
-                            <select
+                            <Select
                               defaultValue={field.defaultValue || ""}
                               {...register(field.name, {
                                 required: field.required ? "Required" : false,
@@ -372,7 +373,7 @@ const AddNewEmployee = () => {
                                   {option.label}
                                 </option>
                               ))}
-                            </select>
+                            </Select>
                           )}
 
                           {/* ================= TEXTAREA ================= */}
@@ -455,7 +456,7 @@ const AddNewEmployee = () => {
 
                         {/* ================= SELECT ================= */}
                         {field.type === "select" && (
-                          <select
+                          <Select
                             defaultValue={field.defaultValue || ""}
                             {...register(field.name, {
                               required: field.required ? "Required" : false,
@@ -469,7 +470,7 @@ const AddNewEmployee = () => {
                                 {option.label}
                               </option>
                             ))}
-                          </select>
+                          </Select>
                         )}
 
                         {/* ================= TEXTAREA ================= */}
@@ -772,7 +773,7 @@ const AddNewEmployee = () => {
 
                       {/* ================= SELECT ================= */}
                       {field.type === "select" && (
-                        <select
+                        <Select
                           defaultValue={field.defaultValue || ""}
                           {...register(field.name, {
                             required: field.required ? "Required" : false,
@@ -786,7 +787,7 @@ const AddNewEmployee = () => {
                               {option.label}
                             </option>
                           ))}
-                        </select>
+                        </Select>
                       )}
 
                       {/* ================= TEXTAREA ================= */}
@@ -874,7 +875,7 @@ const AddNewEmployee = () => {
 
                         {/* ================= SELECT ================= */}
                         {field.type === "select" && (
-                          <select
+                          <Select
                             defaultValue={field.defaultValue || ""}
                             {...register(field.name, {
                               required: field.required ? "Required" : false,
@@ -888,7 +889,7 @@ const AddNewEmployee = () => {
                                 {option.label}
                               </option>
                             ))}
-                          </select>
+                          </Select>
                         )}
 
                         {/* ================= TEXTAREA ================= */}

@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import toast from "react-hot-toast";
@@ -8,6 +8,8 @@ import { useApi } from "../../lib/useApi";
 import TableSkeleton from "../../components/common/TableSkeleton";
 import EmptyRow from "../../components/common/EmptyRow";
 import ErrorState from "../../components/common/ErrorState";
+import ConfirmDialog from "../../components/common/ConfirmDialog";
+import NurseryRowModal from "../../components/PlantationManagement/NurseryRowModal";
 import {
   RotateCcw,
   Save,
@@ -24,6 +26,7 @@ import {
   Expand,
   Eye,
 } from "lucide-react";
+import Select from "../../components/common/Select";
 const summaryIconMap = {
   Map,
   MapPinned,
@@ -118,6 +121,39 @@ const NurseryManagement = () => {
     activities.reload();
   };
 
+  // Bed and stock rows: one popup to view / add / edit, and a question before delete.
+  const [rowPopup, setRowPopup] = useState(null);
+  const [deletingRow, setDeletingRow] = useState(null);
+  const [deleteBusy, setDeleteBusy] = useState(false);
+  const openRowPopup = (kind, mode, row = null) => {
+    if (!shownId) {
+      toast.error("Save a nursery first.");
+      return;
+    }
+    setRowPopup({ kind, mode, row });
+  };
+  // After any change the tables, the cards and Recent Activities are read again.
+  const reloadRows = () => {
+    beds.reload();
+    stock.reload();
+    summary.reload();
+    activities.reload();
+  };
+  const confirmDeleteRow = async () => {
+    setDeleteBusy(true);
+    try {
+      await api.del(`/nurseries/${shownId}/${deletingRow.kind === "bed" ? "beds" : "stock"}/${deletingRow.row.id}`);
+      toast.success(deletingRow.kind === "bed" ? "Bed deleted successfully!" : "Stock deleted successfully!");
+      setDeletingRow(null);
+      setRowPopup(null);
+      reloadRows();
+    } catch (error) {
+      toast.error(error.message);
+    } finally {
+      setDeleteBusy(false);
+    }
+  };
+
   const onSubmit = async (values) => {
     try {
       if (editId) {
@@ -151,7 +187,7 @@ const NurseryManagement = () => {
                 <h2 className='text-base font-semibold text-green-700'>
                   Nursery Information
                 </h2>
-                <select
+                <Select
                   aria-label='Select nursery'
                   value={editId ?? ""}
                   onChange={(e) => pickNursery(e.target.value)}
@@ -163,7 +199,7 @@ const NurseryManagement = () => {
                       {nursery.nurseryName} ({nursery.nurseryCode})
                     </option>
                   ))}
-                </select>
+                </Select>
               </div>
             </div>
 
@@ -176,7 +212,7 @@ const NurseryManagement = () => {
                     Estate <span className='text-red-500'>*</span>
                   </label>
 
-                  <select
+                  <Select
                     {...register("estate", {
                       required: "Estate is required",
                       onChange: () => setValue("division", ""),
@@ -189,7 +225,7 @@ const NurseryManagement = () => {
                         {estate.label}
                       </option>
                     ))}
-                  </select>
+                  </Select>
 
                   {errors.estate && (
                     <p className='mt-1 text-xs text-red-500'>
@@ -204,7 +240,7 @@ const NurseryManagement = () => {
                     Division <span className='text-red-500'>*</span>
                   </label>
 
-                  <select
+                  <Select
                     {...register("division", {
                       required: "Division is required",
                     })}
@@ -222,7 +258,7 @@ const NurseryManagement = () => {
                         {division.label}
                       </option>
                     ))}
-                  </select>
+                  </Select>
 
                   {errors.division && (
                     <p className='mt-1 text-xs text-red-500'>
@@ -260,7 +296,7 @@ const NurseryManagement = () => {
                     <span className='text-red-500'>*</span>
                   </label>
 
-                  <select
+                  <Select
                     {...register("supervisor", {
                       required: "Supervisor is required",
                     })}
@@ -270,7 +306,7 @@ const NurseryManagement = () => {
                     <option value='Md. Faruk Hossain'>Md. Faruk Hossain</option>
                     <option value='Abdul Karim'>Abdul Karim</option>
                     <option value='Nur Alam'>Nur Alam</option>
-                  </select>
+                  </Select>
 
                   {errors.supervisor && (
                     <p className='mt-1 text-xs text-red-500'>
@@ -307,7 +343,7 @@ const NurseryManagement = () => {
                     Nursery Type <span className='text-red-500'>*</span>
                   </label>
 
-                  <select
+                  <Select
                     {...register("nurseryType", {
                       required: "Nursery Type is required",
                     })}
@@ -317,7 +353,7 @@ const NurseryManagement = () => {
                     <option value='Clonal'>Clonal</option>
                     <option value='Seedling'>Seedling</option>
                     <option value='Experimental'>Experimental</option>
-                  </select>
+                  </Select>
 
                   {errors.nurseryType && (
                     <p className='mt-1 text-xs text-red-500'>
@@ -354,7 +390,7 @@ const NurseryManagement = () => {
                     Irrigation Source <span className='text-red-500'>*</span>
                   </label>
 
-                  <select
+                  <Select
                     {...register("irrigationSource", {
                       required: "Irrigation Source is required",
                     })}
@@ -365,7 +401,7 @@ const NurseryManagement = () => {
                     <option value='Deep Tube Well'>Deep Tube Well</option>
                     <option value='River'>River</option>
                     <option value='Rain Water'>Rain Water</option>
-                  </select>
+                  </Select>
 
                   {errors.irrigationSource && (
                     <p className='mt-1 text-xs text-red-500'>
@@ -410,7 +446,7 @@ const NurseryManagement = () => {
                     Status <span className='text-red-500'>*</span>
                   </label>
 
-                  <select
+                  <Select
                     {...register("status", {
                       required: "Status is required",
                     })}
@@ -420,7 +456,7 @@ const NurseryManagement = () => {
                     <option value='Active'>Active</option>
                     <option value='Inactive'>Inactive</option>
                     <option value='Under Maintenance'>Under Maintenance</option>
-                  </select>
+                  </Select>
 
                   {errors.status && (
                     <p className='mt-1 text-xs text-red-500'>
@@ -488,7 +524,7 @@ const NurseryManagement = () => {
                     Active <span className='text-red-500'>*</span>
                   </label>
 
-                  <select
+                  <Select
                     {...register("active", {
                       required: "Please select an option",
                     })}
@@ -500,7 +536,7 @@ const NurseryManagement = () => {
                     </option>
                     <option value='BTB'>Bangladesh Tea Board</option>
                     <option value='Private'>Private</option>
-                  </select>
+                  </Select>
 
                   {errors.active && (
                     <p className='mt-1 text-xs text-red-500'>
@@ -618,6 +654,7 @@ const NurseryManagement = () => {
               {/* Right */}
               <button
                 type='button'
+                onClick={() => openRowPopup("bed", "add")}
                 className='flex cursor-pointer items-center gap-2 rounded-lg border border-green-700 bg-green-700 px-4 py-2 text-sm font-medium text-white transition hover:bg-green-800'
               >
                 <Plus size={16} />
@@ -698,6 +735,7 @@ const NurseryManagement = () => {
                         <div className='flex items-center justify-center gap-2'>
                           <button
                             type='button'
+                            onClick={() => openRowPopup("bed", "edit", bed)}
                             className='rounded-md cursor-pointer p-2 text-blue-600 transition hover:bg-blue-100'
                             title='Edit'
                           >
@@ -706,6 +744,7 @@ const NurseryManagement = () => {
 
                           <button
                             type='button'
+                            onClick={() => setDeletingRow({ kind: "bed", row: bed })}
                             className='rounded-md cursor-pointer p-2 text-red-600 transition hover:bg-red-100'
                             title='Delete'
                           >
@@ -832,6 +871,7 @@ const NurseryManagement = () => {
 
               <button
                 type='button'
+                onClick={() => openRowPopup("stock", "add")}
                 className='flex items-center gap-2 rounded-lg bg-green-700 px-4 py-2 text-sm font-medium text-white transition hover:bg-green-800'
               >
                 <Plus size={16} />
@@ -918,7 +958,8 @@ const NurseryManagement = () => {
                       <td className='border border-gray-200 px-4 py-2 text-center'>
                         <button
                           type='button'
-                          className='rounded-md  text-blue-600 transition hover:bg-blue-100 hover:text-blue-700'
+                          onClick={() => openRowPopup("stock", "view", item)}
+                          className='cursor-pointer rounded-md text-blue-600 transition hover:bg-blue-100 hover:text-blue-700'
                           title='View Details'
                         >
                           <Eye size={18} />
@@ -1039,6 +1080,33 @@ const NurseryManagement = () => {
           </div>
         </div>
       </section>
+
+      {rowPopup && (
+        <NurseryRowModal
+          key={`${rowPopup.kind}-${rowPopup.row?.id ?? "new"}`}
+          kind={rowPopup.kind}
+          mode={rowPopup.mode}
+          nurseryId={shownId}
+          row={rowPopup.row}
+          onClose={() => setRowPopup(null)}
+          onSaved={() => {
+            setRowPopup(null);
+            reloadRows();
+          }}
+          onDelete={(row) => {
+            setDeletingRow({ kind: rowPopup.kind, row });
+            setRowPopup(null);
+          }}
+        />
+      )}
+      <ConfirmDialog
+        open={Boolean(deletingRow)}
+        title={deletingRow?.kind === "bed" ? "Delete bed / section?" : "Delete stock row?"}
+        message={`${deletingRow?.kind === "bed" ? deletingRow?.row?.name : deletingRow?.row?.clone} will be removed from the list.`}
+        loading={deleteBusy}
+        onConfirm={confirmDeleteRow}
+        onCancel={() => setDeletingRow(null)}
+      />
     </div>
   );
 };

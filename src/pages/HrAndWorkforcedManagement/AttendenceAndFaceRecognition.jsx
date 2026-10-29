@@ -36,6 +36,7 @@ import {
   Tooltip,
   LabelList,
 } from "recharts";
+import Select from "../../components/common/Select";
 const AttendenceAndFaceRecognition = () => {
   // =====================================================
   // DATA
@@ -346,7 +347,7 @@ const AttendenceAndFaceRecognition = () => {
                     {filters.garden.label}
                   </label>
 
-                  <select
+                  <Select
                     {...register(filters.garden.name)}
                     className='h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-xs text-gray-700 outline-none transition focus:border-green-600'
                   >
@@ -355,7 +356,7 @@ const AttendenceAndFaceRecognition = () => {
                         {option.label}
                       </option>
                     ))}
-                  </select>
+                  </Select>
                 </div>
 
                 {/* SECTION */}
@@ -365,7 +366,7 @@ const AttendenceAndFaceRecognition = () => {
                     {filters.section.label}
                   </label>
 
-                  <select
+                  <Select
                     {...register(filters.section.name)}
                     className='h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-xs text-gray-700 outline-none transition focus:border-green-600'
                   >
@@ -374,7 +375,7 @@ const AttendenceAndFaceRecognition = () => {
                         {option.label}
                       </option>
                     ))}
-                  </select>
+                  </Select>
                 </div>
 
                 {/* SHIFT */}
@@ -384,7 +385,7 @@ const AttendenceAndFaceRecognition = () => {
                     {filters.shift.label}
                   </label>
 
-                  <select
+                  <Select
                     {...register(filters.shift.name)}
                     className='h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-xs text-gray-700 outline-none transition focus:border-green-600'
                   >
@@ -393,7 +394,7 @@ const AttendenceAndFaceRecognition = () => {
                         {option.label}
                       </option>
                     ))}
-                  </select>
+                  </Select>
                 </div>
 
                 {/* STATUS */}
@@ -403,7 +404,7 @@ const AttendenceAndFaceRecognition = () => {
                     {filters.status.label}
                   </label>
 
-                  <select
+                  <Select
                     {...register(filters.status.name)}
                     className='h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-xs text-gray-700 outline-none transition focus:border-green-600'
                   >
@@ -412,7 +413,7 @@ const AttendenceAndFaceRecognition = () => {
                         {option.label}
                       </option>
                     ))}
-                  </select>
+                  </Select>
                 </div>
 
                 {/* SEARCH */}

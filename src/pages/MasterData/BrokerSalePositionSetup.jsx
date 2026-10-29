@@ -3,6 +3,7 @@ import { RotateCcw, Save } from "lucide-react";
 import MasterDataTabs from "./MasterDataTabs";
 import teaBrokerData from "../../data/MasterData/brokerSalePositionData";
 import React, { useRef, useState } from "react";
+import Select from "../../components/common/Select";
 const BrokerSalePositionSetup = () => {
   const formRef = useRef(null);
 
@@ -70,7 +71,7 @@ const BrokerSalePositionSetup = () => {
 
                 {/* Select */}
 
-                <select
+                <Select
                   {...register(field.name, {
                     required: field.required
                       ? `${field.label} is required`
@@ -87,7 +88,7 @@ const BrokerSalePositionSetup = () => {
                       {option.label}
                     </option>
                   ))}
-                </select>
+                </Select>
 
                 {/* Validation Error */}
 
@@ -189,13 +190,13 @@ const BrokerSalePositionSetup = () => {
                   {filter.label}
                 </label>
 
-                <select className='h-9 w-full rounded-md border border-slate-200 bg-white px-3 text-[11px] text-slate-700 outline-none focus:border-emerald-500'>
+                <Select className='h-9 w-full rounded-md border border-slate-200 bg-white px-3 text-[11px] text-slate-700 outline-none focus:border-emerald-500'>
                   {filter.options.map((option) => (
                     <option key={option.value} value={option.value}>
                       {option.label}
                     </option>
                   ))}
-                </select>
+                </Select>
               </div>
             ))}
 

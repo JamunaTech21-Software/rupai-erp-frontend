@@ -12,6 +12,7 @@ import {
   Banknote,
   Info,
 } from "lucide-react";
+import Select from "../../components/common/Select";
 
 const iconMap = {
   CalendarDays,
@@ -349,7 +350,7 @@ const Season = () => {
                             SEASON TYPE SELECT
                         ============================================ */}
                   {field.name === "seasonType" && (
-                    <select
+                    <Select
                       {...register(field.name, {
                         required: field.required
                           ? `${field.label} is required`
@@ -366,14 +367,14 @@ const Season = () => {
                           </option>
                         ),
                       )}
-                    </select>
+                    </Select>
                   )}
 
                   {/* ============================================
                         STATUS SELECT
                     ============================================ */}
                   {field.name === "status" && (
-                    <select
+                    <Select
                       {...register(field.name, {
                         required: field.required
                           ? `${field.label} is required`
@@ -388,7 +389,7 @@ const Season = () => {
                           {option.label}
                         </option>
                       ))}
-                    </select>
+                    </Select>
                   )}
 
                   {/* ============================================
@@ -561,7 +562,7 @@ const Season = () => {
                   SEASON TYPE
               ================================================== */}
                         {field.name === "seasonType" && (
-                          <select
+                          <Select
                             {...registerSeason(field.name, {
                               required: field.required
                                 ? `${field.label} is required`
@@ -578,14 +579,14 @@ const Season = () => {
                                 </option>
                               ),
                             )}
-                          </select>
+                          </Select>
                         )}
 
                         {/* =================================================
                   STATUS
               ================================================== */}
                         {field.name === "status" && (
-                          <select
+                          <Select
                             {...registerSeason(field.name, {
                               required: field.required
                                 ? `${field.label} is required`
@@ -602,7 +603,7 @@ const Season = () => {
                                 </option>
                               ),
                             )}
-                          </select>
+                          </Select>
                         )}
 
                         {/* Validation Error */}

@@ -59,6 +59,7 @@ import {
   X,
   Save,
 } from "lucide-react";
+import Select from "../../components/common/Select";
 const colorMap = {
   green: "bg-green-100 text-green-600",
   emerald: "bg-emerald-100 text-emerald-600",
@@ -429,7 +430,7 @@ const PlantCensus = () => {
                     Estate <span className='text-red-500'>*</span>
                   </label>
 
-                  <select
+                  <Select
                     id='estate'
                     {...register("estate", {
                       required: "Please select an estate.",
@@ -447,7 +448,7 @@ const PlantCensus = () => {
                         {estate.label}
                       </option>
                     ))}
-                  </select>
+                  </Select>
 
                   {errors.estate && (
                     <p className='mt-1 text-xs text-red-500'>
@@ -465,7 +466,7 @@ const PlantCensus = () => {
                     Division <span className='text-red-500'>*</span>
                   </label>
 
-                  <select
+                  <Select
                     id='division'
                     {...register("division", {
                       required: "Please select a division.",
@@ -483,7 +484,7 @@ const PlantCensus = () => {
                         {division.label}
                       </option>
                     ))}
-                  </select>
+                  </Select>
 
                   {errors.division && (
                     <p className='mt-1 text-xs text-red-500'>
@@ -501,7 +502,7 @@ const PlantCensus = () => {
                     Section <span className='text-red-500'>*</span>
                   </label>
 
-                  <select
+                  <Select
                     id='section'
                     {...register("section", {
                       required: "Please select a section.",
@@ -519,7 +520,7 @@ const PlantCensus = () => {
                         {section.label}
                       </option>
                     ))}
-                  </select>
+                  </Select>
 
                   {errors.section && (
                     <p className='mt-1 text-xs text-red-500'>
@@ -541,7 +542,7 @@ const PlantCensus = () => {
                     Field / Block <span className='text-red-500'>*</span>
                   </label>
 
-                  <select
+                  <Select
                     id='fieldBlock'
                     {...register("fieldBlock", {
                       required: "Please select a field/block.",
@@ -558,7 +559,7 @@ const PlantCensus = () => {
                         {fieldOption.label}
                       </option>
                     ))}
-                  </select>
+                  </Select>
 
                   {errors.fieldBlock && (
                     <p className='mt-1 text-xs text-red-500'>
@@ -635,7 +636,7 @@ const PlantCensus = () => {
                     Survey Type <span className='text-red-500'>*</span>
                   </label>
 
-                  <select
+                  <Select
                     id='surveyType'
                     {...register("surveyType", {
                       required: "Please select survey type.",
@@ -650,7 +651,7 @@ const PlantCensus = () => {
                     <option value='full'>Full Census</option>
                     <option value='sample'>Sample Census</option>
                     <option value='random'>Random Survey</option>
-                  </select>
+                  </Select>
 
                   {errors.surveyType && (
                     <p className='mt-1 text-xs text-red-500'>
@@ -824,7 +825,7 @@ const PlantCensus = () => {
                     Clone / Variety <span className='text-red-500'>*</span>
                   </label>
 
-                  <select
+                  <Select
                     id='cloneVariety'
                     {...register("cloneVariety", {
                       required: "Please select a clone/variety.",
@@ -840,7 +841,7 @@ const PlantCensus = () => {
                     <option value='tv23'>TV-23</option>
                     <option value='bt2'>BT-2</option>
                     <option value='seedling'>Seedling</option>
-                  </select>
+                  </Select>
 
                   {errors.cloneVariety && (
                     <p className='mt-1 text-xs text-red-500'>
@@ -941,7 +942,7 @@ const PlantCensus = () => {
                     Supervisor <span className='text-red-500'>*</span>
                   </label>
 
-                  <select
+                  <Select
                     id='supervisor'
                     {...register("supervisor", {
                       required: "Please select a supervisor.",
@@ -956,7 +957,7 @@ const PlantCensus = () => {
                     <option value='sup-1'>Md. Rahman</option>
                     <option value='sup-2'>Jahid Hasan</option>
                     <option value='sup-3'>Arif Hossain</option>
-                  </select>
+                  </Select>
 
                   {errors.supervisor && (
                     <p className='mt-1 text-xs text-red-500'>
@@ -974,7 +975,7 @@ const PlantCensus = () => {
                     Census Method <span className='text-red-500'>*</span>
                   </label>
 
-                  <select
+                  <Select
                     id='censusMethod'
                     {...register("censusMethod", {
                       required: "Please select a census method.",
@@ -990,7 +991,7 @@ const PlantCensus = () => {
                     <option value='mobile-app'>Mobile App</option>
                     <option value='gps'>GPS Survey</option>
                     <option value='drone'>Drone Survey</option>
-                  </select>
+                  </Select>
 
                   {errors.censusMethod && (
                     <p className='mt-1 text-xs text-red-500'>
@@ -1436,7 +1437,7 @@ const PlantCensus = () => {
                   margin={{
                     top: 5,
                     right: 0,
-                    left: 0,
+                    left: 4,
                     bottom: 5,
                   }}
                 >
@@ -1451,7 +1452,8 @@ const PlantCensus = () => {
 
                   <YAxis
                     yAxisId='left'
-                    width={36}
+                    width={52}
+                    tickFormatter={(value) => new Intl.NumberFormat('en', { notation: 'compact' }).format(value)}
                     tick={{ fontSize: 10 }}
                     axisLine={false}
                     tickLine={false}

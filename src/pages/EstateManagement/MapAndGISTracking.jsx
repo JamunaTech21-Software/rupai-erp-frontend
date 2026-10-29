@@ -10,7 +10,6 @@ import TableSkeleton from "../../components/common/TableSkeleton";
 import EmptyRow from "../../components/common/EmptyRow";
 import ErrorState from "../../components/common/ErrorState";
 import ConfirmDialog from "../../components/common/ConfirmDialog";
-import FieldFormModal from "../../components/EstateManagement/FieldFormModal";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
@@ -26,7 +25,6 @@ import {
   Download,
   Plus,
   Eye,
-  Pencil,
   Trash2,
   X,
 } from "lucide-react";
@@ -60,7 +58,9 @@ import {
   Marker,
   Popup,
   ZoomControl,
+  useMap,
 } from "react-leaflet";
+import Select from "../../components/common/Select";
 const PER_PAGE = 10;
 
 // The filter lists show labels; the API takes the stored values.
@@ -91,6 +91,18 @@ const EMPTY = {
   meta: { page: 1, perPage: PER_PAGE, total: 0, totalPages: 1 },
 };
 
+// Centres and zooms the map on the narrowest selection (estate / division / section / field) every time it changes.
+function FocusMap({ focus }) {
+  const map = useMap();
+  const bounds = focus?.bounds ? JSON.stringify(focus.bounds) : "";
+  useEffect(() => {
+    if (!focus) return;
+    if (focus.bounds) map.fitBounds(focus.bounds, { padding: [24, 24], maxZoom: focus.zoom ?? 18, animate: true });
+    else if (focus.latitude != null && focus.longitude != null) map.setView([Number(focus.latitude), Number(focus.longitude)], focus.zoom ?? map.getZoom(), { animate: true });
+  }, [map, focus?.level, focus?.id, focus?.latitude, focus?.longitude, focus?.zoom, bounds]); // eslint-disable-line react-hooks/exhaustive-deps
+  return null;
+}
+
 const MapAndGISTracking = () => {
   const {
     register,
@@ -108,6 +120,10 @@ const MapAndGISTracking = () => {
   // Dropdowns follow each other: estate -> division -> section.
   const estateId = watch("estate");
   const divisionId = watch("division");
+  const sectionId = watch("section");
+  const fieldBlockId = watch("fieldBlock");
+  const fieldTypeLabel = watch("fieldType");
+  const statusLabel = watch("status");
   const estateOptions = useApi(() => api.get("/options/estates"), []);
   const divisionOptions = useApi(
     () => (estateId ? api.get("/options/divisions", { estate: estateId }) : Promise.resolve([])),
@@ -118,6 +134,12 @@ const MapAndGISTracking = () => {
     [divisionId],
   );
 
+  // Field / Block filter: the fields of the chosen section, or of the estate when no section is picked.
+  const fieldOptions = useApi(
+    () => (sectionId ? api.get("/options/fields", { section: sectionId }) : estateId ? api.get("/options/fields", { estate: estateId }) : Promise.resolve([])),
+    [sectionId, estateId],
+  );
+
   // The first estate is shown until another is searched for.
   const firstEstate = estateOptions.data?.[0]?.value;
   useEffect(() => {
@@ -126,6 +148,24 @@ const MapAndGISTracking = () => {
       setValue("estate", firstEstate);
     }
   }, [firstEstate, applied, setValue]);
+
+  // Every change of a filter reloads the map and the list, so the page always shows what is picked.
+  useEffect(() => {
+    if (!applied || !estateId) return;
+    const next = {
+      estate: estateId,
+      division: divisionId ?? "",
+      section: sectionId ?? "",
+      fieldBlock: fieldBlockId ?? "",
+      fieldType: FIELD_TYPE_VALUES[fieldTypeLabel] ?? "",
+      status: STATUS_VALUES[statusLabel] ?? "",
+    };
+    const same = Object.keys(next).every((key) => (applied[key] ?? "") === next[key]);
+    if (!same) {
+      setPage(1);
+      setApplied(next);
+    }
+  }, [estateId, divisionId, sectionId, fieldBlockId, fieldTypeLabel, statusLabel]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const result = useApi(
     () => (applied ? api.get("/map", { ...applied, page, perPage: PER_PAGE }) : Promise.resolve(null)),
@@ -155,6 +195,7 @@ const MapAndGISTracking = () => {
       estate: values.estate,
       division: values.division,
       section: values.section,
+      fieldBlock: values.fieldBlock,
       fieldType: FIELD_TYPE_VALUES[values.fieldType] ?? "",
       status: STATUS_VALUES[values.status] ?? "",
     });
@@ -165,21 +206,6 @@ const MapAndGISTracking = () => {
 
   // Row buttons: View opens a popup, Edit opens the field's edit popup, Delete asks first.
   const [viewing, setViewing] = useState(null);
-  // Edit / Add open the Field / Block form as a popup on this page.
-  const [formField, setFormField] = useState(null);
-  const [formOpen, setFormOpen] = useState(false);
-  const openEdit = async (field) => {
-    try {
-      setFormField(await api.get(`/fields/${field.id}`));
-      setFormOpen(true);
-    } catch (error) {
-      toast.error(error.message);
-    }
-  };
-  const closeForm = () => {
-    setFormOpen(false);
-    setFormField(null);
-  };
   const [deleting, setDeleting] = useState(null);
   const [deleteBusy, setDeleteBusy] = useState(false);
   const [exporting, setExporting] = useState(false);
@@ -280,12 +306,13 @@ const MapAndGISTracking = () => {
                       Estate
                     </label>
 
-                    <select
+                    <Select
                       {...register("estate", {
                         required: "Estate is required",
                         onChange: () => {
                           setValue("division", "");
                           setValue("section", "");
+                          setValue("fieldBlock", "");
                         },
                       })}
                       className='select h-11 w-full rounded-lg border border-gray-300 bg-white focus:border-green-600'
@@ -297,7 +324,7 @@ const MapAndGISTracking = () => {
                           {estate.label}
                         </option>
                       ))}
-                    </select>
+                    </Select>
 
                     {errors.estate && (
                       <p className='mt-1 text-sm text-red-500'>
@@ -314,10 +341,12 @@ const MapAndGISTracking = () => {
                       Division
                     </label>
 
-                    <select
+                    <Select
                       {...register("division", {
-                        required: "Division is required",
-                        onChange: () => setValue("section", ""),
+                        onChange: () => {
+                          setValue("section", "");
+                          setValue("fieldBlock", "");
+                        },
                       })}
                       className='select h-11 w-full rounded-lg border border-gray-300 bg-white focus:border-green-600'
                     >
@@ -334,7 +363,7 @@ const MapAndGISTracking = () => {
                           {division.label}
                         </option>
                       ))}
-                    </select>
+                    </Select>
 
                     {errors.division && (
                       <p className='mt-1 text-sm text-red-500'>
@@ -351,9 +380,9 @@ const MapAndGISTracking = () => {
                       Section
                     </label>
 
-                    <select
+                    <Select
                       {...register("section", {
-                        required: "Section is required",
+                        onChange: () => setValue("fieldBlock", ""),
                       })}
                       className='select h-11 w-full rounded-lg border border-gray-300 bg-white focus:border-green-600'
                     >
@@ -370,13 +399,37 @@ const MapAndGISTracking = () => {
                           {section.label}
                         </option>
                       ))}
-                    </select>
+                    </Select>
 
                     {errors.section && (
                       <p className='mt-1 text-sm text-red-500'>
                         {errors.section.message}
                       </p>
                     )}
+                  </div>
+
+                  {/* =====================================================
+                          Field / Block
+                      ====================================================== */}
+                  <div>
+                    <label className='mb-1.5 block text-sm font-medium text-gray-700'>
+                      Field / Block
+                    </label>
+
+                    <Select
+                      {...register("fieldBlock")}
+                      className='select h-11 w-full rounded-lg border border-gray-300 bg-white focus:border-green-600'
+                    >
+                      <option value=''>
+                        {!estateId ? "Select Estate first" : fieldOptions.data?.length === 0 ? "No fields for this selection" : "All Fields / Blocks"}
+                      </option>
+
+                      {(fieldOptions.data ?? []).map((field) => (
+                        <option key={field.id} value={field.value}>
+                          {field.label}
+                        </option>
+                      ))}
+                    </Select>
                   </div>
 
                   {/* =====================================================
@@ -387,10 +440,8 @@ const MapAndGISTracking = () => {
                       Field / Block Type
                     </label>
 
-                    <select
-                      {...register("fieldType", {
-                        required: "Field / Block Type is required",
-                      })}
+                    <Select
+                      {...register("fieldType")}
                       className='select h-11 w-full rounded-lg border border-gray-300 bg-white focus:border-green-600'
                     >
                       <option value=''>Select Type</option>
@@ -400,7 +451,7 @@ const MapAndGISTracking = () => {
                           {type}
                         </option>
                       ))}
-                    </select>
+                    </Select>
 
                     {errors.fieldType && (
                       <p className='mt-1 text-sm text-red-500'>
@@ -417,10 +468,8 @@ const MapAndGISTracking = () => {
                       Status
                     </label>
 
-                    <select
-                      {...register("status", {
-                        required: "Status is required",
-                      })}
+                    <Select
+                      {...register("status")}
                       className='select h-11 w-full rounded-lg border border-gray-300 bg-white focus:border-green-600'
                     >
                       <option value=''>Select Status</option>
@@ -430,7 +479,7 @@ const MapAndGISTracking = () => {
                           {status}
                         </option>
                       ))}
-                    </select>
+                    </Select>
 
                     {errors.status && (
                       <p className='mt-1 text-sm text-red-500'>
@@ -453,7 +502,7 @@ const MapAndGISTracking = () => {
                     <button
                       type='button'
                       onClick={() => {
-                        reset({ estate: firstEstate ?? "", division: "", section: "", fieldType: "", status: "" });
+                        reset({ estate: firstEstate ?? "", division: "", section: "", fieldBlock: "", fieldType: "", status: "" });
                         setPage(1);
                         if (firstEstate) setApplied({ estate: firstEstate });
                       }}
@@ -564,6 +613,9 @@ const MapAndGISTracking = () => {
                     />
                   )}
 
+                  {/* The map centres and zooms on the narrowest filter picked */}
+                  <FocusMap focus={data.focus} />
+
                   {/* =================================================
             ZOOM CONTROL
         ================================================== */}
@@ -620,6 +672,18 @@ const MapAndGISTracking = () => {
                             {mapInfo.nonTeaArea}
                           </p>
                         </div>
+                      </Popup>
+                    </Polygon>
+                  )}
+
+                  {/* The picked division / section / field outline */}
+                  {data.focus?.level !== "estate" && Array.isArray(data.focus?.polygon) && data.focus.polygon.length > 2 && (
+                    <Polygon
+                      positions={data.focus.polygon}
+                      pathOptions={{ color: "#dc2626", fillColor: "#ef4444", fillOpacity: 0.12, weight: 4 }}
+                    >
+                      <Popup>
+                        <div className='text-sm font-semibold text-green-800'>{data.focus.name}</div>
                       </Popup>
                     </Polygon>
                   )}
@@ -935,12 +999,12 @@ const MapAndGISTracking = () => {
 
                     <p>
                       <span className='font-semibold'>Latitude:</span>{" "}
-                      {mapInfo.latitude}
+                      {data.mapFooter?.coordinates?.latitude ?? mapInfo.latitude}
                     </p>
 
                     <p>
                       <span className='font-semibold'>Longitude:</span>{" "}
-                      {mapInfo.longitude}
+                      {data.mapFooter?.coordinates?.longitude ?? mapInfo.longitude}
                     </p>
                   </div>
                 </div>
@@ -953,8 +1017,8 @@ const MapAndGISTracking = () => {
 
         {result.loading && !result.data && <CardSkeleton count={6} />}
         {result.error && <ErrorState message={result.error.message} onRetry={result.reload} />}
-        <div className='grid grid-cols-1 gap-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6'>
-          {data.summaryCards.map((card) => {
+        <div className='grid grid-cols-1 gap-1 sm:grid-cols-3'>
+          {data.summaryCards.filter((card) => !/field\s*\/\s*block/i.test(card.title)).map((card) => {
             const Icon = summaryIconMap[card.icon];
 
             return (
@@ -1007,21 +1071,15 @@ const MapAndGISTracking = () => {
             </h2>
 
             <div className='flex flex-wrap items-center gap-2'>
-              {mapAndGISTrackingData.actionButtons.map((button) => {
+              {mapAndGISTrackingData.actionButtons.filter((button) => button.color !== "primary").map((button) => {
                 const Icon = actionIconMap[button.icon];
 
                 return (
                   <button
                     key={button.id}
                     type='button'
-                    disabled={button.color !== "primary" && exporting}
-                    onClick={() => {
-                      if (button.color !== "primary") exportFields();
-                      else {
-                        setFormField(null);
-                        setFormOpen(true);
-                      }
-                    }}
+                    disabled={exporting}
+                    onClick={exportFields}
                     className={`inline-flex cursor-pointer h-9 items-center gap-2 rounded-md px-4 text-sm font-medium transition ${
                       button.color === "primary"
                         ? "bg-green-700 text-white hover:bg-green-800"
@@ -1029,7 +1087,7 @@ const MapAndGISTracking = () => {
                     }`}
                   >
                     <Icon size={16} />
-                    {button.color !== "primary" && exporting ? "Exporting..." : button.label}
+                    {exporting ? "Exporting..." : button.label}
                   </button>
                 );
               })}
@@ -1127,15 +1185,6 @@ const MapAndGISTracking = () => {
                               className='flex h-8 w-8 items-center justify-center rounded-lg bg-blue-50 text-blue-600 transition hover:bg-blue-100'
                             >
                               <Eye size={16} />
-                            </button>
-
-                            <button
-                              type='button'
-                              title='Edit'
-                              onClick={() => openEdit(field)}
-                              className='flex cursor-pointer h-8 w-8 items-center justify-center rounded-lg bg-amber-50 text-amber-600 transition hover:bg-amber-100'
-                            >
-                              <Pencil size={16} />
                             </button>
 
                             <button
@@ -1247,16 +1296,6 @@ const MapAndGISTracking = () => {
             </dl>
           </div>
         </div>
-      )}
-      {formOpen && (
-        <FieldFormModal
-          editing={formField}
-          onClose={closeForm}
-          onSaved={() => {
-            closeForm();
-            result.reload();
-          }}
-        />
       )}
       <ConfirmDialog
         open={Boolean(deleting)}

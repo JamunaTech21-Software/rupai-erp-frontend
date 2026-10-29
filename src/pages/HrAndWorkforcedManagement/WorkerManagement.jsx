@@ -85,6 +85,7 @@ const documentIconMap = {
   document: FileText,
 };
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
+import Select from "../../components/common/Select";
 const WorkerManagement = () => {
   return (
     <div className='space-y-4'>
@@ -206,13 +207,13 @@ const WorkerManagement = () => {
                   Garden / Unit
                 </label>
 
-                <select className='h-9 w-full rounded-lg border border-gray-300 bg-white px-2 text-xs text-gray-700 outline-none transition focus:border-green-600'>
+                <Select className='h-9 w-full rounded-lg border border-gray-300 bg-white px-2 text-xs text-gray-700 outline-none transition focus:border-green-600'>
                   {workerManagementData.filters.gardenOptions.map((option) => (
                     <option key={option.value} value={option.value}>
                       {option.label}
                     </option>
                   ))}
-                </select>
+                </Select>
               </div>
 
               {/* =================================================
@@ -223,13 +224,13 @@ const WorkerManagement = () => {
                   Section
                 </label>
 
-                <select className='h-9 w-full rounded-lg border border-gray-300 bg-white px-2 text-xs text-gray-700 outline-none transition focus:border-green-600'>
+                <Select className='h-9 w-full rounded-lg border border-gray-300 bg-white px-2 text-xs text-gray-700 outline-none transition focus:border-green-600'>
                   {workerManagementData.filters.sectionOptions.map((option) => (
                     <option key={option.value} value={option.value}>
                       {option.label}
                     </option>
                   ))}
-                </select>
+                </Select>
               </div>
 
               {/* =================================================
@@ -240,7 +241,7 @@ const WorkerManagement = () => {
                   Category
                 </label>
 
-                <select className='h-9 w-full rounded-lg border border-gray-300 bg-white px-2 text-xs text-gray-700 outline-none transition focus:border-green-600'>
+                <Select className='h-9 w-full rounded-lg border border-gray-300 bg-white px-2 text-xs text-gray-700 outline-none transition focus:border-green-600'>
                   {workerManagementData.filters.categoryOptions.map(
                     (option) => (
                       <option key={option.value} value={option.value}>
@@ -248,7 +249,7 @@ const WorkerManagement = () => {
                       </option>
                     ),
                   )}
-                </select>
+                </Select>
               </div>
 
               {/* =================================================
@@ -259,7 +260,7 @@ const WorkerManagement = () => {
                   Worker Type
                 </label>
 
-                <select className='h-9 w-full rounded-lg border border-gray-300 bg-white px-2 text-xs text-gray-700 outline-none transition focus:border-green-600'>
+                <Select className='h-9 w-full rounded-lg border border-gray-300 bg-white px-2 text-xs text-gray-700 outline-none transition focus:border-green-600'>
                   {workerManagementData.filters.workerTypeOptions.map(
                     (option) => (
                       <option key={option.value} value={option.value}>
@@ -267,7 +268,7 @@ const WorkerManagement = () => {
                       </option>
                     ),
                   )}
-                </select>
+                </Select>
               </div>
 
               {/* =================================================
@@ -278,13 +279,13 @@ const WorkerManagement = () => {
                   Status
                 </label>
 
-                <select className='h-9 w-full rounded-lg border border-gray-300 bg-white px-2 text-xs text-gray-700 outline-none transition focus:border-green-600'>
+                <Select className='h-9 w-full rounded-lg border border-gray-300 bg-white px-2 text-xs text-gray-700 outline-none transition focus:border-green-600'>
                   {workerManagementData.filters.statusOptions.map((option) => (
                     <option key={option.value} value={option.value}>
                       {option.label}
                     </option>
                   ))}
-                </select>
+                </Select>
               </div>
 
               {/* =================================================

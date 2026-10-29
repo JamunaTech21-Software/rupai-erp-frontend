@@ -11,6 +11,7 @@ import EmptyRow from "../../components/common/EmptyRow";
 import ErrorState from "../../components/common/ErrorState";
 import ConfirmDialog from "../../components/common/ConfirmDialog";
 import MapResizer from "../../components/common/MapResizer";
+import BoundaryPicker from "../../components/EstateManagement/BoundaryPicker";
 import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
 import markerIcon from "leaflet/dist/images/marker-icon.png";
 import markerShadow from "leaflet/dist/images/marker-shadow.png";
@@ -39,6 +40,7 @@ import {
   CreditCard,
   UserRound,
 } from "lucide-react";
+import Select from "../../components/common/Select";
 
 // ============================================================
 // LEAFLET MARKER
@@ -96,7 +98,7 @@ const LAND_FIELDS = [
   "startDate", "endDate", "leaseTerm", "rentAmount", "rentPerAcre", "landStatus", "purpose", "ownerName",
   "fatherOrCompanyName", "ownerMobile", "ownerEmail", "ownerNidTin", "ownerAddress", "ownershipRemarks",
 ];
-const PAYMENT_FIELDS = ["year", "dueDate", "amount", "paidAmount", "paymentDate", "status", "paymentMethod", "referenceNo", "remarks"];
+const PAYMENT_FIELDS = ["year", "banglaYear", "dueDate", "amount", "paidAmount", "paymentDate", "status", "paymentMethod", "referenceNo", "remarks"];
 
 const LandAndLeaseManagement = () => {
   // ==========================================================
@@ -112,6 +114,8 @@ const LandAndLeaseManagement = () => {
     handleSubmit,
     reset,
     setError,
+    setValue,
+    watch,
     formState: { errors, isSubmitting },
   } = useForm({
     defaultValues: data.formData,
@@ -139,6 +143,9 @@ const LandAndLeaseManagement = () => {
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [showDocumentModal, setShowDocumentModal] = useState(false);
   const [editingLand, setEditingLand] = useState(null);
+  // The drawn boundary of the land being added / edited: [[lat, lng], …] or null.
+  const [boundary, setBoundary] = useState(null);
+  const [pickerOpen, setPickerOpen] = useState(false);
   const [editingPayment, setEditingPayment] = useState(null);
   const [deleting, setDeleting] = useState(null);
   const [deleteBusy, setDeleteBusy] = useState(false);
@@ -163,6 +170,17 @@ const LandAndLeaseManagement = () => {
   useEffect(() => setPage(1), [search, estateFilter, typeFilter, statusFilter]);
 
   const estateOptions = useApi(() => api.get("/options/estates"), []);
+  // Mouza options follow the estate chosen in the form.
+  const formEstate = watch("estate");
+  const mouzaOptions = useApi(
+    () => (formEstate ? api.get("/options/mouzas", { estate: formEstate }) : Promise.resolve([])),
+    [formEstate],
+  );
+  // Opening a record for edit: the mouza shows its saved value once its options have loaded.
+  useEffect(() => {
+    const saved = editingLand?.mouza;
+    if (saved && mouzaOptions.data?.some((option) => option.value === saved)) setValue("mouza", saved);
+  }, [editingLand, mouzaOptions.data, setValue]);
   const lands = useApi(
     () =>
       api.get("/land-records", {
@@ -231,7 +249,7 @@ const LandAndLeaseManagement = () => {
   });
 
   const landLeaseOnSubmit = async (values) => {
-    const body = { ...values };
+    const body = { ...values, polygon: boundary ?? "" };
     delete body.documents;
     try {
       const saved = editingLand
@@ -253,6 +271,7 @@ const LandAndLeaseManagement = () => {
 
   const openLandModal = (row) => {
     setEditingLand(row ?? null);
+    setBoundary(Array.isArray(row?.polygon) && row.polygon.length >= 3 ? row.polygon : null);
     reset(row ? toLandForm(row) : data.formData);
     setShowLandModal(true);
   };
@@ -263,6 +282,8 @@ const LandAndLeaseManagement = () => {
 
   const closeLandModal = () => {
     reset(data.formData);
+    setBoundary(null);
+    setPickerOpen(false);
     setEditingLand(null);
     setShowLandModal(false);
   };
@@ -485,7 +506,7 @@ const LandAndLeaseManagement = () => {
 
               {/* Estate */}
 
-              <select
+              <Select
                 value={estateFilter}
                 onChange={(e) => setEstateFilter(e.target.value)}
                 className='h-10 w-full rounded-md border border-gray-300 bg-white px-3 text-sm outline-none focus:border-green-600'
@@ -497,11 +518,11 @@ const LandAndLeaseManagement = () => {
                     {estate.label}
                   </option>
                 ))}
-              </select>
+              </Select>
 
               {/* Land Type */}
 
-              <select
+              <Select
                 value={typeFilter}
                 onChange={(e) => setTypeFilter(e.target.value)}
                 className='h-10 w-full rounded-md border border-gray-300 bg-white px-3 text-sm outline-none focus:border-green-600'
@@ -513,11 +534,11 @@ const LandAndLeaseManagement = () => {
                     {type.label}
                   </option>
                 ))}
-              </select>
+              </Select>
 
               {/* Status */}
 
-              <select
+              <Select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
                 className='h-10 w-full rounded-md border border-gray-300 bg-white px-3 text-sm outline-none focus:border-green-600'
@@ -529,7 +550,7 @@ const LandAndLeaseManagement = () => {
                     {status.label}
                   </option>
                 ))}
-              </select>
+              </Select>
 
               {/* More Filter */}
 
@@ -1024,6 +1045,10 @@ const LandAndLeaseManagement = () => {
                         {payment.year}
                       </td>
 
+                      <td className='border border-gray-200 px-2 py-2 text-center'>
+                        {orDash(payment.banglaYear)}
+                      </td>
+
                       <td className='whitespace-nowrap border border-gray-200 px-2 py-2 text-center'>
                         {dmy(payment.dueDate)}
                       </td>
@@ -1248,9 +1273,10 @@ const LandAndLeaseManagement = () => {
                         Estate <span className='text-red-500'>*</span>
                       </label>
 
-                      <select
+                      <Select
                         {...register("estate", {
                           required: "Estate is required",
+                          onChange: () => setValue("mouza", ""),
                         })}
                         className={`h-11 w-full rounded-lg border bg-white px-3 text-sm outline-none ${
                           errors.estate
@@ -1265,7 +1291,7 @@ const LandAndLeaseManagement = () => {
                             {estate.label}
                           </option>
                         ))}
-                      </select>
+                      </Select>
 
                       {errors.estate && (
                         <p className='mt-1 text-xs text-red-500'>
@@ -1284,7 +1310,7 @@ const LandAndLeaseManagement = () => {
                         <span className='text-red-500'>*</span>
                       </label>
 
-                      <select
+                      <Select
                         {...register("landLeaseType", {
                           required: "Land / Lease Type is required",
                         })}
@@ -1301,7 +1327,7 @@ const LandAndLeaseManagement = () => {
                             {type.label}
                           </option>
                         ))}
-                      </select>
+                      </Select>
 
                       {errors.landLeaseType && (
                         <p className='mt-1 text-xs text-red-500'>
@@ -1319,7 +1345,7 @@ const LandAndLeaseManagement = () => {
                         Land Category <span className='text-red-500'>*</span>
                       </label>
 
-                      <select
+                      <Select
                         {...register("landCategory", {
                           required: "Land Category is required",
                         })}
@@ -1336,7 +1362,7 @@ const LandAndLeaseManagement = () => {
                             {category.label}
                           </option>
                         ))}
-                      </select>
+                      </Select>
 
                       {errors.landCategory && (
                         <p className='mt-1 text-xs text-red-500'>
@@ -1443,18 +1469,19 @@ const LandAndLeaseManagement = () => {
                         Mouza
                       </label>
 
-                      <select
+                      <Select
                         {...register("mouza")}
                         className='h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm outline-none focus:border-green-600'
                       >
-                        <option value=''>Select Mouza</option>
+                        <option value=''>{formEstate ? "Select Mouza" : "Select Estate first"}</option>
 
-                        {data.mouzas.map((mouza) => (
+                        {(mouzaOptions.data ?? []).map((mouza) => (
                           <option key={mouza.id} value={mouza.value}>
                             {mouza.label}
                           </option>
                         ))}
-                      </select>
+                      </Select>
+                      {errors.mouza && <p className='mt-1 text-xs text-red-500'>{errors.mouza.message}</p>}
                     </div>
 
                     {/* =================================================
@@ -1483,7 +1510,7 @@ const LandAndLeaseManagement = () => {
                         Record Type
                       </label>
 
-                      <select
+                      <Select
                         {...register("recordType")}
                         className='h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm outline-none focus:border-green-600'
                       >
@@ -1494,7 +1521,7 @@ const LandAndLeaseManagement = () => {
                             {record.label}
                           </option>
                         ))}
-                      </select>
+                      </Select>
                     </div>
                   </div>
                 </div>
@@ -1723,7 +1750,7 @@ const LandAndLeaseManagement = () => {
                         Land Status <span className='text-red-500'>*</span>
                       </label>
 
-                      <select
+                      <Select
                         {...register("landStatus", {
                           required: "Land Status is required",
                         })}
@@ -1740,7 +1767,7 @@ const LandAndLeaseManagement = () => {
                             {status.label}
                           </option>
                         ))}
-                      </select>
+                      </Select>
 
                       {errors.landStatus && (
                         <p className='mt-1 text-xs text-red-500'>
@@ -1974,16 +2001,18 @@ const LandAndLeaseManagement = () => {
 
                       <div className='flex h-11 items-center justify-between rounded-lg border border-gray-300 bg-gray-50 px-3'>
                         <span className='text-xs text-gray-500'>
-                          Boundary will be selected from map
+                          {boundary ? `${boundary.length} corners selected` : "Boundary will be selected from map"}
                         </span>
 
                         <button
                           type='button'
+                          onClick={() => setPickerOpen(true)}
                           className='rounded-md border border-green-700 bg-white px-3 py-1.5 text-xs font-medium text-green-700 transition hover:bg-green-50'
                         >
-                          Select on Map
+                          {boundary ? "Edit on Map" : "Select on Map"}
                         </button>
                       </div>
+                      {errors.polygon && <p className='mt-1 text-xs text-red-500'>{errors.polygon.message}</p>}
                     </div>
                   </div>
                 </div>
@@ -2024,7 +2053,10 @@ const LandAndLeaseManagement = () => {
 
                     <button
                       type='button'
-                      onClick={() => reset(editingLand ? toLandForm(editingLand) : data.formData)}
+                      onClick={() => {
+                        reset(editingLand ? toLandForm(editingLand) : data.formData);
+                        setBoundary(Array.isArray(editingLand?.polygon) && editingLand.polygon.length >= 3 ? editingLand.polygon : null);
+                      }}
                       className='flex h-11 w-full items-center justify-center gap-2 rounded-lg border-0 bg-green-500 px-6 text-white transition hover:bg-green-600 sm:w-auto'
                     >
                       <RotateCcw size={18} />
@@ -2094,6 +2126,22 @@ const LandAndLeaseManagement = () => {
 
                 <div>
                   <label className='mb-1 block text-sm font-medium text-gray-700'>
+                    Bangla Year
+                  </label>
+
+                  <input
+                    {...registerPayment("banglaYear", { pattern: { value: /^d{4}$/, message: "Enter the Bangla year, e.g. 1433" } })}
+                    type='text'
+                    inputMode='numeric'
+                    maxLength={4}
+                    placeholder='Filled from the due date (e.g. 1433)'
+                    className='h-11 w-full rounded-lg border border-gray-300 px-3 text-sm outline-none focus:border-green-600'
+                  />
+                  {paymentErrors.banglaYear && <p className='mt-1 text-xs text-red-500'>{paymentErrors.banglaYear.message}</p>}
+                </div>
+
+                <div>
+                  <label className='mb-1 block text-sm font-medium text-gray-700'>
                     Due Date
                   </label>
 
@@ -2147,7 +2195,7 @@ const LandAndLeaseManagement = () => {
                     Status
                   </label>
 
-                  <select {...registerPayment("status", data.paymentValidation.status)} className='h-11 w-full rounded-lg border border-gray-300 px-3 text-sm outline-none focus:border-green-600'>
+                  <Select {...registerPayment("status", data.paymentValidation.status)} className='h-11 w-full rounded-lg border border-gray-300 px-3 text-sm outline-none focus:border-green-600'>
                     <option value=''>Select Status</option>
 
                     {data.paymentStatuses.map((status) => (
@@ -2155,7 +2203,7 @@ const LandAndLeaseManagement = () => {
                         {status.label}
                       </option>
                     ))}
-                  </select>
+                  </Select>
                 {paymentErrors.status && <p className='mt-1 text-xs text-red-500'>{paymentErrors.status.message}</p>}
 </div>
 
@@ -2164,7 +2212,7 @@ const LandAndLeaseManagement = () => {
                     Payment Method
                   </label>
 
-                  <select {...registerPayment("paymentMethod", data.paymentValidation.paymentMethod)} className='h-11 w-full rounded-lg border border-gray-300 px-3 text-sm outline-none focus:border-green-600'>
+                  <Select {...registerPayment("paymentMethod", data.paymentValidation.paymentMethod)} className='h-11 w-full rounded-lg border border-gray-300 px-3 text-sm outline-none focus:border-green-600'>
                     <option value=''>Select Method</option>
 
                     {data.paymentMethods.map((method) => (
@@ -2172,7 +2220,7 @@ const LandAndLeaseManagement = () => {
                         {method.label}
                       </option>
                     ))}
-                  </select>
+                  </Select>
                 {paymentErrors.paymentMethod && <p className='mt-1 text-xs text-red-500'>{paymentErrors.paymentMethod.message}</p>}
 </div>
 
@@ -2283,7 +2331,7 @@ const LandAndLeaseManagement = () => {
                     Document Type <span className='text-red-500'>*</span>
                   </label>
 
-                  <select {...registerDocument("documentType", data.documentValidation.documentType)} className='h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm outline-none transition focus:border-green-600'>
+                  <Select {...registerDocument("documentType", data.documentValidation.documentType)} className='h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm outline-none transition focus:border-green-600'>
                     <option value=''>Select Document Type</option>
 
                     {data.documentTypes.map((type) => (
@@ -2291,7 +2339,7 @@ const LandAndLeaseManagement = () => {
                         {type.label}
                       </option>
                     ))}
-                  </select>
+                  </Select>
                 {documentErrors.documentType && <p className='mt-1 text-xs text-red-500'>{documentErrors.documentType.message}</p>}
 </div>
 
@@ -2397,6 +2445,17 @@ const LandAndLeaseManagement = () => {
             </form>
           </div>
         </div>
+      )}
+      {pickerOpen && (
+        <BoundaryPicker
+          value={boundary}
+          center={landMap?.latitude != null ? [Number(landMap.latitude), Number(landMap.longitude)] : data.mapSettings.center}
+          onCancel={() => setPickerOpen(false)}
+          onDone={(points) => {
+            setBoundary(points);
+            setPickerOpen(false);
+          }}
+        />
       )}
       <ConfirmDialog
         open={Boolean(deleting)}

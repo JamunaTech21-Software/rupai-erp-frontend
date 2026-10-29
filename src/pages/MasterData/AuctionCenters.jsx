@@ -13,6 +13,7 @@ import {
   Plus,
   Download,
 } from "lucide-react";
+import Select from "../../components/common/Select";
 
 const AuctionCenters = () => {
   // =====================================================
@@ -114,7 +115,7 @@ const AuctionCenters = () => {
 
                     {field.type === "select" && (
                       <>
-                        <select
+                        <Select
                           {...register(field.name, {
                             required: field.required
                               ? `${field.label} is required`
@@ -133,7 +134,7 @@ const AuctionCenters = () => {
                               {option.label}
                             </option>
                           ))}
-                        </select>
+                        </Select>
 
                         {/* Validation Error */}
 
@@ -340,7 +341,7 @@ const AuctionCenters = () => {
 
                   {/* ================= SELECT ================= */}
 
-                  <select
+                  <Select
                     {...register("regulatoryAuthority", {
                       required: auctionCentersData.form.regulatoryAuthority
                         .required
@@ -364,7 +365,7 @@ const AuctionCenters = () => {
                         </option>
                       ),
                     )}
-                  </select>
+                  </Select>
 
                   {/* Validation Error */}
 
