@@ -106,6 +106,7 @@ const FieldPlanting = () => {
   const [selectedId, setSelectedId] = useState(null);
   const [page, setPage] = useState(1);
   const [viewOpen, setViewOpen] = useState(false);
+  const [exporting, setExporting] = useState(false);
   const [deleting, setDeleting] = useState(null);
   const [deleteBusy, setDeleteBusy] = useState(false);
 
@@ -234,6 +235,53 @@ const FieldPlanting = () => {
     }
   };
   const onSubmit = (values) => savePlanting(values);
+
+  // Export: every planting of the history (all pages) as a CSV file, in the table's columns.
+  const exportHistory = async () => {
+    setExporting(true);
+    try {
+      const rows = [];
+      for (let pageNo = 1; ; pageNo += 1) {
+        const part = await api.get("/field-plantings", { page: pageNo, perPage: 100 });
+        rows.push(...part.data);
+        if (pageNo >= (part.meta?.totalPages ?? 1)) break;
+      }
+      if (rows.length === 0) {
+        toast.error("There is nothing to export.");
+        return;
+      }
+      const cell = (value) => {
+        const text = String(value ?? "");
+        return /[",\n\r]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
+      };
+      const lines = [
+        historyTableHeaders.slice(1, -1),
+        ...rows.map((item) => [
+          item.plantingYear,
+          item.fieldBlockName,
+          item.totalArea,
+          item.cloneVariety,
+          dmy(item.plantingDate),
+          item.plantingMethod,
+          item.expectedPlants,
+          item.plantingProgress?.plantsPlanted,
+          item.completion,
+          item.plantingStatus,
+        ]),
+      ];
+      const blob = new Blob(["\ufeff" + lines.map((line) => line.map(cell).join(",")).join("\r\n")], { type: "text/csv;charset=utf-8" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = `field-planting-history-${new Date().toISOString().slice(0, 10)}.csv`;
+      link.click();
+      URL.revokeObjectURL(link.href);
+      toast.success(`${rows.length} ${rows.length === 1 ? "planting" : "plantings"} exported successfully!`);
+    } catch (error) {
+      toast.error(error.message);
+    } finally {
+      setExporting(false);
+    }
+  };
 
   const confirmDelete = async () => {
     setDeleteBusy(true);
@@ -1982,10 +2030,12 @@ const FieldPlanting = () => {
             <div className='flex flex-wrap items-center justify-end gap-2'>
               <button
                 type='button'
-                className='flex h-9 items-center gap-2 rounded-lg border border-gray-300 bg-white px-3 text-sm hover:bg-gray-50'
+                disabled={exporting}
+                onClick={exportHistory}
+                className='flex h-9 items-center gap-2 rounded-lg border border-gray-300 bg-white px-3 text-sm hover:bg-gray-50 disabled:opacity-60'
               >
                 <Download size={16} />
-                Export
+                {exporting ? "Exporting..." : "Export"}
               </button>
 
               <div className='flex items-center gap-1'>
