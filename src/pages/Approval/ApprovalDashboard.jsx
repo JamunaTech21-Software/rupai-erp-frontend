@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import {
   BarChart3,
@@ -89,6 +89,16 @@ const selectClass = "h-10 w-full rounded-md border border-gray-300 bg-white px-3
 const ApprovalDashboard = () => {
   // Top: module tab, date range and status; the table below has its own search, action and status.
   const [module, setModule] = useState("");
+  const tabsRef = useRef(null);
+
+  // Keep the active module tab in view, whichever control changed it (a tab or a module card).
+  useEffect(() => {
+    const row = tabsRef.current;
+    const active = row?.querySelector("[data-active]");
+    if (!row || !active) return;
+    const left = active.offsetLeft - (row.clientWidth - active.offsetWidth) / 2;
+    row.scrollTo({ left: Math.max(0, left), behavior: "smooth" });
+  }, [module]);
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
   const [summaryStatus, setSummaryStatus] = useState("");
@@ -192,11 +202,19 @@ const ApprovalDashboard = () => {
     <div className='space-y-6'>
       {/* Module tabs */}
       <div className='flex flex-col gap-2 rounded-xl border border-gray-200 bg-white p-2 shadow-sm lg:flex-row lg:items-center'>
-        <div className='flex min-w-0 flex-1 gap-2 overflow-x-auto'>
+        <div
+          ref={tabsRef}
+          className='relative flex min-w-0 flex-1 gap-2 overflow-x-auto pb-1'
+          // Mouse wheel scrolls the tab row sideways (a plain wheel only scrolls vertically).
+          onWheel={(event) => {
+            if (event.deltaY && !event.deltaX) event.currentTarget.scrollLeft += event.deltaY;
+          }}
+        >
           {[{ value: "", label: "All Modules (Whole System)", Icon: Layers }, ...moduleTabs.map((item) => ({ ...item, Icon: MODULE_ICONS[item.value] ?? FileText }))].map((tab) => (
             <button
               key={tab.value || "all"}
               type='button'
+              data-active={module === tab.value ? "true" : undefined}
               onClick={() => setModule(tab.value)}
               className={`flex h-11 shrink-0 cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-lg border px-4 text-sm font-semibold transition-all duration-200 ${
                 module === tab.value
