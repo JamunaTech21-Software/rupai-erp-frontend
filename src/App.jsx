@@ -15,6 +15,7 @@ function lazyPage(load) {
 const Dashboard = lazyPage(() => import("./pages/Dashboard"));
 const UserManagement = lazyPage(() => import("./pages/UserAdministration/UserManagement"));
 const EstateProfile = lazyPage(() => import("./pages/EstateManagement/EstateProfile"));
+const EstateProfileList = lazyPage(() => import("./pages/EstateManagement/EstateProfileList"));
 const DivisionAndSection = lazyPage(() => import("./pages/EstateManagement/DivisionAndSection"));
 const MapAndGISTracking = lazyPage(() => import("./pages/EstateManagement/MapAndGISTracking"));
 const LandAndLeaseManagement = lazyPage(() => import("./pages/EstateManagement/LandAndLeaseManagement"));
@@ -48,7 +49,8 @@ const AddNewBroker = lazyPage(() => import("./pages/MasterData/AddNewBroker"));
 const TeaType = lazyPage(() => import("./pages/MasterData/TeaType"));
 const BuyerSetup = lazyPage(() => import("./pages/MasterData/BuyerSetup"));
 
-setTimeout(() => loaders.forEach((load) => load().catch(() => {})), 500);
+// Only in the built site: while developing, Vite would load all pages one by one and slow the first screen down.
+if (import.meta.env.PROD) setTimeout(() => loaders.forEach((load) => load().catch(() => {})), 500);
 
 // Nothing is shown while a page's code loads (no spinner), so the screen does not flash.
 function Page({ children }) {
@@ -76,6 +78,13 @@ const router = createBrowserRouter([
         },
       },
       // Estate Management
+      {
+        path: "estate-profile-list",
+        element: <Page><EstateProfileList /></Page>,
+        handle: {
+          title: "Estate Profile List",
+        },
+      },
       {
         path: "estate-profile",
         element: <Page><EstateProfile /></Page>,

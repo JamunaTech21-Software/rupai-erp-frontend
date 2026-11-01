@@ -214,7 +214,7 @@ const Select = forwardRef(function Select({ className = "", children, disabled, 
         createPortal(
           <div
             ref={popupRef}
-            style={{ position: "fixed", zIndex: 300, left: box.left, width: box.width, top: box.top, bottom: box.bottom, maxHeight: box.maxHeight }}
+            style={{ position: "fixed", zIndex: 20000, left: box.left, width: box.width, top: box.top, bottom: box.bottom, maxHeight: box.maxHeight }}
             className='flex flex-col overflow-hidden rounded-lg border border-gray-200 bg-white text-sm shadow-lg'
           >
             <div className='flex items-center gap-2 border-b border-gray-100 px-3 py-2'>

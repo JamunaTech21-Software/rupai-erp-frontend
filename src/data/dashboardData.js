@@ -13,8 +13,13 @@ export const navSections = [
         expandable: true,
         children: [
           {
+            id: "estate-profile-list",
+            label: "Estate Profile List",
+            path: "/estate-profile-list",
+          },
+          {
             id: "estate-profile",
-            label: "Estate Profile",
+            label: "Add New Estate",
             path: "/estate-profile",
           },
           {

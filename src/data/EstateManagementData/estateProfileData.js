@@ -8,7 +8,9 @@ export const estateProfileData = {
     {
       id: 1,
       title: "Estate Profile",
-      path: "/estate-profile",
+      path: "/estate-profile-list",
+      // The add / edit form belongs to this tab too.
+      alsoActiveOn: "/estate-profile",
     },
     {
       id: 2,
