@@ -64,13 +64,13 @@ const EstateProfile = () => {
     watch,
     setError,
     formState: { errors, isSubmitting },
-  } = useForm();
+  } = useForm({ defaultValues: { status: "Active" } });
   // hooks
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const estateId = searchParams.get("id");
-  // After a save, return to the page the user came from (the dashboard when the page was opened directly).
-  const goBack = () => (window.history.state?.idx > 0 ? navigate(-1) : navigate("/"));
+  // After a save, go to the Estate Profile List.
+  const goBack = () => navigate("/estate-profile-list");
   const latitude = watch("latitude");
   const longitude = watch("longitude");
   const [images, setImages] = useState([]);
@@ -202,6 +202,32 @@ const EstateProfile = () => {
                 )}
               </div>
 
+              {/* Short Name */}
+              <div>
+                <label className='mb-2 block text-sm font-medium text-gray-700'>
+                  Short Name <span className='text-red-500'>*</span>
+                </label>
+                <input
+                  type='text'
+                  placeholder='e.g. JAMUNA'
+                  maxLength={30}
+                  {...register("shortName", {
+                    required: "Short Name is required",
+                    setValueAs: (value) => String(value ?? "").toUpperCase(),
+                    pattern: {
+                      value: /^[A-Za-z0-9 -]+$/,
+                      message: "Use letters, digits, spaces or hyphens, e.g. JAMUNA",
+                    },
+                  })}
+                  className='h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm uppercase text-gray-700 outline-none transition-all duration-200 placeholder:normal-case placeholder:text-gray-400 focus:border-green-600'
+                />
+                {errors.shortName && (
+                  <p className='mt-1 text-xs text-red-500'>
+                    {errors.shortName.message}
+                  </p>
+                )}
+              </div>
+
               {/* Established Year */}
               <div>
                 <label className='mb-2 block text-sm font-medium text-gray-700'>
@@ -297,16 +323,35 @@ const EstateProfile = () => {
                 )}
               </div>
 
+              {/* Status */}
+              <div>
+                <label className='mb-2 block text-sm font-medium text-gray-700'>
+                  Status <span className='text-red-500'>*</span>
+                </label>
+                <Select
+                  {...register("status", { required: "Status is required" })}
+                  className='h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-700 outline-none focus:border-green-600'
+                >
+                  <option value='Active'>Active</option>
+                  <option value='Inactive'>Inactive</option>
+                </Select>
+                {errors.status && (
+                  <p className='mt-1 text-xs text-red-500'>
+                    {errors.status.message}
+                  </p>
+                )}
+              </div>
+
               {/* Address */}
               <div>
                 <label className='mb-2 block text-sm font-medium text-gray-700'>
-                  Address
+                  Address <span className='text-red-500'>*</span>
                 </label>
 
                 <textarea
                   rows={1}
-                  placeholder='Enter estate address'
-                  {...register("address")}
+                  placeholder='Upazila, District'
+                  {...register("address", { required: "Address is required" })}
                   className='h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-700 outline-none transition-all duration-200 placeholder:text-gray-400 focus:border-green-600'
                 />
                 {errors.address && (

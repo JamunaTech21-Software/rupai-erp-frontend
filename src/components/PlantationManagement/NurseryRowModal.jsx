@@ -106,7 +106,8 @@ export default function NurseryRowModal({ kind, mode: startMode, nurseryId, row,
         {reading ? (
           <div className='p-5'>
             <dl className='grid grid-cols-1 gap-4 sm:grid-cols-2'>
-              {config.fields.map((field) => (
+              {/* A value the list does not carry (undefined) is left out instead of showing a dash. */}
+              {config.fields.filter((field) => row?.[field.name] !== undefined).map((field) => (
                 <div key={field.name}>
                   <dt className='text-xs text-gray-500'>{field.label}</dt>
                   <dd className='text-sm font-medium text-gray-800'>{row?.[field.name] === null || row?.[field.name] === undefined || row?.[field.name] === "" ? "-" : String(row[field.name])}</dd>

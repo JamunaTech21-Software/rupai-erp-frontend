@@ -6,10 +6,7 @@ import { mapAndGISTrackingData } from "../../data/EstateManagementData/MapAndGIS
 import { api } from "../../lib/api";
 import { useApi } from "../../lib/useApi";
 import CardSkeleton from "../../components/common/CardSkeleton";
-import TableSkeleton from "../../components/common/TableSkeleton";
-import EmptyRow from "../../components/common/EmptyRow";
 import ErrorState from "../../components/common/ErrorState";
-import ConfirmDialog from "../../components/common/ConfirmDialog";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
@@ -22,11 +19,6 @@ import {
   SquareDashed,
   CheckCircle2,
   XCircle,
-  Download,
-  Plus,
-  Eye,
-  Trash2,
-  X,
 } from "lucide-react";
 
 const summaryIconMap = {
@@ -36,10 +28,6 @@ const summaryIconMap = {
   SquareDashed,
   CheckCircle2,
   XCircle,
-};
-const actionIconMap = {
-  Download,
-  Plus,
 };
 
 delete L.Icon.Default.prototype._getIconUrl;
@@ -172,7 +160,7 @@ const MapAndGISTracking = () => {
     [applied, page],
   );
   const data = result.data ?? EMPTY;
-  const { mapInfo, meta } = data;
+  const { mapInfo } = data;
 
   const [visibleLayers, setVisibleLayers] = useState(() => {
     const initialLayers = {};
@@ -204,79 +192,6 @@ const MapAndGISTracking = () => {
 
   const [mapType, setMapType] = React.useState("street");
 
-  // Row buttons: View opens a popup, Edit opens the field's edit popup, Delete asks first.
-  const [viewing, setViewing] = useState(null);
-  const [deleting, setDeleting] = useState(null);
-  const [deleteBusy, setDeleteBusy] = useState(false);
-  const [exporting, setExporting] = useState(false);
-  useEffect(() => {
-    if (!viewing) return undefined;
-    const onKey = (event) => event.key === "Escape" && setViewing(null);
-    document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
-  }, [viewing]);
-  const confirmDelete = async () => {
-    setDeleteBusy(true);
-    try {
-      await api.del(`/fields/${deleting.id}`);
-      toast.success("Field / Block deleted successfully.");
-      setDeleting(null);
-      // Deleting the last row of a page goes back one page.
-      if (data.fieldList.length === 1 && page > 1) setPage(page - 1);
-      else result.reload();
-    } catch (error) {
-      toast.error(error.message);
-    } finally {
-      setDeleteBusy(false);
-    }
-  };
-  // Export: every field of the current filters as a CSV file.
-  const exportFields = async () => {
-    if (!applied) return;
-    setExporting(true);
-    try {
-      const rows = [];
-      for (let pageNo = 1; ; pageNo += 1) {
-        const part = await api.get("/map", { ...applied, page: pageNo, perPage: 100 });
-        rows.push(...part.fieldList);
-        if (pageNo >= (part.meta?.totalPages ?? 1)) break;
-      }
-      if (rows.length === 0) {
-        toast.error("There is nothing to export.");
-        return;
-      }
-      const cell = (value) => {
-        const text = String(value ?? "");
-        return /[",\n\r]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
-      };
-      const lines = [
-        mapAndGISTrackingData.tableHeaders.slice(1, -1),
-        ...rows.map((field) => [
-          field.fieldName,
-          field.code,
-          field.division,
-          field.section,
-          labelOfValue(FIELD_TYPE_VALUES, field.fieldType),
-          field.totalArea,
-          field.teaArea,
-          field.latitude,
-          field.longitude,
-          labelOfValue(STATUS_VALUES, field.status),
-        ]),
-      ];
-      const blob = new Blob(["\ufeff" + lines.map((line) => line.map(cell).join(",")).join("\r\n")], { type: "text/csv;charset=utf-8" });
-      const link = document.createElement("a");
-      link.href = URL.createObjectURL(blob);
-      link.download = `fields-gis-${new Date().toISOString().slice(0, 10)}.csv`;
-      link.click();
-      URL.revokeObjectURL(link.href);
-      toast.success(`${rows.length} ${rows.length === 1 ? "field" : "fields"} exported successfully!`);
-    } catch (error) {
-      toast.error(error.message);
-    } finally {
-      setExporting(false);
-    }
-  };
   return (
     <div>
       <EstateManagementTabs />
@@ -1017,14 +932,15 @@ const MapAndGISTracking = () => {
 
         {result.loading && !result.data && <CardSkeleton count={6} />}
         {result.error && <ErrorState message={result.error.message} onRetry={result.reload} />}
-        <div className='grid grid-cols-1 gap-1 sm:grid-cols-3'>
+        {/* Same green background as the summary on the other Estate Management pages */}
+        <div className='grid grid-cols-1 gap-3 rounded-xl bg-green-100 p-3 sm:grid-cols-3 sm:p-4'>
           {data.summaryCards.filter((card) => !/field\s*\/\s*block/i.test(card.title)).map((card) => {
             const Icon = summaryIconMap[card.icon];
 
             return (
               <div
                 key={card.id}
-                className='rounded-xl border border-gray-200 bg-white p-4 shadow-sm transition-all duration-200 hover:shadow-md'
+                className='rounded-lg border border-green-200 bg-white p-4 shadow-sm transition-all duration-200 hover:shadow-md'
               >
                 <div className='flex items-center gap-4'>
                   <div
@@ -1062,249 +978,7 @@ const MapAndGISTracking = () => {
           })}
         </div>
 
-        {/* ================= Table ================= */}
-
-        <div className='rounded-xl border border-gray-200 bg-white shadow-sm'>
-          <div className='flex flex-col gap-3 border-b border-gray-200 bg-white px-5 py-4 md:flex-row md:items-center md:justify-between'>
-            <h2 className='text-base font-semibold text-green-800'>
-              Field / Block List with GIS Information
-            </h2>
-
-            <div className='flex flex-wrap items-center gap-2'>
-              {mapAndGISTrackingData.actionButtons.filter((button) => button.color !== "primary").map((button) => {
-                const Icon = actionIconMap[button.icon];
-
-                return (
-                  <button
-                    key={button.id}
-                    type='button'
-                    disabled={exporting}
-                    onClick={exportFields}
-                    className={`inline-flex cursor-pointer h-9 items-center gap-2 rounded-md px-4 text-sm font-medium transition ${
-                      button.color === "primary"
-                        ? "bg-green-700 text-white hover:bg-green-800"
-                        : "border border-gray-300 bg-white text-gray-700 hover:bg-gray-100"
-                    }`}
-                  >
-                    <Icon size={16} />
-                    {exporting ? "Exporting..." : button.label}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          <div className='overflow-x-auto'>
-            <div className='overflow-hidden rounded-xl border border-gray-200 bg-white'>
-              <div className='overflow-x-auto'>
-                <table className='w-full border-collapse'>
-                  <thead>
-                    <tr className='bg-gray-50'>
-                      {mapAndGISTrackingData.tableHeaders.map(
-                        (header, index) => (
-                          <th
-                            key={index}
-                            className='border border-gray-200 px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-700 whitespace-nowrap'
-                          >
-                            {header}
-                          </th>
-                        ),
-                      )}
-                    </tr>
-                  </thead>
-
-                  <tbody>
-                    {result.loading && !result.data ? (
-                      <TableSkeleton rows={5} columns={mapAndGISTrackingData.tableHeaders.length} />
-                    ) : data.fieldList.length === 0 ? (
-                      <EmptyRow columns={mapAndGISTrackingData.tableHeaders.length} />
-                    ) : (
-                    data.fieldList.map((field, index) => (
-                      <tr
-                        key={field.id}
-                        className='transition hover:bg-green-50'
-                      >
-                        <td className='border border-gray-200 px-3 py-3 text-center'>
-                          {(page - 1) * PER_PAGE + index + 1}
-                        </td>
-
-                        <td className='border border-gray-200 px-3 py-3 font-medium whitespace-nowrap'>
-                          {field.fieldName}
-                        </td>
-
-                        <td className='border border-gray-200 px-3 py-3 whitespace-nowrap'>
-                          {field.code}
-                        </td>
-
-                        <td className='border border-gray-200 px-3 py-3 whitespace-nowrap'>
-                          {field.division}
-                        </td>
-
-                        <td className='border border-gray-200 px-3 py-3 whitespace-nowrap'>
-                          {field.section}
-                        </td>
-
-                        <td className='border border-gray-200 px-3 py-3 whitespace-nowrap'>
-                          {labelOfValue(FIELD_TYPE_VALUES, field.fieldType)}
-                        </td>
-
-                        <td className='border border-gray-200 px-3 py-3 text-center'>
-                          {field.totalArea}
-                        </td>
-
-                        <td className='border border-gray-200 px-3 py-3 text-center'>
-                          {field.teaArea}
-                        </td>
-
-                        <td className='border border-gray-200 px-3 py-3 text-center whitespace-nowrap'>
-                          {Number(field.latitude).toFixed(5)}
-                        </td>
-
-                        <td className='border border-gray-200 px-3 py-3 text-center whitespace-nowrap'>
-                          {Number(field.longitude).toFixed(5)}
-                        </td>
-
-                        <td className='border border-gray-200 px-3 py-3 text-center'>
-                          <span
-                            className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${
-                              field.status === "active"
-                                ? "bg-green-100 text-green-700"
-                                : "bg-gray-100 text-gray-600"
-                            }`}
-                          >
-                            {labelOfValue(STATUS_VALUES, field.status)}
-                          </span>
-                        </td>
-
-                        <td className='border border-gray-200 px-3 py-3'>
-                          <div className='flex items-center justify-center gap-2'>
-                            <button
-                              type='button'
-                              title='View'
-                              onClick={() => setViewing(field)}
-                              className='flex h-8 w-8 items-center justify-center rounded-lg bg-blue-50 text-blue-600 transition hover:bg-blue-100'
-                            >
-                              <Eye size={16} />
-                            </button>
-
-                            <button
-                              type='button'
-                              title='Delete'
-                              onClick={() => setDeleting(field)}
-                              className='flex cursor-pointer h-8 w-8 items-center justify-center rounded-lg bg-red-50 text-red-600 transition hover:bg-red-100'
-                            >
-                              <Trash2 size={16} />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-            <div className='mt-4 flex flex-col items-center justify-between gap-4 border-t border-gray-200 pt-4 md:flex-row p-2'>
-              <p className='text-sm text-gray-600'>
-                Showing{" "}
-                <span className='font-semibold'>
-                  {data.fieldList.length > 0 ? (page - 1) * PER_PAGE + 1 : 0}
-                </span>{" "}
-                to{" "}
-                <span className='font-semibold'>
-                  {(page - 1) * PER_PAGE + data.fieldList.length}
-                </span>{" "}
-                of{" "}
-                <span className='font-semibold'>{meta.total}</span>{" "}
-                entries
-              </p>
-
-              <div className='join max-w-full overflow-x-auto'>
-                <button
-                  type='button'
-                  disabled={page <= 1}
-                  onClick={() => setPage((p) => p - 1)}
-                  className='join-item btn btn-sm'
-                >
-                  «
-                </button>
-
-                {Array.from(
-                  {
-                    length: meta.totalPages,
-                  },
-                  (_, index) => (
-                    <button
-                      key={index}
-                      type='button'
-                      onClick={() => setPage(index + 1)}
-                      className={`join-item btn btn-sm ${
-                        page === index + 1 ? "btn-success" : ""
-                      }`}
-                    >
-                      {index + 1}
-                    </button>
-                  ),
-                )}
-
-                <button
-                  type='button'
-                  disabled={page >= meta.totalPages}
-                  onClick={() => setPage((p) => p + 1)}
-                  className='join-item btn btn-sm'
-                >
-                  »
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
       </div>
-      {viewing && (
-        <div className='fixed inset-0 z-[1000] flex items-center justify-center bg-black/40 p-3' onMouseDown={() => setViewing(null)}>
-          <div
-            role='dialog'
-            aria-modal='true'
-            aria-label='Field / Block details'
-            className='flex max-h-[90vh] w-full max-w-2xl flex-col rounded-xl bg-white shadow-xl'
-            onMouseDown={(event) => event.stopPropagation()}
-          >
-            <div className='flex items-center justify-between border-b border-gray-200 px-5 py-3'>
-              <h2 className='text-base font-semibold text-green-700'>Field / Block Details</h2>
-              <button type='button' onClick={() => setViewing(null)} aria-label='Close' className='rounded p-1 text-gray-500 hover:bg-gray-100'>
-                <X size={18} />
-              </button>
-            </div>
-            <dl className='grid grid-cols-1 gap-x-6 gap-y-3 overflow-y-auto p-5 sm:grid-cols-2'>
-              {[
-                ["Field / Block", viewing.fieldName],
-                ["Code", viewing.code],
-                ["Division", viewing.division],
-                ["Section", viewing.section],
-                ["Type", labelOfValue(FIELD_TYPE_VALUES, viewing.fieldType)],
-                ["Status", labelOfValue(STATUS_VALUES, viewing.status)],
-                ["Area (Acre)", viewing.totalArea],
-                ["Tea Area", viewing.teaArea],
-                ["Latitude", viewing.latitude == null ? "-" : Number(viewing.latitude).toFixed(5)],
-                ["Longitude", viewing.longitude == null ? "-" : Number(viewing.longitude).toFixed(5)],
-              ].map(([label, value]) => (
-                <div key={label}>
-                  <dt className='text-xs text-gray-500'>{label}</dt>
-                  <dd className='text-sm font-medium text-gray-800'>{value === null || value === undefined || value === "" ? "-" : value}</dd>
-                </div>
-              ))}
-            </dl>
-          </div>
-        </div>
-      )}
-      <ConfirmDialog
-        open={Boolean(deleting)}
-        title='Delete field / block?'
-        message={`${deleting?.fieldName ?? ""} will be removed from the list.`}
-        loading={deleteBusy}
-        onConfirm={confirmDelete}
-        onCancel={() => setDeleting(null)}
-      />
     </div>
   );
 };
