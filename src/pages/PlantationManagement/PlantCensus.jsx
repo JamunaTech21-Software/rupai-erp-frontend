@@ -25,7 +25,7 @@ import {
   documentTableHeaders,
   censusHistoryTableHeaders,
 } from "../../data/PlantationManagementData/plantCensusData";
-import { api } from "../../lib/api";
+import { api, notifySaved } from "../../lib/api";
 import { useApi } from "../../lib/useApi";
 import ConfirmDialog from "../../components/common/ConfirmDialog";
 import TableSkeleton from "../../components/common/TableSkeleton";
@@ -215,14 +215,11 @@ const PlantCensus = () => {
   });
   const onSubmit = async (values) => {
     try {
-      if (editId) {
-        const saved = await api.put(`/plant-censuses/${editId}`, bodyOf(values));
-        reset(toForm(saved));
-      } else {
-        await api.post("/plant-censuses", { ...bodyOf(values), photos: [], documents: [], rows: [] });
-        reset(EMPTY_FORM);
-      }
-      toast.success("Plant census saved successfully!");
+      const saved = editId
+        ? await api.put(`/plant-censuses/${editId}`, bodyOf(values))
+        : await api.post("/plant-censuses", { ...bodyOf(values), photos: [], documents: [], rows: [] });
+      if (!saved?.pending) reset(editId ? toForm(saved) : EMPTY_FORM);
+      notifySaved(saved, "Plant census saved successfully!");
       reloadPanels();
       goBack();
     } catch (error) {
@@ -273,8 +270,8 @@ const PlantCensus = () => {
         rowPopup.mode === "add"
           ? [...(shown.rows ?? []), { ...rowValues, rowNo: String(rowValues.rowNo).trim() }]
           : (shown.rows ?? []).map((row) => (row.id === rowPopup.id ? { ...row, ...rowValues } : row));
-      await api.put(`/plant-censuses/${shown.id}`, { ...toForm(shown), rows, photos: shown.photos ?? [], documents: shown.documents ?? [] });
-      toast.success(rowPopup.mode === "add" ? "Row added successfully!" : "Row updated successfully!");
+      const result = await api.put(`/plant-censuses/${shown.id}`, { ...toForm(shown), rows, photos: shown.photos ?? [], documents: shown.documents ?? [] });
+      notifySaved(result, rowPopup.mode === "add" ? "Row added successfully!" : "Row updated successfully!");
       setRowPopup(null);
       reloadPanels();
     } catch (error) {
@@ -299,8 +296,8 @@ const PlantCensus = () => {
     try {
       const ids = [];
       for (const file of files) ids.push((await api.upload(file)).id);
-      await api.put(`/plant-censuses/${shown.id}`, { ...toForm(shown), rows: shown.rows ?? [], photos: shown.photos ?? [], documents: shown.documents ?? [], [kind]: [...(shown[kind] ?? []), ...ids] });
-      toast.success(kind === "photos" ? "Photo uploaded successfully!" : "Document uploaded successfully!");
+      const result = await api.put(`/plant-censuses/${shown.id}`, { ...toForm(shown), rows: shown.rows ?? [], photos: shown.photos ?? [], documents: shown.documents ?? [], [kind]: [...(shown[kind] ?? []), ...ids] });
+      notifySaved(result, kind === "photos" ? "Photo uploaded successfully!" : "Document uploaded successfully!");
       reloadPanels();
     } catch (error) {
       toast.error(error.message);
@@ -313,13 +310,13 @@ const PlantCensus = () => {
   const confirmDeleteDocument = async () => {
     setDeleteBusy(true);
     try {
-      await api.put(`/plant-censuses/${shown.id}`, {
+      const result = await api.put(`/plant-censuses/${shown.id}`, {
         ...toForm(shown),
         rows: shown.rows ?? [],
         photos: shown.photos ?? [],
         documents: (shown.documents ?? []).filter((id) => id !== deletingDoc.id),
       });
-      toast.success("Document deleted successfully!");
+      notifySaved(result, "Document deleted successfully!");
       setDeletingDoc(null);
       reloadPanels();
     } catch (error) {

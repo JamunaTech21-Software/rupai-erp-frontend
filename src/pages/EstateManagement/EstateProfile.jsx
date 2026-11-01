@@ -10,6 +10,7 @@ import toast from "react-hot-toast";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
 import {
+  ArrowLeft,
   Map,
   Leaf,
   Trees,
@@ -117,6 +118,11 @@ const EstateProfile = () => {
     const body = { ...values, managers, estateImages: images.map((image) => image.id) };
     try {
       const saved = estateId ? await api.put(`/estates/${estateId}`, body) : await api.post("/estates", body);
+      // Sent for approval: nothing is saved yet, so go back to the list as after any save.
+      if (saved?.pending) {
+        goBack();
+        return;
+      }
       if (estateId) {
         toast.success("Estate updated");
         reset(toForm(saved));
@@ -138,6 +144,15 @@ const EstateProfile = () => {
     <form onSubmit={handleSubmit(estateProfileSubmit)} className='space-y-6'>
       {/* Top Tabs */}
       <EstateManagementTabs />
+
+      <button
+        type='button'
+        onClick={() => navigate("/estate-profile-list")}
+        className='inline-flex h-10 cursor-pointer items-center gap-2 rounded-lg border border-green-700 bg-white px-4 text-sm font-medium text-green-700 transition hover:bg-green-50'
+      >
+        <ArrowLeft size={16} />
+        Back to List
+      </button>
 
       {estateId && estate.loading && !estate.data && <CardSkeleton count={4} />}
       {estateId && estate.error && (

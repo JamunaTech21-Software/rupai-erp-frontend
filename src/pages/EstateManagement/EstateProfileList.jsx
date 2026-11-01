@@ -8,7 +8,9 @@ import EmptyRow from "../../components/common/EmptyRow";
 import ErrorState from "../../components/common/ErrorState";
 import ConfirmDialog from "../../components/common/ConfirmDialog";
 import Select from "../../components/common/Select";
-import { api } from "../../lib/api";
+import { api, notifySaved } from "../../lib/api";
+import PendingBadge from "../../components/common/PendingBadge";
+import { waitingTitle } from "../../lib/waitingTitle";
 import { useApi } from "../../lib/useApi";
 import { estateProfileData } from "../../data/EstateManagementData/estateProfileData";
 
@@ -96,8 +98,8 @@ const EstateProfileList = () => {
   const confirmDelete = async () => {
     setDeleteBusy(true);
     try {
-      await api.del(`/estates/${deleting.id}`);
-      toast.success("Estate deleted successfully!");
+      const result = await api.del(`/estates/${deleting.id}`);
+      notifySaved(result, "Estate deleted successfully!");
       setDeleting(null);
       // The last row of a page went: step back one page.
       if (rows.length === 1 && page > 1) setPage(page - 1);
@@ -239,20 +241,23 @@ const EstateProfileList = () => {
                       </span>
                     </td>
                     <td className='px-3 py-3'>
+                      <PendingBadge row={row} />
                       <div className='flex items-center justify-center gap-1'>
                         <button
                           type='button'
-                          title='Edit'
+                          disabled={Boolean(row.pendingRequest)}
+                          title={waitingTitle(row, "Edit")}
                           onClick={() => navigate(`/estate-profile?id=${row.id}`)}
-                          className='cursor-pointer rounded-md p-2 text-blue-600 transition hover:bg-blue-100'
+                          className='cursor-pointer rounded-md p-2 text-blue-600 transition hover:bg-blue-100 disabled:cursor-not-allowed disabled:opacity-40'
                         >
                           <Pencil size={16} />
                         </button>
                         <button
                           type='button'
-                          title='Delete'
+                          disabled={Boolean(row.pendingRequest)}
+                          title={waitingTitle(row, "Delete")}
                           onClick={() => setDeleting(row)}
-                          className='cursor-pointer rounded-md p-2 text-red-600 transition hover:bg-red-100'
+                          className='cursor-pointer rounded-md p-2 text-red-600 transition hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-40'
                         >
                           <Trash2 size={16} />
                         </button>

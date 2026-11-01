@@ -3,7 +3,9 @@ import { useForm } from "react-hook-form";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import toast from "react-hot-toast";
 import { nurseryManagementData } from "../../data/PlantationManagementData/nurseryManagementData";
-import { api } from "../../lib/api";
+import { api, notifySaved } from "../../lib/api";
+import PendingBadge from "../../components/common/PendingBadge";
+import { waitingTitle } from "../../lib/waitingTitle";
 import { useApi } from "../../lib/useApi";
 import TableSkeleton from "../../components/common/TableSkeleton";
 import EmptyRow from "../../components/common/EmptyRow";
@@ -142,8 +144,8 @@ const NurseryManagement = () => {
   const confirmDeleteRow = async () => {
     setDeleteBusy(true);
     try {
-      await api.del(`/nurseries/${shownId}/${deletingRow.kind === "bed" ? "beds" : "stock"}/${deletingRow.row.id}`);
-      toast.success(deletingRow.kind === "bed" ? "Bed deleted successfully!" : "Stock deleted successfully!");
+      const result = await api.del(`/nurseries/${shownId}/${deletingRow.kind === "bed" ? "beds" : "stock"}/${deletingRow.row.id}`);
+      notifySaved(result, deletingRow.kind === "bed" ? "Bed deleted successfully!" : "Stock deleted successfully!");
       setDeletingRow(null);
       setRowPopup(null);
       reloadRows();
@@ -156,14 +158,11 @@ const NurseryManagement = () => {
 
   const onSubmit = async (values) => {
     try {
-      if (editId) {
-        const saved = await api.put(`/nurseries/${editId}`, values);
-        reset(Object.fromEntries(FIELDS.map((name) => [name, saved[name] ?? ""])));
-      } else {
-        await api.post("/nurseries", values);
-        reset(Object.fromEntries(FIELDS.map((name) => [name, ""])));
+      const saved = editId ? await api.put(`/nurseries/${editId}`, values) : await api.post("/nurseries", values);
+      if (!saved?.pending) {
+        reset(Object.fromEntries(FIELDS.map((name) => [name, (editId ? saved[name] : "") ?? ""])));
       }
-      toast.success("Nursery saved successfully!");
+      notifySaved(saved, "Nursery saved successfully!");
       reloadPanels();
       goBack();
     } catch (error) {
@@ -732,21 +731,24 @@ const NurseryManagement = () => {
                       </td>
 
                       <td className='border border-gray-200 px-4 py-3'>
+                        <PendingBadge row={bed} />
                         <div className='flex items-center justify-center gap-2'>
                           <button
                             type='button'
+                            disabled={Boolean(bed.pendingRequest)}
+                            title={waitingTitle(bed, "Edit")}
                             onClick={() => openRowPopup("bed", "edit", bed)}
-                            className='rounded-md cursor-pointer p-2 text-blue-600 transition hover:bg-blue-100'
-                            title='Edit'
+                            className='rounded-md cursor-pointer p-2 text-blue-600 transition hover:bg-blue-100 disabled:cursor-not-allowed disabled:opacity-40'
                           >
                             <SquarePen size={17} />
                           </button>
 
                           <button
                             type='button'
+                            disabled={Boolean(bed.pendingRequest)}
+                            title={waitingTitle(bed, "Delete")}
                             onClick={() => setDeletingRow({ kind: "bed", row: bed })}
-                            className='rounded-md cursor-pointer p-2 text-red-600 transition hover:bg-red-100'
-                            title='Delete'
+                            className='rounded-md cursor-pointer p-2 text-red-600 transition hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-40'
                           >
                             <Trash2 size={17} />
                           </button>

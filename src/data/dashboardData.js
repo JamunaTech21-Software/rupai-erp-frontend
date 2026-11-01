@@ -1,7 +1,10 @@
 export const navSections = [
   {
     label: null,
-    items: [{ id: "dashboard", label: "Dashboard", icon: "Home", path: "/" }],
+    items: [
+      { id: "dashboard", label: "Dashboard", icon: "Home", path: "/" },
+      { id: "approval-dashboard", label: "Approval Dashboard", icon: "BadgeCheck", path: "/approval-dashboard" },
+    ],
   },
   {
     items: [

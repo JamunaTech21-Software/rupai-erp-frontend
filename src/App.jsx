@@ -16,6 +16,7 @@ const Dashboard = lazyPage(() => import("./pages/Dashboard"));
 const UserManagement = lazyPage(() => import("./pages/UserAdministration/UserManagement"));
 const EstateProfile = lazyPage(() => import("./pages/EstateManagement/EstateProfile"));
 const EstateProfileList = lazyPage(() => import("./pages/EstateManagement/EstateProfileList"));
+const ApprovalDashboard = lazyPage(() => import("./pages/Approval/ApprovalDashboard"));
 const DivisionAndSection = lazyPage(() => import("./pages/EstateManagement/DivisionAndSection"));
 const MapAndGISTracking = lazyPage(() => import("./pages/EstateManagement/MapAndGISTracking"));
 const LandAndLeaseManagement = lazyPage(() => import("./pages/EstateManagement/LandAndLeaseManagement"));
@@ -75,6 +76,13 @@ const router = createBrowserRouter([
         element: <Page><Dashboard /></Page>,
         handle: {
           title: "Dashboard",
+        },
+      },
+      {
+        path: "approval-dashboard",
+        element: <Page><ApprovalDashboard /></Page>,
+        handle: {
+          title: "Approval Dashboard (All Modules)",
         },
       },
       // Estate Management

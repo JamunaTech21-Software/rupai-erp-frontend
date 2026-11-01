@@ -8,7 +8,9 @@ import markerIcon from "leaflet/dist/images/marker-icon.png";
 import markerShadow from "leaflet/dist/images/marker-shadow.png";
 
 import { fieldAndBlockManagementData } from "../../data/EstateManagementData/FieldAndBlockManagementData";
-import { api } from "../../lib/api";
+import { api, notifySaved } from "../../lib/api";
+import PendingBadge from "../../components/common/PendingBadge";
+import { waitingTitle } from "../../lib/waitingTitle";
 import { useApi } from "../../lib/useApi";
 import TableSkeleton from "../../components/common/TableSkeleton";
 import EmptyRow from "../../components/common/EmptyRow";
@@ -153,8 +155,8 @@ const FieldOrBlockManagement = () => {
   const confirmDelete = async () => {
     setDeleteBusy(true);
     try {
-      await api.del(`/fields/${deleting.id}`);
-      toast.success("Field / Block deleted successfully.");
+      const result = await api.del(`/fields/${deleting.id}`);
+      notifySaved(result, "Field / Block deleted successfully.");
       setDeleting(null);
       reloadAll();
     } catch (error) {
@@ -340,27 +342,30 @@ const FieldOrBlockManagement = () => {
                       </td>
 
                       <td className='border border-gray-200 px-3 py-2'>
+                        <PendingBadge row={row} />
                         <div className='flex items-center justify-center gap-2'>
                           <button
                             type='button'
+                            disabled={Boolean(row.pendingRequest)}
+                            title={waitingTitle(row, "Edit")}
                             onClick={(e) => {
                               e.stopPropagation();
                               openEdit(row);
                             }}
-                            className='text-blue-600 transition hover:text-blue-800'
-                            title='Edit'
+                            className='text-blue-600 transition hover:text-blue-800 disabled:cursor-not-allowed disabled:opacity-40'
                           >
                             <Pencil size={16} />
                           </button>
 
                           <button
                             type='button'
+                            disabled={Boolean(row.pendingRequest)}
+                            title={waitingTitle(row, "Delete")}
                             onClick={(e) => {
                               e.stopPropagation();
                               setDeleting(row);
                             }}
-                            className='text-red-500 transition hover:text-red-700'
-                            title='Delete'
+                            className='text-red-500 transition hover:text-red-700 disabled:cursor-not-allowed disabled:opacity-40'
                           >
                             <Trash2 size={16} />
                           </button>

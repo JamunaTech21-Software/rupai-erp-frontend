@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 import toast from "react-hot-toast";
 import { RotateCcw, Save, X } from "lucide-react";
 import { fieldAndBlockManagementData } from "../../data/EstateManagementData/FieldAndBlockManagementData";
-import { api } from "../../lib/api";
+import { api, notifySaved } from "../../lib/api";
 import { useApi } from "../../lib/useApi";
 import Select from "../common/Select";
 
@@ -72,9 +72,8 @@ const FieldFormModal = ({ editing, onClose, onSaved }) => {
 
   const FieldOrBlockManagementonSubmit = async (values) => {
     try {
-      if (editing) await api.put(`/fields/${editing.id}`, values);
-      else await api.post("/fields", values);
-      toast.success("Field / Block saved successfully.");
+      const result = editing ? await api.put(`/fields/${editing.id}`, values) : await api.post("/fields", values);
+      notifySaved(result, "Field / Block saved successfully.");
       onSaved();
     } catch (error) {
       for (const [key, message] of Object.entries(error.fields ?? {})) setError(key, { message });

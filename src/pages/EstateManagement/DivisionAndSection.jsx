@@ -14,7 +14,9 @@ import {
 import { useForm } from "react-hook-form";
 import { divisionSectionData } from "../../data/EstateManagementData/divisionAndSectionData";
 import toast from "react-hot-toast";
-import { api } from "../../lib/api";
+import { api, notifySaved } from "../../lib/api";
+import PendingBadge from "../../components/common/PendingBadge";
+import { waitingTitle } from "../../lib/waitingTitle";
 import { useApi } from "../../lib/useApi";
 import TableSkeleton from "../../components/common/TableSkeleton";
 import EmptyRow from "../../components/common/EmptyRow";
@@ -216,12 +218,12 @@ const DivisionAndSection = () => {
   const onSubmitDivision = async (values) => {
     try {
       if (editingDivision) {
-        await api.put(`/divisions/${editingDivision.id}`, values);
-        toast.success("Division updated successfully!");
+        const result = await api.put(`/divisions/${editingDivision.id}`, values);
+        notifySaved(result, "Division updated successfully!");
         closeDivisionModal();
       } else {
-        await api.post("/divisions", values);
-        toast.success("Division saved successfully!");
+        const result = await api.post("/divisions", values);
+        notifySaved(result, "Division saved successfully!");
         closeDivisionModal();
       }
       reloadAll();
@@ -234,12 +236,12 @@ const DivisionAndSection = () => {
   const onSubmitSection = async (values) => {
     try {
       if (editingSection) {
-        await api.put(`/sections/${editingSection.id}`, values);
-        toast.success("Section updated successfully!");
+        const result = await api.put(`/sections/${editingSection.id}`, values);
+        notifySaved(result, "Section updated successfully!");
         closeSectionModal();
       } else {
-        await api.post("/sections", values);
-        toast.success("Section saved successfully!");
+        const result = await api.post("/sections", values);
+        notifySaved(result, "Section saved successfully!");
         closeSectionModal();
       }
       reloadAll();
@@ -253,8 +255,8 @@ const DivisionAndSection = () => {
   const confirmDelete = async () => {
     setDeleteBusy(true);
     try {
-      await api.del(`/${deleting.type}s/${deleting.row.id}`);
-      toast.success(deleting.type === "division" ? "Division deleted successfully!" : "Section deleted successfully!");
+      const result = await api.del(`/${deleting.type}s/${deleting.row.id}`);
+      notifySaved(result, deleting.type === "division" ? "Division deleted successfully!" : "Section deleted successfully!");
       setDeleting(null);
       reloadAll();
     } catch (error) {
@@ -435,19 +437,24 @@ const DivisionAndSection = () => {
 
                       {/* Action */}
                       <td className='border border-gray-200 px-4 py-3'>
+                        <PendingBadge row={division} />
                         <div className='flex items-center justify-center gap-3'>
                           <button
                             type='button'
+                            disabled={Boolean(division.pendingRequest)}
+                            title={waitingTitle(division, "Edit")}
                             onClick={() => openEditDivision(division)}
-                            className='text-blue-600 transition-colors hover:text-blue-800 cursor-pointer'
+                            className='text-blue-600 transition-colors hover:text-blue-800 cursor-pointer disabled:cursor-not-allowed disabled:opacity-40'
                           >
                             <Pencil size={18} />
                           </button>
 
                           <button
                             type='button'
+                            disabled={Boolean(division.pendingRequest)}
+                            title={waitingTitle(division, "Delete")}
                             onClick={() => setDeleting({ type: "division", row: division })}
-                            className='text-red-600 transition-colors hover:text-red-800 cursor-pointer'
+                            className='text-red-600 transition-colors hover:text-red-800 cursor-pointer disabled:cursor-not-allowed disabled:opacity-40'
                           >
                             <Trash2 size={18} />
                           </button>
@@ -638,19 +645,24 @@ const DivisionAndSection = () => {
 
                         {/* Action */}
                         <td className='border border-gray-200 px-3 py-3'>
+                          <PendingBadge row={section} />
                           <div className='flex items-center justify-center gap-3'>
                             <button
                               type='button'
+                              disabled={Boolean(section.pendingRequest)}
+                              title={waitingTitle(section, "Edit")}
                               onClick={() => openEditSection(section)}
-                              className='cursor-pointer text-blue-600 hover:text-blue-800'
+                              className='cursor-pointer text-blue-600 hover:text-blue-800 disabled:cursor-not-allowed disabled:opacity-40'
                             >
                               <Pencil size={18} />
                             </button>
 
                             <button
                               type='button'
+                              disabled={Boolean(section.pendingRequest)}
+                              title={waitingTitle(section, "Delete")}
                               onClick={() => setDeleting({ type: "section", row: section })}
-                              className='cursor-pointer text-red-600 hover:text-red-800'
+                              className='cursor-pointer text-red-600 hover:text-red-800 disabled:cursor-not-allowed disabled:opacity-40'
                             >
                               <Trash2 size={18} />
                             </button>

@@ -4,7 +4,9 @@ import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 
 import { fieldPlantingData } from "../../data/PlantationManagementData/fieldPlantingData";
-import { api } from "../../lib/api";
+import { api, notifySaved } from "../../lib/api";
+import PendingBadge from "../../components/common/PendingBadge";
+import { waitingTitle } from "../../lib/waitingTitle";
 import { useApi } from "../../lib/useApi";
 import CardSkeleton from "../../components/common/CardSkeleton";
 import TableSkeleton from "../../components/common/TableSkeleton";
@@ -235,10 +237,10 @@ const FieldPlanting = () => {
         photos: await uploadAll(values.photos, editing?.photos ?? []),
       };
       const saved = editingId ? await api.put(`/field-plantings/${editingId}`, body) : await api.post("/field-plantings", body);
-      toast.success("Field planting saved successfully!");
+      notifySaved(saved, "Field planting saved successfully!");
       const wasEditing = Boolean(editingId);
       reset(EMPTY_FORM);
-      if (!wasEditing) setSelectedId(saved.id);
+      if (!wasEditing && !saved?.pending) setSelectedId(saved.id);
       reloadAll();
       if (print) window.print();
       // The edit popup closes after saving; the add form goes back to the previous page.
@@ -301,8 +303,8 @@ const FieldPlanting = () => {
   const confirmDelete = async () => {
     setDeleteBusy(true);
     try {
-      await api.del(`/field-plantings/${deleting.id}`);
-      toast.success("Field planting deleted successfully!");
+      const result = await api.del(`/field-plantings/${deleting.id}`);
+      notifySaved(result, "Field planting deleted successfully!");
       if (editingId === deleting.id) cancelEdit();
       setDeleting(null);
       reloadAll();
@@ -2003,6 +2005,7 @@ const FieldPlanting = () => {
 
                     {/* Action */}
                     <td className='border-b border-gray-200 px-4 py-3'>
+                      <PendingBadge row={item} />
                       <div className='flex items-center justify-center gap-2'>
                         {/* View */}
                         <button
@@ -2017,18 +2020,20 @@ const FieldPlanting = () => {
                         {/* Edit */}
                         <button
                           type='button'
+                          disabled={Boolean(item.pendingRequest)}
+                          title={waitingTitle(item, "Edit")}
                           onClick={() => startEdit(item.id)}
-                          className='rounded p-1 text-blue-500 transition hover:bg-blue-50 hover:text-blue-600'
-                          title='Edit'
+                          className='rounded p-1 text-blue-500 transition hover:bg-blue-50 hover:text-blue-600 disabled:cursor-not-allowed disabled:opacity-40'
                         >
                           <Pencil size={16} />
                         </button>
                         {/* Delete */}
                         <button
                           type='button'
+                          disabled={Boolean(item.pendingRequest)}
+                          title={waitingTitle(item, "Delete")}
                           onClick={() => setDeleting(item)}
-                          className='rounded p-1 text-red-500 transition hover:bg-red-50 hover:text-red-600'
-                          title='Delete'
+                          className='rounded p-1 text-red-500 transition hover:bg-red-50 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-40'
                         >
                           <Trash2 size={16} />
                         </button>
