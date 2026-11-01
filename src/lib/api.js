@@ -1,6 +1,8 @@
 // One place for every backend call. Pages use `api.get/post/put/del/upload` only.
 // The API address comes from VITE_API_URL (set in .env locally, in the Vercel project settings when deployed).
 // Only `npm run dev` falls back to the local Docker backend; a production build without it fails loudly.
+import toast from "react-hot-toast";
+
 const RAW_URL = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? "http://localhost:4100/api/v1" : "");
 // VITE_API_URL may be given with or without the /api/v1 part and with or without a trailing slash.
 const BASE_URL = RAW_URL ? `${RAW_URL.replace(/\/+$/, "").replace(/\/api\/v1$/, "")}/api/v1` : "";
@@ -93,7 +95,7 @@ async function parse(response) {
   }
 }
 
-async function send(method, path, { params, body, form, auth = true } = {}, retried = false) {
+async function send(method, path, { params, body, form, auth = true, quiet = false } = {}, retried = false) {
   const headers = {};
   if (auth && tokens.access) headers.Authorization = `Bearer ${tokens.access}`;
   if (body !== undefined) headers["Content-Type"] = "application/json";
@@ -109,11 +111,21 @@ async function send(method, path, { params, body, form, auth = true } = {}, retr
   }
 
   if (response.status === 401 && auth && !retried && path !== "/auth/login") {
-    if (await refreshTokens()) return send(method, path, { params, body, form, auth }, true);
+    if (await refreshTokens()) return send(method, path, { params, body, form, auth, quiet }, true);
     goToLogin();
   }
 
   const data = await parse(response);
+  // 202: the module's approval is On, so the change waits on the Approval Dashboard and nothing is saved yet.
+  // The toast is shown here, once; pages only check `result.pending` to skip their "saved" steps.
+  if (response.status === 202) {
+    if (quiet) return { pending: true, ...(data ?? {}) };
+    const number = data?.approval?.requestNo;
+    toast.success(
+      data?.rows ? `${data.rows} workers sent for approval${number ? ` (${number})` : ""}` : `Sent for approval${number ? ` (${number})` : ""}`,
+    );
+    return { pending: true, ...(data ?? {}) };
+  }
   if (!response.ok) {
     const error = data?.error ?? {};
     throw new ApiError(
@@ -127,9 +139,15 @@ async function send(method, path, { params, body, form, auth = true } = {}, retr
   return data;
 }
 
+// The page's own "saved" toast, left out when the change was only sent for approval (the 202 toast was already shown).
+export const notifySaved = (result, message) => {
+  if (!result?.pending) toast.success(message);
+};
+
 export const api = {
   get: (path, params) => send("GET", path, { params }),
-  post: (path, body) => send("POST", path, { body: body ?? {} }),
+  // `options.quiet` skips the "Sent for approval" toast (bulk loops show one summary instead).
+  post: (path, body, options) => send("POST", path, { body: body ?? {}, ...options }),
   put: (path, body) => send("PUT", path, { body: body ?? {} }),
   del: (path) => send("DELETE", path),
   // Sends one picked file (multipart field "file"); resolves to { id, url, name, size, type }.

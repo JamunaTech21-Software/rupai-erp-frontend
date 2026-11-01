@@ -4,7 +4,9 @@ import toast from "react-hot-toast";
 import L from "leaflet";
 import EstateManagementTabs from "../../components/EstateManagement/EstateManagementTabs";
 import { landLeaseManagementData } from "../../data/EstateManagementData/landAndLeaseManagementData";
-import { api } from "../../lib/api";
+import { api, notifySaved } from "../../lib/api";
+import PendingBadge from "../../components/common/PendingBadge";
+import { waitingTitle } from "../../lib/waitingTitle";
 import { useApi } from "../../lib/useApi";
 import TableSkeleton from "../../components/common/TableSkeleton";
 import EmptyRow from "../../components/common/EmptyRow";
@@ -255,8 +257,8 @@ const LandAndLeaseManagement = () => {
       const saved = editingLand
         ? await api.put(`/land-records/${editingLand.id}`, body)
         : await api.post("/land-records", body);
-      toast.success("Land / Lease saved successfully.");
-      setSelectedLandId(saved.id);
+      notifySaved(saved, "Land / Lease saved successfully.");
+      if (!saved?.pending) setSelectedLandId(saved.id);
       closeLandModal();
       reloadLands();
     } catch (error) {
@@ -308,12 +310,10 @@ const LandAndLeaseManagement = () => {
   };
   const paymentOnSubmit = async (values) => {
     try {
-      if (editingPayment) {
-        await api.put(`/land-payments/${editingPayment.id}`, { ...values, landLeaseId: editingPayment.landLeaseId });
-      } else {
-        await api.post("/land-payments", { ...values, landLeaseId: activeId });
-      }
-      toast.success("Payment saved successfully");
+      const result = editingPayment
+        ? await api.put(`/land-payments/${editingPayment.id}`, { ...values, landLeaseId: editingPayment.landLeaseId })
+        : await api.post("/land-payments", { ...values, landLeaseId: activeId });
+      notifySaved(result, "Payment saved successfully");
       closePaymentModal();
       payments.reload();
     } catch (error) {
@@ -342,7 +342,7 @@ const LandAndLeaseManagement = () => {
   const documentOnSubmit = async (values) => {
     try {
       const uploaded = await api.upload(values.file[0]);
-      await api.post("/land-documents", {
+      const result = await api.post("/land-documents", {
         landLeaseId: activeId,
         documentName: values.documentName,
         documentType: values.documentType,
@@ -352,7 +352,7 @@ const LandAndLeaseManagement = () => {
         file: uploaded.id,
         remarks: values.remarks,
       });
-      toast.success("Document saved successfully");
+      notifySaved(result, "Document saved successfully");
       closeDocumentModal();
       documents.reload();
     } catch (error) {
@@ -369,8 +369,8 @@ const LandAndLeaseManagement = () => {
     const { type, row } = deleting;
     setDeleteBusy(true);
     try {
-      await api.del(`/${{ land: "land-records", payment: "land-payments", document: "land-documents" }[type]}/${row.id}`);
-      toast.success("Deleted successfully");
+      const result = await api.del(`/${{ land: "land-records", payment: "land-payments", document: "land-documents" }[type]}/${row.id}`);
+      notifySaved(result, "Deleted successfully");
       setDeleting(null);
       if (type === "land") reloadLands();
       else if (type === "payment") payments.reload();
@@ -654,6 +654,7 @@ const LandAndLeaseManagement = () => {
                       </td>
 
                       <td className='border border-gray-200 px-3 py-2'>
+                        <PendingBadge row={row} />
                         <div
                           className='flex items-center justify-center gap-2'
                           onClick={(e) => e.stopPropagation()}
@@ -673,9 +674,10 @@ const LandAndLeaseManagement = () => {
 
                           <button
                             type='button'
+                            disabled={Boolean(row.pendingRequest)}
+                            title={waitingTitle(row, "Edit")}
                             onClick={() => openLandModal(row)}
-                            className='text-amber-600 transition hover:text-amber-800'
-                            title='Edit'
+                            className='text-amber-600 transition hover:text-amber-800 disabled:cursor-not-allowed disabled:opacity-40'
                           >
                             <Pencil size={16} />
                           </button>
@@ -684,9 +686,10 @@ const LandAndLeaseManagement = () => {
 
                           <button
                             type='button'
+                            disabled={Boolean(row.pendingRequest)}
+                            title={waitingTitle(row, "Delete")}
                             onClick={() => setDeleting({ type: "land", row })}
-                            className='text-red-500 transition hover:text-red-700'
-                            title='Delete'
+                            className='text-red-500 transition hover:text-red-700 disabled:cursor-not-allowed disabled:opacity-40'
                           >
                             <Trash2 size={16} />
                           </button>
@@ -1080,21 +1083,24 @@ const LandAndLeaseManagement = () => {
                       </td>
 
                       <td className='border border-gray-200 px-2 py-2'>
+                        <PendingBadge row={payment} />
                         <div className='flex items-center justify-center gap-2'>
                           <button
                             type='button'
+                            disabled={Boolean(payment.pendingRequest)}
+                            title={waitingTitle(payment, "Edit")}
                             onClick={() => openPaymentModal(payment)}
-                            className='text-blue-600 hover:text-blue-800'
-                            title='Edit'
+                            className='text-blue-600 hover:text-blue-800 disabled:cursor-not-allowed disabled:opacity-40'
                           >
                             <Pencil size={14} />
                           </button>
 
                           <button
                             type='button'
+                            disabled={Boolean(payment.pendingRequest)}
+                            title={waitingTitle(payment, "Delete")}
                             onClick={() => setDeleting({ type: "payment", row: payment })}
-                            className='text-red-500 hover:text-red-700'
-                            title='Delete'
+                            className='text-red-500 hover:text-red-700 disabled:cursor-not-allowed disabled:opacity-40'
                           >
                             <Trash2 size={14} />
                           </button>
@@ -1189,6 +1195,7 @@ const LandAndLeaseManagement = () => {
                       </td>
 
                       <td className='border border-gray-200 px-2 py-2'>
+                        <PendingBadge row={document} />
                         <div className='flex items-center justify-center gap-2'>
                           <button
                             type='button'
@@ -1201,9 +1208,10 @@ const LandAndLeaseManagement = () => {
 
                           <button
                             type='button'
+                            disabled={Boolean(document.pendingRequest)}
+                            title={waitingTitle(document, "Delete")}
                             onClick={() => setDeleting({ type: "document", row: document })}
-                            className='text-red-500 hover:text-red-700'
-                            title='Delete'
+                            className='text-red-500 hover:text-red-700 disabled:cursor-not-allowed disabled:opacity-40'
                           >
                             <Trash2 size={14} />
                           </button>

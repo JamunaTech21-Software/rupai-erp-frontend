@@ -4,7 +4,7 @@ import toast from "react-hot-toast";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import HrWorkforceTabs from "../../components/HrWorkforceTabs/HrWorkforceTabs";
 import { addNewWorkerData } from "../../data/HrWorkforceData/addNewWorkerData";
-import { api } from "../../lib/api";
+import { api, notifySaved } from "../../lib/api";
 import { useApi } from "../../lib/useApi";
 import ErrorState from "../../components/common/ErrorState";
 
@@ -113,7 +113,7 @@ const AddNewWorker = () => {
     setImportProblems([]);
     try {
       const result = await api.postFile("/workers/import", file);
-      toast.success(`${result?.imported ?? ""} workers saved`.trim());
+      notifySaved(result, `${result?.imported ?? ""} workers saved`.trim());
     } catch (error) {
       const lines = Object.entries(error.fields ?? {}).map(([key, message]) => {
         const match = key.match(/^rows\.(\d+)\.(.+)$/);
@@ -139,9 +139,8 @@ const AddNewWorker = () => {
       }
       body.landDetails = landRows.map(({ plotBlockNo, mouza, area, distributedDate }) => ({ plotBlockNo, mouza, area, distributedDate }));
       body.dependents = dependentRows.map(({ name, relation, dateOfBirth, occupation }) => ({ name, relation, dateOfBirth, occupation }));
-      if (editId) await api.put(`/workers/${editId}`, body);
-      else await api.post("/workers", body);
-      toast.success(editId ? "Worker updated successfully!" : "Worker saved successfully!");
+      const result = editId ? await api.put(`/workers/${editId}`, body) : await api.post("/workers", body);
+      notifySaved(result, editId ? "Worker updated successfully!" : "Worker saved successfully!");
       reset(EMPTY_FORM);
       goBack();
     } catch (error) {

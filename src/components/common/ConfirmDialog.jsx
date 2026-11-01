@@ -6,6 +6,8 @@ export default function ConfirmDialog({
   title = "Delete record?",
   message = "This cannot be undone from the list.",
   confirmLabel = "Delete",
+  confirmClass = "bg-red-600 hover:bg-red-700",
+  zClass = "z-[100]",
   loading = false,
   onConfirm,
   onCancel,
@@ -19,7 +21,7 @@ export default function ConfirmDialog({
 
   if (!open) return null;
   return (
-    <div className='fixed inset-0 z-[100] flex items-center justify-center bg-black/40 p-4' onMouseDown={() => !loading && onCancel()}>
+    <div className={`fixed inset-0 ${zClass} flex items-center justify-center bg-black/40 p-4`} onMouseDown={() => !loading && onCancel()}>
       <div
         role='alertdialog'
         aria-modal='true'
@@ -44,7 +46,7 @@ export default function ConfirmDialog({
             type='button'
             onClick={onConfirm}
             disabled={loading}
-            className='cursor-pointer rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700 disabled:opacity-60'
+            className={`cursor-pointer rounded-lg px-4 py-2 text-sm font-semibold text-white disabled:opacity-60 ${confirmClass}`}
           >
             {loading ? "Please wait..." : confirmLabel}
           </button>

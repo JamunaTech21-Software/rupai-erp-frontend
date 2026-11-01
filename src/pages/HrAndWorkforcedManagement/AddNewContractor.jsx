@@ -4,7 +4,7 @@ import { useForm } from "react-hook-form";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { contractorManagementData } from "../../data/HrWorkforceData/addNewContractorData";
 import HrWorkforceTabs from "../../components/HrWorkforceTabs/HrWorkforceTabs";
-import { api } from "../../lib/api";
+import { api, notifySaved } from "../../lib/api";
 import { useApi } from "../../lib/useApi";
 import ErrorState from "../../components/common/ErrorState";
 
@@ -73,9 +73,8 @@ const AddNewContractor = () => {
         const picked = values[name]?.[0];
         body[name] = picked ? (await api.upload(picked)).id : (saved?.[name] ?? null);
       }
-      if (editId) await api.put(`/contractors/${editId}`, body);
-      else await api.post("/contractors", body);
-      toast.success(editId ? "Contractor updated successfully!" : "Contractor information saved successfully!");
+      const result = editId ? await api.put(`/contractors/${editId}`, body) : await api.post("/contractors", body);
+      notifySaved(result, editId ? "Contractor updated successfully!" : "Contractor information saved successfully!");
       reset(EMPTY_FORM);
       goBack();
     } catch (error) {

@@ -2,7 +2,9 @@ import React, { useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import { useForm } from "react-hook-form";
 import { bushRegisterData } from "../../data/PlantationManagementData/bushRegisterData";
-import { api } from "../../lib/api";
+import { api, notifySaved } from "../../lib/api";
+import PendingBadge from "../../components/common/PendingBadge";
+import { waitingTitle } from "../../lib/waitingTitle";
 import { useApi } from "../../lib/useApi";
 import TableSkeleton from "../../components/common/TableSkeleton";
 import EmptyRow from "../../components/common/EmptyRow";
@@ -243,6 +245,8 @@ const BushRegister = () => {
       }
       const problems = [];
       let added = 0;
+      let sent = 0;
+      let sentNumber = "";
       for (const [index, cells] of lines.entries()) {
         const body = {};
         fields.forEach((name, column) => {
@@ -253,14 +257,18 @@ const BushRegister = () => {
           else if (!Number.isNaN(Number(body[name]))) body[name] = Number(body[name]);
         }
         try {
-          await api.post(`/bush-registers/${current.id}/rows`, body);
-          added += 1;
+          const result = await api.post(`/bush-registers/${current.id}/rows`, body, { quiet: true });
+          if (result?.pending) {
+            sent += 1;
+            sentNumber = result.approval?.requestNo ?? sentNumber;
+          } else added += 1;
         } catch (error) {
           const detail = Object.entries(error.fields ?? {}).map(([key, message]) => `${key}: ${message}`).join("; ");
           problems.push(`Row ${index + 2}${body.rowNo ? ` (${body.rowNo})` : ""} – ${detail || error.message}`);
         }
       }
       setImportProblems(problems);
+      if (sent) toast.success(`${sent} ${sent === 1 ? "row" : "rows"} sent for approval${sentNumber ? ` (last: ${sentNumber})` : ""}`);
       if (added) {
         toast.success(`${added} ${added === 1 ? "row" : "rows"} imported successfully!`);
         setPage(1);
@@ -296,12 +304,12 @@ const BushRegister = () => {
         ROW_FIELDS.map(([name, , type]) => [name, rowValues[name] === "" ? null : type === "number" ? Number(rowValues[name]) : rowValues[name]]),
       );
       if (rowPopup.mode === "add") {
-        await api.post(`/bush-registers/${current.id}/rows`, body);
-        toast.success("Row added successfully!");
+        const result = await api.post(`/bush-registers/${current.id}/rows`, body);
+        notifySaved(result, "Row added successfully!");
         setPage(1);
       } else {
-        await api.put(`/bush-registers/${current.id}/rows/${rowPopup.id}`, body);
-        toast.success("Row updated successfully!");
+        const result = await api.put(`/bush-registers/${current.id}/rows/${rowPopup.id}`, body);
+        notifySaved(result, "Row updated successfully!");
       }
       setRowPopup(null);
       rowsCall.reload();
@@ -317,8 +325,8 @@ const BushRegister = () => {
   const confirmDelete = async () => {
     setDeleteBusy(true);
     try {
-      await api.del(`/bush-registers/${current.id}/rows/${deleting.id}`);
-      toast.success("Row deleted successfully!");
+      const result = await api.del(`/bush-registers/${current.id}/rows/${deleting.id}`);
+      notifySaved(result, "Row deleted successfully!");
       setDeleting(null);
       rowsCall.reload();
     } catch (error) {
@@ -1117,6 +1125,7 @@ const BushRegister = () => {
 
                       {/* Action */}
                       <td className='border border-gray-200 px-3 py-2'>
+                        <PendingBadge row={item} />
                         <div className='flex items-center justify-center gap-2'>
                           {/* View */}
                           <button
@@ -1131,9 +1140,10 @@ const BushRegister = () => {
                           {/* Edit */}
                           <button
                             type='button'
+                            disabled={Boolean(item.pendingRequest)}
+                            title={waitingTitle(item, "Edit")}
                             onClick={() => openRow("edit", item)}
-                            className='cursor-pointer rounded-md p-1 text-emerald-600 transition hover:bg-emerald-50'
-                            title='Edit'
+                            className='cursor-pointer rounded-md p-1 text-emerald-600 transition hover:bg-emerald-50 disabled:cursor-not-allowed disabled:opacity-40'
                           >
                             <Pencil size={16} />
                           </button>
@@ -1141,9 +1151,10 @@ const BushRegister = () => {
                           {/* Delete */}
                           <button
                             type='button'
+                            disabled={Boolean(item.pendingRequest)}
+                            title={waitingTitle(item, "Delete")}
                             onClick={() => setDeleting(item)}
-                            className='cursor-pointer rounded-md p-1 text-red-600 transition hover:bg-red-50'
-                            title='Delete'
+                            className='cursor-pointer rounded-md p-1 text-red-600 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-40'
                           >
                             <Trash2 size={16} />
                           </button>

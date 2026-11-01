@@ -4,7 +4,7 @@ import toast from "react-hot-toast";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import HrWorkforceTabs from "../../components/HrWorkforceTabs/HrWorkforceTabs";
 import { employeeManagementData } from "../../data/HrWorkforceData/addNewEmployeeData";
-import { api } from "../../lib/api";
+import { api, notifySaved } from "../../lib/api";
 import { useApi } from "../../lib/useApi";
 import ErrorState from "../../components/common/ErrorState";
 import {
@@ -96,9 +96,8 @@ const AddNewEmployee = () => {
         const picked = values[name]?.[0];
         body[name] = picked ? (await api.upload(picked)).id : (saved?.[name] ?? null);
       }
-      if (editId) await api.put(`/employees/${editId}`, body);
-      else await api.post("/employees", body);
-      toast.success(editId ? "Employee updated successfully!" : "Employee saved successfully!");
+      const result = editId ? await api.put(`/employees/${editId}`, body) : await api.post("/employees", body);
+      notifySaved(result, editId ? "Employee updated successfully!" : "Employee saved successfully!");
       reset(EMPTY_FORM);
       goBack();
     } catch (error) {

@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import toast from "react-hot-toast";
 import { Pencil, Save, Trash2, X } from "lucide-react";
-import { api } from "../../lib/api";
+import { api, notifySaved } from "../../lib/api";
 import Select from "../common/Select";
 
 const BED_STATUSES = ["Active", "Inactive", "Maintenance", "Under Maintenance"];
@@ -81,9 +81,8 @@ export default function NurseryRowModal({ kind, mode: startMode, nurseryId, row,
     if (kind === "stock" && body.distributedThisMonth === "") delete body.distributedThisMonth;
     try {
       const base = `/nurseries/${nurseryId}/${config.path}`;
-      if (editing) await api.put(`${base}/${row.id}`, body);
-      else await api.post(base, body);
-      toast.success(`${config.title} ${editing ? "updated" : "added"} successfully!`);
+      const result = editing ? await api.put(`${base}/${row.id}`, body) : await api.post(base, body);
+      notifySaved(result, `${config.title} ${editing ? "updated" : "added"} successfully!`);
       onSaved();
     } catch (error) {
       for (const [key, message] of Object.entries(error.fields ?? {})) setError(key, { message });
