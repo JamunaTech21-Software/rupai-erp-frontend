@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, applyServerErrors } from "../../lib/useForm";
 import toast from "react-hot-toast";
 import { RotateCcw, Save, X } from "lucide-react";
 import { fieldAndBlockManagementData } from "../../data/EstateManagementData/FieldAndBlockManagementData";
@@ -76,7 +76,7 @@ const FieldFormModal = ({ editing, onClose, onSaved }) => {
       notifySaved(result, "Field / Block saved successfully.");
       onSaved();
     } catch (error) {
-      for (const [key, message] of Object.entries(error.fields ?? {})) setError(key, { message });
+      applyServerErrors(setError, error);
       toast.error(error.message);
     }
   };

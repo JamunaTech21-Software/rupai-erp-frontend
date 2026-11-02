@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, applyServerErrors } from "../../lib/useForm";
 import toast from "react-hot-toast";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import HrWorkforceTabs from "../../components/HrWorkforceTabs/HrWorkforceTabs";
@@ -101,7 +101,7 @@ const AddNewEmployee = () => {
       reset(EMPTY_FORM);
       goBack();
     } catch (error) {
-      for (const [key, message] of Object.entries(error.fields ?? {})) setError(key, { message });
+      applyServerErrors(setError, error);
       toast.error(error.message);
     }
   };

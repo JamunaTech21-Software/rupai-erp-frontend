@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { toast } from "react-hot-toast";
-import { useForm } from "react-hook-form";
+import { useForm, applyServerErrors } from "../../lib/useForm";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { contractorManagementData } from "../../data/HrWorkforceData/addNewContractorData";
 import HrWorkforceTabs from "../../components/HrWorkforceTabs/HrWorkforceTabs";
@@ -78,7 +78,7 @@ const AddNewContractor = () => {
       reset(EMPTY_FORM);
       goBack();
     } catch (error) {
-      for (const [key, message] of Object.entries(error.fields ?? {})) setError(key, { message });
+      applyServerErrors(setError, error);
       toast.error(error.message);
     }
   };

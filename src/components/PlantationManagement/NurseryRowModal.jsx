@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, applyServerErrors } from "../../lib/useForm";
 import toast from "react-hot-toast";
 import { Pencil, Save, Trash2, X } from "lucide-react";
 import { api, notifySaved } from "../../lib/api";
@@ -85,7 +85,7 @@ export default function NurseryRowModal({ kind, mode: startMode, nurseryId, row,
       notifySaved(result, `${config.title} ${editing ? "updated" : "added"} successfully!`);
       onSaved();
     } catch (error) {
-      for (const [key, message] of Object.entries(error.fields ?? {})) setError(key, { message });
+      applyServerErrors(setError, error);
       toast.error(error.message);
     }
   };

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, applyServerErrors } from "../../lib/useForm";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import toast from "react-hot-toast";
 import { nurseryManagementData } from "../../data/PlantationManagementData/nurseryManagementData";
@@ -166,7 +166,7 @@ const NurseryManagement = () => {
       reloadPanels();
       goBack();
     } catch (error) {
-      for (const [key, message] of Object.entries(error.fields ?? {})) setError(key, { message });
+      applyServerErrors(setError, error);
       toast.error(error.message);
     }
   };

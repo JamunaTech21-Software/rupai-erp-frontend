@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, applyServerErrors } from "../../lib/useForm";
 import toast from "react-hot-toast";
 import L from "leaflet";
 import EstateManagementTabs from "../../components/EstateManagement/EstateManagementTabs";
@@ -262,7 +262,7 @@ const LandAndLeaseManagement = () => {
       closeLandModal();
       reloadLands();
     } catch (error) {
-      for (const [key, message] of Object.entries(error.fields ?? {})) setError(key, { message });
+      applyServerErrors(setError, error);
       toast.error(error.message);
     }
   };

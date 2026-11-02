@@ -1,5 +1,5 @@
 import React from "react";
-import { useForm } from "react-hook-form";
+import { useForm } from "../../lib/useForm";
 import { Phone, Plus, Trash2, Save, X, Warehouse } from "lucide-react";
 
 import MasterDataTabs from "./MasterDataTabs";

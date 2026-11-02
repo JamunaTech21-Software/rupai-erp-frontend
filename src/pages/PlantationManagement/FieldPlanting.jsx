@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
-import { useForm } from "react-hook-form";
+import { useForm } from "../../lib/useForm";
 
 import { fieldPlantingData } from "../../data/PlantationManagementData/fieldPlantingData";
 import { api, notifySaved } from "../../lib/api";
@@ -98,6 +98,7 @@ const FieldPlanting = () => {
     reset,
     setError,
     setValue,
+    getValues,
     formState: { errors, isSubmitting },
   } = useForm();
   const formRef = useRef(null);
@@ -247,8 +248,13 @@ const FieldPlanting = () => {
       if (wasEditing) setEditingId(null);
       else goBack();
     } catch (error) {
-      for (const [key, message] of Object.entries(error.fields ?? {})) setError(key, { message });
-      toast.error(error.message);
+      const problems = Object.entries(error.fields ?? {});
+      problems.forEach(([key, message], index) => setError(key, { message }, { shouldFocus: index === 0 }));
+      // Most optional fields have no inline error line, so name the wrong field(s) in the message (the first is focused).
+      if (problems.length) {
+        const label = (key) => VIEW_FIELDS.find((item) => item[1] === key || item[1] === `${key}Name`)?.[0] ?? key;
+        toast.error(problems.slice(0, 3).map(([key, message]) => `${label(key)}: ${message}`).join("\n"));
+      } else toast.error(error.message);
     }
   };
   const onSubmit = (values) => savePlanting(values);
@@ -326,7 +332,7 @@ const FieldPlanting = () => {
       <form
         ref={formRef}
         onSubmit={handleSubmit(onSubmit)}
-        className={editingId ? "fixed inset-0 z-[90] overflow-y-auto bg-black/40 p-2 sm:p-6" : undefined}
+        className={`${editingId ? "fixed inset-0 z-[90] overflow-y-auto bg-black/40 p-2 sm:p-6" : ""}`}
         onMouseDown={editingId ? (event) => event.target === event.currentTarget && cancelEdit() : undefined}
       >
         {/* In the edit popup the form and its buttons share one panel, so there is no gap between them. */}
@@ -719,7 +725,13 @@ const FieldPlanting = () => {
                       type='number'
                       step='0.01'
                       placeholder='0.00'
-                      {...register("netPlantableArea")}
+                      {...register("netPlantableArea", {
+                        validate: (value) => {
+                          const { totalArea } = getValues();
+                          if (value === "" || totalArea === "" || totalArea == null) return true;
+                          return Number(value) <= Number(totalArea) || "Net plantable area cannot be more than the total area.";
+                        },
+                      })}
                       className='h-11 w-full rounded-lg border border-gray-300 px-3 text-sm outline-none transition-colors focus:border-green-600'
                     />
                   </div>
@@ -1411,7 +1423,13 @@ const FieldPlanting = () => {
                       <input
                         type='number'
                         placeholder='120'
-                        {...register("totalLabour")}
+                        {...register("totalLabour", {
+                          validate: () => {
+                            const { totalLabour, maleLabour, femaleLabour } = getValues();
+                            if (totalLabour === "" || totalLabour == null) return true;
+                            return Number(maleLabour || 0) + Number(femaleLabour || 0) <= Number(totalLabour) || "Male and female labour together are more than the total labour.";
+                          },
+                        })}
                         className='h-10 w-full rounded-lg border border-gray-300 px-3 text-sm outline-none transition-colors focus:border-green-600'
                       />
                     </div>
