@@ -28,6 +28,8 @@ import {
 import { api, notifySaved } from "../../lib/api";
 import { useApi } from "../../lib/useApi";
 import ConfirmDialog from "../../components/common/ConfirmDialog";
+import PendingBadge from "../../components/common/PendingBadge";
+import { waitingTitle } from "../../lib/waitingTitle";
 import TableSkeleton from "../../components/common/TableSkeleton";
 import EmptyRow from "../../components/common/EmptyRow";
 import ErrorState from "../../components/common/ErrorState";
@@ -133,6 +135,7 @@ const PlantCensus = () => {
     handleSubmit,
     reset,
     setError,
+    clearErrors,
     setValue,
     watch,
     formState: { errors, isSubmitting },
@@ -149,6 +152,7 @@ const PlantCensus = () => {
   const [rowPopup, setRowPopup] = useState(null);
   const [rowValues, setRowValues] = useState({});
   const [rowErrors, setRowErrors] = useState({});
+  const [rowNotice, setRowNotice] = useState("");
   const [rowBusy, setRowBusy] = useState(false);
   // Document being deleted (asks first).
   const [deletingDoc, setDeletingDoc] = useState(null);
@@ -192,6 +196,46 @@ const PlantCensus = () => {
       if (options?.some((option) => option.value === editing[name])) setValue(name, editing[name]);
     }
   }, [editing, divisionOptions.data, sectionOptions.data, fieldOptions.data, setValue]);
+  // A census saved before the estate data was re-created points to a Division / Section / Field that no longer exist:
+  // those fields are emptied and shown in red, so it is clear which ones to pick again.
+  useEffect(() => {
+    if (!editing) return undefined;
+    let cancelled = false;
+    (async () => {
+      const checks = [
+        ["division", "/options/divisions", { estate: editing.estate }, "Division"],
+        ["section", "/options/sections", { division: editing.division }, "Section"],
+        ["fieldBlock", "/options/fields", { section: editing.section }, "Field / Block"],
+      ];
+      const missing = [];
+      for (const [name, url, params, label] of checks) {
+        if (missing.length === 0) {
+          try {
+            const options = editing[name] ? await api.get(url, params) : [];
+            if (options.some((option) => option.value === editing[name])) continue;
+          } catch {
+            continue; // cannot tell (offline): leave the field alone
+          }
+        }
+        missing.push([name, label]);
+      }
+      if (cancelled) return;
+      for (const [name, label] of missing) {
+        setValue(name, "");
+        setError(name, { type: "stale", message: `The saved ${label} no longer exists. Please select it again.` });
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [editing, setValue, setError]);
+  // Picking a value clears that "no longer exists" mark.
+  const fieldBlockId = watch("fieldBlock");
+  useEffect(() => {
+    for (const [name, value] of [["division", divisionId], ["section", sectionId], ["fieldBlock", fieldBlockId]]) {
+      if (value && errors[name]?.type === "stale") clearErrors(name);
+    }
+  }, [divisionId, sectionId, fieldBlockId, errors, clearErrors]);
   // Total selected rows is worked out from the two row numbers.
   useEffect(() => {
     const from = Number(rowFrom);
@@ -208,9 +252,6 @@ const PlantCensus = () => {
   const bodyOf = (values, extra = {}) => ({
     ...values,
     totalSelectedRows: values.rowFrom !== "" && values.rowTo !== "" ? Number(values.rowTo) - Number(values.rowFrom) + 1 : values.totalSelectedRows,
-    photos: shown?.photos ?? [],
-    documents: shown?.documents ?? [],
-    rows: shown?.rows ?? [],
     ...extra,
   });
   const onSubmit = async (values) => {
@@ -233,6 +274,7 @@ const PlantCensus = () => {
     setRowPopup({ mode, id: row.id });
     setRowValues(toRowForm(row));
     setRowErrors({});
+    setRowNotice("");
   };
   const openAdd = () => {
     if (!shown) {
@@ -242,6 +284,7 @@ const PlantCensus = () => {
     setRowPopup({ mode: "add" });
     setRowValues(toRowForm({}));
     setRowErrors({});
+    setRowNotice("");
   };
   const closeRow = () => setRowPopup(null);
   useEffect(() => {
@@ -250,7 +293,7 @@ const PlantCensus = () => {
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
   }, [rowPopup]);
-  // Rows are saved with the census: send every row, the edited one with its new values.
+  // Each row is saved on its own (Add / Edit), so many rows can wait for approval at once.
   const saveRow = async (event) => {
     event.preventDefault();
     const problems = {};
@@ -262,29 +305,45 @@ const PlantCensus = () => {
     if (!problems.rowNo && (shown.rows ?? []).some((row) => row.id !== rowPopup.id && row.rowNo === String(rowValues.rowNo).trim())) {
       problems.rowNo = "This row is already in the census.";
     }
+    const counted = Number(rowValues.livePlants || 0) + Number(rowValues.deadPlants || 0) + Number(rowValues.missingPlants || 0);
+    if (!problems.expectedPlants && !problems.livePlants && !problems.deadPlants && !problems.missingPlants && counted > Number(rowValues.expectedPlants)) {
+      problems.livePlants = `Live + Dead + Missing (${counted}) is more than the Total Plants (${Number(rowValues.expectedPlants)}).`;
+    }
     setRowErrors(problems);
-    if (Object.keys(problems).length) return;
+    setRowNotice("");
+    if (Object.keys(problems).length) {
+      const names = Object.keys(problems).map((name) => ROW_FIELDS.find((field) => field[0] === name)?.[1]);
+      setRowNotice(`Please correct ${names.join(", ")} (marked in red) and try again.`);
+      return;
+    }
     setRowBusy(true);
     try {
-      const rows =
+      // The row has its own endpoints: one request per row, so rows never wait on each other.
+      const body = Object.fromEntries(
+        ROW_FIELDS.map(([name, , type]) => [name, type === "number" ? Number(rowValues[name]) : String(rowValues[name]).trim()]),
+      );
+      const result =
         rowPopup.mode === "add"
-          ? [...(shown.rows ?? []), { ...rowValues, rowNo: String(rowValues.rowNo).trim() }]
-          : (shown.rows ?? []).map((row) => (row.id === rowPopup.id ? { ...row, ...rowValues } : row));
-      const result = await api.put(`/plant-censuses/${shown.id}`, { ...toForm(shown), rows, photos: shown.photos ?? [], documents: shown.documents ?? [] });
+          ? await api.post(`/plant-censuses/${shown.id}/rows`, body)
+          : await api.put(`/plant-censuses/${shown.id}/rows/${rowPopup.id}`, body);
       notifySaved(result, rowPopup.mode === "add" ? "Row added successfully!" : "Row updated successfully!");
       setRowPopup(null);
       reloadPanels();
     } catch (error) {
+      // Field errors go under the row's fields; anything else (a 409: this row already waits) is shown as the message.
       const mapped = {};
       for (const [key, message] of Object.entries(error.fields ?? {})) mapped[key.split(".").pop()] = message;
       setRowErrors(mapped);
-      toast.error(error.message);
+      const names = Object.keys(mapped).map((name) => ROW_FIELDS.find((field) => field[0] === name)?.[1] ?? name);
+      const notice = names.length ? `Please correct ${names.join(", ")} (marked in red).` : error.message;
+      setRowNotice(notice);
+      toast.error(names.length ? "The row was not saved. Please correct the fields marked in red." : error.message);
     } finally {
       setRowBusy(false);
     }
   };
 
-  // Upload pictures / documents of the census shown, then save the record with the new ids.
+  // Upload pictures / documents of the census shown, one request per file.
   const addFiles = async (kind, event) => {
     const files = Array.from(event.target.files ?? []);
     event.target.value = "";
@@ -294,10 +353,25 @@ const PlantCensus = () => {
     }
     setUploading(true);
     try {
-      const ids = [];
-      for (const file of files) ids.push((await api.upload(file)).id);
-      const result = await api.put(`/plant-censuses/${shown.id}`, { ...toForm(shown), rows: shown.rows ?? [], photos: shown.photos ?? [], documents: shown.documents ?? [], [kind]: [...(shown[kind] ?? []), ...ids] });
-      notifySaved(result, kind === "photos" ? "Photo uploaded successfully!" : "Document uploaded successfully!");
+      // Each file is its own request: upload it, then add it to the census.
+      let added = 0;
+      let waiting = 0;
+      let lastNumber = "";
+      for (const file of files) {
+        try {
+          const uploaded = await api.upload(file);
+          const result = await api.post(`/plant-censuses/${shown.id}/files`, { kind, fileId: uploaded.id }, { quiet: true });
+          if (result?.pending) {
+            waiting += 1;
+            lastNumber = result.approval?.requestNo ?? lastNumber;
+          } else added += 1;
+        } catch (error) {
+          toast.error(`${file.name}: ${error.message}`);
+        }
+      }
+      const noun = kind === "photos" ? "photo" : "document";
+      if (waiting) toast.success(`${waiting} ${noun}${waiting === 1 ? "" : "s"} sent for approval${lastNumber ? ` (last: ${lastNumber})` : ""}`);
+      if (added) toast.success(kind === "photos" ? "Photo uploaded successfully!" : "Document uploaded successfully!");
       reloadPanels();
     } catch (error) {
       toast.error(error.message);
@@ -306,16 +380,11 @@ const PlantCensus = () => {
     }
   };
 
-  // Delete a document: the census is saved again without that file.
+  // Delete a document: its own request.
   const confirmDeleteDocument = async () => {
     setDeleteBusy(true);
     try {
-      const result = await api.put(`/plant-censuses/${shown.id}`, {
-        ...toForm(shown),
-        rows: shown.rows ?? [],
-        photos: shown.photos ?? [],
-        documents: (shown.documents ?? []).filter((id) => id !== deletingDoc.id),
-      });
+      const result = await api.del(`/plant-censuses/${shown.id}/files/${deletingDoc.id}`);
       notifySaved(result, "Document deleted successfully!");
       setDeletingDoc(null);
       reloadPanels();
@@ -511,7 +580,13 @@ const PlantCensus = () => {
                         : "border-gray-300 focus:border-green-600"
                     }`}
                   >
-                    <option value=''>Select Section</option>
+                    <option value=''>
+                      {!divisionId
+                        ? "Select Division first"
+                        : sectionOptions.data?.length === 0
+                          ? "No sections in this division"
+                          : "Select Section"}
+                    </option>
                     {(sectionOptions.data ?? []).map((section) => (
                       <option key={section.id} value={section.value}>
                         {section.label}
@@ -550,7 +625,13 @@ const PlantCensus = () => {
                         : "border-gray-300 focus:border-green-600"
                     }`}
                   >
-                    <option value=''>Select Field / Block</option>
+                    <option value=''>
+                      {!sectionId
+                        ? "Select Section first"
+                        : fieldOptions.data?.length === 0
+                          ? "No fields in this section"
+                          : "Select Field / Block"}
+                    </option>
                     {(fieldOptions.data ?? []).map((fieldOption) => (
                       <option key={fieldOption.id} value={fieldOption.value}>
                         {fieldOption.label}
@@ -1252,6 +1333,7 @@ const PlantCensus = () => {
 
                       {/* Actions */}
                       <td className='border border-gray-200 px-3 py-1'>
+                        <PendingBadge row={row} />
                         <div className='flex items-center justify-center gap-2'>
                           <button
                             type='button'
@@ -1264,9 +1346,10 @@ const PlantCensus = () => {
 
                           <button
                             type='button'
-                            title='Edit'
+                            disabled={Boolean(row.pendingRequest)}
+                            title={waitingTitle(row, "Edit")}
                             onClick={() => openRow("edit", row)}
-                            className='rounded-md p-2 text-amber-600 transition hover:bg-amber-100'
+                            className='rounded-md p-2 text-amber-600 transition hover:bg-amber-100 disabled:cursor-not-allowed disabled:opacity-40'
                           >
                             <Pencil size={16} />
                           </button>
@@ -1801,6 +1884,11 @@ const PlantCensus = () => {
                 <X size={18} />
               </button>
             </div>
+            {rowNotice && rowPopup.mode !== "view" && (
+              <p role='alert' className='mx-5 mt-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700'>
+                {rowNotice}
+              </p>
+            )}
             <div className='grid grid-cols-1 gap-x-6 gap-y-3 overflow-y-auto p-5 sm:grid-cols-2 lg:grid-cols-3'>
               {ROW_FIELDS.map(([name, label, type]) => (
                 <div key={name}>
@@ -1815,6 +1903,7 @@ const PlantCensus = () => {
                         step='any'
                         min={type === "number" ? 0 : undefined}
                         value={rowValues[name] ?? ""}
+                        data-invalid={rowErrors[name] ? "true" : undefined}
                         onChange={(event) => setRowValues((current) => ({ ...current, [name]: event.target.value }))}
                         className='mt-1 h-10 w-full rounded-lg border border-gray-300 px-3 text-sm outline-none focus:border-green-600'
                       />

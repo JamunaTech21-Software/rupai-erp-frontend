@@ -521,7 +521,13 @@ const BushRegister = () => {
                       })}
                       className='w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm outline-none transition-all focus:border-green-600'
                     >
-                      <option value=''>Select Section</option>
+                      <option value=''>
+                      {!divisionId
+                        ? "Select Division first"
+                        : sectionOptions.data?.length === 0
+                          ? "No sections in this division"
+                          : "Select Section"}
+                    </option>
                       {(sectionOptions.data ?? []).map((option) => (
                         <option key={option.id} value={option.value}>
                           {option.label}
@@ -551,7 +557,13 @@ const BushRegister = () => {
                       })}
                       className='w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm outline-none transition-all focus:border-green-600'
                     >
-                      <option value=''>Select Field / Block</option>
+                      <option value=''>
+                      {!sectionId
+                        ? "Select Section first"
+                        : fieldOptions.data?.length === 0
+                          ? "No fields in this section"
+                          : "Select Field / Block"}
+                    </option>
                       {(fieldOptions.data ?? []).map((option) => (
                         <option key={option.id} value={option.value}>
                           {option.label}
