@@ -5,7 +5,7 @@ import ErrorState from "../../components/common/ErrorState";
 import { api } from "../../lib/api";
 import { useApi } from "../../lib/useApi";
 import { estateProfileData } from "../../data/EstateManagementData/estateProfileData";
-import { useForm } from "react-hook-form";
+import { useForm, applyServerErrors } from "../../lib/useForm";
 import toast from "react-hot-toast";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
@@ -136,7 +136,7 @@ const EstateProfile = () => {
       totals.reload();
       goBack();
     } catch (error) {
-      for (const [key, message] of Object.entries(error.fields ?? {})) setError(key, { message });
+      applyServerErrors(setError, error);
       toast.error(error.message);
     }
   };

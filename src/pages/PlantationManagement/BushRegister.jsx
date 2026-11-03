@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
-import { useForm } from "react-hook-form";
+import { useForm } from "../../lib/useForm";
 import { bushRegisterData } from "../../data/PlantationManagementData/bushRegisterData";
 import { api, notifySaved } from "../../lib/api";
 import PendingBadge from "../../components/common/PendingBadge";
@@ -1325,28 +1325,27 @@ const BushRegister = () => {
                     </PieChart>
                   </ResponsiveContainer>
                 ) : (
-                  <div className='flex h-full items-center justify-center rounded-full border-[14px] border-gray-100 text-xs text-gray-400'>
-                    No data
-                  </div>
+                  <div className='h-full w-full rounded-full border-[14px] border-gray-100' />
                 )}
 
                 {/* Center Text */}
                 <div className='pointer-events-none absolute inset-0 flex flex-col items-center justify-center'>
-                  <h2 className='text-xl font-semibold text-gray-800'>{summaryItems[0].value}</h2>
+                  <h2 className='max-w-[6.5rem] truncate text-lg font-semibold tabular-nums text-gray-800 sm:text-xl'>{summaryItems[0].value}</h2>
                   <p className='text-sm text-gray-500'>Acre</p>
+                  {!hasAgeData && <p className='text-xs text-gray-400'>No data</p>}
                 </div>
               </div>
 
               {/* Legend */}
               <div className='w-full space-y-3'>
                 {bushAgeProfile.map((item) => (
-                  <div key={item.id} className='flex items-center justify-between gap-2'>
-                    <div className='flex items-center gap-2'>
+                  <div key={item.id} className='flex items-center justify-between gap-3'>
+                    <div className='flex min-w-0 items-center gap-2'>
                       <span className='h-3 w-3 shrink-0 rounded-sm' style={{ backgroundColor: item.color }} />
-                      <span className='text-sm text-gray-600'>{item.age}</span>
+                      <span className='min-w-0 text-sm text-gray-600'>{item.age}</span>
                     </div>
 
-                    <span className='text-right text-sm font-medium text-gray-700'>
+                    <span className='shrink-0 whitespace-nowrap text-right text-sm font-medium tabular-nums text-gray-700'>
                       {item.area} Acre ({item.percentage}%)
                     </span>
                   </div>

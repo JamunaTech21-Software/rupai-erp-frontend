@@ -1,6 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { useForm } from "react-hook-form";
+import { useForm } from "../../lib/useForm";
 import HrWorkforceTabs from "../../components/HrWorkforceTabs/HrWorkforceTabs";
 import { contractorManagementData } from "../../data/HrWorkforceData/contractorManagementData.js";
 const {

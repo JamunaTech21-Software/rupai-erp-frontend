@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { toast } from "react-hot-toast";
 import EstateManagementTabs from "../../components/EstateManagement/EstateManagementTabs";
-import { useForm } from "react-hook-form";
+import { useForm } from "../../lib/useForm";
 import { mapAndGISTrackingData } from "../../data/EstateManagementData/MapAndGISTrackingData";
 import { api } from "../../lib/api";
 import { useApi } from "../../lib/useApi";

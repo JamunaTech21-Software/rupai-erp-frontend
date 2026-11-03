@@ -11,7 +11,7 @@ import {
   Search,
   SlidersHorizontal,
 } from "lucide-react";
-import { useForm } from "react-hook-form";
+import { useForm, applyServerErrors } from "../../lib/useForm";
 import { divisionSectionData } from "../../data/EstateManagementData/divisionAndSectionData";
 import toast from "react-hot-toast";
 import { api, notifySaved } from "../../lib/api";
@@ -228,7 +228,7 @@ const DivisionAndSection = () => {
       }
       reloadAll();
     } catch (error) {
-      for (const [key, message] of Object.entries(error.fields ?? {})) setError(key, { message });
+      applyServerErrors(setError, error);
       toast.error(error.message);
     }
   };

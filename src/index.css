@@ -113,3 +113,9 @@ body {
   translate: none !important;
   transform: none !important;
 }
+
+/* A form field with an error (set by lib/useForm.js): red border and ring. */
+[data-invalid] {
+  border-color: #ef4444 !important;
+  box-shadow: 0 0 0 1px #ef4444;
+}

@@ -1,5 +1,5 @@
 import React from "react";
-import { useForm } from "react-hook-form";
+import { useForm } from "../../lib/useForm";
 import HrWorkforceTabs from "../../components/HrWorkforceTabs/HrWorkforceTabs";
 import { labourAllocationEntryData } from "../../data/HrWorkforceData/labourAllocationEntryData";
 
