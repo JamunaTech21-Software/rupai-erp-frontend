@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useForm } from "../../lib/useForm";
 import { bushRegisterData } from "../../data/PlantationManagementData/bushRegisterData";
 import { api, notifySaved } from "../../lib/api";
@@ -153,6 +154,10 @@ const BushRegister = () => {
     watch,
     formState: { errors },
   } = useForm();
+  const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  // With ?id= that register is shown; otherwise the first one matching the search.
+  const pickedId = searchParams.get("id");
   // Search applies the form as filters to the registers; the first match is shown.
   const [applied, setApplied] = useState({});
   const [page, setPage] = useState(1);
@@ -175,8 +180,9 @@ const BushRegister = () => {
   const sectionOptions = useApi(() => (divisionId ? api.get("/options/sections", { division: divisionId }) : Promise.resolve([])), [divisionId]);
   const fieldOptions = useApi(() => (sectionId ? api.get("/options/fields", { section: sectionId }) : Promise.resolve([])), [sectionId]);
 
-  const registers = useApi(() => api.get("/bush-registers", { ...applied, perPage: 1 }), [applied]);
-  const current = registers.data?.data?.[0];
+  const registers = useApi(() => (pickedId ? Promise.resolve(null) : api.get("/bush-registers", { ...applied, perPage: 1 })), [applied, pickedId]);
+  const picked = useApi(() => (pickedId ? api.get(`/bush-registers/${pickedId}`) : Promise.resolve(null)), [pickedId]);
+  const current = pickedId ? picked.data : registers.data?.data?.[0];
   const rowsCall = useApi(
     () => (current ? api.get(`/bush-registers/${current.id}/rows`, { page, perPage: PER_PAGE }) : Promise.resolve(null)),
     [current?.id, page],
@@ -186,19 +192,21 @@ const BushRegister = () => {
   const rowMeta = rowsCall.data?.meta ?? { page: 1, perPage: PER_PAGE, total: 0, totalPages: 1 };
   const tableSummary = rowsCall.data?.tableSummary ?? report.data?.tableSummary;
   const data = report.data;
-  const waiting = registers.loading && !registers.data;
-  const failure = registers.error ?? rowsCall.error ?? report.error;
+  const waiting = pickedId ? picked.loading && !picked.data : registers.loading && !registers.data;
+  const failure = registers.error ?? picked.error ?? rowsCall.error ?? report.error;
 
   const onSubmit = (values) => {
     const filters = {};
     for (const [key, value] of Object.entries(values)) if (value !== "" && value !== undefined && value !== null && key !== "bushAge" && key !== "totalArea" && key !== "rowSpacing" && key !== "plantSpacing" && key !== "surveyDate") filters[key] = value;
     setPage(1);
+    if (pickedId) setSearchParams({});
     setApplied(filters);
     toast.success("Search completed successfully!");
   };
   const clearSearch = () => {
     reset({});
     setPage(1);
+    if (pickedId) setSearchParams({});
     setApplied({});
   };
   const openRow = (mode, row) => {
@@ -417,11 +425,21 @@ const BushRegister = () => {
   };
   return (
     <div className='space-y-6'>
+      <div className='flex justify-end'>
+        <button
+          type='button'
+          onClick={() => navigate("/bush-register-list")}
+          className='flex cursor-pointer items-center justify-center gap-2 rounded-lg border border-green-700 bg-white px-4 py-2 text-sm font-medium text-green-700 transition hover:bg-green-50'
+        >
+          Register List
+        </button>
+      </div>
       {failure && (
         <ErrorState
           message={failure.message}
           onRetry={() => {
             registers.reload();
+            picked.reload();
             rowsCall.reload();
             report.reload();
           }}
@@ -521,7 +539,13 @@ const BushRegister = () => {
                       })}
                       className='w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm outline-none transition-all focus:border-green-600'
                     >
-                      <option value=''>Select Section</option>
+                      <option value=''>
+                      {!divisionId
+                        ? "Select Division first"
+                        : sectionOptions.data?.length === 0
+                          ? "No sections in this division"
+                          : "Select Section"}
+                    </option>
                       {(sectionOptions.data ?? []).map((option) => (
                         <option key={option.id} value={option.value}>
                           {option.label}
@@ -551,7 +575,13 @@ const BushRegister = () => {
                       })}
                       className='w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm outline-none transition-all focus:border-green-600'
                     >
-                      <option value=''>Select Field / Block</option>
+                      <option value=''>
+                      {!sectionId
+                        ? "Select Section first"
+                        : fieldOptions.data?.length === 0
+                          ? "No fields in this section"
+                          : "Select Field / Block"}
+                    </option>
                       {(fieldOptions.data ?? []).map((option) => (
                         <option key={option.id} value={option.value}>
                           {option.label}

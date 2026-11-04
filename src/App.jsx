@@ -23,6 +23,10 @@ const LandAndLeaseManagement = lazyPage(() => import("./pages/EstateManagement/L
 const FieldOrBlockManagement = lazyPage(() => import("./pages/EstateManagement/FieldOrBlockManagement"));
 const NurseryManagement = lazyPage(() => import("./pages/PlantationManagement/NurseryManagement"));
 const ReplantingAndGapFilling = lazyPage(() => import("./pages/PlantationManagement/ReplantingAndGapFilling"));
+const ReplantingList = lazyPage(() => import("./pages/PlantationManagement/ReplantingList"));
+const BushRegisterList = lazyPage(() => import("./pages/PlantationManagement/BushRegisterList"));
+const NurseryList = lazyPage(() => import("./pages/PlantationManagement/NurseryList"));
+const PlantCensusList = lazyPage(() => import("./pages/PlantationManagement/PlantCensusList"));
 const PlantCensus = lazyPage(() => import("./pages/PlantationManagement/PlantCensus"));
 const BushRegister = lazyPage(() => import("./pages/PlantationManagement/BushRegister"));
 const FieldPlanting = lazyPage(() => import("./pages/PlantationManagement/FieldPlanting"));
@@ -135,6 +139,13 @@ const router = createBrowserRouter([
         element: <PlantationLayout />,
         children: [
         {
+          path: "nursery-list",
+          element: <Page><NurseryList /></Page>,
+          handle: {
+            title: "Nursery List",
+          },
+        },
+        {
           path: "nursery-management",
           element: <Page><NurseryManagement /></Page>,
           handle: {
@@ -149,6 +160,13 @@ const router = createBrowserRouter([
           },
         },
         {
+          path: "replanting-list",
+          element: <Page><ReplantingList /></Page>,
+          handle: {
+            title: "Replanting Project List",
+          },
+        },
+        {
           path: "replanting-&-gap-filling",
           element: <Page><ReplantingAndGapFilling /></Page>,
           handle: {
@@ -156,10 +174,24 @@ const router = createBrowserRouter([
           },
         },
         {
+          path: "plant-census-list",
+          element: <Page><PlantCensusList /></Page>,
+          handle: {
+            title: "Plant Census List",
+          },
+        },
+        {
           path: "plant-census",
           element: <Page><PlantCensus /></Page>,
           handle: {
             title: "Plant Census",
+          },
+        },
+        {
+          path: "bush-register-list",
+          element: <Page><BushRegisterList /></Page>,
+          handle: {
+            title: "Bush Register List",
           },
         },
         {

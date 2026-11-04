@@ -1,9 +1,13 @@
-import React from "react";
-import { useSearchParams } from "react-router-dom";
+import React, { useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { replantingAndGapFillingData } from "../../data/PlantationManagementData/replantingAndGapFillingData";
 import { api } from "../../lib/api";
 import { useApi } from "../../lib/useApi";
 import ErrorState from "../../components/common/ErrorState";
+import ReplantingProjectModal from "../../components/Replanting/ReplantingProjectModal";
+import ReplantingStepModal from "../../components/Replanting/ReplantingStepModal";
+import PendingBadge from "../../components/common/PendingBadge";
+import { waitingTitle } from "../../lib/waitingTitle";
 import {
   User,
   UserCheck,
@@ -115,13 +119,19 @@ const ReplantingAndGapFilling = () => {
   const { steps, stepForms: sampleForms, databaseTables, approvalFlow, reports } =
     replantingAndGapFillingData;
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  // Which editor is open: 1 = the project itself, 2-8 = a step.
+  const [editorStep, setEditorStep] = useState(null);
+  // ?new=1 is the empty page for a new project.
+  const isNew = searchParams.get("new") === "1";
 
   // The project shown: ?id=, else the one furthest along.
   const projects = useApi(() => api.get("/replanting-projects", { perPage: 50 }), []);
   const projectRows = projects.data?.data ?? [];
-  const project =
-    projectRows.find((row) => row.id === searchParams.get("id")) ??
-    [...projectRows].sort((a, b) => (b.lastStep ?? 0) - (a.lastStep ?? 0))[0];
+  const project = isNew
+    ? undefined
+    : projectRows.find((row) => row.id === searchParams.get("id")) ??
+      [...projectRows].sort((a, b) => (b.lastStep ?? 0) - (a.lastStep ?? 0))[0];
   const detail = useApi(
     () =>
       project
@@ -865,6 +875,15 @@ const ReplantingAndGapFilling = () => {
   };
   return (
     <div className='space-y-6'>
+      <div className='flex justify-end'>
+        <button
+          type='button'
+          onClick={() => navigate("/replanting-list")}
+          className='flex cursor-pointer items-center justify-center gap-2 rounded-lg border border-green-700 bg-white px-4 py-2 text-sm font-medium text-green-700 transition hover:bg-green-50'
+        >
+          Project List
+        </button>
+      </div>
       {failure && (
         <ErrorState
           message={failure.message}
@@ -876,7 +895,7 @@ const ReplantingAndGapFilling = () => {
       )}
       {!loading && !failure && !project && (
         <p className='rounded-xl border border-gray-200 bg-white p-4 text-center text-sm text-gray-500'>
-          No replanting project yet
+          {isNew ? "New project: fill Step 1 (Create Project). The other steps open once the project exists." : "No replanting project yet. Use Create Project in Step 1."}
         </p>
       )}
       {/* The line keeps its height before the project arrives, so the page does not move down when it does. */}
@@ -885,6 +904,7 @@ const ReplantingAndGapFilling = () => {
           {project && (
             <>
               Project: <span className='font-semibold text-green-800'>{project.projectCode}</span> {project.projectName}
+              <PendingBadge row={project} />
             </>
           )}
         </p>
@@ -933,9 +953,12 @@ const ReplantingAndGapFilling = () => {
                   <div className='flex justify-end border-t border-gray-100 p-3'>
                     <button
                       type='button'
-                      className='rounded bg-green-900 cursor-pointer px-4 py-1 text-xs font-medium text-white'
+                      disabled={(step.stepNumber > 1 && !project) || Boolean(project?.pendingRequest)}
+                      title={project?.pendingRequest ? waitingTitle(project, "Edit") : step.stepNumber > 1 && !project ? "Create the project in Step 1 first" : undefined}
+                      onClick={() => setEditorStep(step.stepNumber)}
+                      className='rounded bg-green-900 cursor-pointer px-4 py-1 text-xs font-medium text-white disabled:cursor-not-allowed disabled:opacity-40'
                     >
-                      {step.buttonText}
+                      {step.stepNumber === 1 ? (project ? "Edit Project" : "Create Project") : "Edit Step"}
                     </button>
                   </div>
                 </div>
@@ -1104,6 +1127,36 @@ const ReplantingAndGapFilling = () => {
           </section>
         </div>
       </div>
+      {editorStep === 1 && (
+        <ReplantingProjectModal
+          project={project ? { ...(detail.data?.[0] ?? {}), id: project.id, projectCode: project.projectCode } : null}
+          onClose={() => setEditorStep(null)}
+          onSaved={(result) => {
+            setEditorStep(null);
+            if (!project) {
+              // A new project: open it. If it was sent for approval it has no id yet, so go back to the list.
+              if (result?.id) navigate(`/replanting-&-gap-filling?id=${result.id}`);
+              else navigate("/replanting-list");
+              return;
+            }
+            projects.reload();
+            detail.reload();
+          }}
+        />
+      )}
+      {editorStep > 1 && project && (
+        <ReplantingStepModal
+          projectId={project.id}
+          step={editorStep}
+          saved={detail.data?.[editorStep - 1]}
+          onClose={() => setEditorStep(null)}
+          onSaved={() => {
+            setEditorStep(null);
+            projects.reload();
+            detail.reload();
+          }}
+        />
+      )}
     </div>
   );
 };

@@ -56,6 +56,11 @@ export const navSections = [
         expandable: true,
         children: [
           {
+            id: "nursery-list",
+            label: "Nursery List",
+            path: "/nursery-list",
+          },
+          {
             id: "nursery-management",
             label: "Nursery Management",
             path: "/nursery-management",
@@ -66,14 +71,29 @@ export const navSections = [
             path: "/field-planting",
           },
           {
+            id: "replanting-list",
+            label: "Replanting Project List",
+            path: "/replanting-list",
+          },
+          {
             id: "replantin-&-gap-filling",
             label: "Replanting & Gap Filling",
             path: "/replanting-&-gap-filling",
           },
           {
+            id: "plant-census-list",
+            label: "Plant Census List",
+            path: "/plant-census-list",
+          },
+          {
             id: "plant-census",
             label: "Plant Census",
             path: "/plant-census",
+          },
+          {
+            id: "bush-register-list",
+            label: "Bush Register List",
+            path: "/bush-register-list",
           },
           {
             id: "bush-register",

@@ -1,4 +1,6 @@
-import React from "react";
+import { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
 import { workerManagementData } from "../../data/HrWorkforceData/workerManagementData";
 import HrWorkforceTabs from "../../components/HrWorkforceTabs/HrWorkforceTabs";
 
@@ -23,7 +25,9 @@ import {
   SlidersHorizontal,
   Eye,
   Pencil,
-  MoreVertical,
+  Trash2,
+  ChevronLeft,
+  ChevronRight,
   BriefcaseBusiness,
   MapPin,
   Phone,
@@ -86,7 +90,175 @@ const documentIconMap = {
 };
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 import Select from "../../components/common/Select";
+import TableSkeleton from "../../components/common/TableSkeleton";
+import EmptyRow from "../../components/common/EmptyRow";
+import ErrorState from "../../components/common/ErrorState";
+import ConfirmDialog from "../../components/common/ConfirmDialog";
+import PendingBadge from "../../components/common/PendingBadge";
+import { waitingTitle } from "../../lib/waitingTitle";
+import { api, notifySaved } from "../../lib/api";
+import { useApi } from "../../lib/useApi";
+
+const PER_PAGE = 8;
+const EMPTY_FILTERS = { search: "", gardenUnit: "", section: "", jobTask: "", workerType: "", workerStatus: "" };
+const NO_ATTENDANCE = {
+  title: "Attendance Overview (This Month)",
+  present: { value: 0, percentage: 0 },
+  absent: { value: 0, percentage: 0 },
+  leave: { value: 0, percentage: 0 },
+  buttonText: "View Attendance Report",
+};
+const orDash = (value) => (value === null || value === undefined || value === "" ? "-" : value);
+const words = (value) => (typeof value === "string" && value ? value.split("-").map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ") : value);
+const useDebounced = (value, delay = 300) => {
+  const [debounced, setDebounced] = useState(value);
+  useEffect(() => {
+    const timer = setTimeout(() => setDebounced(value), delay);
+    return () => clearTimeout(timer);
+  }, [value, delay]);
+  return debounced;
+};
 const WorkerManagement = () => {
+  const navigate = useNavigate();
+  const importInput = useRef(null);
+  const [filters, setFilters] = useState(EMPTY_FILTERS);
+  const [page, setPage] = useState(1);
+  const [selectedId, setSelectedId] = useState(null);
+  const [deleting, setDeleting] = useState(null);
+  const [deleteBusy, setDeleteBusy] = useState(false);
+  const [exporting, setExporting] = useState(false);
+  const [importing, setImporting] = useState(false);
+  const searchText = useDebounced(filters.search);
+  const applied = { ...filters, search: searchText };
+  const setFilter = (name) => (event) => {
+    setFilters((current) => ({ ...current, [name]: event.target.value }));
+    setPage(1);
+  };
+  const hasFilters = Object.values(filters).some(Boolean);
+  const resetFilters = () => {
+    setFilters(EMPTY_FILTERS);
+    setPage(1);
+  };
+
+  const options = useApi(() => api.get("/workers/filter-options"), []);
+  const list = useApi(
+    () => api.get("/workers", { ...applied, page, perPage: PER_PAGE }),
+    [searchText, filters.gardenUnit, filters.section, filters.jobTask, filters.workerType, filters.workerStatus, page],
+  );
+  const summaryData = useApi(
+    () => api.get("/workers/summary", applied),
+    [searchText, filters.gardenUnit, filters.section, filters.jobTask, filters.workerType, filters.workerStatus],
+  );
+  const rows = list.data?.data ?? [];
+  const meta = list.data?.meta;
+  const total = meta?.total ?? 0;
+  const totalPages = Math.max(meta?.totalPages ?? 1, 1);
+  const from = rows.length > 0 ? (page - 1) * PER_PAGE + 1 : 0;
+  const to = (page - 1) * PER_PAGE + rows.length;
+
+  // The profile panel shows the clicked worker, or the first one in the list.
+  const shownId = rows.some((row) => row.id === selectedId) ? selectedId : (rows[0]?.id ?? null);
+  const profileData = useApi(() => (shownId ? api.get(`/workers/${shownId}`) : Promise.resolve(null)), [shownId]);
+  const profile = profileData.data ?? {};
+  const pf = {
+    workerName: orDash(profile.workerName),
+    workerId: orDash(profile.workerId),
+    jobTaskLabel: orDash(profile.jobTaskLabel),
+    sectionLabel: orDash(profile.sectionLabel),
+    mobileNo: orDash(profile.mobileNo),
+    personalEmail: orDash(profile.personalEmail),
+    joinDate: orDash(profile.joinDate),
+    fathersName: orDash(profile.fathersName),
+    mothersName: orDash(profile.mothersName),
+    dateOfBirth: orDash(profile.dateOfBirth),
+    gender: orDash(words(profile.gender)),
+    bloodGroup: orDash(profile.bloodGroup ? String(profile.bloodGroup).toUpperCase() : null),
+    maritalStatus: orDash(words(profile.maritalStatus)),
+    presentAddress: orDash(profile.presentAddress),
+    permanentAddress: orDash(profile.permanentAddress),
+    status: profile.workerStatusLabel ?? "-",
+  };
+  const documents = profile.documents ?? [];
+
+  const summary = summaryData.data ?? {};
+  const summaryCards = summary.summaryCards ?? [];
+  const categoryWiseWorkers = summary.categoryWiseWorkers ?? [];
+  const sectionWiseDistribution = summary.sectionWiseDistribution ?? [];
+  const workerTypes = summary.workerTypes ?? [];
+  const recentJoinees = summary.recentJoinees ?? [];
+  const attendanceOverview = summary.attendanceOverview ?? NO_ATTENDANCE;
+
+  // After a delete took the last row of a page, step back one page.
+  useEffect(() => {
+    if (meta && page > meta.totalPages && meta.totalPages >= 1) setPage(meta.totalPages);
+  }, [meta, page]);
+
+  const exportList = async () => {
+    setExporting(true);
+    try {
+      const blob = await api.download("/workers/export", { ...applied, format: "xlsx" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = `workers-${new Date().toISOString().slice(0, 10)}.xlsx`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(link.href);
+    } catch (error) {
+      toast.error(error.message);
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  // Same import as the Add New Worker page: nothing is saved unless every row is right.
+  const importFile = async (event) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+    setImporting(true);
+    try {
+      const result = await api.postFile("/workers/import", file);
+      notifySaved(result, `${result?.imported ?? ""} workers saved`.trim());
+      list.reload();
+      summaryData.reload();
+    } catch (error) {
+      const lines = Object.entries(error.fields ?? {})
+        .slice(0, 3)
+        .map(([key, message]) => {
+          const match = key.match(/^rows\.(\d+)\.(.+)$/);
+          return match ? `Row ${match[1]} - ${match[2]}: ${message}` : `${key}: ${message}`;
+        });
+      toast.error([error.message, ...lines].join("\n"));
+    } finally {
+      setImporting(false);
+    }
+  };
+
+  const confirmDelete = async () => {
+    setDeleteBusy(true);
+    try {
+      const result = await api.del(`/workers/${deleting.id}`);
+      notifySaved(result, "Worker deleted successfully!");
+      setDeleting(null);
+      list.reload();
+      summaryData.reload();
+    } catch (error) {
+      toast.error(error.message);
+    } finally {
+      setDeleteBusy(false);
+    }
+  };
+
+  const optionList = (items) =>
+    (items ?? [])
+      .filter((item) => item.value !== "")
+      .map((item) => (
+        <option key={item.id ?? item.value} value={item.value}>
+          {item.label}
+        </option>
+      ));
+
   return (
     <div className='space-y-4'>
       {/* =====================================================
@@ -103,6 +275,7 @@ const WorkerManagement = () => {
             {/* ADD NEW WORKER */}
             <button
               type='button'
+              onClick={() => navigate("/add-new-worker")}
               className='inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-green-700 px-3 text-sm font-medium text-white transition hover:bg-green-800 sm:px-4'
             >
               <Plus size={17} />
@@ -110,21 +283,26 @@ const WorkerManagement = () => {
             </button>
 
             {/* IMPORT */}
+            <input ref={importInput} type='file' accept='.csv,.xlsx,.xls' className='hidden' onChange={importFile} />
             <button
               type='button'
-              className='inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-3 text-sm font-medium text-gray-700 transition hover:bg-gray-50 sm:px-4'
+              disabled={importing}
+              onClick={() => importInput.current?.click()}
+              className='inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-3 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:opacity-60 sm:px-4'
             >
               <Upload size={16} />
-              Import
+              {importing ? "Importing..." : "Import"}
             </button>
 
             {/* EXPORT */}
             <button
               type='button'
-              className='inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-3 text-sm font-medium text-gray-700 transition hover:bg-gray-50 sm:px-4'
+              disabled={exporting}
+              onClick={exportList}
+              className='inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-3 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:opacity-60 sm:px-4'
             >
               <Download size={16} />
-              Export
+              {exporting ? "Exporting..." : "Export"}
             </button>
 
             {/* MORE */}
@@ -143,8 +321,8 @@ const WorkerManagement = () => {
               SUMMARY CARDS
           ====================================================== */}
       <div className='grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-5'>
-        {workerManagementData.summaryCards.map((card) => {
-          const Icon = summaryIconMap[card.icon];
+        {summaryCards.map((card) => {
+          const Icon = summaryIconMap[card.icon] || Users;
 
           const colors = summaryColorMap[card.bgColor] || summaryColorMap.green;
 
@@ -207,12 +385,9 @@ const WorkerManagement = () => {
                   Garden / Unit
                 </label>
 
-                <Select className='h-9 w-full rounded-lg border border-gray-300 bg-white px-2 text-xs text-gray-700 outline-none transition focus:border-green-600'>
-                  {workerManagementData.filters.gardenOptions.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
+                <Select value={filters.gardenUnit} onChange={setFilter("gardenUnit")} className='h-9 w-full rounded-lg border border-gray-300 bg-white px-2 text-xs text-gray-700 outline-none transition focus:border-green-600'>
+                  <option value=''>All Gardens</option>
+                  {optionList(options.data?.gardens)}
                 </Select>
               </div>
 
@@ -224,12 +399,9 @@ const WorkerManagement = () => {
                   Section
                 </label>
 
-                <Select className='h-9 w-full rounded-lg border border-gray-300 bg-white px-2 text-xs text-gray-700 outline-none transition focus:border-green-600'>
-                  {workerManagementData.filters.sectionOptions.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
+                <Select value={filters.section} onChange={setFilter("section")} className='h-9 w-full rounded-lg border border-gray-300 bg-white px-2 text-xs text-gray-700 outline-none transition focus:border-green-600'>
+                  <option value=''>All Sections</option>
+                  {optionList(options.data?.sections)}
                 </Select>
               </div>
 
@@ -241,14 +413,9 @@ const WorkerManagement = () => {
                   Category
                 </label>
 
-                <Select className='h-9 w-full rounded-lg border border-gray-300 bg-white px-2 text-xs text-gray-700 outline-none transition focus:border-green-600'>
-                  {workerManagementData.filters.categoryOptions.map(
-                    (option) => (
-                      <option key={option.value} value={option.value}>
-                        {option.label}
-                      </option>
-                    ),
-                  )}
+                <Select value={filters.jobTask} onChange={setFilter("jobTask")} className='h-9 w-full rounded-lg border border-gray-300 bg-white px-2 text-xs text-gray-700 outline-none transition focus:border-green-600'>
+                  <option value=''>All Categories</option>
+                  {optionList(options.data?.categories)}
                 </Select>
               </div>
 
@@ -260,14 +427,9 @@ const WorkerManagement = () => {
                   Worker Type
                 </label>
 
-                <Select className='h-9 w-full rounded-lg border border-gray-300 bg-white px-2 text-xs text-gray-700 outline-none transition focus:border-green-600'>
-                  {workerManagementData.filters.workerTypeOptions.map(
-                    (option) => (
-                      <option key={option.value} value={option.value}>
-                        {option.label}
-                      </option>
-                    ),
-                  )}
+                <Select value={filters.workerType} onChange={setFilter("workerType")} className='h-9 w-full rounded-lg border border-gray-300 bg-white px-2 text-xs text-gray-700 outline-none transition focus:border-green-600'>
+                  <option value=''>All Types</option>
+                  {optionList(options.data?.workerTypes)}
                 </Select>
               </div>
 
@@ -279,12 +441,9 @@ const WorkerManagement = () => {
                   Status
                 </label>
 
-                <Select className='h-9 w-full rounded-lg border border-gray-300 bg-white px-2 text-xs text-gray-700 outline-none transition focus:border-green-600'>
-                  {workerManagementData.filters.statusOptions.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
+                <Select value={filters.workerStatus} onChange={setFilter("workerStatus")} className='h-9 w-full rounded-lg border border-gray-300 bg-white px-2 text-xs text-gray-700 outline-none transition focus:border-green-600'>
+                  <option value=''>All Status</option>
+                  {optionList(options.data?.statuses)}
                 </Select>
               </div>
 
@@ -304,6 +463,8 @@ const WorkerManagement = () => {
 
                   <input
                     type='text'
+                    value={filters.search}
+                    onChange={setFilter("search")}
                     placeholder={
                       workerManagementData.filters.search.placeholder
                     }
@@ -319,7 +480,10 @@ const WorkerManagement = () => {
             <div className='mt-3 flex justify-end'>
               <button
                 type='button'
-                className='flex h-8 w-8 items-center justify-center rounded-lg border border-gray-300 text-gray-500 transition hover:border-green-600 hover:bg-green-50 hover:text-green-700'
+                title='Reset Filters'
+                onClick={resetFilters}
+                disabled={!hasFilters}
+                className='flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg border border-gray-300 text-gray-500 transition hover:border-green-600 hover:bg-green-50 hover:text-green-700 disabled:cursor-not-allowed disabled:opacity-50'
               >
                 <SlidersHorizontal size={15} />
               </button>
@@ -350,107 +514,83 @@ const WorkerManagement = () => {
                         TABLE BODY
                     ================================================== */}
                 <tbody>
-                  {workerManagementData.workers.map((worker) => (
-                    <tr
-                      key={worker.id}
-                      className='border-b border-gray-100 transition hover:bg-gray-50'
-                    >
-                      {/* SL */}
-                      <td className='px-3 py-2.5 text-[10px] text-gray-600'>
-                        {worker.sl}
-                      </td>
-
-                      {/* WORKER ID */}
-                      <td className='whitespace-nowrap px-3 py-2.5 text-[10px] font-medium text-gray-700'>
-                        {worker.workerId}
-                      </td>
-
-                      {/* PHOTO */}
-                      <td className='px-3 py-2.5'>
-                        <div className='h-7 w-7 overflow-hidden rounded-full border border-gray-200 bg-gray-100'>
-                          <img
-                            src={worker.photo}
-                            alt={worker.workerName}
-                            className='h-full w-full object-cover'
-                          />
-                        </div>
-                      </td>
-
-                      {/* WORKER NAME */}
-                      <td className='whitespace-nowrap px-3 py-2.5 text-[10px] font-medium text-gray-700'>
-                        {worker.workerName}
-                      </td>
-
-                      {/* FATHER NAME */}
-                      <td className='whitespace-nowrap px-3 py-2.5 text-[10px] text-gray-600'>
-                        {worker.fatherName}
-                      </td>
-
-                      {/* CATEGORY */}
-                      <td className='whitespace-nowrap px-3 py-2.5 text-[10px] text-gray-600'>
-                        {worker.category}
-                      </td>
-
-                      {/* SECTION */}
-                      <td className='whitespace-nowrap px-3 py-2.5 text-[10px] text-gray-600'>
-                        {worker.section}
-                      </td>
-
-                      {/* MOBILE */}
-                      <td className='whitespace-nowrap px-3 py-2.5 text-[10px] text-gray-600'>
-                        {worker.mobile}
-                      </td>
-
-                      {/* JOIN DATE */}
-                      <td className='whitespace-nowrap px-3 py-2.5 text-[10px] text-gray-600'>
-                        {worker.joinDate}
-                      </td>
-
-                      {/* STATUS */}
-                      <td className='px-3 py-2.5'>
-                        <span
-                          className={`whitespace-nowrap rounded-md px-2 py-1 text-[9px] font-medium ${
-                            statusStyleMap[worker.status] ||
-                            "bg-gray-100 text-gray-600"
-                          }`}
-                        >
-                          {worker.status}
-                        </span>
-                      </td>
-
-                      {/* ACTION */}
-                      <td className='px-3 py-2.5'>
-                        <div className='flex items-center gap-1'>
-                          {/* VIEW */}
-                          <button
-                            type='button'
-                            title='View Worker'
-                            className='flex h-7 w-7 items-center justify-center rounded-md text-blue-500 transition hover:bg-blue-50'
-                          >
-                            <Eye size={14} />
-                          </button>
-
-                          {/* EDIT */}
-                          <button
-                            type='button'
-                            title='Edit Worker'
-                            className='flex h-7 w-7 items-center justify-center rounded-md text-blue-500 transition hover:bg-blue-50'
-                          >
-                            <Pencil size={14} />
-                          </button>
-
-                          {/* MORE */}
-                          <button
-                            type='button'
-                            title='More Actions'
-                            className='flex h-7 w-7 items-center justify-center rounded-md text-gray-500 transition hover:bg-gray-100'
-                          >
-                            <MoreVertical size={14} />
-                          </button>
-                        </div>
+                  {list.loading && !list.data ? (
+                    <TableSkeleton rows={5} columns={workerManagementData.tableHeaders.length} />
+                  ) : list.error ? (
+                    <tr>
+                      <td colSpan={workerManagementData.tableHeaders.length} className='p-4'>
+                        <ErrorState message={list.error.message} onRetry={list.reload} />
                       </td>
                     </tr>
-                  ))}
+                  ) : rows.length === 0 ? (
+                    <EmptyRow columns={workerManagementData.tableHeaders.length} message='No workers found' />
+                  ) : (
+                    rows.map((worker, index) => (
+                      <tr
+                        key={worker.id}
+                        onClick={() => setSelectedId(worker.id)}
+                        className={`cursor-pointer border-b border-gray-100 transition hover:bg-gray-50 ${worker.id === shownId ? "bg-green-50/60" : ""}`}
+                      >
+                        <td className='px-3 py-2.5 text-[10px] text-gray-600'>{(page - 1) * PER_PAGE + index + 1}</td>
+                        <td className='whitespace-nowrap px-3 py-2.5 text-[10px] font-medium text-gray-700'>{worker.workerId}</td>
+                        <td className='px-3 py-2.5'>
+                          <div className='flex h-7 w-7 items-center justify-center overflow-hidden rounded-full border border-gray-200 bg-gray-100 text-[10px] font-semibold text-gray-500'>
+                            {worker.workerPhotoUrl ? (
+                              <img src={worker.workerPhotoUrl} alt={worker.workerName} className='h-full w-full object-cover' />
+                            ) : (
+                              (worker.workerName || "").charAt(0).toUpperCase()
+                            )}
+                          </div>
+                        </td>
+                        <td className='whitespace-nowrap px-3 py-2.5 text-[10px] font-medium text-gray-700'>{worker.workerName}</td>
+                        <td className='whitespace-nowrap px-3 py-2.5 text-[10px] text-gray-600'>{orDash(worker.fathersName)}</td>
+                        <td className='whitespace-nowrap px-3 py-2.5 text-[10px] text-gray-600'>{orDash(worker.jobTaskLabel)}</td>
+                        <td className='whitespace-nowrap px-3 py-2.5 text-[10px] text-gray-600'>{orDash(worker.sectionLabel)}</td>
+                        <td className='whitespace-nowrap px-3 py-2.5 text-[10px] text-gray-600'>{orDash(worker.mobileNo)}</td>
+                        <td className='whitespace-nowrap px-3 py-2.5 text-[10px] text-gray-600'>{orDash(worker.joinDate)}</td>
+                        <td className='px-3 py-2.5'>
+                          <span
+                            className={`whitespace-nowrap rounded-md px-2 py-1 text-[9px] font-medium ${
+                              statusStyleMap[worker.workerStatusLabel] || "bg-gray-100 text-gray-600"
+                            }`}
+                          >
+                            {orDash(worker.workerStatusLabel)}
+                          </span>
+                        </td>
+                        <td className='px-3 py-2.5' onClick={(event) => event.stopPropagation()}>
+                          <PendingBadge row={worker} />
+                          <div className='flex items-center gap-1'>
+                            <button
+                              type='button'
+                              title='View Worker'
+                              onClick={() => setSelectedId(worker.id)}
+                              className='flex h-7 w-7 cursor-pointer items-center justify-center rounded-md text-blue-500 transition hover:bg-blue-50'
+                            >
+                              <Eye size={14} />
+                            </button>
+                            <button
+                              type='button'
+                              disabled={Boolean(worker.pendingRequest)}
+                              title={waitingTitle(worker, "Edit")}
+                              onClick={() => navigate(`/add-new-worker?id=${worker.id}`)}
+                              className='flex h-7 w-7 cursor-pointer items-center justify-center rounded-md text-blue-500 transition hover:bg-blue-50 disabled:cursor-not-allowed disabled:opacity-40'
+                            >
+                              <Pencil size={14} />
+                            </button>
+                            <button
+                              type='button'
+                              disabled={Boolean(worker.pendingRequest)}
+                              title={waitingTitle(worker, "Delete")}
+                              onClick={() => setDeleting(worker)}
+                              className='flex h-7 w-7 cursor-pointer items-center justify-center rounded-md text-red-500 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-40'
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>
@@ -462,67 +602,33 @@ const WorkerManagement = () => {
               {/* SHOWING INFO */}
               <p className='text-[11px] text-gray-500'>
                 Showing{" "}
-                <span className='font-medium text-gray-700'>
-                  {workerManagementData.pagination.showingFrom}
-                </span>{" "}
-                to{" "}
-                <span className='font-medium text-gray-700'>
-                  {workerManagementData.pagination.showingTo}
-                </span>{" "}
-                of{" "}
-                <span className='font-medium text-gray-700'>
-                  {workerManagementData.pagination.totalItems.toLocaleString()}
-                </span>{" "}
-                entries
+                <span className='font-medium text-gray-700'>{from}</span>{" "}
+                to <span className='font-medium text-gray-700'>{to}</span> of{" "}
+                <span className='font-medium text-gray-700'>{total.toLocaleString()}</span> entries
               </p>
 
               {/* PAGE BUTTONS */}
               <div className='flex items-center gap-1'>
-                {/* PREVIOUS */}
                 <button
                   type='button'
-                  className='flex h-7 w-7 items-center justify-center rounded-md border border-gray-300 text-xs text-gray-500 hover:bg-gray-50'
+                  aria-label='Previous page'
+                  disabled={page <= 1}
+                  onClick={() => setPage((current) => current - 1)}
+                  className='flex h-7 w-7 cursor-pointer items-center justify-center rounded-md border border-gray-300 text-gray-500 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40'
                 >
-                  ‹
+                  <ChevronLeft size={14} />
                 </button>
-
-                {/* PAGE NUMBERS */}
-                {workerManagementData.pagination.pages.map((page, index) => {
-                  const isActive =
-                    page === workerManagementData.pagination.currentPage;
-
-                  if (page === "...") {
-                    return (
-                      <span
-                        key={`ellipsis-${index}`}
-                        className='flex h-7 w-7 items-center justify-center text-xs text-gray-500'
-                      >
-                        ...
-                      </span>
-                    );
-                  }
-
-                  return (
-                    <button
-                      key={page}
-                      type='button'
-                      className={`flex h-7 w-7 items-center justify-center rounded-md text-xs font-medium transition ${
-                        isActive
-                          ? "bg-green-700 text-white"
-                          : "border border-gray-300 text-gray-600 hover:bg-gray-50"
-                      }`}
-                    >
-                      {page}
-                    </button>
-                  );
-                })}
-
-                {/* NEXT */}
+                <span className='flex h-7 min-w-7 items-center justify-center rounded-md bg-green-700 px-2 text-xs font-medium text-white'>
+                  {page} / {totalPages}
+                </span>
                 <button
                   type='button'
-                  className='flex h-7 w-7 items-center justify-center rounded-md border border-gray-300 text-xs text-gray-500 hover:bg-gray-50'
+                  aria-label='Next page'
+                  disabled={page >= totalPages}
+                  onClick={() => setPage((current) => current + 1)}
+                  className='flex h-7 w-7 cursor-pointer items-center justify-center rounded-md border border-gray-300 text-gray-500 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40'
                 >
-                  ›
+                  <ChevronRight size={14} />
                 </button>
               </div>
             </div>
@@ -545,14 +651,14 @@ const WorkerManagement = () => {
               {/* STATUS */}
               <span
                 className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-medium ${
-                  workerManagementData.workerProfile.status === "Active"
+                  pf.status === "Active"
                     ? "bg-green-50 text-green-700"
                     : "bg-orange-50 text-orange-600"
                 }`}
               >
                 <span className='h-1.5 w-1.5 rounded-full bg-current' />
 
-                {workerManagementData.workerProfile.status}
+                {pf.status}
               </span>
             </div>
 
@@ -562,23 +668,25 @@ const WorkerManagement = () => {
             <div className='mt-4 flex gap-4 border-b border-gray-200 pb-4'>
               {/* PROFILE IMAGE */}
               <div className='h-28 w-24 shrink-0 overflow-hidden rounded-lg bg-gray-100'>
-                <img
-                  src={workerManagementData.workerProfile.photo}
-                  alt={workerManagementData.workerProfile.workerName}
-                  className='h-full w-full object-cover'
-                />
+                {profile.workerPhotoUrl ? (
+                  <img src={profile.workerPhotoUrl} alt={pf.workerName} className='h-full w-full object-cover' />
+                ) : (
+                  <div className='flex h-full w-full items-center justify-center text-2xl font-semibold text-gray-400'>
+                    {(profile.workerName || "").charAt(0).toUpperCase()}
+                  </div>
+                )}
               </div>
 
               {/* BASIC DETAILS */}
               <div className='min-w-0 flex-1'>
                 {/* NAME */}
                 <h3 className='truncate text-base font-semibold text-gray-800'>
-                  {workerManagementData.workerProfile.workerName}
+                  {pf.workerName}
                 </h3>
 
                 {/* WORKER ID */}
                 <p className='mt-0.5 text-[10px] font-medium text-gray-500'>
-                  {workerManagementData.workerProfile.workerId}
+                  {pf.workerId}
                 </p>
 
                 {/* DESIGNATION */}
@@ -589,7 +697,7 @@ const WorkerManagement = () => {
                   />
 
                   <span className='truncate text-[10px] text-gray-600'>
-                    {workerManagementData.workerProfile.designation}
+                    {pf.jobTaskLabel}
                   </span>
                 </div>
 
@@ -598,7 +706,7 @@ const WorkerManagement = () => {
                   <MapPin size={13} className='shrink-0 text-green-700' />
 
                   <span className='truncate text-[10px] text-gray-600'>
-                    {workerManagementData.workerProfile.section}
+                    {pf.sectionLabel}
                   </span>
                 </div>
 
@@ -607,7 +715,7 @@ const WorkerManagement = () => {
                   <Phone size={13} className='shrink-0 text-green-700' />
 
                   <span className='text-[10px] text-gray-600'>
-                    {workerManagementData.workerProfile.mobile}
+                    {pf.mobileNo}
                   </span>
                 </div>
 
@@ -616,7 +724,7 @@ const WorkerManagement = () => {
                   <Mail size={13} className='shrink-0 text-green-700' />
 
                   <span className='truncate text-[10px] text-gray-600'>
-                    {workerManagementData.workerProfile.email}
+                    {pf.personalEmail}
                   </span>
                 </div>
 
@@ -625,7 +733,7 @@ const WorkerManagement = () => {
                   <Calendar size={13} className='shrink-0 text-green-700' />
 
                   <span className='text-[10px] text-gray-600'>
-                    {workerManagementData.workerProfile.joinDate}
+                    {pf.joinDate}
                   </span>
 
                   <span className='text-[9px] text-gray-400'>Join Date</span>
@@ -666,7 +774,7 @@ const WorkerManagement = () => {
                   <span className='text-gray-400'>:</span>
 
                   <span className='font-medium text-gray-700'>
-                    {workerManagementData.workerProfile.personalInfo.fatherName}
+                    {pf.fathersName}
                   </span>
                 </div>
 
@@ -677,7 +785,7 @@ const WorkerManagement = () => {
                   <span className='text-gray-400'>:</span>
 
                   <span className='font-medium text-gray-700'>
-                    {workerManagementData.workerProfile.personalInfo.motherName}
+                    {pf.mothersName}
                   </span>
                 </div>
 
@@ -689,8 +797,7 @@ const WorkerManagement = () => {
 
                   <span className='font-medium text-gray-700'>
                     {
-                      workerManagementData.workerProfile.personalInfo
-                        .dateOfBirth
+                      pf.dateOfBirth
                     }
                   </span>
                 </div>
@@ -702,7 +809,7 @@ const WorkerManagement = () => {
                   <span className='text-gray-400'>:</span>
 
                   <span className='font-medium text-gray-700'>
-                    {workerManagementData.workerProfile.personalInfo.gender}
+                    {pf.gender}
                   </span>
                 </div>
 
@@ -713,7 +820,7 @@ const WorkerManagement = () => {
                   <span className='text-gray-400'>:</span>
 
                   <span className='font-medium text-gray-700'>
-                    {workerManagementData.workerProfile.personalInfo.bloodGroup}
+                    {pf.bloodGroup}
                   </span>
                 </div>
 
@@ -725,8 +832,7 @@ const WorkerManagement = () => {
 
                   <span className='font-medium text-gray-700'>
                     {
-                      workerManagementData.workerProfile.personalInfo
-                        .maritalStatus
+                      pf.maritalStatus
                     }
                   </span>
                 </div>
@@ -738,7 +844,7 @@ const WorkerManagement = () => {
                   <span className='text-gray-400'>:</span>
 
                   <span className='break-all font-medium text-gray-700'>
-                    {workerManagementData.workerProfile.personalInfo.nidNumber}
+                    {"-"}
                   </span>
                 </div>
 
@@ -749,7 +855,7 @@ const WorkerManagement = () => {
                   <span className='text-gray-400'>:</span>
 
                   <span className='font-medium text-gray-700'>
-                    {workerManagementData.workerProfile.personalInfo.mobile}
+                    {pf.mobileNo}
                   </span>
                 </div>
 
@@ -761,8 +867,7 @@ const WorkerManagement = () => {
 
                   <span className='leading-4 font-medium text-gray-700'>
                     {
-                      workerManagementData.workerProfile.personalInfo
-                        .presentAddress
+                      pf.presentAddress
                     }
                   </span>
                 </div>
@@ -775,8 +880,7 @@ const WorkerManagement = () => {
 
                   <span className='leading-4 font-medium text-gray-700'>
                     {
-                      workerManagementData.workerProfile.personalInfo
-                        .permanentAddress
+                      pf.permanentAddress
                     }
                   </span>
                 </div>
@@ -808,7 +912,7 @@ const WorkerManagement = () => {
               <ResponsiveContainer width='100%' height='100%'>
                 <PieChart>
                   <Pie
-                    data={workerManagementData.categoryWiseWorkers}
+                    data={categoryWiseWorkers}
                     dataKey='value'
                     nameKey='name'
                     cx='50%'
@@ -819,7 +923,7 @@ const WorkerManagement = () => {
                     stroke='white'
                     strokeWidth={2}
                   >
-                    {workerManagementData.categoryWiseWorkers.map((item) => (
+                    {categoryWiseWorkers.map((item) => (
                       <Cell key={item.id} fill={item.color} />
                     ))}
                   </Pie>
@@ -838,7 +942,7 @@ const WorkerManagement = () => {
                     LEGEND
                 ================================================== */}
             <div className='space-y-3'>
-              {workerManagementData.categoryWiseWorkers.map((item) => (
+              {categoryWiseWorkers.map((item) => (
                 <div
                   key={item.id}
                   className='flex items-center justify-between gap-2'
@@ -879,7 +983,7 @@ const WorkerManagement = () => {
 
           {/* DISTRIBUTION LIST */}
           <div className='mt-5 space-y-3'>
-            {workerManagementData.sectionWiseDistribution.map((item) => (
+            {sectionWiseDistribution.map((item) => (
               <div key={item.id} className='flex items-center gap-3'>
                 {/* SECTION NAME */}
                 <div className='w-[82px] shrink-0'>
@@ -920,7 +1024,7 @@ const WorkerManagement = () => {
 
           {/* WORKER TYPE LIST */}
           <div className='mt-5 space-y-4'>
-            {workerManagementData.workerTypes.map((item) => {
+            {workerTypes.map((item) => {
               const Icon = workerTypeIconMap[item.icon] || Users;
 
               return (
@@ -988,7 +1092,7 @@ const WorkerManagement = () => {
 
               {/* TABLE BODY */}
               <tbody>
-                {workerManagementData.recentJoinees.map((worker) => (
+                {recentJoinees.map((worker) => (
                   <tr key={worker.id} className='transition hover:bg-gray-50'>
                     {/* WORKER ID */}
                     <td className='border border-gray-300 px-3 py-1.5 text-[9px] text-gray-600'>
@@ -1032,7 +1136,7 @@ const WorkerManagement = () => {
           <h3 className='text-sm font-semibold text-green-700'>Documents</h3>
 
           <div className='mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-5'>
-            {workerManagementData.documents.map((document) => {
+            {documents.map((document) => {
               const Icon = documentIconMap[document.icon] || FileText;
 
               return (
@@ -1051,7 +1155,7 @@ const WorkerManagement = () => {
                   </div>
 
                   {/* STATUS */}
-                  <span className='mt-1.5 text-[8px] text-gray-500'>
+                  <span className={`mt-1.5 text-[8px] ${document.status === "Uploaded" ? "text-green-700" : "text-gray-500"}`}>
                     {document.status}
                   </span>
                 </div>
@@ -1070,7 +1174,7 @@ const WorkerManagement = () => {
             ==================================================== */}
         <div className='rounded-xl border border-gray-200 bg-white p-4 shadow-sm xl:col-span-4'>
           <h3 className='text-sm font-semibold text-green-700'>
-            {workerManagementData.attendanceOverview.title}
+            {attendanceOverview.title}
           </h3>
 
           {/* ATTENDANCE STATS */}
@@ -1081,14 +1185,14 @@ const WorkerManagement = () => {
                 className='relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full'
                 style={{
                   background: `conic-gradient(
-              #15803d ${workerManagementData.attendanceOverview.present.percentage}%,
+              #15803d ${attendanceOverview.present.percentage}%,
               #e5e7eb 0
             )`,
                 }}
               >
                 <div className='flex h-7 w-7 items-center justify-center rounded-full bg-white'>
                   <span className='text-[8px] font-semibold text-gray-700'>
-                    {workerManagementData.attendanceOverview.present.percentage}
+                    {attendanceOverview.present.percentage}
                     %
                   </span>
                 </div>
@@ -1099,7 +1203,7 @@ const WorkerManagement = () => {
 
                 <p className='text-[9px] font-semibold text-gray-700'>
                   {Number(
-                    workerManagementData.attendanceOverview.present.value,
+                    attendanceOverview.present.value,
                   ).toLocaleString()}
                 </p>
               </div>
@@ -1111,14 +1215,14 @@ const WorkerManagement = () => {
                 className='relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full'
                 style={{
                   background: `conic-gradient(
-              #f87171 ${workerManagementData.attendanceOverview.absent.percentage}%,
+              #f87171 ${attendanceOverview.absent.percentage}%,
               #e5e7eb 0
             )`,
                 }}
               >
                 <div className='flex h-7 w-7 items-center justify-center rounded-full bg-white'>
                   <span className='text-[8px] font-semibold text-gray-700'>
-                    {workerManagementData.attendanceOverview.absent.percentage}%
+                    {attendanceOverview.absent.percentage}%
                   </span>
                 </div>
               </div>
@@ -1128,7 +1232,7 @@ const WorkerManagement = () => {
 
                 <p className='text-[9px] font-semibold text-gray-700'>
                   {Number(
-                    workerManagementData.attendanceOverview.absent.value,
+                    attendanceOverview.absent.value,
                   ).toLocaleString()}
                 </p>
               </div>
@@ -1140,14 +1244,14 @@ const WorkerManagement = () => {
                 className='relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full'
                 style={{
                   background: `conic-gradient(
-              #f59e0b ${workerManagementData.attendanceOverview.leave.percentage}%,
+              #f59e0b ${attendanceOverview.leave.percentage}%,
               #e5e7eb 0
             )`,
                 }}
               >
                 <div className='flex h-7 w-7 items-center justify-center rounded-full bg-white'>
                   <span className='text-[8px] font-semibold text-gray-700'>
-                    {workerManagementData.attendanceOverview.leave.percentage}%
+                    {attendanceOverview.leave.percentage}%
                   </span>
                 </div>
               </div>
@@ -1157,7 +1261,7 @@ const WorkerManagement = () => {
 
                 <p className='text-[9px] font-semibold text-gray-700'>
                   {Number(
-                    workerManagementData.attendanceOverview.leave.value,
+                    attendanceOverview.leave.value,
                   ).toLocaleString()}
                 </p>
               </div>
@@ -1169,7 +1273,7 @@ const WorkerManagement = () => {
             type='button'
             className='mx-auto cursor-pointer mt-4 block rounded-md border border-gray-300 px-4 py-1.5 text-[9px] font-medium text-gray-600 transition hover:border-green-600 hover:bg-green-50 hover:text-green-700'
           >
-            {workerManagementData.attendanceOverview.buttonText}
+            {attendanceOverview.buttonText}
           </button>
         </div>
 
@@ -1206,6 +1310,15 @@ const WorkerManagement = () => {
           </div>
         </div>
       </div>
+
+      <ConfirmDialog
+        open={Boolean(deleting)}
+        title='Delete worker?'
+        message={`${deleting?.workerName ?? "This worker"} will be removed from the list.`}
+        loading={deleteBusy}
+        onConfirm={confirmDelete}
+        onCancel={() => setDeleting(null)}
+      />
     </div>
   );
 };

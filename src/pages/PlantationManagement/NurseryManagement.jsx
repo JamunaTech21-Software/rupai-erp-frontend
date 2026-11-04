@@ -186,6 +186,13 @@ const NurseryManagement = () => {
                 <h2 className='text-base font-semibold text-green-700'>
                   Nursery Information
                 </h2>
+                <button
+                  type='button'
+                  onClick={() => navigate("/nursery-list")}
+                  className='cursor-pointer rounded-lg border border-green-700 bg-white px-3 py-1.5 text-sm font-medium text-green-700 transition hover:bg-green-50'
+                >
+                  Nursery List
+                </button>
                 <Select
                   aria-label='Select nursery'
                   value={editId ?? ""}
