@@ -1,5 +1,6 @@
-import React from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
 import HrWorkforceTabs from "../../components/HrWorkforceTabs/HrWorkforceTabs";
 import employeeManagementData from "../../data/HrWorkforceData/employeeManagementData";
 
@@ -14,11 +15,15 @@ import {
   RotateCcw,
   Upload,
   Plus,
-  MoreVertical,
   ChevronLeft,
   ChevronRight,
   ArrowRightLeft,
   FileBarChart,
+  Download,
+  Pencil,
+  Trash2,
+  ChevronsLeft,
+  ChevronsRight,
 } from "lucide-react";
 import {
   PieChart,
@@ -32,14 +37,116 @@ import {
   BarChart,
 } from "recharts";
 import Select from "../../components/common/Select";
+import TableSkeleton from "../../components/common/TableSkeleton";
+import EmptyRow from "../../components/common/EmptyRow";
+import ErrorState from "../../components/common/ErrorState";
+import ConfirmDialog from "../../components/common/ConfirmDialog";
+import PendingBadge from "../../components/common/PendingBadge";
+import { waitingTitle } from "../../lib/waitingTitle";
+import { api, notifySaved } from "../../lib/api";
+import { useApi } from "../../lib/useApi";
+
+const EMPTY_FILTERS = { search: "", department: "", designation: "", employeeType: "", employeeStatus: "", joinFrom: "", joinTo: "" };
+const COLUMNS = employeeManagementData.table.headers.length;
+const DEFAULT_COLORS = ["#166534", "#3b82f6", "#f59e0b", "#8b5cf6", "#ec4899", "#14b8a6"];
+const statusText = (value) => (value ? value.charAt(0).toUpperCase() + value.slice(1) : "-");
+const orDash = (value) => (value === null || value === undefined || value === "" ? "-" : value);
+const initialOf = (name) => (name || "").replace(/^(Mr|Mrs|Ms|Dr)\.?\s+/i, "").charAt(0).toUpperCase();
+const percentText = (value) => (typeof value === "number" ? `${value}%` : value ?? "");
+
 const EmployeeManagement = () => {
-  const {
-    employeesByEmploymentType,
-    genderDistribution,
-    recentJoiners,
-    ageGroupDistribution,
-    lengthOfService,
-  } = employeeManagementData;
+  // Filters: what is typed (draft) and what the list uses (applied, after Search).
+  const [draft, setDraft] = useState(EMPTY_FILTERS);
+  const [filters, setFilters] = useState(EMPTY_FILTERS);
+  const [page, setPage] = useState(1);
+  const [perPage, setPerPage] = useState(10);
+  const [deleting, setDeleting] = useState(null);
+  const [deleteBusy, setDeleteBusy] = useState(false);
+  const [exporting, setExporting] = useState(false);
+  const setField = (name) => (event) => setDraft((current) => ({ ...current, [name]: event.target.value }));
+  const applyFilters = () => {
+    setFilters(draft);
+    setPage(1);
+  };
+  const resetFilters = () => {
+    setDraft(EMPTY_FILTERS);
+    setFilters(EMPTY_FILTERS);
+    setPage(1);
+  };
+  const onSearchKey = (event) => {
+    if (event.key === "Enter") applyFilters();
+  };
+
+  const options = useApi(() => api.get("/employees/filter-options"), []);
+  const employeesList = useApi(
+    () => api.get("/employees", { ...filters, page, perPage }),
+    [filters, page, perPage],
+  );
+  const summaryData = useApi(() => api.get("/employees/summary", filters), [filters]);
+  const rows = employeesList.data?.data ?? [];
+  const meta = employeesList.data?.meta;
+  const total = meta?.total ?? 0;
+  const totalPages = Math.max(meta?.totalPages ?? 1, 1);
+  const from = rows.length > 0 ? (page - 1) * perPage + 1 : 0;
+  const to = (page - 1) * perPage + rows.length;
+
+  const summary = summaryData.data ?? {};
+  const summaryCards = summary.summaryCards ?? [];
+  const departmentOverview = summary.departmentOverview ?? { title: "Employees by Department", totalEmployees: 0, data: [] };
+  const employeeTypeOverview = summary.employeeTypeOverview ?? { totalEmployees: 0, data: [] };
+  const recentJoiners = summary.recentJoiners ?? [];
+  const genderDistribution = summary.genderDistribution ?? [];
+  const ageGroupDistribution = summary.ageGroupDistribution ?? [];
+  const lengthOfService = summary.lengthOfService ?? [];
+  const documentExpiryAlerts = summary.documentExpiryAlerts ?? employeeManagementData.documentExpiryAlerts;
+  const totalEmployees = summary.totalEmployees ?? 0;
+  const lengthMax = Math.max(1, ...lengthOfService.map((item) => item.value));
+  const ageMax = Math.max(1, ...ageGroupDistribution.map((item) => item.value));
+
+  // After a delete took the last row of a page, step back one page.
+  useEffect(() => {
+    if (meta && page > meta.totalPages && meta.totalPages >= 1) setPage(meta.totalPages);
+  }, [meta, page]);
+
+  const exportList = async () => {
+    setExporting(true);
+    try {
+      const blob = await api.download("/employees/export", { ...filters, format: "xlsx" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = `employees-${new Date().toISOString().slice(0, 10)}.xlsx`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(link.href);
+    } catch (error) {
+      toast.error(error.message);
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  const confirmDelete = async () => {
+    setDeleteBusy(true);
+    try {
+      const result = await api.del(`/employees/${deleting.id}`);
+      notifySaved(result, "Employee deleted successfully!");
+      setDeleting(null);
+      employeesList.reload();
+      summaryData.reload();
+    } catch (error) {
+      toast.error(error.message);
+    } finally {
+      setDeleteBusy(false);
+    }
+  };
+
+  const pageButton = "flex h-8 w-8 items-center justify-center rounded-md border border-gray-200 text-gray-500 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40";
+  const optionList = (list) => (list ?? []).map((item) => (
+    <option key={item.id ?? item.value} value={item.value}>
+      {item.label}
+    </option>
+  ));
 
   // =========================================================
   // Summary Icons
@@ -95,7 +202,7 @@ const EmployeeManagement = () => {
       {/* Summary Cards */}
       {/* ========================================================= */}
       <section className='grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-6'>
-        {employeeManagementData.summaryCards.map((card) => {
+        {summaryCards.map((card) => {
           const Icon = summaryIconMap[card.key];
 
           const color = summaryColorMap[card.colorKey] || summaryColorMap.green;
@@ -155,6 +262,9 @@ const EmployeeManagement = () => {
             <div className='relative'>
               <input
                 type='text'
+                value={draft.search}
+                onChange={setField("search")}
+                onKeyDown={onSearchKey}
                 placeholder={employeeManagementData.filters.search.placeholder}
                 className='h-10 w-full rounded-lg border border-gray-200 bg-white px-3 pr-9 text-xs text-gray-700 outline-none transition focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500'
               />
@@ -172,14 +282,9 @@ const EmployeeManagement = () => {
               {employeeManagementData.filters.department.label}
             </label>
 
-            <Select className='h-10 w-full rounded-lg border border-gray-200 bg-white px-3 text-xs text-gray-700 outline-none transition focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500'>
-              {employeeManagementData.filters.department.options.map(
-                (option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ),
-              )}
+            <Select value={draft.department} onChange={setField("department")} className='h-10 w-full rounded-lg border border-gray-200 bg-white px-3 text-xs text-gray-700 outline-none transition focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500'>
+              <option value=''>{employeeManagementData.filters.department.options[0].label}</option>
+              {optionList(options.data?.departments?.filter((item) => item.value !== ""))}
             </Select>
           </div>
 
@@ -189,14 +294,9 @@ const EmployeeManagement = () => {
               {employeeManagementData.filters.designation.label}
             </label>
 
-            <Select className='h-10 w-full rounded-lg border border-gray-200 bg-white px-3 text-xs text-gray-700 outline-none transition focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500'>
-              {employeeManagementData.filters.designation.options.map(
-                (option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ),
-              )}
+            <Select value={draft.designation} onChange={setField("designation")} className='h-10 w-full rounded-lg border border-gray-200 bg-white px-3 text-xs text-gray-700 outline-none transition focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500'>
+              <option value=''>{employeeManagementData.filters.designation.options[0].label}</option>
+              {optionList(options.data?.designations?.filter((item) => item.value !== ""))}
             </Select>
           </div>
 
@@ -206,14 +306,9 @@ const EmployeeManagement = () => {
               {employeeManagementData.filters.employmentType.label}
             </label>
 
-            <Select className='h-10 w-full rounded-lg border border-gray-200 bg-white px-2 text-xs text-gray-700 outline-none transition focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500'>
-              {employeeManagementData.filters.employmentType.options.map(
-                (option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ),
-              )}
+            <Select value={draft.employeeType} onChange={setField("employeeType")} className='h-10 w-full rounded-lg border border-gray-200 bg-white px-2 text-xs text-gray-700 outline-none transition focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500'>
+              <option value=''>{employeeManagementData.filters.employmentType.options[0].label}</option>
+              {optionList(options.data?.employmentTypes?.filter((item) => item.value !== ""))}
             </Select>
           </div>
 
@@ -223,12 +318,9 @@ const EmployeeManagement = () => {
               {employeeManagementData.filters.status.label}
             </label>
 
-            <Select className='h-10 w-full rounded-lg border border-gray-200 bg-white px-2 text-xs text-gray-700 outline-none transition focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500'>
-              {employeeManagementData.filters.status.options.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
+            <Select value={draft.employeeStatus} onChange={setField("employeeStatus")} className='h-10 w-full rounded-lg border border-gray-200 bg-white px-2 text-xs text-gray-700 outline-none transition focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500'>
+              <option value=''>{employeeManagementData.filters.status.options[0].label}</option>
+              {optionList(options.data?.statuses?.filter((item) => item.value !== ""))}
             </Select>
           </div>
 
@@ -238,17 +330,23 @@ const EmployeeManagement = () => {
               {employeeManagementData.filters.dateRange.label}
             </label>
 
-            <div className='relative'>
+            <div className='flex items-center gap-1'>
               <input
-                type='text'
-                value={`${employeeManagementData.filters.dateRange.defaultValue.from} - ${employeeManagementData.filters.dateRange.defaultValue.to}`}
-                readOnly
-                className='h-10 w-full rounded-lg border border-gray-200 bg-white px-3 pr-8 text-xs text-gray-700 outline-none'
+                type='date'
+                value={draft.joinFrom}
+                max={draft.joinTo || undefined}
+                onChange={setField("joinFrom")}
+                aria-label='Join date from'
+                className='h-10 w-full min-w-0 rounded-lg border border-gray-200 bg-white px-2 text-xs text-gray-700 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500'
               />
-
-              <CalendarDays
-                size={15}
-                className='absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400'
+              <span className='text-xs text-gray-400'>-</span>
+              <input
+                type='date'
+                value={draft.joinTo}
+                min={draft.joinFrom || undefined}
+                onChange={setField("joinTo")}
+                aria-label='Join date to'
+                className='h-10 w-full min-w-0 rounded-lg border border-gray-200 bg-white px-2 text-xs text-gray-700 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500'
               />
             </div>
           </div>
@@ -257,6 +355,7 @@ const EmployeeManagement = () => {
           <div className='col-span-12 md:col-span-1 xl:col-span-1'>
             <button
               type='button'
+              onClick={applyFilters}
               className='flex cursor-pointer h-10 w-full items-center justify-center gap-1.5 rounded-lg bg-emerald-700 px-2 text-xs font-medium text-white transition hover:bg-emerald-800'
             >
               <Search size={15} />
@@ -268,6 +367,7 @@ const EmployeeManagement = () => {
           <div className='col-span-12 md:col-span-1 xl:col-span-1'>
             <button
               type='button'
+              onClick={resetFilters}
               className='flex cursor-pointer h-10 w-full items-center justify-center gap-1.5 rounded-lg border border-gray-200 bg-white px-2 text-xs font-medium text-gray-600 transition hover:bg-gray-50'
             >
               <RotateCcw size={14} />
@@ -310,9 +410,21 @@ const EmployeeManagement = () => {
           {/* ================= Table Actions ================= */}
           <div className='flex flex-col gap-3 border-b border-gray-200 p-4 sm:flex-row sm:items-center sm:justify-end'>
             <div className='flex flex-wrap items-center gap-2'>
+              {/* Export */}
+              <button
+                type='button'
+                onClick={exportList}
+                disabled={exporting}
+                className='flex h-9 cursor-pointer items-center justify-center gap-1.5 rounded-lg border border-emerald-700 bg-white px-3 text-xs font-medium text-emerald-700 transition hover:bg-emerald-50 disabled:opacity-60'
+              >
+                <Download size={15} />
+                <span>{exporting ? "Exporting..." : "Export"}</span>
+              </button>
+
               {/* Import Employees */}
               <button
                 type='button'
+                onClick={() => toast("Coming soon")}
                 className='flex h-9 cursor-pointer items-center justify-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 text-xs font-medium text-gray-600 transition hover:bg-gray-50'
               >
                 <Upload size={15} />
@@ -359,121 +471,98 @@ const EmployeeManagement = () => {
 
                 {/* ================= Table Body ================= */}
                 <tbody>
-                  {employeeManagementData.employees.map((employee, index) => (
-                    <tr
-                      key={employee.id}
-                      className='border-b border-gray-100 transition hover:bg-gray-50/50'
-                    >
-                      {/* Checkbox */}
-                      <td className='px-3 py-2.5'>
-                        <input
-                          type='checkbox'
-                          className='h-3.5 w-3.5 cursor-pointer rounded border-gray-300 text-emerald-600 focus:ring-emerald-500'
-                        />
-                      </td>
-
-                      {/* SL */}
-                      <td className='px-3 py-2.5 text-xs text-gray-600'>
-                        {index + 1}
-                      </td>
-
-                      {/* Employee ID */}
-                      <td className='whitespace-nowrap px-3 py-2.5 text-xs font-medium text-gray-700'>
-                        {employee.employeeId}
-                      </td>
-
-                      {/* Employee Name */}
-                      <td className='px-3 py-2.5'>
-                        <div className='flex items-center gap-2.5'>
-                          <div className='h-8 w-8 shrink-0 overflow-hidden rounded-full border border-gray-200 bg-gray-100'>
-                            {employee.personalInfo.avatarUrl ? (
-                              <img
-                                src={employee.personalInfo.avatarUrl}
-                                alt={employee.personalInfo.fullName}
-                                className='h-full w-full object-cover'
-                              />
-                            ) : (
-                              <div className='flex h-full w-full items-center justify-center text-xs font-semibold text-gray-500'>
-                                {employee.personalInfo.fullName
-                                  ?.charAt(0)
-                                  ?.toUpperCase()}
-                              </div>
-                            )}
-                          </div>
-
-                          <span className='whitespace-nowrap text-xs font-medium text-gray-700'>
-                            {employee.personalInfo.fullName}
-                          </span>
-                        </div>
-                      </td>
-
-                      {/* Department */}
-                      <td className='whitespace-nowrap px-3 py-2.5 text-xs text-gray-600'>
-                        {employee.employment.departmentName}
-                      </td>
-
-                      {/* Designation */}
-                      <td className='whitespace-nowrap px-3 py-2.5 text-xs text-gray-600'>
-                        {employee.employment.designationName}
-                      </td>
-
-                      {/* Employment Type */}
-                      <td className='px-3 py-2.5'>
-                        <span
-                          className={`inline-flex rounded-md px-2 py-1 text-[10px] font-semibold ${
-                            employee.employment.employmentType === "permanent"
-                              ? "bg-emerald-50 text-emerald-700"
-                              : employee.employment.employmentType ===
-                                  "contractual"
-                                ? "bg-blue-50 text-blue-600"
-                                : "bg-orange-50 text-orange-600"
-                          }`}
-                        >
-                          {employee.employment.employmentType
-                            .charAt(0)
-                            .toUpperCase() +
-                            employee.employment.employmentType.slice(1)}
-                        </span>
-                      </td>
-
-                      {/* Status */}
-                      <td className='px-3 py-2.5'>
-                        <span
-                          className={`inline-flex rounded-md px-2 py-1 text-[10px] font-semibold ${
-                            employee.employment.status === "active"
-                              ? "bg-emerald-50 text-emerald-700"
-                              : employee.employment.status === "on-leave"
-                                ? "bg-orange-50 text-orange-600"
-                                : employee.employment.status === "inactive"
-                                  ? "bg-gray-100 text-gray-600"
-                                  : "bg-red-50 text-red-600"
-                          }`}
-                        >
-                          {employee.employment.status === "on-leave"
-                            ? "On Leave"
-                            : employee.employment.status
-                                .charAt(0)
-                                .toUpperCase() +
-                              employee.employment.status.slice(1)}
-                        </span>
-                      </td>
-
-                      {/* Join Date */}
-                      <td className='whitespace-nowrap px-3 py-2.5 text-xs text-gray-600'>
-                        {employee.employment.joinDate}
-                      </td>
-
-                      {/* Action */}
-                      <td className='px-3 py-2.5'>
-                        <button
-                          type='button'
-                          className='flex h-7 w-7 items-center justify-center rounded-md border border-gray-200 text-gray-500 transition hover:bg-gray-50 hover:text-gray-700'
-                        >
-                          <MoreVertical size={15} />
-                        </button>
+                  {employeesList.loading && !employeesList.data ? (
+                    <TableSkeleton rows={5} columns={COLUMNS} />
+                  ) : employeesList.error ? (
+                    <tr>
+                      <td colSpan={COLUMNS} className='p-4'>
+                        <ErrorState message={employeesList.error.message} onRetry={employeesList.reload} />
                       </td>
                     </tr>
-                  ))}
+                  ) : rows.length === 0 ? (
+                    <EmptyRow columns={COLUMNS} message='No employees found' />
+                  ) : (
+                    rows.map((employee, index) => (
+                      <tr key={employee.id} className='border-b border-gray-100 transition hover:bg-gray-50/50'>
+                        <td className='px-3 py-2.5'>
+                          <input
+                            type='checkbox'
+                            className='h-3.5 w-3.5 cursor-pointer rounded border-gray-300 text-emerald-600 focus:ring-emerald-500'
+                          />
+                        </td>
+                        <td className='px-3 py-2.5 text-xs text-gray-600'>{(page - 1) * perPage + index + 1}</td>
+                        <td className='whitespace-nowrap px-3 py-2.5 text-xs font-medium text-gray-700'>{employee.employeeId}</td>
+                        <td className='px-3 py-2.5'>
+                          <div className='flex items-center gap-2.5'>
+                            <div className='h-8 w-8 shrink-0 overflow-hidden rounded-full border border-gray-200 bg-gray-100'>
+                              {employee.employeePhotoUrl ? (
+                                <img src={employee.employeePhotoUrl} alt={employee.fullName} className='h-full w-full object-cover' />
+                              ) : (
+                                <div className='flex h-full w-full items-center justify-center text-xs font-semibold text-gray-500'>
+                                  {initialOf(employee.fullName)}
+                                </div>
+                              )}
+                            </div>
+                            <span className='whitespace-nowrap text-xs font-medium text-gray-700'>{employee.fullName}</span>
+                          </div>
+                        </td>
+                        <td className='whitespace-nowrap px-3 py-2.5 text-xs text-gray-600'>{orDash(employee.departmentLabel)}</td>
+                        <td className='whitespace-nowrap px-3 py-2.5 text-xs text-gray-600'>{orDash(employee.designationLabel)}</td>
+                        <td className='px-3 py-2.5'>
+                          <span
+                            className={`inline-flex rounded-md px-2 py-1 text-[10px] font-semibold ${
+                              employee.employeeType === "permanent"
+                                ? "bg-emerald-50 text-emerald-700"
+                                : employee.employeeType === "contractual"
+                                  ? "bg-blue-50 text-blue-600"
+                                  : "bg-orange-50 text-orange-600"
+                            }`}
+                          >
+                            {employee.employeeTypeLabel ?? statusText(employee.employeeType)}
+                          </span>
+                        </td>
+                        <td className='px-3 py-2.5'>
+                          <span
+                            className={`inline-flex rounded-md px-2 py-1 text-[10px] font-semibold ${
+                              employee.employeeStatus === "active"
+                                ? "bg-emerald-50 text-emerald-700"
+                                : employee.employeeStatus === "on-leave"
+                                  ? "bg-orange-50 text-orange-600"
+                                  : employee.employeeStatus === "inactive"
+                                    ? "bg-gray-100 text-gray-600"
+                                    : "bg-red-50 text-red-600"
+                            }`}
+                          >
+                            {employee.employeeStatusLabel ?? statusText(employee.employeeStatus)}
+                          </span>
+                        </td>
+                        <td className='whitespace-nowrap px-3 py-2.5 text-xs text-gray-600'>{orDash(employee.joinDate)}</td>
+                        <td className='px-3 py-2.5'>
+                          <PendingBadge row={employee} />
+                          <div className='flex items-center gap-1'>
+                            <button
+                              type='button'
+                              disabled={Boolean(employee.pendingRequest)}
+                              title={waitingTitle(employee, "Edit")}
+                              onClick={() => navigate(`/add-new-employee?id=${employee.id}`)}
+                              className='cursor-pointer rounded-md p-1.5 text-blue-600 transition hover:bg-blue-100 disabled:cursor-not-allowed disabled:opacity-40'
+                            >
+                              <Pencil size={15} />
+                            </button>
+                            <button
+                              type='button'
+                              disabled={Boolean(employee.pendingRequest)}
+                              title={waitingTitle(employee, "Delete")}
+                              onClick={() => setDeleting(employee)}
+                              className='cursor-pointer rounded-md p-1.5 text-red-600 transition hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-40'
+                            >
+                              <Trash2 size={15} />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>
@@ -484,82 +573,34 @@ const EmployeeManagement = () => {
             {/* Showing Information */}
             <p className='text-xs text-gray-500'>
               Showing{" "}
-              <span className='font-semibold text-gray-700'>
-                {(employeeManagementData.pagination.currentPage - 1) *
-                  employeeManagementData.pagination.pageSize +
-                  1}
-              </span>{" "}
-              to{" "}
-              <span className='font-semibold text-gray-700'>
-                {Math.min(
-                  employeeManagementData.pagination.currentPage *
-                    employeeManagementData.pagination.pageSize,
-                  employeeManagementData.pagination.totalItems,
-                )}
-              </span>{" "}
-              of{" "}
-              <span className='font-semibold text-gray-700'>
-                {employeeManagementData.pagination.totalItems}
-              </span>{" "}
-              entries
+              <span className='font-semibold text-gray-700'>{from}</span> to{" "}
+              <span className='font-semibold text-gray-700'>{to}</span> of{" "}
+              <span className='font-semibold text-gray-700'>{total}</span> entries
             </p>
 
             {/* Pagination Controls */}
             <div className='flex items-center gap-1'>
-              {/* Previous */}
-              <button
-                type='button'
-                className='flex h-8 w-8 items-center justify-center rounded-md border border-gray-200 text-gray-500 transition hover:bg-gray-50'
-              >
+              <button type='button' className={pageButton} disabled={page <= 1} onClick={() => setPage(1)} aria-label='First page'>
+                <ChevronsLeft size={15} />
+              </button>
+              <button type='button' className={pageButton} disabled={page <= 1} onClick={() => setPage((current) => current - 1)} aria-label='Previous page'>
                 <ChevronLeft size={15} />
               </button>
-
-              {/* Current Page */}
-              <button
-                type='button'
-                className='flex h-8 min-w-8 items-center justify-center rounded-md bg-emerald-700 px-2 text-xs font-medium text-white'
-              >
-                {employeeManagementData.pagination.currentPage}
-              </button>
-
-              {/* Page 2 */}
-              <button
-                type='button'
-                className='flex h-8 min-w-8 items-center justify-center rounded-md border border-gray-200 px-2 text-xs text-gray-600 transition hover:bg-gray-50'
-              >
-                2
-              </button>
-
-              {/* Page 3 */}
-              <button
-                type='button'
-                className='flex h-8 min-w-8 items-center justify-center rounded-md border border-gray-200 px-2 text-xs text-gray-600 transition hover:bg-gray-50'
-              >
-                3
-              </button>
-
-              {/* Dots */}
-              <span className='px-1 text-xs text-gray-400'>...</span>
-
-              {/* Last Page */}
-              <button
-                type='button'
-                className='flex h-8 min-w-8 items-center justify-center rounded-md border border-gray-200 px-2 text-xs text-gray-600 transition hover:bg-gray-50'
-              >
-                {employeeManagementData.pagination.totalPages}
-              </button>
-
-              {/* Next */}
-              <button
-                type='button'
-                className='flex h-8 w-8 items-center justify-center rounded-md border border-gray-200 text-gray-500 transition hover:bg-gray-50'
-              >
+              <span className='flex h-8 min-w-8 items-center justify-center rounded-md bg-emerald-700 px-2 text-xs font-medium text-white'>
+                {page} / {totalPages}
+              </span>
+              <button type='button' className={pageButton} disabled={page >= totalPages} onClick={() => setPage((current) => current + 1)} aria-label='Next page'>
                 <ChevronRight size={15} />
               </button>
-
-              {/* Page Size */}
+              <button type='button' className={pageButton} disabled={page >= totalPages} onClick={() => setPage(totalPages)} aria-label='Last page'>
+                <ChevronsRight size={15} />
+              </button>
               <Select
-                defaultValue={employeeManagementData.pagination.pageSize}
+                value={String(perPage)}
+                onChange={(event) => {
+                  setPerPage(Number(event.target.value));
+                  setPage(1);
+                }}
                 className='ml-2 h-8 rounded-md border border-gray-200 bg-white px-2 text-xs text-gray-600 outline-none'
               >
                 <option value='10'>10 / page</option>
@@ -572,6 +613,15 @@ const EmployeeManagement = () => {
         </div>
       </section>
 
+      <ConfirmDialog
+        open={Boolean(deleting)}
+        title='Delete employee?'
+        message={`${deleting?.fullName ?? "This employee"} will be removed from the list.`}
+        loading={deleteBusy}
+        onConfirm={confirmDelete}
+        onCancel={() => setDeleting(null)}
+      />
+
       {/* ========================================================= */}
       {/* Department / Employment Type / Recent Joiners / Actions */}
       {/* ========================================================= */}
@@ -581,7 +631,7 @@ const EmployeeManagement = () => {
           {/* Header */}
           <div className='border-b border-gray-200 px-4 py-3'>
             <h3 className='text-sm font-semibold text-emerald-700'>
-              {employeeManagementData.departmentOverview.title}
+              {departmentOverview.title}
             </h3>
           </div>
 
@@ -593,7 +643,7 @@ const EmployeeManagement = () => {
                 <ResponsiveContainer width='100%' height='100%'>
                   <PieChart>
                     <Pie
-                      data={employeeManagementData.departmentOverview.data}
+                      data={departmentOverview.data}
                       dataKey='count'
                       nameKey='name'
                       cx='50%'
@@ -603,7 +653,7 @@ const EmployeeManagement = () => {
                       paddingAngle={1}
                       stroke='none'
                     >
-                      {employeeManagementData.departmentOverview.data.map(
+                      {departmentOverview.data.map(
                         (item) => (
                           <Cell key={item.id} fill={item.color} />
                         ),
@@ -619,7 +669,7 @@ const EmployeeManagement = () => {
 
               {/* ================= Department Legend ================= */}
               <div className='space-y-2'>
-                {employeeManagementData.departmentOverview.data.map((item) => (
+                {departmentOverview.data.map((item) => (
                   <div
                     key={item.id}
                     className='flex items-center justify-between gap-2'
@@ -651,7 +701,7 @@ const EmployeeManagement = () => {
             <div className='mt-3 text-center'>
               <span className='text-xs font-semibold text-gray-700'>
                 Total Employees:{" "}
-                {employeeManagementData.departmentOverview.totalEmployees}
+                {departmentOverview.totalEmployees}
               </span>
             </div>
           </div>
@@ -674,26 +724,17 @@ const EmployeeManagement = () => {
                 <ResponsiveContainer width='100%' height='100%'>
                   <PieChart>
                     <Pie
-                      data={employeesByEmploymentType.data}
-                      dataKey='employeeCount'
-                      nameKey='label'
+                      data={employeeTypeOverview.data}
+                      dataKey='count'
+                      nameKey='name'
                       cx='50%'
                       cy='50%'
                       innerRadius={28}
                       outerRadius={44}
                       paddingAngle={2}
                     >
-                      {employeesByEmploymentType.data.map((item, index) => (
-                        <Cell
-                          key={`cell-${item.type || index}`}
-                          fill={
-                            index === 0
-                              ? "#166534"
-                              : index === 1
-                                ? "#3b82f6"
-                                : "#f9a8d4"
-                          }
-                        />
+                      {employeeTypeOverview.data.map((item, index) => (
+                        <Cell key={`cell-${item.value || index}`} fill={item.color || DEFAULT_COLORS[index % DEFAULT_COLORS.length]} />
                       ))}
                     </Pie>
 
@@ -707,29 +748,24 @@ const EmployeeManagement = () => {
 
               {/* Legend */}
               <div className='flex-1 space-y-3'>
-                {employeesByEmploymentType.data.map((item, index) => (
+                {employeeTypeOverview.data.map((item, index) => (
                   <div
-                    key={item.type || index}
+                    key={item.value || index}
                     className='flex items-center justify-between gap-2'
                   >
                     <div className='flex items-center gap-2'>
                       <span
-                        className={`h-2.5 w-2.5 shrink-0 rounded-sm ${
-                          index === 0
-                            ? "bg-green-700"
-                            : index === 1
-                              ? "bg-blue-500"
-                              : "bg-pink-300"
-                        }`}
+                        className='h-2.5 w-2.5 shrink-0 rounded-sm'
+                        style={{ backgroundColor: item.color || DEFAULT_COLORS[index % DEFAULT_COLORS.length] }}
                       />
 
                       <span className='text-xs text-gray-600'>
-                        {item.label}
+                        {item.name}
                       </span>
                     </div>
 
                     <span className='whitespace-nowrap text-xs font-medium text-gray-700'>
-                      {item.employeeCount} ({item.percentage}%)
+                      {item.count} ({item.percentage}%)
                     </span>
                   </div>
                 ))}
@@ -739,7 +775,7 @@ const EmployeeManagement = () => {
             {/* Total */}
             <div className='mt-3 text-center'>
               <span className='text-xs font-semibold text-gray-700'>
-                Total Employees: {employeesByEmploymentType.total}
+                Total Employees: {employeeTypeOverview.totalEmployees}
               </span>
             </div>
           </div>
@@ -877,7 +913,7 @@ const EmployeeManagement = () => {
           {/* Header */}
           <div className='border-b border-gray-200 px-4 py-3'>
             <h3 className='text-xs font-semibold text-green-800'>
-              {genderDistribution.title}
+              Gender Distribution
             </h3>
           </div>
 
@@ -889,18 +925,18 @@ const EmployeeManagement = () => {
                 <ResponsiveContainer width='100%' height='100%'>
                   <PieChart>
                     <Pie
-                      data={genderDistribution.data}
-                      dataKey='value'
-                      nameKey='label'
+                      data={genderDistribution}
+                      dataKey='count'
+                      nameKey='name'
                       cx='50%'
                       cy='50%'
                       innerRadius={32}
                       outerRadius={50}
                       paddingAngle={2}
                     >
-                      {genderDistribution.data.map((item, index) => (
+                      {genderDistribution.map((item, index) => (
                         <Cell
-                          key={`gender-${item.label}`}
+                          key={`gender-${item.value}`}
                           fill={
                             index === 0
                               ? "#3b82f6"
@@ -919,9 +955,9 @@ const EmployeeManagement = () => {
 
               {/* Legend */}
               <div className='min-w-0 flex-1 space-y-2'>
-                {genderDistribution.data.map((item, index) => (
+                {genderDistribution.map((item, index) => (
                   <div
-                    key={item.label}
+                    key={item.value}
                     className='flex items-center justify-between gap-2'
                   >
                     <div className='flex min-w-0 items-center gap-2'>
@@ -938,12 +974,12 @@ const EmployeeManagement = () => {
                       />
 
                       <span className='truncate text-[10px] text-gray-600'>
-                        {item.label}
+                        {item.name}
                       </span>
                     </div>
 
                     <span className='whitespace-nowrap text-[10px] font-medium text-gray-700'>
-                      {item.value} ({item.percentage})
+                      {item.count} ({percentText(item.percentage)})
                     </span>
                   </div>
                 ))}
@@ -953,7 +989,7 @@ const EmployeeManagement = () => {
             {/* Total */}
             <div className='mt-3 border-t border-gray-100 pt-2 text-center'>
               <p className='text-[10px] font-semibold text-gray-700'>
-                Total: {genderDistribution.total}
+                Total: {totalEmployees}
               </p>
             </div>
           </div>
@@ -964,7 +1000,7 @@ const EmployeeManagement = () => {
           {/* Header */}
           <div className='border-b border-gray-200 px-4 py-3'>
             <h3 className='text-xs font-semibold text-green-800'>
-              {ageGroupDistribution.title}
+              Age Group Distribution
             </h3>
           </div>
 
@@ -973,7 +1009,7 @@ const EmployeeManagement = () => {
             <div className='h-[145px] w-full'>
               <ResponsiveContainer width='100%' height='100%'>
                 <BarChart
-                  data={ageGroupDistribution.data}
+                  data={ageGroupDistribution}
                   margin={{
                     top: 14,
                     right: 5,
@@ -992,8 +1028,8 @@ const EmployeeManagement = () => {
                   />
 
                   <YAxis
-                    domain={[0, 140]}
-                    ticks={[0, 35, 70, 105, 140]}
+                    domain={[0, ageMax]}
+                    allowDecimals={false}
                     tick={{
                       fontSize: 8,
                       fill: "#6b7280",
@@ -1015,7 +1051,7 @@ const EmployeeManagement = () => {
                       fill: "#374151",
                     }}
                   >
-                    {ageGroupDistribution.data.map((entry, index) => (
+                    {ageGroupDistribution.map((entry, index) => (
                       <Cell
                         key={`age-group-${index}`}
                         fill={
@@ -1039,7 +1075,7 @@ const EmployeeManagement = () => {
             {/* Bottom Divider + Total */}
             <div className='mt-1 border-t border-gray-100 pt-2 text-center'>
               <p className='text-[10px] font-semibold text-gray-700'>
-                Total: {ageGroupDistribution.total}
+                Total: {totalEmployees}
               </p>
             </div>
           </div>
@@ -1050,19 +1086,15 @@ const EmployeeManagement = () => {
           {/* Header */}
           <div className='border-b border-gray-200 px-4 py-3'>
             <h3 className='text-xs font-semibold text-green-800'>
-              {lengthOfService.title}
+              Length of Service
             </h3>
           </div>
 
           {/* Content */}
           <div className='p-3'>
             <div className='space-y-2.5'>
-              {lengthOfService.data.map((item) => {
-                const maxValue = Math.max(
-                  ...lengthOfService.data.map((service) => service.value),
-                );
-
-                const width = `${(item.value / maxValue) * 100}%`;
+              {lengthOfService.map((item) => {
+                const width = `${(item.value / lengthMax) * 100}%`;
 
                 return (
                   <div key={item.label} className='flex items-center gap-2'>
@@ -1088,7 +1120,7 @@ const EmployeeManagement = () => {
                     {/* Value + Percentage */}
                     <div className='w-[68px] shrink-0 text-right'>
                       <p className='whitespace-nowrap text-[9px] font-medium text-gray-700'>
-                        {item.value} ({item.percentage})
+                        {item.value} ({percentText(item.percentage)})
                       </p>
                     </div>
                   </div>
@@ -1099,7 +1131,7 @@ const EmployeeManagement = () => {
             {/* Total */}
             <div className='mt-4 border-t border-gray-100 pt-2 text-center'>
               <p className='text-[10px] font-semibold text-gray-700'>
-                Total: {lengthOfService.total}
+                Total: {totalEmployees}
               </p>
             </div>
           </div>
@@ -1112,14 +1144,14 @@ const EmployeeManagement = () => {
           {/* Header */}
           <div className='border-b border-gray-200 px-4 py-3'>
             <h3 className='text-xs font-semibold text-green-800'>
-              {employeeManagementData.documentExpiryAlerts.title}
+              {documentExpiryAlerts.title}
             </h3>
           </div>
 
           {/* Alert List */}
           <div className='p-4'>
             <div className='space-y-4'>
-              {employeeManagementData.documentExpiryAlerts.data.map((alert) => (
+              {documentExpiryAlerts.data.map((alert) => (
                 <div
                   key={alert.id}
                   className='flex items-center justify-between gap-3'
@@ -1149,7 +1181,7 @@ const EmployeeManagement = () => {
                 type='button'
                 className='rounded-md border border-gray-200 px-4 py-1.5 text-[10px] font-medium text-green-700 transition hover:bg-green-50'
               >
-                {employeeManagementData.documentExpiryAlerts.action.label}
+                {documentExpiryAlerts.action.label}
               </button>
             </div>
           </div>

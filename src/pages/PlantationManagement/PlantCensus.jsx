@@ -461,6 +461,15 @@ const PlantCensus = () => {
         />
       )}
       <div className='space-y-6 mt-4'>
+        <div className='flex justify-end'>
+          <button
+            type='button'
+            onClick={() => navigate("/plant-census-list")}
+            className='flex cursor-pointer items-center justify-center gap-2 rounded-lg border border-green-700 bg-white px-4 py-2 text-sm font-medium text-green-700 transition hover:bg-green-50'
+          >
+            Census List
+          </button>
+        </div>
         {/* ================================================= */}
 
         {/* ================================================= */}

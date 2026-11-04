@@ -1,26 +1,35 @@
-import React from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useForm } from "../../lib/useForm";
+import toast from "react-hot-toast";
 import HrWorkforceTabs from "../../components/HrWorkforceTabs/HrWorkforceTabs";
 import { contractorManagementData } from "../../data/HrWorkforceData/contractorManagementData.js";
-const {
-  summaryCards,
-  filters,
-  contractors,
-  contractorProfile,
-  contractorTypeWise,
-  tradeWorkWise,
-  contractStatus,
-  topContractors,
-  expiryAlerts,
-  documents,
-  performance,
-  actionShortcuts,
-} = contractorManagementData;
+import TableSkeleton from "../../components/common/TableSkeleton";
+import EmptyRow from "../../components/common/EmptyRow";
+import ErrorState from "../../components/common/ErrorState";
+import ConfirmDialog from "../../components/common/ConfirmDialog";
+import PendingBadge from "../../components/common/PendingBadge";
+import { waitingTitle } from "../../lib/waitingTitle";
+import { api, notifySaved } from "../../lib/api";
+import { useApi } from "../../lib/useApi";
+const { contractorProfile: profileStatic, actionShortcuts } = contractorManagementData;
+const profileTabs = profileStatic.tabs;
+const PER_PAGE = 10;
+const COLUMNS = 11;
+const EMPTY_FILTERS = { search: "", contractorType: "", tradeCategory: "", contractStatus: "", workLocation: "" };
+const NO_PERFORMANCE = { onTimeWorkCompletion: 0, qualityRating: 0, compliance: 0 };
+const orDash = (value) => (value === null || value === undefined || value === "" ? "-" : value);
+// 2026-12-31 -> 31-12-2026
+const dmy = (value) => (typeof value === "string" && /^\d{4}-\d{2}-\d{2}/.test(value) ? value.slice(0, 10).split("-").reverse().join("-") : orDash(value));
+const useDebounced = (value, delay = 300) => {
+  const [debounced, setDebounced] = useState(value);
+  useEffect(() => {
+    const timer = setTimeout(() => setDebounced(value), delay);
+    return () => clearTimeout(timer);
+  }, [value, delay]);
+  return debounced;
+};
 import {
   Leaf,
-  Save,
-  CheckCircle2,
   RotateCcw,
   UserRound,
   UserCheck,
@@ -33,7 +42,7 @@ import {
   ChevronDown,
   Eye,
   Pencil,
-  MoreVertical,
+  Trash2,
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
@@ -86,17 +95,116 @@ const styleMap = {
 };
 const ContractorManagement = () => {
   const navigate = useNavigate();
-  const {
-    register,
-    handleSubmit,
-    reset,
-  } = useForm();
-
-  // =====================================================
-  // FORM SUBMIT
-  // =====================================================
-  const onSubmit = () => {
+  const [filters, setFilters] = useState(EMPTY_FILTERS);
+  const [page, setPage] = useState(1);
+  const [selectedId, setSelectedId] = useState(null);
+  const [deleting, setDeleting] = useState(null);
+  const [deleteBusy, setDeleteBusy] = useState(false);
+  const [exporting, setExporting] = useState(false);
+  const searchText = useDebounced(filters.search);
+  const applied = { ...filters, search: searchText };
+  const setFilter = (name) => (event) => {
+    setFilters((current) => ({ ...current, [name]: event.target.value }));
+    setPage(1);
   };
+  const hasFilters = Object.values(filters).some(Boolean);
+  const resetFilters = () => {
+    setFilters(EMPTY_FILTERS);
+    setPage(1);
+  };
+  const deps = [searchText, filters.contractorType, filters.tradeCategory, filters.contractStatus, filters.workLocation];
+
+  const options = useApi(() => api.get("/contractors/filter-options"), []);
+  const list = useApi(() => api.get("/contractors", { ...applied, page, perPage: PER_PAGE }), [...deps, page]);
+  const summaryData = useApi(() => api.get("/contractors/summary", applied), deps);
+  const contractors = list.data?.data ?? [];
+  const meta = list.data?.meta;
+  const total = meta?.total ?? 0;
+  const totalPages = Math.max(meta?.totalPages ?? 1, 1);
+  const from = contractors.length > 0 ? (page - 1) * PER_PAGE + 1 : 0;
+  const to = (page - 1) * PER_PAGE + contractors.length;
+
+  // The profile panel shows the clicked contractor, or the first one in the list.
+  const shownId = contractors.some((row) => row.id === selectedId) ? selectedId : (contractors[0]?.id ?? null);
+  const profileData = useApi(() => (shownId ? api.get(`/contractors/${shownId}`) : Promise.resolve(null)), [shownId]);
+  const profile = profileData.data ?? {};
+  const pf = {
+    status: profile.contractStatusLabel ?? "-",
+    name: orDash(profile.contractorName),
+    contractorId: orDash(profile.contractorId),
+    type: orDash(profile.contractorTypeLabel),
+    trade: orDash(profile.tradeCategoryLabel),
+    mobile: orDash(profile.mobileNo),
+    email: orDash(profile.email),
+    workingLocation: orDash(profile.workLocationLabel),
+    proprietor: orDash(profile.contactPersonName),
+    address: orDash(profile.presentAddress),
+    nationalId: orDash(profile.nationalIdNo),
+    tradeLicense: orDash(profile.tradeLicenseNo),
+    vatRegistration: orDash(profile.vatRegistrationNo),
+    tinNumber: orDash(profile.tinNo),
+    bankName: orDash(profile.bankName),
+    bankAccountNumber: orDash(profile.accountNo),
+    remarks: orDash(profile.remarks),
+  };
+  const documents = profile.documents ?? [];
+  const performance = profile.performance ?? NO_PERFORMANCE;
+
+  const summary = summaryData.data ?? {};
+  const summaryCards = summary.summaryCards ?? [];
+  const contractorTypeWise = summary.contractorTypeWise ?? [];
+  const tradeWorkWise = summary.tradeWorkWise ?? [];
+  const contractStatus = summary.contractStatus ?? [];
+  const topContractors = summary.topContractors ?? [];
+  const expiryAlerts = summary.expiryAlerts ?? [];
+  const tradeMax = Math.max(1, ...tradeWorkWise.map((item) => item.value));
+
+  // After a delete took the last row of a page, step back one page.
+  useEffect(() => {
+    if (meta && page > meta.totalPages && meta.totalPages >= 1) setPage(meta.totalPages);
+  }, [meta, page]);
+
+  const exportList = async () => {
+    setExporting(true);
+    try {
+      const blob = await api.download("/contractors/export", { ...applied, format: "xlsx" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = `contractors-${new Date().toISOString().slice(0, 10)}.xlsx`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(link.href);
+    } catch (error) {
+      toast.error(error.message);
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  const confirmDelete = async () => {
+    setDeleteBusy(true);
+    try {
+      const result = await api.del(`/contractors/${deleting.id}`);
+      notifySaved(result, "Contractor deleted successfully!");
+      setDeleting(null);
+      list.reload();
+      summaryData.reload();
+    } catch (error) {
+      toast.error(error.message);
+    } finally {
+      setDeleteBusy(false);
+    }
+  };
+
+  const optionList = (items) =>
+    (items ?? [])
+      .filter((item) => item.value !== "")
+      .map((item) => (
+        <option key={item.id ?? item.value} value={item.value}>
+          {item.label}
+        </option>
+      ));
 
   return (
     <div className='space-y-4'>
@@ -108,7 +216,7 @@ const ContractorManagement = () => {
       {/* =====================================================
           MAIN FORM
       ====================================================== */}
-      <form onSubmit={handleSubmit(onSubmit)} className='space-y-4'>
+      <div className='space-y-4'>
         {/* ===================================================
                 1. ACTION BAR
             ==================================================== */}
@@ -132,6 +240,7 @@ const ContractorManagement = () => {
                   ================================================ */}
               <button
                 type='button'
+                onClick={() => toast("Coming soon")}
                 className='flex items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-xs font-medium text-gray-700 transition hover:bg-gray-50'
               >
                 <span>↓</span>
@@ -144,11 +253,13 @@ const ContractorManagement = () => {
                   ================================================ */}
               <button
                 type='button'
-                className='flex items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-xs font-medium text-gray-700 transition hover:bg-gray-50'
+                disabled={exporting}
+                onClick={exportList}
+                className='flex items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-xs font-medium text-gray-700 transition hover:bg-gray-50 disabled:opacity-60'
               >
                 <span>↓</span>
 
-                <span>Export</span>
+                <span>{exporting ? "Exporting..." : "Export"}</span>
               </button>
 
               {/* ===============================================
@@ -173,7 +284,7 @@ const ContractorManagement = () => {
             ==================================================== */}
         <div className='grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6'>
           {summaryCards.map((card) => {
-            const Icon = iconMap[card.type];
+            const Icon = iconMap[card.type] || UserRound;
 
             const currentStyle = styleMap[card.type] || {
               background: "bg-gray-50",
@@ -182,8 +293,8 @@ const ContractorManagement = () => {
 
             const formattedValue =
               card.type === "value"
-                ? `${card.currency || "৳"} ${card.value.toLocaleString()}`
-                : card.value.toLocaleString();
+                ? `${card.currency || "৳"} ${Number(card.value ?? 0).toLocaleString()}`
+                : Number(card.value ?? 0).toLocaleString();
 
             return (
               <div
@@ -260,18 +371,13 @@ const ContractorManagement = () => {
 
                     <div className='relative'>
                       <Select
-                        {...register("contractorType")}
+                        value={filters.contractorType}
+                        onChange={setFilter("contractorType")}
                         className='w-full appearance-none rounded-md border border-gray-300 bg-white px-3 py-4 pr-8 text-[11px] text-gray-700 outline-none transition focus:border-green-600'
                       >
                         <option value=''>All Types</option>
 
-                        {filters.contractorTypes
-                          .filter((item) => item !== "All Types")
-                          .map((type) => (
-                            <option key={type} value={type}>
-                              {type}
-                            </option>
-                          ))}
+                        {optionList(options.data?.contractorTypes)}
                       </Select>
 
                       <ChevronDown
@@ -291,18 +397,13 @@ const ContractorManagement = () => {
 
                     <div className='relative'>
                       <Select
-                        {...register("tradeWork")}
+                        value={filters.tradeCategory}
+                        onChange={setFilter("tradeCategory")}
                         className='w-full appearance-none rounded-md border border-gray-300 bg-white px-3 py-2 pr-8 text-[11px] text-gray-700 outline-none transition focus:border-green-600'
                       >
                         <option value=''>All Categories</option>
 
-                        {filters.tradeCategories
-                          .filter((item) => item !== "All Categories")
-                          .map((category) => (
-                            <option key={category} value={category}>
-                              {category}
-                            </option>
-                          ))}
+                        {optionList(options.data?.tradeCategories)}
                       </Select>
 
                       <ChevronDown
@@ -322,18 +423,13 @@ const ContractorManagement = () => {
 
                     <div className='relative'>
                       <Select
-                        {...register("status")}
+                        value={filters.contractStatus}
+                        onChange={setFilter("contractStatus")}
                         className='w-full appearance-none rounded-md border border-gray-300 bg-white px-3 py-2 pr-8 text-[11px] text-gray-700 outline-none transition focus:border-green-600'
                       >
                         <option value=''>All Status</option>
 
-                        {filters.statuses
-                          .filter((item) => item !== "All Status")
-                          .map((status) => (
-                            <option key={status} value={status}>
-                              {status}
-                            </option>
-                          ))}
+                        {optionList(options.data?.statuses)}
                       </Select>
 
                       <ChevronDown
@@ -353,18 +449,13 @@ const ContractorManagement = () => {
 
                     <div className='relative'>
                       <Select
-                        {...register("workingLocation")}
+                        value={filters.workLocation}
+                        onChange={setFilter("workLocation")}
                         className='w-full appearance-none rounded-md border border-gray-300 bg-white px-3 py-2 pr-8 text-[11px] text-gray-700 outline-none transition focus:border-green-600'
                       >
                         <option value=''>All Locations</option>
 
-                        {filters.locations
-                          .filter((item) => item !== "All Locations")
-                          .map((location) => (
-                            <option key={location} value={location}>
-                              {location}
-                            </option>
-                          ))}
+                        {optionList(options.data?.locations)}
                       </Select>
 
                       <ChevronDown
@@ -388,7 +479,8 @@ const ContractorManagement = () => {
 
                     <input
                       type='text'
-                      {...register("search")}
+                      value={filters.search}
+                      onChange={setFilter("search")}
                       placeholder='Search by Contractor Name, Mobile...'
                       className='w-full rounded-md border border-gray-300 py-2 pl-9 pr-3 text-[11px] text-gray-700 outline-none transition placeholder:text-gray-400 focus:border-green-600'
                     />
@@ -397,7 +489,10 @@ const ContractorManagement = () => {
                   {/* FILTER BUTTON */}
                   <button
                     type='button'
-                    className='flex h-9 w-full items-center justify-center rounded-md border border-gray-300 bg-white text-gray-600 transition hover:bg-gray-50 sm:w-10'
+                    title='Reset Filters'
+                    onClick={resetFilters}
+                    disabled={!hasFilters}
+                    className='flex h-9 w-full cursor-pointer items-center justify-center rounded-md border border-gray-300 bg-white text-gray-600 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 sm:w-10'
                   >
                     <SlidersHorizontal size={15} />
                   </button>
@@ -464,99 +559,75 @@ const ContractorManagement = () => {
                           TABLE BODY
                       ================================================== */}
                   <tbody>
-                    {contractors.map((contractor, index) => (
-                      <tr
-                        key={contractor.id}
-                        className='border-b border-gray-100 transition hover:bg-gray-50'
-                      >
-                        {/* SL */}
-                        <td className='px-3 py-2.5 text-[10px] text-gray-600'>
-                          {index + 1}
-                        </td>
-
-                        {/* CONTRACTOR ID */}
-                        <td className='px-3 py-2.5 text-[10px] font-medium text-gray-700'>
-                          {contractor.id}
-                        </td>
-
-                        {/* CONTRACTOR NAME */}
-                        <td className='px-3 py-2.5 text-[10px] font-medium text-gray-800'>
-                          {contractor.name}
-                        </td>
-
-                        {/* TYPE */}
-                        <td className='px-3 py-2.5 text-[10px] text-gray-600'>
-                          {contractor.type}
-                        </td>
-
-                        {/* TRADE */}
-                        <td className='px-3 py-2.5 text-[10px] text-gray-600'>
-                          {contractor.trade}
-                        </td>
-
-                        {/* MOBILE */}
-                        <td className='px-3 py-2.5 text-[10px] text-gray-600'>
-                          {contractor.mobile}
-                        </td>
-
-                        {/* WORKING LOCATION */}
-                        <td className='px-3 py-2.5 text-[10px] text-gray-600'>
-                          {contractor.workingLocation}
-                        </td>
-
-                        {/* STATUS */}
-                        <td className='px-3 py-2.5'>
-                          <span
-                            className={`inline-flex rounded-full px-2 py-1 text-[9px] font-medium ${
-                              contractor.status === "Active"
-                                ? "bg-green-50 text-green-700"
-                                : "bg-red-50 text-red-600"
-                            }`}
-                          >
-                            {contractor.status}
-                          </span>
-                        </td>
-
-                        {/* START DATE */}
-                        <td className='px-3 py-2.5 text-[10px] text-gray-600'>
-                          {contractor.contractStartDate}
-                        </td>
-
-                        {/* END DATE */}
-                        <td className='px-3 py-2.5 text-[10px] text-gray-600'>
-                          {contractor.contractEndDate}
-                        </td>
-
-                        {/* ACTION */}
-                        <td className='px-3 py-2.5'>
-                          <div className='flex items-center justify-center gap-1'>
-                            {/* VIEW */}
-                            <button
-                              type='button'
-                              className='flex h-6 w-6 items-center justify-center rounded-md text-blue-500 transition hover:bg-blue-50'
-                            >
-                              <Eye size={13} />
-                            </button>
-
-                            {/* EDIT */}
-                            <button
-                              type='button'
-                              className='flex h-6 w-6 items-center justify-center rounded-md text-blue-500 transition hover:bg-blue-50'
-                            >
-                              <Pencil size={13} />
-                            </button>
-
-                            {/* MORE */}
-                            <button
-                              type='button'
-                              className='flex h-6 w-6 items-center justify-center rounded-md text-gray-500 transition hover:bg-gray-100'
-                            >
-                              <MoreVertical size={13} />
-                            </button>
-                          </div>
+                    {list.loading && !list.data ? (
+                      <TableSkeleton rows={5} columns={COLUMNS} />
+                    ) : list.error ? (
+                      <tr>
+                        <td colSpan={COLUMNS} className='p-4'>
+                          <ErrorState message={list.error.message} onRetry={list.reload} />
                         </td>
                       </tr>
-                    ))}
+                    ) : contractors.length === 0 ? (
+                      <EmptyRow columns={COLUMNS} message='No contractors found' />
+                    ) : (
+                      contractors.map((contractor, index) => (
+                        <tr
+                          key={contractor.id}
+                          onClick={() => setSelectedId(contractor.id)}
+                          className={`cursor-pointer border-b border-gray-100 transition hover:bg-gray-50 ${contractor.id === shownId ? "bg-green-50/60" : ""}`}
+                        >
+                          <td className='px-3 py-2.5 text-[10px] text-gray-600'>{(page - 1) * PER_PAGE + index + 1}</td>
+                          <td className='px-3 py-2.5 text-[10px] font-medium text-gray-700'>{contractor.contractorId}</td>
+                          <td className='px-3 py-2.5 text-[10px] font-medium text-gray-800'>{contractor.contractorName}</td>
+                          <td className='px-3 py-2.5 text-[10px] text-gray-600'>{orDash(contractor.contractorTypeLabel)}</td>
+                          <td className='px-3 py-2.5 text-[10px] text-gray-600'>{orDash(contractor.tradeCategoryLabel)}</td>
+                          <td className='px-3 py-2.5 text-[10px] text-gray-600'>{orDash(contractor.mobileNo)}</td>
+                          <td className='px-3 py-2.5 text-[10px] text-gray-600'>{orDash(contractor.workLocationLabel)}</td>
+                          <td className='px-3 py-2.5'>
+                            <span
+                              className={`inline-flex rounded-full px-2 py-1 text-[9px] font-medium ${
+                                contractor.contractStatus === "active" ? "bg-green-50 text-green-700" : "bg-red-50 text-red-600"
+                              }`}
+                            >
+                              {orDash(contractor.contractStatusLabel)}
+                            </span>
+                          </td>
+                          <td className='px-3 py-2.5 text-[10px] text-gray-600'>{dmy(contractor.contractStartDate)}</td>
+                          <td className='px-3 py-2.5 text-[10px] text-gray-600'>{dmy(contractor.contractEndDate)}</td>
+                          <td className='px-3 py-2.5' onClick={(event) => event.stopPropagation()}>
+                            <PendingBadge row={contractor} />
+                            <div className='flex items-center justify-center gap-1'>
+                              <button
+                                type='button'
+                                title='View Contractor'
+                                onClick={() => setSelectedId(contractor.id)}
+                                className='flex h-6 w-6 cursor-pointer items-center justify-center rounded-md text-blue-500 transition hover:bg-blue-50'
+                              >
+                                <Eye size={13} />
+                              </button>
+                              <button
+                                type='button'
+                                disabled={Boolean(contractor.pendingRequest)}
+                                title={waitingTitle(contractor, "Edit")}
+                                onClick={() => navigate(`/add-new-contractor?id=${contractor.id}`)}
+                                className='flex h-6 w-6 cursor-pointer items-center justify-center rounded-md text-blue-500 transition hover:bg-blue-50 disabled:cursor-not-allowed disabled:opacity-40'
+                              >
+                                <Pencil size={13} />
+                              </button>
+                              <button
+                                type='button'
+                                disabled={Boolean(contractor.pendingRequest)}
+                                title={waitingTitle(contractor, "Delete")}
+                                onClick={() => setDeleting(contractor)}
+                                className='flex h-6 w-6 cursor-pointer items-center justify-center rounded-md text-red-500 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-40'
+                              >
+                                <Trash2 size={13} />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    )}
                   </tbody>
                 </table>
               </div>
@@ -567,79 +638,29 @@ const ContractorManagement = () => {
               <div className='flex flex-col gap-2 border-t border-gray-200 px-4 py-3 sm:flex-row sm:items-center sm:justify-between'>
                 {/* ENTRY INFO */}
                 <p className='text-[10px] text-gray-500'>
-                  Showing 1 to {contractors.length} of 86 entries
+                  Showing {from} to {to} of {total.toLocaleString()} entries
                 </p>
 
                 {/* PAGINATION */}
                 <div className='flex items-center gap-1'>
-                  {/* PREVIOUS */}
                   <button
                     type='button'
-                    className='flex h-7 w-7 items-center justify-center rounded-md border border-gray-200 text-gray-500 hover:bg-gray-50'
+                    aria-label='Previous page'
+                    disabled={page <= 1}
+                    onClick={() => setPage((current) => current - 1)}
+                    className='flex h-7 w-7 cursor-pointer items-center justify-center rounded-md border border-gray-200 text-gray-500 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40'
                   >
                     <ChevronLeft size={13} />
                   </button>
-
-                  {/* PAGE 1 */}
+                  <span className='flex h-7 min-w-7 items-center justify-center rounded-md bg-green-700 px-2 text-[10px] font-medium text-white'>
+                    {page} / {totalPages}
+                  </span>
                   <button
                     type='button'
-                    className='flex h-7 w-7 items-center justify-center rounded-md bg-green-700 text-[10px] font-medium text-white'
-                  >
-                    1
-                  </button>
-
-                  {/* PAGE 2 */}
-                  <button
-                    type='button'
-                    className='flex h-7 w-7 items-center justify-center rounded-md border border-gray-200 text-[10px] text-gray-600 hover:bg-gray-50'
-                  >
-                    2
-                  </button>
-
-                  {/* PAGE 3 */}
-                  <button
-                    type='button'
-                    className='flex h-7 w-7 items-center justify-center rounded-md border border-gray-200 text-[10px] text-gray-600 hover:bg-gray-50'
-                  >
-                    3
-                  </button>
-
-                  {/* PAGE 4 */}
-                  <button
-                    type='button'
-                    className='flex h-7 w-7 items-center justify-center rounded-md border border-gray-200 text-[10px] text-gray-600 hover:bg-gray-50'
-                  >
-                    4
-                  </button>
-
-                  {/* PAGE 5 */}
-                  <button
-                    type='button'
-                    className='flex h-7 w-7 items-center justify-center rounded-md border border-gray-200 text-[10px] text-gray-600 hover:bg-gray-50'
-                  >
-                    5
-                  </button>
-
-                  {/* MORE */}
-                  <button
-                    type='button'
-                    className='flex h-7 w-7 items-center justify-center rounded-md border border-gray-200 text-[10px] text-gray-600'
-                  >
-                    ...
-                  </button>
-
-                  {/* PAGE 11 */}
-                  <button
-                    type='button'
-                    className='flex h-7 w-7 items-center justify-center rounded-md border border-gray-200 text-[10px] text-gray-600 hover:bg-gray-50'
-                  >
-                    11
-                  </button>
-
-                  {/* NEXT */}
-                  <button
-                    type='button'
-                    className='flex h-7 w-7 items-center justify-center rounded-md border border-gray-200 text-gray-500 hover:bg-gray-50'
+                    aria-label='Next page'
+                    disabled={page >= totalPages}
+                    onClick={() => setPage((current) => current + 1)}
+                    className='flex h-7 w-7 cursor-pointer items-center justify-center rounded-md border border-gray-200 text-gray-500 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40'
                   >
                     <ChevronRight size={13} />
                   </button>
@@ -755,7 +776,7 @@ const ContractorManagement = () => {
                         <div
                           className='h-2 rounded-full bg-green-700'
                           style={{
-                            width: `${(item.value / 28) * 100}%`,
+                            width: `${(item.value / tradeMax) * 100}%`,
                           }}
                         />
                       </div>
@@ -853,20 +874,20 @@ const ContractorManagement = () => {
                   {/* STATUS */}
                   <span
                     className={`inline-flex items-center mb-2 gap-2 rounded-full px-2 py-3 text-[9px] font-medium ${
-                      contractorProfile.status === "Active"
+                      pf.status === "Active"
                         ? "bg-green-50 text-green-700"
                         : "bg-red-50 text-red-600"
                     }`}
                   >
                     <span
                       className={`h-1.5 w-1.5 mb-1 py-1 rounded-full ${
-                        contractorProfile.status === "Active"
+                        pf.status === "Active"
                           ? "bg-green-600"
                           : "bg-red-500"
                       }`}
                     />
 
-                    {contractorProfile.status}
+                    {pf.status}
                   </span>
                 </div>
 
@@ -894,7 +915,7 @@ const ContractorManagement = () => {
                     <div className='min-w-0 flex-1'>
                       {/* NAME */}
                       <h4 className='truncate text-sm font-semibold text-gray-800'>
-                        {contractorProfile.basicInfo.name}
+                        {pf.name}
                       </h4>
 
                       {/* DETAILS */}
@@ -903,7 +924,7 @@ const ContractorManagement = () => {
                           <span className='text-gray-500'>Contractor ID</span>
 
                           <span className='font-medium text-gray-700'>
-                            {contractorProfile.basicInfo.contractorId}
+                            {pf.contractorId}
                           </span>
                         </div>
 
@@ -911,7 +932,7 @@ const ContractorManagement = () => {
                           <span className='text-gray-500'>Type</span>
 
                           <span className='font-medium text-gray-700'>
-                            {contractorProfile.basicInfo.type}
+                            {pf.type}
                           </span>
                         </div>
 
@@ -919,7 +940,7 @@ const ContractorManagement = () => {
                           <span className='text-gray-500'>Trade / Work</span>
 
                           <span className='font-medium text-gray-700'>
-                            {contractorProfile.basicInfo.trade}
+                            {pf.trade}
                           </span>
                         </div>
 
@@ -927,7 +948,7 @@ const ContractorManagement = () => {
                           <span className='text-gray-500'>Mobile</span>
 
                           <span className='font-medium text-gray-700'>
-                            {contractorProfile.basicInfo.mobile}
+                            {pf.mobile}
                           </span>
                         </div>
 
@@ -935,7 +956,7 @@ const ContractorManagement = () => {
                           <span className='text-gray-500'>Email</span>
 
                           <span className='truncate font-medium text-gray-700'>
-                            {contractorProfile.basicInfo.email}
+                            {pf.email}
                           </span>
                         </div>
 
@@ -943,7 +964,7 @@ const ContractorManagement = () => {
                           <span className='text-gray-500'>Location</span>
 
                           <span className='font-medium text-gray-700'>
-                            {contractorProfile.basicInfo.workingLocation}
+                            {pf.workingLocation}
                           </span>
                         </div>
                       </div>
@@ -956,7 +977,7 @@ const ContractorManagement = () => {
                     ================================================== */}
                 <div className='overflow-x-auto border-y border-gray-200'>
                   <div className='flex min-w-max'>
-                    {contractorProfile.tabs.map((tab, index) => (
+                    {profileTabs.map((tab, index) => (
                       <button
                         key={tab}
                         type='button'
@@ -991,7 +1012,7 @@ const ContractorManagement = () => {
                       <span className='text-gray-400'>:</span>
 
                       <span className='text-gray-700'>
-                        {contractorProfile.generalInfo.proprietor}
+                        {pf.proprietor}
                       </span>
                     </div>
 
@@ -1002,7 +1023,7 @@ const ContractorManagement = () => {
                       <span className='text-gray-400'>:</span>
 
                       <span className='leading-4 text-gray-700'>
-                        {contractorProfile.generalInfo.address}
+                        {pf.address}
                       </span>
                     </div>
 
@@ -1015,7 +1036,7 @@ const ContractorManagement = () => {
                       <span className='text-gray-400'>:</span>
 
                       <span className='text-gray-700'>
-                        {contractorProfile.generalInfo.nationalId}
+                        {pf.nationalId}
                       </span>
                     </div>
 
@@ -1028,7 +1049,7 @@ const ContractorManagement = () => {
                       <span className='text-gray-400'>:</span>
 
                       <span className='text-gray-700'>
-                        {contractorProfile.generalInfo.tradeLicense}
+                        {pf.tradeLicense}
                       </span>
                     </div>
 
@@ -1041,7 +1062,7 @@ const ContractorManagement = () => {
                       <span className='text-gray-400'>:</span>
 
                       <span className='text-gray-700'>
-                        {contractorProfile.generalInfo.vatRegistration}
+                        {pf.vatRegistration}
                       </span>
                     </div>
 
@@ -1052,7 +1073,7 @@ const ContractorManagement = () => {
                       <span className='text-gray-400'>:</span>
 
                       <span className='text-gray-700'>
-                        {contractorProfile.generalInfo.tinNumber}
+                        {pf.tinNumber}
                       </span>
                     </div>
 
@@ -1065,7 +1086,7 @@ const ContractorManagement = () => {
                       <span className='text-gray-400'>:</span>
 
                       <span className='text-gray-700'>
-                        {contractorProfile.generalInfo.bankName}
+                        {pf.bankName}
                       </span>
                     </div>
 
@@ -1078,7 +1099,7 @@ const ContractorManagement = () => {
                       <span className='text-gray-400'>:</span>
 
                       <span className='text-gray-700'>
-                        {contractorProfile.generalInfo.bankAccountNumber}
+                        {pf.bankAccountNumber}
                       </span>
                     </div>
 
@@ -1089,7 +1110,7 @@ const ContractorManagement = () => {
                       <span className='text-gray-400'>:</span>
 
                       <span className='font-medium text-green-700'>
-                        {contractorProfile.generalInfo.status}
+                        {pf.status}
                       </span>
                     </div>
 
@@ -1100,7 +1121,7 @@ const ContractorManagement = () => {
                       <span className='text-gray-400'>:</span>
 
                       <span className='text-gray-700'>
-                        {contractorProfile.generalInfo.remarks}
+                        {pf.remarks}
                       </span>
                     </div>
                   </div>
@@ -1155,7 +1176,7 @@ const ContractorManagement = () => {
 
                         {/* CONTRACT VALUE */}
                         <td className='py-2 text-right text-[10px] font-medium text-gray-700'>
-                          {contractor.contractValue.toLocaleString()}
+                          {Number(contractor.contractValue ?? 0).toLocaleString()}
                         </td>
                       </tr>
                     ))}
@@ -1175,7 +1196,7 @@ const ContractorManagement = () => {
                         {topContractors
                           .reduce(
                             (total, contractor) =>
-                              total + contractor.contractValue,
+                              total + Number(contractor.contractValue ?? 0),
                             0,
                           )
                           .toLocaleString()}
@@ -1251,7 +1272,7 @@ const ContractorManagement = () => {
 
                       {/* END DATE */}
                       <td className='py-2 text-center text-[8px] text-gray-600'>
-                        {alert.endDate}
+                        {dmy(alert.endDate)}
                       </td>
 
                       {/* DAYS LEFT */}
@@ -1308,7 +1329,7 @@ const ContractorManagement = () => {
                     {document.name}
                   </p>
 
-                  <span className='mt-1 text-[8px] text-green-600'>
+                  <span className={`mt-1 text-[8px] ${document.status === "Uploaded" ? "text-green-600" : "text-gray-500"}`}>
                     {document.status}
                   </span>
                 </div>
@@ -1436,38 +1457,29 @@ const ContractorManagement = () => {
         </div>
 
         {/* ===================================================
-            5. FORM FOOTER
+            5. FOOTER
         ==================================================== */}
         <div className='flex flex-col gap-2 border-t border-gray-200 pt-4 sm:flex-row sm:items-center sm:justify-end'>
-          {/* RESET */}
           <button
             type='button'
-            onClick={() => reset()}
-            className='inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-5 text-xs font-medium text-gray-600 transition hover:bg-gray-50 sm:w-auto'
+            onClick={resetFilters}
+            disabled={!hasFilters}
+            className='inline-flex h-10 w-full cursor-pointer items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-5 text-xs font-medium text-gray-600 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto'
           >
             <RotateCcw size={15} strokeWidth={1.8} />
-            Reset
-          </button>
-
-          {/* SAVE AS DRAFT */}
-          <button
-            type='button'
-            className='inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-5 text-xs font-medium text-gray-700 transition hover:bg-gray-50 sm:w-auto'
-          >
-            <Save size={15} strokeWidth={1.8} />
-            Save as Draft
-          </button>
-
-          {/* SAVE & SUBMIT */}
-          <button
-            type='submit'
-            className='inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg bg-green-700 px-5 text-xs font-medium text-white transition hover:bg-green-800 sm:w-auto'
-          >
-            <CheckCircle2 size={15} strokeWidth={1.8} />
-            Save & Submit
+            Reset Filters
           </button>
         </div>
-      </form>
+      </div>
+
+      <ConfirmDialog
+        open={Boolean(deleting)}
+        title='Delete contractor?'
+        message={`${deleting?.contractorName ?? "This contractor"} will be removed from the list.`}
+        loading={deleteBusy}
+        onConfirm={confirmDelete}
+        onCancel={() => setDeleting(null)}
+      />
     </div>
   );
 };

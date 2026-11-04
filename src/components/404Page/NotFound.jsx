@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { AlertTriangle, ArrowLeft, Home } from "lucide-react";
 
-const NotFound = () => {
+const NotFound = () => { 
   return (
     <div className='flex min-h-screen items-center justify-center bg-gray-50 px-4'>
       <div className='w-full max-w-xl rounded-2xl border border-gray-200 bg-white p-10 text-center shadow-sm'>
