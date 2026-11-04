@@ -98,6 +98,7 @@ import PendingBadge from "../../components/common/PendingBadge";
 import { waitingTitle } from "../../lib/waitingTitle";
 import { api, notifySaved } from "../../lib/api";
 import { useApi } from "../../lib/useApi";
+import { loadNewestFirst } from "../../lib/newestFirst";
 
 const PER_PAGE = 8;
 const EMPTY_FILTERS = { search: "", gardenUnit: "", section: "", jobTask: "", workerType: "", workerStatus: "" };
@@ -142,7 +143,7 @@ const WorkerManagement = () => {
 
   const options = useApi(() => api.get("/workers/filter-options"), []);
   const list = useApi(
-    () => api.get("/workers", { ...applied, page, perPage: PER_PAGE }),
+    () => loadNewestFirst("/workers", applied, page, PER_PAGE),
     [searchText, filters.gardenUnit, filters.section, filters.jobTask, filters.workerType, filters.workerStatus, page],
   );
   const summaryData = useApi(

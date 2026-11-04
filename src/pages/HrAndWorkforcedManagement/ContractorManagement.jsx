@@ -39,7 +39,6 @@ import {
   CircleDollarSign,
   Search,
   SlidersHorizontal,
-  ChevronDown,
   Eye,
   Pencil,
   Trash2,
@@ -341,7 +340,7 @@ const ContractorManagement = () => {
           {/* =================================================
               LEFT SIDE - 8 COLUMNS
           ================================================== */}
-          <div className='col-span-12 space-y-4 lg:col-span-8'>
+          <div className='col-span-12 flex flex-col gap-4 lg:col-span-8'>
             {/* ===================================================
               3. CONTRACTOR LIST
           ==================================================== */}
@@ -365,25 +364,20 @@ const ContractorManagement = () => {
                           CONTRACTOR TYPE
                       ================================================ */}
                   <div>
-                    <label className='mb-3 block text-[10px] font-medium text-gray-600'>
+                    <label className='mb-1.5 block text-[10px] font-medium text-gray-600'>
                       Contractor Type
                     </label>
 
-                    <div className='relative'>
+                    <div>
                       <Select
                         value={filters.contractorType}
                         onChange={setFilter("contractorType")}
-                        className='w-full appearance-none rounded-md border border-gray-300 bg-white px-3 py-4 pr-8 text-[11px] text-gray-700 outline-none transition focus:border-green-600'
+                        className='w-full rounded-md border border-gray-300 bg-white px-3 py-2 pr-8 text-[11px] text-gray-700 outline-none transition focus:border-green-600'
                       >
                         <option value=''>All Types</option>
 
                         {optionList(options.data?.contractorTypes)}
                       </Select>
-
-                      <ChevronDown
-                        size={14}
-                        className='pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-500'
-                      />
                     </div>
                   </div>
 
@@ -395,21 +389,16 @@ const ContractorManagement = () => {
                       Trade / Work Category
                     </label>
 
-                    <div className='relative'>
+                    <div>
                       <Select
                         value={filters.tradeCategory}
                         onChange={setFilter("tradeCategory")}
-                        className='w-full appearance-none rounded-md border border-gray-300 bg-white px-3 py-2 pr-8 text-[11px] text-gray-700 outline-none transition focus:border-green-600'
+                        className='w-full rounded-md border border-gray-300 bg-white px-3 py-2 pr-8 text-[11px] text-gray-700 outline-none transition focus:border-green-600'
                       >
                         <option value=''>All Categories</option>
 
                         {optionList(options.data?.tradeCategories)}
                       </Select>
-
-                      <ChevronDown
-                        size={14}
-                        className='pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-500'
-                      />
                     </div>
                   </div>
 
@@ -421,21 +410,16 @@ const ContractorManagement = () => {
                       Status
                     </label>
 
-                    <div className='relative'>
+                    <div>
                       <Select
                         value={filters.contractStatus}
                         onChange={setFilter("contractStatus")}
-                        className='w-full appearance-none rounded-md border border-gray-300 bg-white px-3 py-2 pr-8 text-[11px] text-gray-700 outline-none transition focus:border-green-600'
+                        className='w-full rounded-md border border-gray-300 bg-white px-3 py-2 pr-8 text-[11px] text-gray-700 outline-none transition focus:border-green-600'
                       >
                         <option value=''>All Status</option>
 
                         {optionList(options.data?.statuses)}
                       </Select>
-
-                      <ChevronDown
-                        size={14}
-                        className='pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-500'
-                      />
                     </div>
                   </div>
 
@@ -447,21 +431,16 @@ const ContractorManagement = () => {
                       Working Location
                     </label>
 
-                    <div className='relative'>
+                    <div>
                       <Select
                         value={filters.workLocation}
                         onChange={setFilter("workLocation")}
-                        className='w-full appearance-none rounded-md border border-gray-300 bg-white px-3 py-2 pr-8 text-[11px] text-gray-700 outline-none transition focus:border-green-600'
+                        className='w-full rounded-md border border-gray-300 bg-white px-3 py-2 pr-8 text-[11px] text-gray-700 outline-none transition focus:border-green-600'
                       >
                         <option value=''>All Locations</option>
 
                         {optionList(options.data?.locations)}
                       </Select>
-
-                      <ChevronDown
-                        size={14}
-                        className='pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-500'
-                      />
                     </div>
                   </div>
                 </div>
@@ -671,7 +650,7 @@ const ContractorManagement = () => {
             {/* =================================================
                 CHART SECTION
             ================================================== */}
-            <div className='grid grid-cols-1 gap-2 md:grid-cols-2 xl:grid-cols-3'>
+            <div className='grid flex-1 grid-cols-1 gap-2 md:grid-cols-2 xl:grid-cols-3'>
               {/* =================================================
                       1. CONTRACTOR TYPE WISE
                   ================================================== */}
@@ -857,7 +836,7 @@ const ContractorManagement = () => {
           {/* =================================================
               RIGHT SIDE - 4 COLUMNS
           ================================================== */}
-          <div className='col-span-12 space-y-4 lg:col-span-4'>
+          <div className='col-span-12 flex flex-col gap-4 lg:col-span-4'>
             {/* ===================================================
                     CONTRACTOR PROFILE
                 ==================================================== */}
@@ -1132,7 +1111,7 @@ const ContractorManagement = () => {
             {/* =================================================
                     TOP 5 CONTRACTORS BY CONTRACT VALUE
                 ================================================= */}
-            <div className='rounded-xl border border-gray-200 bg-white p-4 shadow-sm'>
+            <div className='flex-1 rounded-xl border border-gray-200 bg-white p-4 shadow-sm'>
               {/* =================================================
                       TITLE
                   ================================================== */}

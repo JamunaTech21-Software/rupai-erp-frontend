@@ -7,6 +7,7 @@ import { addNewWorkerData } from "../../data/HrWorkforceData/addNewWorkerData";
 import { api, notifySaved } from "../../lib/api";
 import { useApi } from "../../lib/useApi";
 import ErrorState from "../../components/common/ErrorState";
+import RowFormModal from "../../components/common/RowFormModal";
 
 import {
   UserRound,
@@ -28,6 +29,20 @@ const FILE_FIELDS = [
   ...S.documentsInformation.documents.map((document) => document.name),
 ];
 const DASH = "-";
+// Rules match the backend; the row forms check them because the tables have no inputs to hang a save error on.
+const LAND_FIELDS = [
+  { name: "plotBlockNo", label: "Plot / Block No", required: true, maxLength: 60 },
+  { name: "mouza", label: "Mouza", maxLength: 120 },
+  { name: "area", label: "Area", type: "number", required: true },
+  { name: "distributedDate", label: "Distributed Date", type: "date" },
+];
+const DEPENDENT_FIELDS = [
+  { name: "name", label: "Name", required: true, maxLength: 255 },
+  { name: "relation", label: "Relation", required: true, maxLength: 40 },
+  { name: "dateOfBirth", label: "Date of Birth", type: "date", noFuture: true },
+  { name: "occupation", label: "Occupation", maxLength: 120 },
+];
+const DOCUMENTS = S.documentsInformation.documents;
 const toLocalInput = () => "";
 const dmy = (iso) => (iso ? iso.slice(0, 10).split("-").reverse().join("-") : DASH);
 const blank = (value) => value ?? "";
@@ -77,6 +92,8 @@ const AddNewWorker = () => {
   const [landRows, setLandRows] = useState([]);
   const [dependentRows, setDependentRows] = useState([]);
   const [fileErrors, setFileErrors] = useState({});
+  // The row form that is open: { kind: "land" | "dependent", index (null when adding), row }.
+  const [rowForm, setRowForm] = useState(null);
   const [photoPreview, setPhotoPreview] = useState(null);
   useEffect(() => {
     if (saved) {
@@ -87,6 +104,13 @@ const AddNewWorker = () => {
   }, [saved, reset]);
   const pickFile = (name) => (event) => {
     const file = event.target.files?.[0];
+    const limit = DOCUMENTS.find((document) => document.name === name)?.maxSizeMB;
+    if (file && limit && file.size > limit * 1024 * 1024) {
+      event.target.value = "";
+      setFiles((current) => ({ ...current, [name]: undefined }));
+      setFileErrors((current) => ({ ...current, [name]: `File is too large. Maximum size is ${limit} MB.` }));
+      return;
+    }
     setFiles((current) => ({ ...current, [name]: file }));
     setFileErrors((current) => ({ ...current, [name]: undefined }));
     if (name === "workerPhoto") setPhotoPreview(file ? URL.createObjectURL(file) : null);
@@ -158,6 +182,13 @@ const AddNewWorker = () => {
   // RESET
   // =========================================================
 
+  const saveRow = (row) => {
+    const { kind, index } = rowForm;
+    const setRows = kind === "land" ? setLandRows : setDependentRows;
+    setRows((rows) => (index === null ? [...rows, row] : rows.map((existing, i) => (i === index ? { ...existing, ...row } : existing))));
+    setRowForm(null);
+  };
+
   const handleReset = () => {
     reset(saved ? toForm(saved) : EMPTY_FORM);
     setFiles({});
@@ -174,6 +205,16 @@ const AddNewWorker = () => {
       ===================================================== */}
 
       <HrWorkforceTabs />
+      {rowForm && (
+        <RowFormModal
+          key={`${rowForm.kind}-${rowForm.index}`}
+          title={`${rowForm.index === null ? "Add" : "Edit"} ${rowForm.kind === "land" ? "Land" : "Dependent"}`}
+          fields={rowForm.kind === "land" ? LAND_FIELDS : DEPENDENT_FIELDS}
+          initial={rowForm.row}
+          onSave={saveRow}
+          onClose={() => setRowForm(null)}
+        />
+      )}
       {/* ===== CSV / EXCEL IMPORT ===== */}
       <div className='mb-2 rounded-xl border border-gray-200 bg-white p-3'>
         <div className='flex flex-wrap items-center gap-2'>
@@ -956,6 +997,7 @@ const AddNewWorker = () => {
                                     addNewWorkerData.sections
                                       .distributedAgriLand.actions.editLabel
                                   }
+                                  onClick={() => setRowForm({ kind: "land", index: rowIndex, row })}
                                   className='text-blue-500 hover:text-blue-700 text-xs'
                                 >
                                   ✎
@@ -989,6 +1031,7 @@ const AddNewWorker = () => {
                 <div className='flex justify-center mt-3'>
                   <button
                     type='button'
+                    onClick={() => setRowForm({ kind: "land", index: null, row: null })}
                     className='border border-gray-300 rounded-md px-4 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50'
                   >
                     +{" "}
@@ -1058,8 +1101,7 @@ const AddNewWorker = () => {
                                         type='button'
                                         title='Edit'
                                         className='text-blue-500 hover:text-blue-700 transition'
-                                        onClick={() => {
-                                        }}
+                                        onClick={() => setRowForm({ kind: "dependent", index: rowIndex, row })}
                                       >
                                         ✎
                                       </button>
@@ -1095,8 +1137,7 @@ const AddNewWorker = () => {
                 <button
                   type='button'
                   className='w-full mt-2 border border-gray-200 rounded-md py-2 text-xs font-medium text-green-700 hover:bg-green-50 transition'
-                  onClick={() => {
-                  }}
+                  onClick={() => setRowForm({ kind: "dependent", index: null, row: null })}
                 >
                   +{" "}
                   {
@@ -1352,7 +1393,7 @@ const AddNewWorker = () => {
                         )}
 
                         {/* Required */}
-                        {document.required && (
+                        {document.required && !files[document.name] && !saved?.[`${document.name}Name`] && (
                           <p className='text-[9px] text-red-500 text-center mt-1'>
                             Required
                           </p>
