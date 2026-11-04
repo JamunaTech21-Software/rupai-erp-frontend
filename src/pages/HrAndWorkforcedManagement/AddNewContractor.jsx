@@ -236,12 +236,11 @@ const AddNewContractor = () => {
                       }`}
                     >
                       {/* LABEL */}
-                      <label className='block text-xs font-medium text-gray-700 mb-1'>
-                        {field.label}
-
-                        {field.required && (
-                          <span className='text-red-500'> *</span>
-                        )}
+                      <label className='mb-1 flex min-h-8 items-end text-xs font-medium leading-4 text-gray-700'>
+                        <span>
+                          {field.label}
+                          {field.required && <span className='text-red-500'> *</span>}
+                        </span>
                       </label>
 
                       {/* TEXT / DATE */}

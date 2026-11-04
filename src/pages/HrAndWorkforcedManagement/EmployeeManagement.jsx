@@ -44,6 +44,7 @@ import ConfirmDialog from "../../components/common/ConfirmDialog";
 import PendingBadge from "../../components/common/PendingBadge";
 import { waitingTitle } from "../../lib/waitingTitle";
 import { api, notifySaved } from "../../lib/api";
+import { loadNewestFirst } from "../../lib/newestFirst";
 import { useApi } from "../../lib/useApi";
 
 const EMPTY_FILTERS = { search: "", department: "", designation: "", employeeType: "", employeeStatus: "", joinFrom: "", joinTo: "" };
@@ -79,7 +80,7 @@ const EmployeeManagement = () => {
 
   const options = useApi(() => api.get("/employees/filter-options"), []);
   const employeesList = useApi(
-    () => api.get("/employees", { ...filters, page, perPage }),
+    () => loadNewestFirst("/employees", filters, page, perPage),
     [filters, page, perPage],
   );
   const summaryData = useApi(() => api.get("/employees/summary", filters), [filters]);
