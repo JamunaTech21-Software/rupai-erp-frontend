@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { toast } from "react-hot-toast";
 import { useForm, applyServerErrors } from "../../lib/useForm";
 import { useNavigate, useSearchParams } from "react-router-dom";
@@ -44,12 +44,117 @@ const toForm = (record) => ({
   contractorId: record.contractorId ?? "Auto Generate",
 });
 
+const IMAGE_TYPES = ["image/png", "image/jpeg"];
+const DOCUMENT_EXTENSIONS = [".pdf", ".jpg", ".jpeg", ".png"];
+const sizeMessage = (maxMb) => `The file is too large. Maximum size is ${maxMb}MB.`;
+// react-hook-form "validate" for a file picker: right type, not too big.
+const checkFile = (maxMb, test, typeMessage) => (files) => {
+  const file = files?.[0];
+  if (!file) return true;
+  if (!test(file)) return typeMessage;
+  if (file.size > maxMb * 1024 * 1024) return sizeMessage(maxMb);
+  return true;
+};
+const isImage = (file) => IMAGE_TYPES.includes(file.type);
+const isDocument = (file) => DOCUMENT_EXTENSIONS.some((ext) => file.name.toLowerCase().endsWith(ext));
+
+// A temporary local link for the picked file, released when another file is picked or the form closes.
+function useLocalPreview(files, valid) {
+  const file = valid ? files?.[0] : undefined;
+  const [url, setUrl] = useState(null);
+  useEffect(() => {
+    if (!file) {
+      setUrl(null);
+      return undefined;
+    }
+    const link = URL.createObjectURL(file);
+    setUrl(link);
+    return () => URL.revokeObjectURL(link);
+  }, [file]);
+  return url;
+}
+
+// Contractor Photo / Company Logo: shows the picked picture at once, else the saved one, else the placeholder icon.
+function ImagePicker({ field, register, files, savedUrl, error }) {
+  const accepted = Boolean(files?.[0]) && isImage(files[0]) && files[0].size <= 2 * 1024 * 1024;
+  const preview = useLocalPreview(files, accepted);
+  const shown = preview || (files?.[0] && !error ? null : savedUrl);
+  return (
+    <div className='min-w-0'>
+      <label className='block text-xs font-medium text-gray-700 text-center mb-2'>
+        {field.label}
+        {field.required && <span className='text-red-500'> *</span>}
+      </label>
+      <div className={`border rounded-lg p-3 ${error ? "border-red-500" : "border-gray-300"}`}>
+        <div className='h-24 border border-gray-200 rounded-md bg-gray-50 flex items-center justify-center'>
+          {shown ? (
+            <img src={shown} alt={field.label} className='h-full w-full rounded-md object-contain' />
+          ) : field.name === "contractorPhoto" ? (
+            <UserRound size={42} strokeWidth={1.5} className='text-green-600' />
+          ) : (
+            <Sprout size={48} strokeWidth={1.5} className='text-green-600' />
+          )}
+        </div>
+        <label className='mt-3 flex items-center justify-center gap-2 border border-gray-300 rounded-md px-3 py-2 text-xs font-medium text-gray-700 cursor-pointer hover:bg-gray-50 transition'>
+          <Upload size={14} />
+          {files?.[0] ? "Change" : field.buttonText}
+          <input
+            type='file'
+            accept={field.accept}
+            {...register(field.name, { validate: checkFile(2, isImage, "Only JPG or PNG pictures are allowed.") })}
+            className='hidden'
+          />
+        </label>
+        {files?.[0] && !error && <p className='mt-2 truncate text-center text-[10px] text-green-700'>{files[0].name} (ready to save)</p>}
+        {error ? <p className='text-red-500 text-[10px] text-center mt-2'>{error.message}</p> : <p className='text-[10px] text-gray-500 text-center mt-2'>{field.note}</p>}
+      </div>
+    </div>
+  );
+}
+
+// One document box: its name, the picked file's name (or "Uploaded" with a view link for a saved file), and the Upload button.
+function DocumentBox({ field, register, files, savedUrl, error }) {
+  const picked = files?.[0];
+  return (
+    <div className={`border rounded-md p-2 flex flex-col items-center justify-center text-center min-h-[72px] ${error ? "border-red-500" : "border-gray-200"}`}>
+      <p className='text-[9px] font-medium text-gray-700 mb-2 leading-tight'>{field.label}</p>
+      <label htmlFor={field.name} className='cursor-pointer flex flex-col items-center justify-center'>
+        {picked && !error ? <CheckCircle size={14} className='text-green-600 mb-1' /> : <Upload size={14} className='text-gray-500 mb-1' />}
+        <span className='text-[9px] text-gray-600'>{picked ? "Change" : savedUrl ? "Replace" : "Upload"}</span>
+      </label>
+      <input
+        id={field.name}
+        type='file'
+        accept={field.accept}
+        className='hidden'
+        {...register(field.name, { validate: checkFile(field.maxSize, isDocument, "Only PDF, JPG or PNG files are allowed.") })}
+      />
+      {picked && !error && (
+        <p className='mt-1 max-w-full truncate text-[8px] text-green-700' title={picked.name}>
+          {picked.name}
+        </p>
+      )}
+      {!picked && savedUrl && (
+        <p className='mt-1 text-[8px] text-green-700'>
+          Uploaded{" "}
+          <a href={savedUrl} target='_blank' rel='noreferrer' className='underline'>
+            View
+          </a>
+        </p>
+      )}
+      {error && <p className='text-red-500 text-[8px] mt-1'>{error.message}</p>}
+    </div>
+  );
+}
+
 const AddNewContractor = () => {
   const {
     register,
     handleSubmit,
     reset,
     setError,
+    setValue,
+    watch,
     formState: { errors, isSubmitting },
   } = useForm({ defaultValues: EMPTY_FORM });
   const navigate = useNavigate();
@@ -64,6 +169,21 @@ const AddNewContractor = () => {
   useEffect(() => {
     if (saved) reset(toForm(saved));
   }, [saved, reset]);
+
+  // Same as Present Address: while ticked the permanent address follows the present one and cannot be edited.
+  const same = Boolean(watch("sameAsPresent"));
+  const presentAddress = watch("presentAddress");
+  const presentDistrict = watch("presentDistrict");
+  const presentUpazila = watch("presentUpazila");
+  const presentPostalCode = watch("presentPostalCode");
+  useEffect(() => {
+    if (!same) return;
+    setValue("permanentAddress", presentAddress ?? "");
+    setValue("permanentDistrict", presentDistrict ?? "");
+    setValue("permanentUpazila", presentUpazila ?? "");
+    setValue("permanentPostalCode", presentPostalCode ?? "");
+  }, [same, presentAddress, presentDistrict, presentUpazila, presentPostalCode, setValue]);
+  const lockedClass = same ? " bg-gray-100 text-gray-500" : "";
 
   // Each picked file is uploaded first; the record keeps its id (an unchanged file keeps the saved one).
   const onSubmit = async (values) => {
@@ -340,11 +460,12 @@ const AddNewContractor = () => {
               <div className='flex items-center gap-2 mt-3'>
                 <input
                   type='checkbox'
+                  id='sameAsPresent'
                   {...register("sameAsPresent")}
                   className='w-3.5 h-3.5 accent-green-600'
                 />
 
-                <label className='text-xs text-gray-600'>
+                <label htmlFor='sameAsPresent' className='text-xs text-gray-600'>
                   Same as Present Address
                 </label>
               </div>
@@ -365,8 +486,9 @@ const AddNewContractor = () => {
                     <textarea
                       rows='2'
                       placeholder='Enter Permanent Address'
+                      readOnly={same}
                       {...register("permanentAddress")}
-                      className='w-full border border-gray-300 rounded-md px-3 py-2 text-xs resize-none outline-none focus:border-green-500 focus:ring-1 focus:ring-green-100'
+                      className={`w-full border border-gray-300 rounded-md px-3 py-2 text-xs resize-none outline-none focus:border-green-500 focus:ring-1 focus:ring-green-100${lockedClass}`}
                     />
                   </div>
 
@@ -376,6 +498,7 @@ const AddNewContractor = () => {
                       District
                     </label>
 
+                    <div inert={same} className={same ? "opacity-60" : ""}>
                     <Select
                       {...register("permanentDistrict")}
                       className='w-full border border-gray-300 rounded-md px-3 py-2 text-xs bg-white outline-none focus:border-green-500 focus:ring-1 focus:ring-green-100'
@@ -390,6 +513,7 @@ const AddNewContractor = () => {
                         ),
                       )}
                     </Select>
+                    </div>
                   </div>
 
                   {/* UPAZILA */}
@@ -398,6 +522,7 @@ const AddNewContractor = () => {
                       Upazila
                     </label>
 
+                    <div inert={same} className={same ? "opacity-60" : ""}>
                     <Select
                       {...register("permanentUpazila")}
                       className='w-full border border-gray-300 rounded-md px-3 py-2 text-xs bg-white outline-none focus:border-green-500 focus:ring-1 focus:ring-green-100'
@@ -412,6 +537,7 @@ const AddNewContractor = () => {
                           </option>
                         ))}
                     </Select>
+                    </div>
                   </div>
 
                   {/* POSTAL CODE */}
@@ -423,8 +549,9 @@ const AddNewContractor = () => {
                     <input
                       type='text'
                       placeholder='Enter Postal Code'
+                      readOnly={same}
                       {...register("permanentPostalCode")}
-                      className='w-full border border-gray-300 rounded-md px-3 py-2 text-xs outline-none focus:border-green-500 focus:ring-1 focus:ring-green-100'
+                      className={`w-full border border-gray-300 rounded-md px-3 py-2 text-xs outline-none focus:border-green-500 focus:ring-1 focus:ring-green-100${lockedClass}`}
                     />
                   </div>
                 </div>
@@ -444,65 +571,16 @@ const AddNewContractor = () => {
 
               {/* IMAGE / LOGO GRID */}
               <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
-                {contractorManagementData.contractorImageFields.map(
-                  (field) => (
-                    <div key={field.name} className='min-w-0'>
-                      {/* LABEL */}
-                      <label className='block text-xs font-medium text-gray-700 text-center mb-2'>
-                        {field.label}
-
-                        {field.required && (
-                          <span className='text-red-500'> *</span>
-                        )}
-                      </label>
-
-                      {/* UPLOAD BOX */}
-                      <div className='border border-gray-300 rounded-lg p-3'>
-                        {/* PREVIEW AREA */}
-                        <div className='h-24 border border-gray-200 rounded-md bg-gray-50 flex items-center justify-center'>
-                          {saved?.[`${field.name}Url`] ? (
-                            <img
-                              src={saved[`${field.name}Url`]}
-                              alt={field.label}
-                              className='h-full w-full rounded-md object-contain'
-                            />
-                          ) : field.name === "contractorPhoto" ? (
-                            <UserRound
-                              size={42}
-                              strokeWidth={1.5}
-                              className='text-green-600'
-                            />
-                          ) : (
-                            <Sprout
-                              size={48}
-                              strokeWidth={1.5}
-                              className='text-green-600'
-                            />
-                          )}
-                        </div>
-
-                        {/* FILE INPUT */}
-                        <label className='mt-3 flex items-center justify-center gap-2 border border-gray-300 rounded-md px-3 py-2 text-xs font-medium text-gray-700 cursor-pointer hover:bg-gray-50 transition'>
-                          <Upload size={14} />
-
-                          {field.buttonText}
-
-                          <input
-                            type='file'
-                            accept={field.accept}
-                            {...register(field.name)}
-                            className='hidden'
-                          />
-                        </label>
-
-                        {/* NOTE */}
-                        <p className='text-[10px] text-gray-500 text-center mt-2'>
-                          {field.note}
-                        </p>
-                      </div>
-                    </div>
-                  ),
-                )}
+                {contractorManagementData.contractorImageFields.map((field) => (
+                  <ImagePicker
+                    key={field.name}
+                    field={field}
+                    register={register}
+                    files={watch(field.name)}
+                    savedUrl={saved?.[`${field.name}Url`]}
+                    error={errors?.[field.name]}
+                  />
+                ))}
               </div>
             </div>
 
@@ -746,57 +824,14 @@ const AddNewContractor = () => {
             {/* DOCUMENT GRID */}
             <div className='grid grid-cols-2 md:grid-cols-5 gap-2'>
               {contractorManagementData.documentFields.map((field) => (
-                <div
+                <DocumentBox
                   key={field.name}
-                  className='border border-gray-200 rounded-md p-2 flex flex-col items-center justify-center text-center min-h-[72px]'
-                >
-                  {/* DOCUMENT NAME */}
-                  <p className='text-[9px] font-medium text-gray-700 mb-2 leading-tight'>
-                    {field.label}
-                  </p>
-
-                  {/* UPLOAD */}
-                  <label
-                    htmlFor={field.name}
-                    className='cursor-pointer flex flex-col items-center justify-center'
-                  >
-                    <Upload size={14} className='text-gray-500 mb-1' />
-
-                    <span className='text-[9px] text-gray-600'>Upload</span>
-                  </label>
-
-                  {/* FILE INPUT */}
-                  <input
-                    id={field.name}
-                    type='file'
-                    accept={field.accept}
-                    className='hidden'
-                    {...register(field.name, {
-                      validate: (files) => {
-                        if (!files || files.length === 0) {
-                          return true;
-                        }
-
-                        const file = files[0];
-
-                        const maxSize = field.maxSize * 1024 * 1024;
-
-                        if (file.size > maxSize) {
-                          return `Maximum file size is ${field.maxSize}MB`;
-                        }
-
-                        return true;
-                      },
-                    })}
-                  />
-
-                  {/* ERROR */}
-                  {errors?.[field.name] && (
-                    <p className='text-red-500 text-[8px] mt-1'>
-                      {errors[field.name]?.message}
-                    </p>
-                  )}
-                </div>
+                  field={field}
+                  register={register}
+                  files={watch(field.name)}
+                  savedUrl={saved?.[`${field.name}Url`]}
+                  error={errors?.[field.name]}
+                />
               ))}
             </div>
 
