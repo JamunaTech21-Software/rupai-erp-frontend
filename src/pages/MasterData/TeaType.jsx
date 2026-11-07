@@ -1,106 +1,280 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Plus, Pencil, Trash2, X, Save } from "lucide-react";
+import toast from "react-hot-toast";
 import { useForm } from "../../lib/useForm";
 
 import MasterDataTabs from "./MasterDataTabs";
 import { teaTypeData } from "../../data/MasterData/teaTypeData";
 import Select from "../../components/common/Select";
+import { api, notifySaved } from "../../lib/api";
+import { useApi } from "../../lib/useApi";
+import TableSkeleton from "../../components/common/TableSkeleton";
+import EmptyRow from "../../components/common/EmptyRow";
+import ErrorState from "../../components/common/ErrorState";
+import ConfirmDialog from "../../components/common/ConfirmDialog";
+import PendingBadge from "../../components/common/PendingBadge";
+import { waitingTitle } from "../../lib/waitingTitle";
+
+const PER_PAGE = 10;
+const EMPTY_FORM = teaTypeData.emptyTeaTypeForm;
+const FORM_KEYS = Object.keys(EMPTY_FORM);
+const labelClass = "mb-1.5 block text-xs font-semibold text-slate-700";
+const boxClass = (error) => `h-10 w-full rounded-md border bg-white px-3 text-sm outline-none ${error ? "border-red-500" : "border-slate-300"}`;
+const areaClass = (error) => `w-full resize-none rounded-md border bg-white px-3 py-2 text-sm outline-none ${error ? "border-red-500" : "border-slate-300"}`;
+
+// A saved tea type as form values (empty optional values come back as null).
+const toForm = (teaType) =>
+  Object.fromEntries(FORM_KEYS.map((key) => [key, key === "applicableFor" ? [...(teaType.applicableFor ?? [])] : teaType[key] ?? ""]));
+// Cleared optional text goes to the server as null.
+const toBody = (values) =>
+  Object.fromEntries(
+    FORM_KEYS.map((key) => {
+      if (key === "applicableFor") return [key, Array.isArray(values[key]) ? values[key] : values[key] ? [values[key]] : []];
+      const text = String(values[key] ?? "").trim();
+      return [key, text === "" ? null : text];
+    }),
+  );
+
+// The eight fields, shared by the Tea Type Information form and the Add popup.
+function TeaTypeFields({ register, errors, options, showNotes }) {
+  const { formFields } = teaTypeData;
+  const field = (name) => formFields.find((item) => item.name === name);
+  const text = (name) => {
+    const config = field(name);
+    return (
+      <div key={name}>
+        <label className={labelClass}>
+          {config.label}
+          {config.required && <span className='text-red-500'> *</span>}
+        </label>
+        <input
+          type='text'
+          placeholder={config.placeholder}
+          maxLength={config.maxLength}
+          {...register(name, { required: config.required ? `${config.label} is required` : false })}
+          className={boxClass(errors[name])}
+        />
+        {errors[name] && <p className='mt-1 text-[11px] text-red-500'>{errors[name].message}</p>}
+      </div>
+    );
+  };
+  const area = (name) => {
+    const config = field(name);
+    return (
+      <div key={name} className='mt-4'>
+        <label className={labelClass}>
+          {config.label}
+          {config.required ? <span className='text-red-500'> *</span> : <span className='font-normal text-slate-400'> (Optional)</span>}
+        </label>
+        <textarea rows='3' maxLength={config.maxLength} placeholder={config.placeholder} {...register(name)} className={areaClass(errors[name])} />
+        {showNotes && <div className='mt-1 text-right text-[11px] text-slate-500'>Maximum {config.maxLength} characters</div>}
+        {errors[name] && <p className='mt-1 text-[11px] text-red-500'>{errors[name].message}</p>}
+      </div>
+    );
+  };
+  const processing = field("processingMethod");
+  const status = field("status");
+  const applicable = field("applicableFor");
+
+  return (
+    <>
+      <div className='grid grid-cols-1 gap-4 sm:grid-cols-2'>
+        {text("teaTypeCode")}
+        {text("teaTypeName")}
+        {text("shortName")}
+        <div>
+          <label className={labelClass}>
+            {processing.label}
+            <span className='text-red-500'> *</span>
+          </label>
+          <Select {...register("processingMethod", { required: `${processing.label} is required` })} className={boxClass(errors.processingMethod)}>
+            <option value=''>{processing.placeholder}</option>
+            {(options?.processingMethods ?? []).map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </Select>
+          {errors.processingMethod && <p className='mt-1 text-[11px] text-red-500'>{errors.processingMethod.message}</p>}
+        </div>
+      </div>
+
+      {area("description")}
+
+      <div className='mt-4'>
+        <label className='mb-2 block text-xs font-semibold text-slate-700'>
+          {applicable.label}
+          <span className='text-red-500'> *</span>
+        </label>
+        <div className='flex flex-wrap gap-3'>
+          {(options?.applicableFor ?? []).map((option) => (
+            <label key={option.value} className='flex cursor-pointer items-center gap-2 rounded-md bg-slate-50 px-3 py-2 text-xs text-slate-700'>
+              <input
+                type='checkbox'
+                value={option.value}
+                {...register("applicableFor", { validate: (value) => (Array.isArray(value) ? value.length > 0 : Boolean(value)) || "Select at least one." })}
+                className='h-4 w-4 cursor-pointer accent-emerald-600'
+              />
+              {option.label}
+            </label>
+          ))}
+        </div>
+        {errors.applicableFor && <p className='mt-1 text-[11px] text-red-500'>{errors.applicableFor.message}</p>}
+      </div>
+
+      <div className='mt-4'>
+        <label className={labelClass}>
+          {status.label}
+          <span className='text-red-500'> *</span>
+        </label>
+        <Select {...register("status", { required: `${status.label} is required` })} className={`${boxClass(errors.status)} cursor-pointer`}>
+          {(options?.statuses ?? []).map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </Select>
+        {errors.status && <p className='mt-1 text-[11px] text-red-500'>{errors.status.message}</p>}
+      </div>
+
+      {area("remarks")}
+    </>
+  );
+}
 
 const TeaType = () => {
   // =========================================================
-  // MODAL STATE
+  // STATE
   // =========================================================
 
   const [isTeaTypeModalOpen, setIsTeaTypeModalOpen] = useState(false);
+  const [page, setPage] = useState(1);
+  const [selected, setSelected] = useState(null); // the tea type shown in the Tea Type Information form
+  const [deleting, setDeleting] = useState(null);
+  const [deleteBusy, setDeleteBusy] = useState(false);
+
+  const { pageConfig, teaTypeTableHeaders } = teaTypeData;
 
   // =========================================================
-  // DATA FROM JSON
+  // DATA
   // =========================================================
 
-  const {
-    pageConfig,
-    teaTypeForm,
-    formFields,
-    processingMethodOptions,
-    applicableForOptions,
-    statusOptions,
-    teaTypeTableHeaders,
-    teaTypeList,
-    pagination,
-    emptyTeaTypeForm,
-  } = teaTypeData;
+  const options = useApi(() => api.get("/tea-types/filter-options"), []);
+  const list = useApi(() => api.get("/tea-types", { page, perPage: PER_PAGE }), [page]);
+  const rows = list.data?.data ?? [];
+  const total = list.data?.meta?.total ?? 0;
+  const totalPages = Math.max(list.data?.meta?.totalPages ?? 1, 1);
+  const from = rows.length > 0 ? (page - 1) * PER_PAGE + 1 : 0;
+  const to = (page - 1) * PER_PAGE + rows.length;
+
+  // A page that no longer exists (after a delete) steps back.
+  useEffect(() => {
+    if (!list.loading && list.data && rows.length === 0 && page > 1) setPage(page - 1);
+  }, [list.loading, list.data, rows.length, page]);
 
   // =========================================================
-  // MAIN FORM
+  // FORMS
   // =========================================================
 
   const {
     register: registerMain,
     handleSubmit: handleMainSubmit,
     reset: resetMain,
-    formState: { errors: mainErrors },
-  } = useForm({
-    defaultValues: teaTypeForm,
-  });
-
-  // =========================================================
-  // MODAL FORM
-  // =========================================================
+    setError: setMainError,
+    formState: { errors: mainErrors, isSubmitting: mainSubmitting },
+  } = useForm({ defaultValues: EMPTY_FORM });
 
   const {
     register: registerModal,
     handleSubmit: handleModalSubmit,
     reset: resetModal,
-    formState: { errors: modalErrors },
-  } = useForm({
-    defaultValues: emptyTeaTypeForm,
-  });
+    setError: setModalError,
+    formState: { errors: modalErrors, isSubmitting: modalSubmitting },
+  } = useForm({ defaultValues: EMPTY_FORM });
+
+  // Server errors go to the field they belong to; anything else is a message.
+  const showErrors = (error, setFieldError) => {
+    const fields = error.fields ?? {};
+    let unplaced = false;
+    for (const [key, message] of Object.entries(fields)) {
+      if (FORM_KEYS.includes(key)) setFieldError(key, { message });
+      else unplaced = true;
+    }
+    if (unplaced || Object.keys(fields).length === 0) toast.error(error.message);
+  };
 
   // =========================================================
-  // MAIN FORM SUBMIT
+  // MAIN FORM SUBMIT (saves the selected tea type, or adds one when none is selected)
   // =========================================================
 
-  const onMainSubmit = () => {
+  const onMainSubmit = async (values) => {
+    try {
+      const body = toBody(values);
+      const result = selected ? await api.put(`/tea-types/${selected.id}`, body) : await api.post("/tea-types", body);
+      notifySaved(result, selected ? "Tea type updated successfully!" : "Tea type saved successfully!");
+      resetMain(EMPTY_FORM);
+      setSelected(null);
+      list.reload();
+    } catch (error) {
+      showErrors(error, setMainError);
+    }
   };
 
   // =========================================================
   // MODAL FORM SUBMIT
   // =========================================================
 
-  const onModalSubmit = () => {
-
-    // Later:
-    // API POST request will come here
-
-    resetModal(emptyTeaTypeForm);
-    setIsTeaTypeModalOpen(false);
+  const onModalSubmit = async (values) => {
+    try {
+      const result = await api.post("/tea-types", toBody(values));
+      notifySaved(result, "Tea type saved successfully!");
+      resetModal(EMPTY_FORM);
+      setIsTeaTypeModalOpen(false);
+      setPage(1);
+      list.reload();
+    } catch (error) {
+      showErrors(error, setModalError);
+    }
   };
 
-  // =========================================================
-  // OPEN MODAL
-  // =========================================================
-
   const handleOpenModal = () => {
-    resetModal(emptyTeaTypeForm);
+    resetModal(EMPTY_FORM);
     setIsTeaTypeModalOpen(true);
   };
 
-  // =========================================================
-  // CLOSE MODAL
-  // =========================================================
-
   const handleCloseModal = () => {
-    resetModal(emptyTeaTypeForm);
+    resetModal(EMPTY_FORM);
     setIsTeaTypeModalOpen(false);
   };
 
-  // =========================================================
-  // MAIN FORM CANCEL
-  // =========================================================
-
   const handleMainCancel = () => {
-    resetMain(teaTypeForm);
+    setSelected(null);
+    resetMain(EMPTY_FORM);
   };
+
+  const startEdit = (teaType) => {
+    setSelected(teaType);
+    resetMain(toForm(teaType));
+  };
+
+  const confirmDelete = async () => {
+    setDeleteBusy(true);
+    try {
+      const result = await api.del(`/tea-types/${deleting.id}`);
+      notifySaved(result, "Tea type deleted successfully!");
+      if (selected?.id === deleting.id) handleMainCancel();
+      setDeleting(null);
+      list.reload();
+    } catch (error) {
+      // e.g. "This tea type is used by 2 tea grades."
+      toast.error(error.message);
+      setDeleting(null);
+    } finally {
+      setDeleteBusy(false);
+    }
+  };
+
+  const pendingNote = selected?.pendingRequest ? `Waiting for approval (${selected.pendingRequest.requestNo})` : null;
 
   return (
     <div className='space-y-4'>
@@ -122,9 +296,7 @@ const TeaType = () => {
 
           <div className='lg:col-span-5'>
             <div className='h-full rounded-lg border border-slate-200 bg-white'>
-              {/* =================================================
-                  FORM HEADER
-              ================================================== */}
+              {/* FORM HEADER */}
 
               <div className='border-b border-slate-200 px-5 py-4'>
                 <h2 className='text-sm font-bold text-emerald-700'>
@@ -132,333 +304,20 @@ const TeaType = () => {
                 </h2>
               </div>
 
-              {/* =================================================
-                  MAIN FORM
-              ================================================== */}
+              {/* MAIN FORM */}
 
-              <form
-                onSubmit={handleMainSubmit(onMainSubmit)}
-                className='space-y-4 p-5'
-              >
-                {/* =================================================
-                    TEXT INPUTS
-                ================================================== */}
+              <form onSubmit={handleMainSubmit(onMainSubmit)} className='p-5'>
+                {pendingNote && (
+                  <p role='status' className='mb-4 rounded-md bg-amber-50 px-3 py-2 text-[11px] text-amber-700'>
+                    {pendingNote}. This tea type cannot be saved until the request is decided.
+                  </p>
+                )}
 
-                <div className='grid grid-cols-1 gap-4 sm:grid-cols-2'>
-                  {formFields
-                    .filter(
-                      (field) =>
-                        field.type === "text" && field.name !== "shortName",
-                    )
-                    .map((field) => (
-                      <div key={field.id}>
-                        <label className='mb-1.5 block text-xs font-semibold text-slate-700'>
-                          {field.label}
+                <TeaTypeFields register={registerMain} errors={mainErrors} options={options.data} showNotes />
 
-                          {field.required && (
-                            <span className='text-red-500'> *</span>
-                          )}
-                        </label>
+                {/* BUTTONS */}
 
-                        <input
-                          type='text'
-                          placeholder={field.placeholder}
-                          maxLength={field.maxLength}
-                          {...registerMain(field.name, {
-                            required: field.required
-                              ? `${field.label} is required`
-                              : false,
-                          })}
-                          className={`h-10 w-full rounded-md border bg-white px-3 text-sm outline-none ${
-                            mainErrors[field.name]
-                              ? "border-red-500"
-                              : "border-slate-300"
-                          }`}
-                        />
-
-                        {mainErrors[field.name] && (
-                          <p className='mt-1 text-[11px] text-red-500'>
-                            {mainErrors[field.name].message}
-                          </p>
-                        )}
-                      </div>
-                    ))}
-                </div>
-
-                {/* =================================================
-                    SHORT NAME + PROCESSING METHOD
-                ================================================== */}
-
-                <div className='grid grid-cols-1 gap-4 sm:grid-cols-2'>
-                  {/* SHORT NAME */}
-
-                  {formFields
-                    .filter((field) => field.name === "shortName")
-                    .map((field) => (
-                      <div key={field.id}>
-                        <label className='mb-1.5 block text-xs font-semibold text-slate-700'>
-                          {field.label}
-
-                          {field.required && (
-                            <span className='text-red-500'> *</span>
-                          )}
-                        </label>
-
-                        <input
-                          type='text'
-                          placeholder={field.placeholder}
-                          maxLength={field.maxLength}
-                          {...registerMain(field.name, {
-                            required: field.required
-                              ? `${field.label} is required`
-                              : false,
-                          })}
-                          className={`h-10 w-full rounded-md border bg-white px-3 text-sm outline-none ${
-                            mainErrors[field.name]
-                              ? "border-red-500"
-                              : "border-slate-300"
-                          }`}
-                        />
-
-                        {mainErrors[field.name] && (
-                          <p className='mt-1 text-[11px] text-red-500'>
-                            {mainErrors[field.name].message}
-                          </p>
-                        )}
-                      </div>
-                    ))}
-
-                  {/* PROCESSING METHOD */}
-
-                  {formFields
-                    .filter((field) => field.name === "processingMethod")
-                    .map((field) => (
-                      <div key={field.id}>
-                        <label className='mb-1.5 block text-xs font-semibold text-slate-700'>
-                          {field.label}
-
-                          {field.required && (
-                            <span className='text-red-500'> *</span>
-                          )}
-                        </label>
-
-                        <Select
-                          {...registerMain(field.name, {
-                            required: field.required
-                              ? `${field.label} is required`
-                              : false,
-                          })}
-                          className={`h-10 w-full rounded-md border bg-white px-3 text-sm outline-none ${
-                            mainErrors[field.name]
-                              ? "border-red-500"
-                              : "border-slate-300"
-                          }`}
-                        >
-                          <option value=''>{field.placeholder}</option>
-
-                          {processingMethodOptions.map((option) => (
-                            <option key={option.value} value={option.value}>
-                              {option.label}
-                            </option>
-                          ))}
-                        </Select>
-
-                        {mainErrors[field.name] && (
-                          <p className='mt-1 text-[11px] text-red-500'>
-                            {mainErrors[field.name].message}
-                          </p>
-                        )}
-                      </div>
-                    ))}
-                </div>
-
-                {/* =================================================
-                    DESCRIPTION
-                ================================================== */}
-
-                {formFields
-                  .filter((field) => field.name === "description")
-                  .map((field) => (
-                    <div key={field.id}>
-                      <label className='mb-1.5 block text-xs font-semibold text-slate-700'>
-                        {field.label}
-
-                        {field.required && (
-                          <span className='text-red-500'> *</span>
-                        )}
-                      </label>
-
-                      <textarea
-                        rows='3'
-                        maxLength={field.maxLength}
-                        placeholder={field.placeholder}
-                        {...registerMain(field.name, {
-                          required: field.required
-                            ? `${field.label} is required`
-                            : false,
-                        })}
-                        className={`w-full resize-none rounded-md border bg-white px-3 py-2 text-sm outline-none ${
-                          mainErrors[field.name]
-                            ? "border-red-500"
-                            : "border-slate-300"
-                        }`}
-                      />
-
-                      <div className='mt-1 text-right text-[11px] text-slate-500'>
-                        Maximum {field.maxLength} characters
-                      </div>
-
-                      {mainErrors[field.name] && (
-                        <p className='mt-1 text-[11px] text-red-500'>
-                          {mainErrors[field.name].message}
-                        </p>
-                      )}
-                    </div>
-                  ))}
-
-                {/* =================================================
-                    APPLICABLE FOR
-                ================================================== */}
-
-                {formFields
-                  .filter((field) => field.name === "applicableFor")
-                  .map((field) => (
-                    <div key={field.id}>
-                      <label className='mb-2 block text-xs font-semibold text-slate-700'>
-                        {field.label}
-
-                        {field.required && (
-                          <span className='text-red-500'> *</span>
-                        )}
-                      </label>
-
-                      <div className='flex flex-wrap gap-3'>
-                        {applicableForOptions.map((option) => (
-                          <label
-                            key={option.value}
-                            className='flex cursor-pointer items-center gap-2 rounded-md bg-slate-50 px-3 py-2 text-xs text-slate-700'
-                          >
-                            <input
-                              type='checkbox'
-                              value={option.value}
-                              {...registerMain(field.name, {
-                                required: field.required
-                                  ? `${field.label} is required`
-                                  : false,
-                              })}
-                              className='h-4 w-4 cursor-pointer accent-emerald-600'
-                            />
-
-                            {option.label}
-                          </label>
-                        ))}
-                      </div>
-
-                      {mainErrors[field.name] && (
-                        <p className='mt-1 text-[11px] text-red-500'>
-                          {mainErrors[field.name].message}
-                        </p>
-                      )}
-                    </div>
-                  ))}
-
-                {/* =================================================
-                    STATUS
-                ================================================== */}
-
-                {formFields
-                  .filter((field) => field.name === "status")
-                  .map((field) => (
-                    <div key={field.id}>
-                      <label className='mb-1.5 block text-xs font-semibold text-slate-700'>
-                        {field.label}
-
-                        {field.required && (
-                          <span className='text-red-500'> *</span>
-                        )}
-                      </label>
-
-                      <Select
-                        {...registerMain(field.name, {
-                          required: field.required
-                            ? `${field.label} is required`
-                            : false,
-                        })}
-                        className={`h-10 w-full cursor-pointer rounded-md border bg-white px-3 text-sm outline-none ${
-                          mainErrors[field.name]
-                            ? "border-red-500"
-                            : "border-slate-300"
-                        }`}
-                      >
-                        <option value=''>{field.placeholder}</option>
-
-                        {statusOptions.map((option) => (
-                          <option key={option.value} value={option.value}>
-                            {option.label}
-                          </option>
-                        ))}
-                      </Select>
-
-                      {mainErrors[field.name] && (
-                        <p className='mt-1 text-[11px] text-red-500'>
-                          {mainErrors[field.name].message}
-                        </p>
-                      )}
-                    </div>
-                  ))}
-
-                {/* =================================================
-                    REMARKS
-                ================================================== */}
-
-                {formFields
-                  .filter((field) => field.name === "remarks")
-                  .map((field) => (
-                    <div key={field.id}>
-                      <label className='mb-1.5 block text-xs font-semibold text-slate-700'>
-                        {field.label}
-
-                        {!field.required && (
-                          <span className='font-normal text-slate-400'>
-                            {" "}
-                            (Optional)
-                          </span>
-                        )}
-                      </label>
-
-                      <textarea
-                        rows='3'
-                        maxLength={field.maxLength}
-                        placeholder={field.placeholder}
-                        {...registerMain(field.name, {
-                          required: field.required
-                            ? `${field.label} is required`
-                            : false,
-                        })}
-                        className={`w-full resize-none rounded-md border bg-white px-3 py-2 text-sm outline-none ${
-                          mainErrors[field.name]
-                            ? "border-red-500"
-                            : "border-slate-300"
-                        }`}
-                      />
-
-                      <div className='mt-1 text-right text-[11px] text-slate-500'>
-                        Maximum {field.maxLength} characters
-                      </div>
-
-                      {mainErrors[field.name] && (
-                        <p className='mt-1 text-[11px] text-red-500'>
-                          {mainErrors[field.name].message}
-                        </p>
-                      )}
-                    </div>
-                  ))}
-
-                {/* =================================================
-                    BUTTONS
-                ================================================== */}
-
-                <div className='flex flex-col-reverse gap-2 border-t border-slate-200 pt-4 sm:flex-row sm:justify-end'>
+                <div className='mt-4 flex flex-col-reverse gap-2 border-t border-slate-200 pt-4 sm:flex-row sm:justify-end'>
                   <button
                     type='button'
                     onClick={handleMainCancel}
@@ -471,19 +330,18 @@ const TeaType = () => {
 
                   <button
                     type='submit'
-                    className='flex h-10 cursor-pointer items-center justify-center gap-2 rounded-md bg-emerald-700 px-4 text-sm font-medium text-white'
+                    disabled={mainSubmitting || Boolean(selected?.pendingRequest)}
+                    className='flex h-10 cursor-pointer items-center justify-center gap-2 rounded-md bg-emerald-700 px-4 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-60'
                   >
                     <Save className='h-4 w-4' />
 
-                    {pageConfig.saveButtonLabel}
+                    {mainSubmitting ? "Saving..." : pageConfig.saveButtonLabel}
                   </button>
                 </div>
 
-                {/* =================================================
-                    MANDATORY NOTE
-                ================================================== */}
+                {/* MANDATORY NOTE */}
 
-                <p className='text-[11px] text-red-500'>
+                <p className='mt-4 text-[11px] text-red-500'>
                   {pageConfig.mandatoryNote}
                 </p>
               </form>
@@ -496,9 +354,7 @@ const TeaType = () => {
 
           <div className='lg:col-span-7'>
             <div className='rounded-lg border border-slate-200 bg-white'>
-              {/* =================================================
-                  LIST HEADER
-              ================================================== */}
+              {/* LIST HEADER */}
 
               <div className='flex flex-col gap-3 border-b border-slate-200 px-5 py-4 sm:flex-row sm:items-center sm:justify-between'>
                 <h2 className='text-sm font-bold text-emerald-700'>
@@ -516,9 +372,7 @@ const TeaType = () => {
                 </button>
               </div>
 
-              {/* =================================================
-                  TABLE
-              ================================================== */}
+              {/* TABLE */}
 
               <div className='overflow-x-auto p-3'>
                 <table className='w-full min-w-[850px] text-left text-xs'>
@@ -544,71 +398,88 @@ const TeaType = () => {
                   {/* TABLE BODY */}
 
                   <tbody className='divide-y divide-slate-100'>
-                    {teaTypeList.map((teaType, index) => (
-                      <tr key={teaType.id}>
-                        <td className='px-3 py-4'>{index + 1}</td>
-
-                        <td className='px-3 py-4'>{teaType.code}</td>
-
-                        <td className='px-3 py-4'>{teaType.teaTypeName}</td>
-
-                        <td className='px-3 py-4'>{teaType.shortName}</td>
-
-                        <td className='px-3 py-4'>
-                          {teaType.processingMethod}
-                        </td>
-
-                        <td className='px-3 py-4'>
-                          <span
-                            className={`rounded px-2 py-1 text-[11px] font-semibold ${
-                              teaType.status === "ACTIVE"
-                                ? "bg-emerald-50 text-emerald-700"
-                                : "bg-slate-100 text-slate-600"
-                            }`}
-                          >
-                            {statusOptions.find(
-                              (status) => status.value === teaType.status,
-                            )?.label || teaType.status}
-                          </span>
-                        </td>
-
-                        <td className='px-3 py-4'>
-                          <div className='flex justify-center gap-2'>
-                            <button
-                              type='button'
-                              className='cursor-pointer rounded border border-emerald-200 p-1.5 text-emerald-700'
-                            >
-                              <Pencil className='h-3.5 w-3.5' />
-                            </button>
-
-                            <button
-                              type='button'
-                              className='cursor-pointer rounded border border-red-200 p-1.5 text-red-500'
-                            >
-                              <Trash2 className='h-3.5 w-3.5' />
-                            </button>
-                          </div>
+                    {list.loading && !list.data ? (
+                      <TableSkeleton rows={5} columns={teaTypeTableHeaders.length} />
+                    ) : list.error ? (
+                      <tr>
+                        <td colSpan={teaTypeTableHeaders.length} className='p-4'>
+                          <ErrorState message={list.error.message} onRetry={list.reload} />
                         </td>
                       </tr>
-                    ))}
+                    ) : rows.length === 0 ? (
+                      <EmptyRow columns={teaTypeTableHeaders.length} message='No tea types found' />
+                    ) : (
+                      rows.map((teaType, index) => (
+                        <tr key={teaType.id}>
+                          <td className='px-3 py-4'>{(page - 1) * PER_PAGE + index + 1}</td>
+
+                          <td className='px-3 py-4'>{teaType.teaTypeCode}</td>
+
+                          <td className='px-3 py-4'>{teaType.teaTypeName}</td>
+
+                          <td className='px-3 py-4'>{teaType.shortName ?? "-"}</td>
+
+                          <td className='px-3 py-4'>
+                            {teaType.processingMethodLabel}
+                          </td>
+
+                          <td className='px-3 py-4'>
+                            <PendingBadge row={teaType} />
+                            <span
+                              className={`rounded px-2 py-1 text-[11px] font-semibold ${
+                                teaType.status === "ACTIVE"
+                                  ? "bg-emerald-50 text-emerald-700"
+                                  : "bg-slate-100 text-slate-600"
+                              }`}
+                            >
+                              {teaType.statusLabel}
+                            </span>
+                          </td>
+
+                          <td className='px-3 py-4'>
+                            <div className='flex justify-center gap-2'>
+                              <button
+                                type='button'
+                                title={waitingTitle(teaType, "Edit")}
+                                disabled={Boolean(teaType.pendingRequest)}
+                                onClick={() => startEdit(teaType)}
+                                className='cursor-pointer rounded border border-emerald-200 p-1.5 text-emerald-700 disabled:cursor-not-allowed disabled:opacity-40'
+                              >
+                                <Pencil className='h-3.5 w-3.5' />
+                              </button>
+
+                              <button
+                                type='button'
+                                title={waitingTitle(teaType, "Delete")}
+                                disabled={Boolean(teaType.pendingRequest)}
+                                onClick={() => setDeleting(teaType)}
+                                className='cursor-pointer rounded border border-red-200 p-1.5 text-red-500 disabled:cursor-not-allowed disabled:opacity-40'
+                              >
+                                <Trash2 className='h-3.5 w-3.5' />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    )}
                   </tbody>
                 </table>
               </div>
 
-              {/* =================================================
-                  PAGINATION
-              ================================================== */}
+              {/* PAGINATION */}
 
               <div className='flex flex-col gap-3 border-t border-slate-200 px-5 py-4 sm:flex-row sm:items-center sm:justify-between'>
                 <p className='text-xs text-slate-500'>
-                  Showing {pagination.showingFrom} to {pagination.showingTo} of{" "}
-                  {pagination.totalEntries} entries
+                  Showing {from} to {to} of {total} entries
                 </p>
 
                 <div className='flex items-center gap-1'>
                   <button
                     type='button'
-                    className='cursor-pointer rounded border border-slate-200 px-3 py-1.5 text-xs'
+                    aria-label='Previous page'
+                    disabled={page <= 1}
+                    onClick={() => setPage((current) => current - 1)}
+                    className='cursor-pointer rounded border border-slate-200 px-3 py-1.5 text-xs disabled:cursor-not-allowed disabled:opacity-40'
                   >
                     ‹
                   </button>
@@ -617,12 +488,15 @@ const TeaType = () => {
                     type='button'
                     className='cursor-pointer rounded bg-emerald-700 px-3 py-1.5 text-xs text-white'
                   >
-                    {pagination.currentPage}
+                    {page}
                   </button>
 
                   <button
                     type='button'
-                    className='cursor-pointer rounded border border-slate-200 px-3 py-1.5 text-xs'
+                    aria-label='Next page'
+                    disabled={page >= totalPages}
+                    onClick={() => setPage((current) => current + 1)}
+                    className='cursor-pointer rounded border border-slate-200 px-3 py-1.5 text-xs disabled:cursor-not-allowed disabled:opacity-40'
                   >
                     ›
                   </button>
@@ -646,14 +520,10 @@ const TeaType = () => {
             }
           }}
         >
-          {/* =================================================
-              MODAL CONTAINER
-          ================================================== */}
+          {/* MODAL CONTAINER */}
 
           <div className='w-full max-w-2xl overflow-hidden rounded-xl bg-white shadow-2xl'>
-            {/* =================================================
-                MODAL HEADER
-            ================================================== */}
+            {/* MODAL HEADER */}
 
             <div className='flex items-center justify-between border-b border-slate-200 px-5 py-4'>
               <div>
@@ -675,247 +545,14 @@ const TeaType = () => {
               </button>
             </div>
 
-            {/* =================================================
-                MODAL FORM
-            ================================================== */}
+            {/* MODAL FORM */}
 
             <form onSubmit={handleModalSubmit(onModalSubmit)}>
-              {/* =================================================
-                  MODAL BODY
-              ================================================== */}
-
               <div className='max-h-[75vh] overflow-y-auto p-5'>
-                <div className='grid grid-cols-1 gap-4 sm:grid-cols-2'>
-                  {/* =================================================
-                      TEA TYPE CODE
-                  ================================================== */}
-
-                  <div>
-                    <label className='mb-1.5 block text-xs font-semibold text-slate-700'>
-                      Tea Type Code
-                      <span className='text-red-500'> *</span>
-                    </label>
-
-                    <input
-                      type='text'
-                      placeholder='Enter tea type code'
-                      maxLength={50}
-                      {...registerModal("teaTypeCode", {
-                        required: "Tea Type Code is required",
-                      })}
-                      className={`h-10 w-full rounded-md border bg-white px-3 text-sm outline-none ${
-                        modalErrors.teaTypeCode
-                          ? "border-red-500"
-                          : "border-slate-300"
-                      }`}
-                    />
-
-                    {modalErrors.teaTypeCode && (
-                      <p className='mt-1 text-[11px] text-red-500'>
-                        {modalErrors.teaTypeCode.message}
-                      </p>
-                    )}
-                  </div>
-
-                  {/* =================================================
-                      TEA TYPE NAME
-                  ================================================== */}
-
-                  <div>
-                    <label className='mb-1.5 block text-xs font-semibold text-slate-700'>
-                      Tea Type Name
-                      <span className='text-red-500'> *</span>
-                    </label>
-
-                    <input
-                      type='text'
-                      placeholder='Enter tea type name'
-                      maxLength={100}
-                      {...registerModal("teaTypeName", {
-                        required: "Tea Type Name is required",
-                      })}
-                      className={`h-10 w-full rounded-md border bg-white px-3 text-sm outline-none ${
-                        modalErrors.teaTypeName
-                          ? "border-red-500"
-                          : "border-slate-300"
-                      }`}
-                    />
-
-                    {modalErrors.teaTypeName && (
-                      <p className='mt-1 text-[11px] text-red-500'>
-                        {modalErrors.teaTypeName.message}
-                      </p>
-                    )}
-                  </div>
-
-                  {/* =================================================
-                      SHORT NAME
-                  ================================================== */}
-
-                  <div>
-                    <label className='mb-1.5 block text-xs font-semibold text-slate-700'>
-                      Short Name
-                    </label>
-
-                    <input
-                      type='text'
-                      placeholder='Enter short name'
-                      maxLength={50}
-                      {...registerModal("shortName")}
-                      className='h-10 w-full rounded-md border border-slate-300 bg-white px-3 text-sm outline-none'
-                    />
-                  </div>
-
-                  {/* =================================================
-                      PROCESSING METHOD
-                  ================================================== */}
-
-                  <div>
-                    <label className='mb-1.5 block text-xs font-semibold text-slate-700'>
-                      Processing Method
-                      <span className='text-red-500'> *</span>
-                    </label>
-
-                    <Select
-                      {...registerModal("processingMethod", {
-                        required: "Processing Method is required",
-                      })}
-                      className={`h-10 w-full cursor-pointer rounded-md border bg-white px-3 text-sm outline-none ${
-                        modalErrors.processingMethod
-                          ? "border-red-500"
-                          : "border-slate-300"
-                      }`}
-                    >
-                      <option value=''>Select processing method</option>
-
-                      {processingMethodOptions.map((option) => (
-                        <option key={option.value} value={option.value}>
-                          {option.label}
-                        </option>
-                      ))}
-                    </Select>
-
-                    {modalErrors.processingMethod && (
-                      <p className='mt-1 text-[11px] text-red-500'>
-                        {modalErrors.processingMethod.message}
-                      </p>
-                    )}
-                  </div>
-                </div>
-
-                {/* =================================================
-                    DESCRIPTION
-                ================================================== */}
-
-                <div className='mt-4'>
-                  <label className='mb-1.5 block text-xs font-semibold text-slate-700'>
-                    Description
-                  </label>
-
-                  <textarea
-                    rows='3'
-                    maxLength={250}
-                    placeholder='Enter description...'
-                    {...registerModal("description")}
-                    className='w-full resize-none rounded-md border border-slate-300 bg-white px-3 py-2 text-sm outline-none'
-                  />
-                </div>
-
-                {/* =================================================
-                    APPLICABLE FOR
-                ================================================== */}
-
-                <div className='mt-4'>
-                  <label className='mb-2 block text-xs font-semibold text-slate-700'>
-                    Applicable For
-                    <span className='text-red-500'> *</span>
-                  </label>
-
-                  <div className='flex flex-wrap gap-3'>
-                    {applicableForOptions.map((option) => (
-                      <label
-                        key={option.value}
-                        className='flex cursor-pointer items-center gap-2 rounded-md bg-slate-50 px-3 py-2 text-xs text-slate-700'
-                      >
-                        <input
-                          type='checkbox'
-                          value={option.value}
-                          {...registerModal("applicableFor", {
-                            required: "Please select at least one option",
-                          })}
-                          className='h-4 w-4 cursor-pointer accent-emerald-600'
-                        />
-
-                        {option.label}
-                      </label>
-                    ))}
-                  </div>
-
-                  {modalErrors.applicableFor && (
-                    <p className='mt-1 text-[11px] text-red-500'>
-                      {modalErrors.applicableFor.message}
-                    </p>
-                  )}
-                </div>
-
-                {/* =================================================
-                    STATUS
-                ================================================== */}
-
-                <div className='mt-4'>
-                  <label className='mb-1.5 block text-xs font-semibold text-slate-700'>
-                    Status
-                    <span className='text-red-500'> *</span>
-                  </label>
-
-                  <Select
-                    {...registerModal("status", {
-                      required: "Status is required",
-                    })}
-                    className={`h-10 w-full cursor-pointer rounded-md border bg-white px-3 text-sm outline-none ${
-                      modalErrors.status ? "border-red-500" : "border-slate-300"
-                    }`}
-                  >
-                    {statusOptions.map((option) => (
-                      <option key={option.value} value={option.value}>
-                        {option.label}
-                      </option>
-                    ))}
-                  </Select>
-
-                  {modalErrors.status && (
-                    <p className='mt-1 text-[11px] text-red-500'>
-                      {modalErrors.status.message}
-                    </p>
-                  )}
-                </div>
-
-                {/* =================================================
-                    REMARKS
-                ================================================== */}
-
-                <div className='mt-4'>
-                  <label className='mb-1.5 block text-xs font-semibold text-slate-700'>
-                    Remarks
-                    <span className='font-normal text-slate-400'>
-                      {" "}
-                      (Optional)
-                    </span>
-                  </label>
-
-                  <textarea
-                    rows='3'
-                    maxLength={250}
-                    placeholder='Enter remarks...'
-                    {...registerModal("remarks")}
-                    className='w-full resize-none rounded-md border border-slate-300 bg-white px-3 py-2 text-sm outline-none'
-                  />
-                </div>
+                <TeaTypeFields register={registerModal} errors={modalErrors} options={options.data} />
               </div>
 
-              {/* =================================================
-                  MODAL FOOTER
-              ================================================== */}
+              {/* MODAL FOOTER */}
 
               <div className='flex flex-col-reverse gap-2 border-t border-slate-200 px-5 py-4 sm:flex-row sm:justify-end'>
                 <button
@@ -930,17 +567,27 @@ const TeaType = () => {
 
                 <button
                   type='submit'
-                  className='flex h-10 cursor-pointer items-center justify-center gap-2 rounded-md bg-emerald-700 px-4 text-sm font-medium text-white'
+                  disabled={modalSubmitting}
+                  className='flex h-10 cursor-pointer items-center justify-center gap-2 rounded-md bg-emerald-700 px-4 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-60'
                 >
                   <Save className='h-4 w-4' />
 
-                  {pageConfig.saveButtonLabel}
+                  {modalSubmitting ? "Saving..." : pageConfig.saveButtonLabel}
                 </button>
               </div>
             </form>
           </div>
         </div>
       )}
+
+      <ConfirmDialog
+        open={Boolean(deleting)}
+        title={`Delete ${deleting?.teaTypeName ?? "tea type"}?`}
+        message='With approval on, the deletion is sent for approval first.'
+        loading={deleteBusy}
+        onConfirm={confirmDelete}
+        onCancel={() => setDeleting(null)}
+      />
     </div>
   );
 };

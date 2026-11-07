@@ -1905,9 +1905,9 @@ const FieldPlanting = () => {
 
             <button
               type='button'
-              disabled={isSubmitting}
-              onClick={handleSubmit((values) => savePlanting(values, { print: true }))}
-              className='flex cursor-pointer h-10 items-center gap-2 rounded-lg bg-green-700 px-4 text-sm font-medium text-white transition-all hover:bg-green-800 disabled:opacity-60'
+              disabled
+              title='Save & Print is on hold until it is decided'
+              className='flex cursor-not-allowed h-10 items-center gap-2 rounded-lg bg-green-700 px-4 text-sm font-medium text-white transition-all disabled:opacity-60'
             >
               <Printer size={16} />
               Save & Print
