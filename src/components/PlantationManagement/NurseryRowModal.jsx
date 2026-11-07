@@ -1,8 +1,6 @@
 import { useEffect, useState } from "react";
-import { useForm, applyServerErrors } from "../../lib/useForm";
-import toast from "react-hot-toast";
+import { useForm } from "../../lib/useForm";
 import { Pencil, Save, Trash2, X } from "lucide-react";
-import { api, notifySaved } from "../../lib/api";
 import Select from "../common/Select";
 
 const BED_STATUSES = ["Active", "Inactive", "Maintenance", "Under Maintenance"];
@@ -18,7 +16,6 @@ const wholeNumber = (label) => ({
 const KINDS = {
   bed: {
     title: "Bed / Section",
-    path: "beds",
     defaults: { name: "", code: "", clone: "", area: "", plants: "", plantingDate: "", status: "Active" },
     fields: [
       { name: "name", label: "Bed / Section Name", rules: { required: "Bed name is required" } },
@@ -32,7 +29,6 @@ const KINDS = {
   },
   stock: {
     title: "Plant Stock",
-    path: "stock",
     defaults: { clone: "", type: "Clonal", totalPlants: "", availablePlants: "", reservedPlants: "", distributedPlants: "", unit: "Nos", distributedThisMonth: "" },
     fields: [
       { name: "clone", label: "Clone / Seed", rules: { required: "Clone / seed is required" } },
@@ -54,17 +50,16 @@ const toForm = (kind, row) =>
 
 const inputClass = "h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm outline-none focus:border-green-600";
 
-// The popup for one bed or one stock row: view it, add a new one, or edit one. Saves to the nursery's
-// /beds or /stock endpoints and tells the page, which then reloads the tables and the cards.
-export default function NurseryRowModal({ kind, mode: startMode, nurseryId, row, onClose, onSaved, onDelete }) {
+// The popup for one bed or one stock row: view it, add a new one, or edit one. It does not call the server:
+// it hands the values to the page (onSave), which keeps them until Save Nursery sends everything as one request.
+export default function NurseryRowModal({ kind, mode: startMode, row, onClose, onSave, onDelete }) {
   const config = KINDS[kind];
   const [mode, setMode] = useState(startMode);
   const {
     register,
     handleSubmit,
     reset,
-    setError,
-    formState: { errors, isSubmitting },
+    formState: { errors },
   } = useForm({ defaultValues: toForm(kind, row) });
 
   useEffect(() => {
@@ -76,22 +71,14 @@ export default function NurseryRowModal({ kind, mode: startMode, nurseryId, row,
   const editing = Boolean(row);
   const reading = mode === "view";
 
-  const submit = async (values) => {
+  const submit = (values) => {
     const body = { ...values };
     if (kind === "stock" && body.distributedThisMonth === "") delete body.distributedThisMonth;
-    try {
-      const base = `/nurseries/${nurseryId}/${config.path}`;
-      const result = editing ? await api.put(`${base}/${row.id}`, body) : await api.post(base, body);
-      notifySaved(result, `${config.title} ${editing ? "updated" : "added"} successfully!`);
-      onSaved();
-    } catch (error) {
-      applyServerErrors(setError, error);
-      toast.error(error.message);
-    }
+    onSave(body);
   };
 
   return (
-    <div className='fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 p-4' onMouseDown={() => !isSubmitting && onClose()}>
+    <div className='fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 p-4' onMouseDown={onClose}>
       <div className='max-h-full w-full max-w-2xl overflow-y-auto rounded-xl bg-white shadow-xl' onMouseDown={(event) => event.stopPropagation()}>
         <div className='flex items-center justify-between border-b border-gray-200 px-5 py-4'>
           <h2 className='text-lg font-semibold text-green-800'>
@@ -170,9 +157,9 @@ export default function NurseryRowModal({ kind, mode: startMode, nurseryId, row,
                 <X size={18} />
                 Cancel
               </button>
-              <button type='submit' disabled={isSubmitting} className='flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-green-700 px-6 text-white transition hover:bg-green-800 disabled:opacity-60 sm:w-auto'>
+              <button type='submit' className='flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-green-700 px-6 text-white transition hover:bg-green-800 sm:w-auto'>
                 <Save size={18} />
-                {isSubmitting ? "Saving..." : editing ? "Update" : "Save"}
+                {editing ? "Update" : "Add"}
               </button>
             </div>
           </form>

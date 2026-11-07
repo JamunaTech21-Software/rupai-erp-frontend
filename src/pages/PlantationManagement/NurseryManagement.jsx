@@ -1,13 +1,12 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useForm, applyServerErrors } from "../../lib/useForm";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useBlocker, useNavigate, useSearchParams } from "react-router-dom";
 import toast from "react-hot-toast";
 import { nurseryManagementData } from "../../data/PlantationManagementData/nurseryManagementData";
 import { api, notifySaved } from "../../lib/api";
 import PendingBadge from "../../components/common/PendingBadge";
 import { waitingTitle } from "../../lib/waitingTitle";
 import { useApi } from "../../lib/useApi";
-import { loadNewestCreated } from "../../lib/newestCreated";
 import TableSkeleton from "../../components/common/TableSkeleton";
 import EmptyRow from "../../components/common/EmptyRow";
 import ErrorState from "../../components/common/ErrorState";
@@ -58,6 +57,19 @@ const BED_STATUS_CLASS = {
   Maintenance: "bg-yellow-100 text-yellow-700",
 };
 const orDash = (value) => (value === null || value === undefined || value === "" ? DASH : value);
+// Bed and stock rows changed on the page and not saved yet: new rows (with a temporary id), edited rows by id, removed ids.
+const NO_CHANGES = { beds: { add: [], update: {}, remove: [] }, stock: { add: [], update: {}, remove: [] } };
+const KEY_OF = { bed: "beds", stock: "stock" };
+const MARK_CLASS = {
+  Unsaved: "bg-blue-100 text-blue-700",
+  Edited: "bg-amber-100 text-amber-700",
+  Removed: "bg-red-100 text-red-600",
+};
+const countOf = (list) => list.add.length + Object.keys(list.update).length + list.remove.length;
+let tempCount = 0;
+const newTempId = () => `new-${++tempCount}`;
+const EMPTY_FORM = Object.fromEntries(FIELDS.map((name) => [name, ""]));
+const toForm = (record) => Object.fromEntries(FIELDS.map((name) => [name, record?.[name] ?? ""]));
 
 const NurseryManagement = () => {
   const {
@@ -72,6 +84,7 @@ const NurseryManagement = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const editId = searchParams.get("id");
   const navigate = useNavigate();
+  const leavingRef = useRef(false);
   // After a save, return to the page the user came from (the dashboard when the page was opened directly).
   const goBack = () => (window.history.state?.idx > 0 ? navigate(-1) : navigate("/"));
 
@@ -79,21 +92,28 @@ const NurseryManagement = () => {
   const allNurseries = useApi(() => api.get("/nurseries", { perPage: 100 }), []);
   const pickNursery = (id) => setSearchParams(id ? { id } : {});
 
-  // The nursery being edited (?id=); the panels show it, or the first nursery when adding a new one.
+  // The nursery being edited (?id=), with its beds and stock. A page without ?id is a new nursery.
   const nursery = useApi(() => (editId ? api.get(`/nurseries/${editId}`) : Promise.resolve(null)), [editId]);
-  const first = useApi(() => (editId ? Promise.resolve(null) : loadNewestCreated("/nurseries", {}, 1, 1)), [editId]);
-  const shownId = editId ?? first.data?.data?.[0]?.id;
+  const saved = nursery.data?.id === editId ? nursery.data : null;
+  // One request is already waiting for this nursery: nothing can be changed until it is decided.
+  const pendingRequest = saved?.pendingRequest ?? null;
+  const shownId = editId;
 
   const summary = useApi(() => (shownId ? api.get(`/nurseries/${shownId}/summary`) : Promise.resolve(null)), [shownId]);
-  const beds = useApi(() => (shownId ? api.get(`/nurseries/${shownId}/beds`) : Promise.resolve(null)), [shownId]);
-  const stock = useApi(() => (shownId ? api.get(`/nurseries/${shownId}/stock`) : Promise.resolve(null)), [shownId]);
   const activities = useApi(() => (shownId ? api.get(`/nurseries/${shownId}/activities`) : Promise.resolve(null)), [shownId]);
-  const bedRows = beds.data ?? [];
-  const stockRows = stock.data?.stockInventory ?? [];
-  const stockTotals = stock.data?.stockInventoryTotal ? [stock.data.stockInventoryTotal] : [];
   const activityRows = activities.data ?? [];
-  // Nothing to show yet while the first nursery is still being looked up.
-  const waiting = !shownId && (first.loading || nursery.loading);
+  // Nothing to show yet while the nursery is still being read.
+  const waiting = Boolean(editId) && !saved && nursery.loading;
+
+  // Beds and stock changed on the page and not saved yet, and the server's complaints about single rows.
+  const [changes, setChanges] = useState(NO_CHANGES);
+  const [problems, setProblems] = useState({});
+  const changesCount = countOf(changes.beds) + countOf(changes.stock);
+  // The form counts as edited once the user types or picks something (a reset by the page does not count).
+  const [formEdited, setFormEdited] = useState(false);
+  const hasUnsaved = formEdited || changesCount > 0;
+  const dirtyRef = useRef(false);
+  dirtyRef.current = formEdited;
 
   // Estate -> Division
   const estateId = watch("estate");
@@ -103,76 +123,164 @@ const NurseryManagement = () => {
     [estateId],
   );
 
+  // Another nursery (or a new one) starts clean.
   useEffect(() => {
-    if (nursery.data) {
-      reset(Object.fromEntries(FIELDS.map((name) => [name, nursery.data[name] ?? ""])));
-    }
-  }, [nursery.data, reset]);
+    setChanges(NO_CHANGES);
+    setProblems({});
+    setFormEdited(false);
+    if (!editId) reset(EMPTY_FORM);
+  }, [editId, reset]);
+  useEffect(() => {
+    if (saved && !dirtyRef.current) reset(toForm(saved));
+  }, [saved, reset]);
   // The saved division shows once its options have loaded.
   useEffect(() => {
-    const saved = nursery.data?.division;
-    if (saved && divisionOptions.data?.some((option) => option.value === saved)) setValue("division", saved);
-  }, [nursery.data, divisionOptions.data, setValue]);
+    const division = saved?.division;
+    if (division && divisionOptions.data?.some((option) => option.value === division)) setValue("division", division);
+  }, [saved, divisionOptions.data, setValue]);
 
   const reloadPanels = () => {
     nursery.reload();
-    first.reload();
     allNurseries.reload();
     summary.reload();
-    beds.reload();
-    stock.reload();
     activities.reload();
   };
 
-  // Bed and stock rows: one popup to view / add / edit, and a question before delete.
+  // The rows as the page shows them: saved rows with their unsaved edit or removal, then the new unsaved rows.
+  const viewOf = (kind) => {
+    const key = KEY_OF[kind];
+    const list = changes[key];
+    return [
+      ...(saved?.[key] ?? []).map((row) => {
+        const edit = list.update[row.id];
+        const removed = list.remove.includes(row.id);
+        return { ...row, ...(edit ?? {}), removed, mark: removed ? "Removed" : edit ? "Edited" : null };
+      }),
+      ...list.add.map((row) => ({ ...row, id: row.tempId, isNew: true, mark: "Unsaved" })),
+    ];
+  };
+  const bedRows = viewOf("bed");
+  const stockRows = viewOf("stock");
+  const liveStock = stockRows.filter((row) => !row.removed);
+  const sum = (field) => liveStock.reduce((total, row) => total + (Number(row[field]) || 0), 0);
+  const stockTotals = liveStock.length
+    ? [{ label: "Total", totalPlants: sum("totalPlants"), availablePlants: sum("availablePlants"), reservedPlants: sum("reservedPlants"), distributedPlants: sum("distributedPlants"), unit: "Nos" }]
+    : [];
+
+  // Bed and stock rows: one popup to view / add / edit; a question before remove. All of it changes the page only.
   const [rowPopup, setRowPopup] = useState(null);
   const [deletingRow, setDeletingRow] = useState(null);
-  const [deleteBusy, setDeleteBusy] = useState(false);
-  const openRowPopup = (kind, mode, row = null) => {
-    if (!shownId) {
-      toast.error("Save a nursery first.");
-      return;
-    }
-    setRowPopup({ kind, mode, row });
+  const openRowPopup = (kind, mode, row = null) => setRowPopup({ kind, mode, row });
+  const clearProblem = (id) => setProblems((current) => ({ ...current, [id]: undefined }));
+  const changeList = (kind, fn) => setChanges((current) => ({ ...current, [KEY_OF[kind]]: fn(current[KEY_OF[kind]]) }));
+  const saveRow = (values) => {
+    const { kind, row } = rowPopup;
+    changeList(kind, (list) => {
+      if (!row) return { ...list, add: [...list.add, { ...values, tempId: newTempId() }] };
+      if (row.isNew) return { ...list, add: list.add.map((item) => (item.tempId === row.id ? { ...values, tempId: item.tempId } : item)) };
+      return { ...list, update: { ...list.update, [row.id]: values } };
+    });
+    if (row) clearProblem(row.id);
+    setRowPopup(null);
   };
-  // After any change the tables, the cards and Recent Activities are read again.
-  const reloadRows = () => {
-    beds.reload();
-    stock.reload();
-    summary.reload();
-    activities.reload();
+  const removeRow = (kind, row) => {
+    changeList(kind, (list) =>
+      row.isNew
+        ? { ...list, add: list.add.filter((item) => item.tempId !== row.id) }
+        : { ...list, update: Object.fromEntries(Object.entries(list.update).filter(([id]) => id !== row.id)), remove: [...list.remove, row.id] },
+    );
+    clearProblem(row.id);
   };
-  const confirmDeleteRow = async () => {
-    setDeleteBusy(true);
-    try {
-      const result = await api.del(`/nurseries/${shownId}/${deletingRow.kind === "bed" ? "beds" : "stock"}/${deletingRow.row.id}`);
-      notifySaved(result, deletingRow.kind === "bed" ? "Bed deleted successfully!" : "Stock deleted successfully!");
-      setDeletingRow(null);
-      setRowPopup(null);
-      reloadRows();
-    } catch (error) {
-      toast.error(error.message);
-    } finally {
-      setDeleteBusy(false);
-    }
+  const restoreRow = (kind, row) => {
+    changeList(kind, (list) => ({ ...list, remove: list.remove.filter((id) => id !== row.id) }));
+    clearProblem(row.id);
+  };
+  const confirmDeleteRow = () => {
+    removeRow(deletingRow.kind, deletingRow.row);
+    setDeletingRow(null);
+    setRowPopup(null);
   };
 
+  // ONE Save: the form, the bed changes and the stock changes go in one request, so there is one approval.
   const onSubmit = async (values) => {
-    try {
-      const saved = editId ? await api.put(`/nurseries/${editId}`, values) : await api.post("/nurseries", values);
-      if (!saved?.pending) {
-        reset(Object.fromEntries(FIELDS.map((name) => [name, (editId ? saved[name] : "") ?? ""])));
+    const plain = (list) => list.map(({ tempId, ...row }) => { void tempId; return row; });
+    let body;
+    if (editId) {
+      body = { ...values };
+      for (const [kind, name] of [["bed", "bedChanges"], ["stock", "stockChanges"]]) {
+        const list = changes[KEY_OF[kind]];
+        const ids = Object.keys(list.update);
+        if (countOf(list)) body[name] = { add: plain(list.add), update: ids.map((id) => ({ id, ...list.update[id] })), remove: list.remove };
       }
-      notifySaved(saved, "Nursery saved successfully!");
+    } else {
+      body = { ...values, beds: plain(changes.beds.add), stock: plain(changes.stock.add) };
+    }
+    try {
+      const result = editId ? await api.put(`/nurseries/${editId}`, body) : await api.post("/nurseries", body);
+      notifySaved(result, "Nursery saved successfully!");
+      leavingRef.current = true;
+      if (!result?.pending) reset(editId ? toForm(result) : EMPTY_FORM);
       reloadPanels();
       goBack();
     } catch (error) {
-      applyServerErrors(setError, error);
-      toast.error(error.message);
+      // Row errors go to their row, everything else to the form field it names.
+      const formErrors = {};
+      const rowIssues = {};
+      let gone = false;
+      for (const [key, message] of Object.entries(error.fields ?? {})) {
+        const match = key.match(/^(?:(bed|stock)Changes\.(add|update|remove)|(beds|stock))\.(\d+)/);
+        if (match) {
+          const list = changes[match[1] ? KEY_OF[match[1]] : match[3]];
+          const index = Number(match[4]);
+          const op = match[2] ?? "add";
+          const rowKey = op === "update" ? Object.keys(list.update)[index] : op === "remove" ? list.remove[index] : list.add[index]?.tempId;
+          if (rowKey && !rowIssues[rowKey]) rowIssues[rowKey] = message;
+        } else formErrors[key] = message;
+        if (/no longer/i.test(message)) gone = true;
+      }
+      setProblems(rowIssues);
+      applyServerErrors(setError, { fields: formErrors });
+      const rowCount = Object.keys(rowIssues).length;
+      if (rowCount) toast.error(`${rowCount} row${rowCount === 1 ? " has" : "s have"} a problem. See the marked row${rowCount === 1 ? "" : "s"}.`);
+      else toast.error(error.message);
+      if (gone) reloadPanels(); // something was changed by someone else: show what is there now
     }
   };
+  const resetAll = () => {
+    reset(saved ? toForm(saved) : EMPTY_FORM);
+    setChanges(NO_CHANGES);
+    setProblems({});
+    setFormEdited(false);
+  };
+
+  // Warn before leaving the page (another page, another nursery, refresh or closing the tab) with changes that are not saved.
+  const blocker = useBlocker(({ currentLocation, nextLocation }) => hasUnsaved && !leavingRef.current && currentLocation.pathname + currentLocation.search !== nextLocation.pathname + nextLocation.search);
+  useEffect(() => {
+    if (!hasUnsaved) return undefined;
+    const warn = (event) => {
+      event.preventDefault();
+      event.returnValue = "";
+    };
+    window.addEventListener("beforeunload", warn);
+    return () => window.removeEventListener("beforeunload", warn);
+  }, [hasUnsaved]);
+  const rowOff = (row) => Boolean(pendingRequest || row.pendingRequest);
+  const rowTitle = (row, label) => (pendingRequest ? `Waiting for approval (${pendingRequest.requestNo})` : waitingTitle(row, label));
+  const markOf = (row) => (row.mark ? <span className={`ml-2 inline-block whitespace-nowrap rounded-full px-2 py-0.5 text-[11px] font-semibold no-underline ${MARK_CLASS[row.mark]}`}>{row.mark}</span> : null);
+  const problemOf = (row) => (problems[row.id] ? <p className='text-xs font-medium text-red-600 no-underline'>{problems[row.id]}</p> : null);
+  const rowClass = (row) => `transition-colors ${problems[row.id] ? "bg-red-50" : row.removed ? "bg-gray-50 text-gray-400 line-through" : "hover:bg-gray-50"}`;
   return (
     <div className='space-y-6'>
+      {pendingRequest && (
+        <div role='status' className='rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-800'>
+          A request ({pendingRequest.requestNo}) is waiting for approval. This nursery cannot be changed until it is approved or rejected.
+        </div>
+      )}
+      {!pendingRequest && changesCount > 0 && (
+        <div role='status' className='rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-800'>
+          {changesCount} change{changesCount === 1 ? "" : "s"} to beds and stock {changesCount === 1 ? "is" : "are"} not saved yet. Press Save Nursery to send everything as one request.
+        </div>
+      )}
 
       {/* Main Layout */}
       <div className='grid grid-cols-12 gap-6'>
@@ -211,7 +319,8 @@ const NurseryManagement = () => {
             </div>
 
             {/* Body */}
-            <form onSubmit={handleSubmit(onSubmit)} className='space-y-5 p-4 sm:p-6'>
+            <form id='nursery-form' onChange={() => setFormEdited(true)} onSubmit={handleSubmit(onSubmit)} className='p-4 sm:p-6'>
+              <fieldset disabled={Boolean(pendingRequest)} className='m-0 min-w-0 space-y-5 border-0 p-0'>
               <div className='grid grid-cols-1 gap-5 md:grid-cols-2'>
                 {/* Estate */}
                 <div>
@@ -570,13 +679,7 @@ const NurseryManagement = () => {
               <div className='flex flex-col-reverse gap-3 sm:flex-row sm:justify-end'>
                 <button
                   type='button'
-                  onClick={() =>
-                    reset(
-                      nursery.data
-                        ? Object.fromEntries(FIELDS.map((name) => [name, nursery.data[name] ?? ""]))
-                        : Object.fromEntries(FIELDS.map((name) => [name, ""])),
-                    )
-                  }
+                  onClick={resetAll}
                   className='flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg border border-gray-300 px-5 py-2 text-sm font-medium transition hover:bg-gray-100 sm:w-auto'
                 >
                   <RotateCcw size={16} />
@@ -585,13 +688,15 @@ const NurseryManagement = () => {
 
                 <button
                   type='submit'
-                  disabled={isSubmitting}
-                  className='flex w-full items-center justify-center gap-2 rounded-lg bg-green-700 px-5 py-2 text-sm cursor-pointer font-medium text-white transition hover:bg-green-800 disabled:opacity-60 sm:w-auto'
+                  disabled={isSubmitting || Boolean(pendingRequest)}
+                  title={pendingRequest ? `Waiting for approval (${pendingRequest.requestNo})` : undefined}
+                  className='flex w-full items-center justify-center gap-2 rounded-lg bg-green-700 px-5 py-2 text-sm cursor-pointer font-medium text-white transition hover:bg-green-800 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto'
                 >
                   <Save size={16} />
                   {isSubmitting ? "Saving..." : "Save Nursery"}
                 </button>
               </div>
+              </fieldset>
             </form>
           </div>
 
@@ -662,7 +767,8 @@ const NurseryManagement = () => {
               <button
                 type='button'
                 onClick={() => openRowPopup("bed", "add")}
-                className='flex cursor-pointer items-center gap-2 rounded-lg border border-green-700 bg-green-700 px-4 py-2 text-sm font-medium text-white transition hover:bg-green-800'
+                disabled={Boolean(pendingRequest)}
+                className='flex cursor-pointer items-center gap-2 rounded-lg border border-green-700 bg-green-700 px-4 py-2 text-sm font-medium text-white transition hover:bg-green-800 disabled:cursor-not-allowed disabled:opacity-50'
               >
                 <Plus size={16} />
                 Add Bed / Section
@@ -686,12 +792,12 @@ const NurseryManagement = () => {
                 </thead>
 
                 <tbody>
-                  {waiting || (beds.loading && !beds.data) ? (
+                  {waiting ? (
                     <TableSkeleton rows={5} columns={nurseryManagementData.bedTableHeaders.length} />
-                  ) : beds.error ? (
+                  ) : nursery.error ? (
                     <tr>
                       <td colSpan={nurseryManagementData.bedTableHeaders.length} className='p-4'>
-                        <ErrorState message={beds.error.message} onRetry={beds.reload} />
+                        <ErrorState message={nursery.error.message} onRetry={nursery.reload} />
                       </td>
                     </tr>
                   ) : bedRows.length === 0 ? (
@@ -700,7 +806,7 @@ const NurseryManagement = () => {
                   bedRows.map((bed, index) => (
                     <tr
                       key={bed.id}
-                      className='hover:bg-gray-50 transition-colors'
+                      className={rowClass(bed)}
                     >
                       <td className='border border-gray-200 px-4 py-3 text-sm text-center'>
                         {index + 1}
@@ -708,6 +814,8 @@ const NurseryManagement = () => {
 
                       <td className='border border-gray-200 px-4 py-3 text-sm'>
                         {bed.name}
+                        {markOf(bed)}
+                        {problemOf(bed)}
                       </td>
 
                       <td className='border border-gray-200 px-4 py-3 text-sm'>
@@ -740,26 +848,40 @@ const NurseryManagement = () => {
 
                       <td className='border border-gray-200 px-4 py-3'>
                         <PendingBadge row={bed} />
-                        <div className='flex items-center justify-center gap-2'>
-                          <button
-                            type='button'
-                            disabled={Boolean(bed.pendingRequest)}
-                            title={waitingTitle(bed, "Edit")}
-                            onClick={() => openRowPopup("bed", "edit", bed)}
-                            className='rounded-md cursor-pointer p-2 text-blue-600 transition hover:bg-blue-100 disabled:cursor-not-allowed disabled:opacity-40'
-                          >
-                            <SquarePen size={17} />
-                          </button>
+                        <div className='flex items-center justify-center gap-2 no-underline'>
+                          {bed.removed ? (
+                            <button
+                              type='button'
+                              disabled={rowOff(bed)}
+                              title='Bring back'
+                              onClick={() => restoreRow("bed", bed)}
+                              className='rounded-md cursor-pointer p-2 text-green-700 transition hover:bg-green-100 disabled:cursor-not-allowed disabled:opacity-40'
+                            >
+                              <RotateCcw size={17} />
+                            </button>
+                          ) : (
+                            <>
+                              <button
+                                type='button'
+                                disabled={rowOff(bed)}
+                                title={rowTitle(bed, "Edit")}
+                                onClick={() => openRowPopup("bed", "edit", bed)}
+                                className='rounded-md cursor-pointer p-2 text-blue-600 transition hover:bg-blue-100 disabled:cursor-not-allowed disabled:opacity-40'
+                              >
+                                <SquarePen size={17} />
+                              </button>
 
-                          <button
-                            type='button'
-                            disabled={Boolean(bed.pendingRequest)}
-                            title={waitingTitle(bed, "Delete")}
-                            onClick={() => setDeletingRow({ kind: "bed", row: bed })}
-                            className='rounded-md cursor-pointer p-2 text-red-600 transition hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-40'
-                          >
-                            <Trash2 size={17} />
-                          </button>
+                              <button
+                                type='button'
+                                disabled={rowOff(bed)}
+                                title={rowTitle(bed, "Remove")}
+                                onClick={() => setDeletingRow({ kind: "bed", row: bed })}
+                                className='rounded-md cursor-pointer p-2 text-red-600 transition hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-40'
+                              >
+                                <Trash2 size={17} />
+                              </button>
+                            </>
+                          )}
                         </div>
                       </td>
                     </tr>
@@ -882,7 +1004,8 @@ const NurseryManagement = () => {
               <button
                 type='button'
                 onClick={() => openRowPopup("stock", "add")}
-                className='flex items-center gap-2 rounded-lg bg-green-700 px-4 py-2 text-sm font-medium text-white transition hover:bg-green-800'
+                disabled={Boolean(pendingRequest)}
+                className='flex cursor-pointer items-center gap-2 rounded-lg bg-green-700 px-4 py-2 text-sm font-medium text-white transition hover:bg-green-800 disabled:cursor-not-allowed disabled:opacity-50'
               >
                 <Plus size={16} />
                 Add Stock
@@ -908,12 +1031,12 @@ const NurseryManagement = () => {
 
                 {/* Table Body */}
                 <tbody>
-                  {waiting || (stock.loading && !stock.data) ? (
+                  {waiting ? (
                     <TableSkeleton rows={5} columns={nurseryManagementData.stockTableHeaders.length} />
-                  ) : stock.error ? (
+                  ) : nursery.error ? (
                     <tr>
                       <td colSpan={nurseryManagementData.stockTableHeaders.length} className='p-4'>
-                        <ErrorState message={stock.error.message} onRetry={stock.reload} />
+                        <ErrorState message={nursery.error.message} onRetry={nursery.reload} />
                       </td>
                     </tr>
                   ) : stockRows.length === 0 ? (
@@ -922,7 +1045,7 @@ const NurseryManagement = () => {
                   {stockRows.map((item, index) => (
                     <tr
                       key={item.id}
-                      className='transition duration-200 hover:bg-gray-50'
+                      className={rowClass(item)}
                     >
                       {/* SL */}
                       <td className='border border-gray-200 px-3 py-2 text-sm text-gray-700'>
@@ -932,6 +1055,8 @@ const NurseryManagement = () => {
                       {/* Clone / Seed */}
                       <td className='border border-gray-200 px-4 py-2 text-sm text-gray-700'>
                         {item.clone}
+                        {markOf(item)}
+                        {problemOf(item)}
                       </td>
 
                       {/* Type */}
@@ -966,14 +1091,38 @@ const NurseryManagement = () => {
 
                       {/* Action */}
                       <td className='border border-gray-200 px-4 py-2 text-center'>
-                        <button
-                          type='button'
-                          onClick={() => openRowPopup("stock", "view", item)}
-                          className='cursor-pointer rounded-md text-blue-600 transition hover:bg-blue-100 hover:text-blue-700'
-                          title='View Details'
-                        >
-                          <Eye size={18} />
-                        </button>
+                        <PendingBadge row={item} />
+                        <div className='flex items-center justify-center gap-2 no-underline'>
+                          <button
+                            type='button'
+                            onClick={() => openRowPopup("stock", "view", item)}
+                            className='cursor-pointer rounded-md text-blue-600 transition hover:bg-blue-100 hover:text-blue-700'
+                            title='View Details'
+                          >
+                            <Eye size={18} />
+                          </button>
+                          {item.removed ? (
+                            <button
+                              type='button'
+                              disabled={rowOff(item)}
+                              title='Bring back'
+                              onClick={() => restoreRow("stock", item)}
+                              className='cursor-pointer rounded-md text-green-700 transition hover:bg-green-100 disabled:cursor-not-allowed disabled:opacity-40'
+                            >
+                              <RotateCcw size={17} />
+                            </button>
+                          ) : (
+                            <button
+                              type='button'
+                              disabled={rowOff(item)}
+                              title={rowTitle(item, "Remove")}
+                              onClick={() => setDeletingRow({ kind: "stock", row: item })}
+                              className='cursor-pointer rounded-md text-red-600 transition hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-40'
+                            >
+                              <Trash2 size={17} />
+                            </button>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -1081,7 +1230,10 @@ const NurseryManagement = () => {
               {/* Save */}
               <button
                 type='submit'
-                className='flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg bg-green-700 px-6 py-2.5 text-sm font-medium text-white transition hover:bg-green-800 sm:w-auto'
+                form='nursery-form'
+                disabled={isSubmitting || Boolean(pendingRequest)}
+                title={pendingRequest ? `Waiting for approval (${pendingRequest.requestNo})` : undefined}
+                className='flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg bg-green-700 px-6 py-2.5 text-sm font-medium text-white transition hover:bg-green-800 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto'
               >
                 <Save size={16} />
                 Save All Changes
@@ -1096,13 +1248,9 @@ const NurseryManagement = () => {
           key={`${rowPopup.kind}-${rowPopup.row?.id ?? "new"}`}
           kind={rowPopup.kind}
           mode={rowPopup.mode}
-          nurseryId={shownId}
           row={rowPopup.row}
           onClose={() => setRowPopup(null)}
-          onSaved={() => {
-            setRowPopup(null);
-            reloadRows();
-          }}
+          onSave={saveRow}
           onDelete={(row) => {
             setDeletingRow({ kind: rowPopup.kind, row });
             setRowPopup(null);
@@ -1111,11 +1259,19 @@ const NurseryManagement = () => {
       )}
       <ConfirmDialog
         open={Boolean(deletingRow)}
-        title={deletingRow?.kind === "bed" ? "Delete bed / section?" : "Delete stock row?"}
-        message={`${deletingRow?.kind === "bed" ? deletingRow?.row?.name : deletingRow?.row?.clone} will be removed from the list.`}
-        loading={deleteBusy}
+        title={deletingRow?.kind === "bed" ? "Remove bed / section?" : "Remove stock row?"}
+        confirmLabel='Remove'
+        message={`${deletingRow?.kind === "bed" ? deletingRow?.row?.name : deletingRow?.row?.clone} will be removed when you press Save Nursery.`}
         onConfirm={confirmDeleteRow}
         onCancel={() => setDeletingRow(null)}
+      />
+      <ConfirmDialog
+        open={blocker.state === "blocked"}
+        title='Leave without saving?'
+        message='Some changes on this page are not saved yet. If you leave, they are lost.'
+        confirmLabel='Leave'
+        onConfirm={() => blocker.proceed()}
+        onCancel={() => blocker.reset()}
       />
     </div>
   );
