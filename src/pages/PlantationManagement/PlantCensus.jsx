@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useBlocker, useNavigate, useSearchParams } from "react-router-dom";
 import { useForm, applyServerErrors } from "../../lib/useForm";
 import { MapContainer, TileLayer, Polygon } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
@@ -27,10 +27,7 @@ import {
 } from "../../data/PlantationManagementData/plantCensusData";
 import { api, notifySaved } from "../../lib/api";
 import { useApi } from "../../lib/useApi";
-import { loadNewestCreated } from "../../lib/newestCreated";
 import ConfirmDialog from "../../components/common/ConfirmDialog";
-import PendingBadge from "../../components/common/PendingBadge";
-import { waitingTitle } from "../../lib/waitingTitle";
 import TableSkeleton from "../../components/common/TableSkeleton";
 import EmptyRow from "../../components/common/EmptyRow";
 import ErrorState from "../../components/common/ErrorState";
@@ -130,33 +127,24 @@ const gapOf = (row) => (Number(row.expectedPlants) ? ((Number(row.deadPlants || 
 // Document table column widths (percent of the table): File Name is kept narrow and cut with "..." when long.
 const DOCUMENT_COLUMN_WIDTH = { sl: "6%", documentName: "28%", type: "12%", fileName: "22%", uploadedOn: "18%", action: "14%" };
 
-// The census the user last worked on (opened from the list, or added rows / files to). The page shows it again next time;
-// without one it shows the census added most recently.
-const LAST_KEY = "rupai.plantCensus.lastId";
-const rememberCensus = (id) => {
-  try {
-    if (id) localStorage.setItem(LAST_KEY, id);
-    else localStorage.removeItem(LAST_KEY);
-  } catch {
-    /* storage not available: the newest census is shown instead */
-  }
+// Row and file changes wait on the page until Save, so one Save is one request (and one approval).
+const NO_CHANGES = {
+  rows: { add: [], update: {}, remove: [] },
+  files: { photos: { add: [], remove: [] }, documents: { add: [], remove: [] } },
 };
-async function loadCensusToShow() {
-  let stored = null;
-  try {
-    stored = localStorage.getItem(LAST_KEY);
-  } catch {
-    /* ignore */
-  }
-  if (stored) {
-    try {
-      return { data: [await api.get(`/plant-censuses/${stored}`)] };
-    } catch {
-      rememberCensus(null); // deleted or not allowed: forget it
-    }
-  }
-  return loadNewestCreated("/plant-censuses", {}, 1, 1);
-}
+const countChanges = (changes) =>
+  changes.rows.add.length +
+  Object.keys(changes.rows.update).length +
+  changes.rows.remove.length +
+  ["photos", "documents"].reduce((total, kind) => total + changes.files[kind].add.length + changes.files[kind].remove.length, 0);
+const bodyOfRow = (values) =>
+  Object.fromEntries(ROW_FIELDS.map(([name, , type]) => [name, type === "number" ? Number(values[name]) : String(values[name]).trim()]));
+const fileName = (url, fallback) => decodeURIComponent(url?.split("/").pop()?.split("?")[0] ?? "").replace(/\/content$/, "") || fallback;
+const MARK_CLASS = {
+  Unsaved: "bg-blue-100 text-blue-700",
+  Edited: "bg-amber-100 text-amber-700",
+  Removed: "bg-red-100 text-red-700",
+};
 
 const PlantCensus = () => {
   const {
@@ -167,61 +155,51 @@ const PlantCensus = () => {
     clearErrors,
     setValue,
     watch,
-    formState: { errors, isSubmitting },
+    getValues,
+    formState: { errors, isSubmitting, isDirty },
   } = useForm();
+  // True once the user has changed something in Census Information: a reload of the record must not overwrite that.
+  const dirtyRef = useRef(false);
+  dirtyRef.current = isDirty;
+  const resetFor = useRef(null);
+  // What the user typed but did not save is kept in this browser tab (per census, or for a new one), so a page
+  // refresh brings it back. It is cleared when the census is saved or the form is reset.
+  const draftRef = useRef(null);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const editId = searchParams.get("id");
   // After a save, return to the page the user came from (the dashboard when the page was opened directly).
   const goBack = () => (window.history.state?.idx > 0 ? navigate(-1) : navigate("/"));
+  const leavingRef = useRef(false);
   const photoInput = useRef(null);
   const documentInput = useRef(null);
   const [uploading, setUploading] = useState(false);
-  // Row popup: { mode: "view" | "edit", id } plus the values being edited.
+  // Row popup: { mode: "view" | "add" | "edit", id } plus the values being edited.
   const [rowPopup, setRowPopup] = useState(null);
   const [rowValues, setRowValues] = useState({});
   const [rowErrors, setRowErrors] = useState({});
   const [rowNotice, setRowNotice] = useState("");
-  const [rowBusy, setRowBusy] = useState(false);
-  // Document being deleted (asks first).
+  // Document being removed (asks first).
   const [deletingDoc, setDeletingDoc] = useState(null);
-  const [deleteBusy, setDeleteBusy] = useState(false);
+  // Rows and files changed on the page and not saved yet; and the server's complaints about single rows.
+  const [changes, setChanges] = useState(NO_CHANGES);
+  const [rowProblems, setRowProblems] = useState({});
+  const [draftActive, setDraftActive] = useState(false);
 
-  // The census being edited (?id=); the panels show it, or the first census when adding a new one.
-  const first = useApi(() => (editId ? Promise.resolve(null) : loadCensusToShow()), [editId]);
-  const shownId = editId ?? first.data?.data?.[0]?.id;
-  const record = useApi(() => (shownId ? api.get(`/plant-censuses/${shownId}`) : Promise.resolve(null)), [shownId]);
-  const report = useApi(() => (shownId ? api.get(`/plant-censuses/${shownId}/report`) : Promise.resolve(null)), [shownId]);
+  // The census being edited (?id=). Without one the page is a new census, filled in fully before its first Save.
+  const record = useApi(() => (editId ? api.get(`/plant-censuses/${editId}`) : Promise.resolve(null)), [editId]);
+  const report = useApi(() => (editId ? api.get(`/plant-censuses/${editId}/report`) : Promise.resolve(null)), [editId]);
   const shown = record.data;
-  // The map shows the census field's boundary.
-  const field = useApi(() => (shown?.fieldBlock ? api.get(`/fields/${shown.fieldBlock}`) : Promise.resolve(null)), [shown?.fieldBlock]);
+  // One request is already waiting for this census: nothing can be changed until it is decided.
+  const pendingRequest = shown?.pendingRequest ?? null;
+  // The map shows the boundary of the field picked in the form (or the saved one).
+  const mapFieldId = watch("fieldBlock") || shown?.fieldBlock;
+  const field = useApi(() => (mapFieldId ? api.get(`/fields/${mapFieldId}`) : Promise.resolve(null)), [mapFieldId]);
   const boundary = field.data?.map?.landBoundary ?? field.data?.map?.polygon ?? field.data?.polygon;
   const mapCenter = field.data?.map?.latitude != null ? [Number(field.data.map.latitude), Number(field.data.map.longitude)] : fieldMap.center;
-  const waiting = !shownId && first.loading;
-  // A census opened from the list is the one the page keeps showing.
-  useEffect(() => {
-    if (editId) rememberCensus(editId);
-  }, [editId]);
-  // After rows or files were sent for approval, look again every few seconds (for 10 minutes) so the approved
-  // data shows up in the page without a refresh.
-  const [watchUntil, setWatchUntil] = useState(0);
-  const refreshRecord = record.refresh;
-  const refreshReport = report.refresh;
-  const watchApproval = () => setWatchUntil(Date.now() + 10 * 60 * 1000);
-  useEffect(() => {
-    if (!watchUntil) return undefined;
-    const timer = setInterval(() => {
-      if (Date.now() > watchUntil) {
-        setWatchUntil(0);
-        return;
-      }
-      if (document.visibilityState !== "hidden") {
-        refreshRecord();
-        refreshReport();
-      }
-    }, 5000);
-    return () => clearInterval(timer);
-  }, [watchUntil, refreshRecord, refreshReport]);
+  const changesCount = countChanges(changes);
+  // Anything not saved yet: typed fields, rows, files.
+  const hasUnsaved = isDirty || draftActive || changesCount > 0;
 
   // Estate -> Division -> Section -> Field / Block
   const estateId = watch("estate");
@@ -234,19 +212,94 @@ const PlantCensus = () => {
   const sectionOptions = useApi(() => (divisionId ? api.get("/options/sections", { division: divisionId }) : Promise.resolve([])), [divisionId]);
   const fieldOptions = useApi(() => (sectionId ? api.get("/options/fields", { section: sectionId }) : Promise.resolve([])), [sectionId]);
 
-  const editing = editId && record.data?.id === editId ? record.data : null;
+  const draftKey = `rupai.plantCensus.draft.${editId ?? "new"}`;
+  const clearDraft = () => {
+    draftRef.current = null;
+    setDraftActive(false);
+    setChanges(NO_CHANGES);
+    setRowProblems({});
+    try {
+      sessionStorage.removeItem(draftKey);
+      sessionStorage.removeItem(`${draftKey}.changes`);
+    } catch {
+      /* storage not available */
+    }
+  };
+  // Load the draft of this census (or of the new one) before anything fills the form.
   useEffect(() => {
-    if (editing) reset(toForm(editing));
+    try {
+      const text = sessionStorage.getItem(draftKey);
+      draftRef.current = text ? JSON.parse(text) : null;
+    } catch {
+      draftRef.current = null;
+    }
+    if (!editId && draftRef.current) reset({ ...EMPTY_FORM, ...draftRef.current });
+    setDraftActive(Boolean(draftRef.current));
+    try {
+      const text = sessionStorage.getItem(`${draftKey}.changes`);
+      setChanges(text ? JSON.parse(text) : NO_CHANGES);
+    } catch {
+      setChanges(NO_CHANGES);
+    }
+  }, [draftKey, editId, reset]);
+  // Rows and files that are not saved yet are kept with the draft, so a refresh does not lose them.
+  useEffect(() => {
+    try {
+      if (changesCount > 0) sessionStorage.setItem(`${draftKey}.changes`, JSON.stringify(changes));
+      else sessionStorage.removeItem(`${draftKey}.changes`);
+    } catch {
+      /* storage not available */
+    }
+  }, [changes, changesCount, draftKey]);
+  // Every change the user makes is saved as the draft a moment later.
+  useEffect(() => {
+    let timer;
+    const subscription = watch((_values, info) => {
+      if (info?.type !== "change") return;
+      clearTimeout(timer);
+      timer = setTimeout(() => {
+        try {
+          const now = getValues();
+          sessionStorage.setItem(draftKey, JSON.stringify(now));
+          draftRef.current = now;
+          setDraftActive(true);
+        } catch {
+          /* storage not available: the draft only lives until the next refresh */
+        }
+      }, 250);
+    });
+    return () => {
+      subscription.unsubscribe();
+      clearTimeout(timer);
+    };
+  }, [watch, getValues, draftKey]);
+  const editing = editId && record.data?.id === editId ? record.data : null;
+  // Saved Division / Section / Field that the estate lists do not offer any more, by field name.
+  const [savedPlace, setSavedPlace] = useState({});
+  useEffect(() => {
+    setSavedPlace({});
+  }, [editId]);
+  // The form is filled from the record when it is opened, and again after a reload only while the user has not
+  // changed anything (adding a row, a file, or an approval elsewhere must not wipe what is being typed).
+  useEffect(() => {
+    if (!editing) return;
+    if (resetFor.current !== editing.id) {
+      resetFor.current = editing.id;
+      reset({ ...toForm(editing), ...(draftRef.current ?? {}) }); // an unsaved draft wins over the saved values
+    } else if (!dirtyRef.current && !draftRef.current) {
+      reset(toForm(editing));
+    }
   }, [editing, reset]);
   // The saved division / section / field show once their options have loaded.
   useEffect(() => {
-    if (!editing) return;
+    const wanted = draftRef.current ?? editing;
+    if (!wanted || dirtyRef.current) return;
     for (const [name, options] of [
       ["division", divisionOptions.data],
       ["section", sectionOptions.data],
       ["fieldBlock", fieldOptions.data],
     ]) {
-      if (options?.some((option) => option.value === editing[name])) setValue(name, editing[name]);
+      if (options?.some((option) => option.value === wanted[name])) setValue(name, wanted[name]);
     }
   }, [editing, divisionOptions.data, sectionOptions.data, fieldOptions.data, setValue]);
   // A census saved before the estate data was re-created points to a Division / Section / Field that no longer exist:
@@ -273,15 +326,27 @@ const PlantCensus = () => {
         missing.push([name, label]);
       }
       if (cancelled) return;
-      for (const [name, label] of missing) {
-        setValue(name, "");
-        setError(name, { type: "stale", message: `The saved ${label} no longer exists. Please select it again.` });
-      }
+      // The saved value stays as it is (shown by its saved name); the list just no longer offers it.
+      setSavedPlace(
+        Object.fromEntries(
+          missing.map(([name]) => [name, { value: editing[name], label: editing[`${name}Name`] || editing[name] }]),
+        ),
+      );
     })();
     return () => {
       cancelled = true;
     };
-  }, [editing, setValue, setError]);
+  }, [editing]);
+  // Once the saved name is offered as an option, select it again (the form reset could not select it before).
+  useEffect(() => {
+    if (!editing || dirtyRef.current || draftRef.current) return;
+    for (const name of Object.keys(savedPlace)) setValue(name, editing[name]);
+  }, [savedPlace, editing, setValue]);
+  // The option that keeps a saved Division / Section / Field visible when the list does not offer it any more.
+  const savedOption = (name, options, current) =>
+    savedPlace[name] && current === savedPlace[name].value && !(options ?? []).some((option) => option.value === current) ? (
+      <option value={savedPlace[name].value}>{savedPlace[name].label} (saved)</option>
+    ) : null;
   // Picking a value clears that "no longer exists" mark.
   const fieldBlockId = watch("fieldBlock");
   useEffect(() => {
@@ -294,32 +359,85 @@ const PlantCensus = () => {
   const totalRows = rowsFilled && Number(rowTo) >= Number(rowFrom) ? Number(rowTo) - Number(rowFrom) + 1 : "";
 
   const reloadPanels = () => {
-    first.reload();
     record.reload();
     report.reload();
   };
 
-  const bodyOf = (values, extra = {}) => ({
+  const bodyOf = (values) => ({
     ...values,
     totalSelectedRows: String(values.rowFrom ?? "").trim() !== "" && String(values.rowTo ?? "").trim() !== "" ? Number(values.rowTo) - Number(values.rowFrom) + 1 : values.totalSelectedRows,
-    ...extra,
   });
+  // The rows as the page shows them: saved rows with their unsaved edit or removal, then the new unsaved rows.
+  const viewRows = [
+    ...(shown?.rows ?? []).map((row) => {
+      const edit = changes.rows.update[row.id];
+      const removed = changes.rows.remove.includes(row.id);
+      const values = edit ? { ...row, ...edit, gapPercentage: gapOf(edit) } : row;
+      return { ...values, id: row.id, removed, mark: removed ? "Removed" : edit ? "Edited" : null };
+    }),
+    ...changes.rows.add.map((row) => ({ ...row, id: row.tempId, gapPercentage: gapOf(row), mark: "Unsaved", isNew: true })),
+  ];
+  const liveRows = viewRows.filter((row) => !row.removed);
+
+  // ONE Save: the form, the row changes and the file changes go in one request, so there is one approval.
   const onSubmit = async (values) => {
+    const form = bodyOf(values);
+    const addRows = changes.rows.add.map(({ tempId, ...row }) => { void tempId; return row; });
+    const updateIds = Object.keys(changes.rows.update);
+    const fileIds = (kind, list) => changes.files[kind][list].map((item) => (typeof item === "string" ? item : item.id));
+    let body;
+    if (editId) {
+      body = { ...form };
+      if (addRows.length || updateIds.length || changes.rows.remove.length) {
+        body.rowChanges = {
+          add: addRows,
+          update: updateIds.map((id) => ({ id, ...changes.rows.update[id] })),
+          remove: changes.rows.remove,
+        };
+      }
+      if (["photos", "documents"].some((kind) => changes.files[kind].add.length || changes.files[kind].remove.length)) {
+        body.fileChanges = Object.fromEntries(["photos", "documents"].map((kind) => [kind, { add: fileIds(kind, "add"), remove: fileIds(kind, "remove") }]));
+      }
+    } else {
+      body = { ...form, rows: addRows, photos: fileIds("photos", "add"), documents: fileIds("documents", "add") };
+    }
     try {
-      const saved = editId
-        ? await api.put(`/plant-censuses/${editId}`, bodyOf(values))
-        : await api.post("/plant-censuses", { ...bodyOf(values), photos: [], documents: [], rows: [] });
-      if (!editId) rememberCensus(null); // a new census: show the newest one (this one) once it exists
-      if (!saved?.pending) reset(editId ? toForm(saved) : EMPTY_FORM);
+      const saved = editId ? await api.put(`/plant-censuses/${editId}`, body) : await api.post("/plant-censuses", body);
       notifySaved(saved, "Plant census saved successfully!");
+      leavingRef.current = true;
+      clearDraft();
+      if (!saved?.pending) reset(editId ? toForm(saved) : EMPTY_FORM);
       reloadPanels();
       goBack();
     } catch (error) {
-      applyServerErrors(setError, error);
-      toast.error(error.message);
+      // Row errors go to their row, file errors are said once, everything else to the form field it names.
+      const formErrors = {};
+      const rowIssues = {};
+      const updateKeys = Object.keys(changes.rows.update);
+      let fileIssue = "";
+      let gone = false;
+      for (const [key, message] of Object.entries(error.fields ?? {})) {
+        const match = key.match(/^(rowChanges\.(add|update|remove)|rows)\.(\d+)/);
+        if (match) {
+          const index = Number(match[3]);
+          const rowKey = match[2] === "update" ? updateKeys[index] : match[2] === "remove" ? changes.rows.remove[index] : changes.rows.add[index]?.tempId;
+          if (rowKey) rowIssues[rowKey] = message;
+        } else if (key.startsWith("fileChanges")) fileIssue = message;
+        else formErrors[key] = message;
+        if (/no longer/i.test(message)) gone = true;
+      }
+      setRowProblems(rowIssues);
+      applyServerErrors(setError, { fields: formErrors });
+      const rowCount = Object.keys(rowIssues).length;
+      if (rowCount) toast.error(`${rowCount} row${rowCount === 1 ? " has" : "s have"} a problem. See the marked row${rowCount === 1 ? "" : "s"}.`);
+      else toast.error(fileIssue || error.message);
+      if (gone) reloadPanels(); // something was changed by someone else: show what is there now
     }
   };
-  const resetForm = () => reset(editing ? toForm(editing) : EMPTY_FORM);
+  const resetForm = () => {
+    clearDraft();
+    reset(editing ? toForm(editing) : EMPTY_FORM);
+  };
 
   const openRow = (mode, row) => {
     setRowPopup({ mode, id: row.id });
@@ -328,10 +446,6 @@ const PlantCensus = () => {
     setRowNotice("");
   };
   const openAdd = () => {
-    if (!shown) {
-      toast.error("Save the census first.");
-      return;
-    }
     setRowPopup({ mode: "add" });
     setRowValues(toRowForm({}));
     setRowErrors({});
@@ -344,8 +458,8 @@ const PlantCensus = () => {
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
   }, [rowPopup]);
-  // Each row is saved on its own (Add / Edit), so many rows can wait for approval at once.
-  const saveRow = async (event) => {
+  // Add / Edit change the page only; the row is sent when the census is saved.
+  const saveRow = (event) => {
     event.preventDefault();
     const problems = {};
     for (const [name, label, type] of ROW_FIELDS) {
@@ -353,7 +467,7 @@ const PlantCensus = () => {
       if (value === "" || value === null || value === undefined) problems[name] = `${label} is required.`;
       else if (type === "number" && (Number.isNaN(Number(value)) || Number(value) < 0)) problems[name] = `${label} must be 0 or more.`;
     }
-    if (!problems.rowNo && (shown.rows ?? []).some((row) => row.id !== rowPopup.id && row.rowNo === String(rowValues.rowNo).trim())) {
+    if (!problems.rowNo && liveRows.some((row) => row.id !== rowPopup.id && row.rowNo === String(rowValues.rowNo).trim())) {
       problems.rowNo = "This row is already in the census.";
     }
     const counted = Number(rowValues.livePlants || 0) + Number(rowValues.deadPlants || 0) + Number(rowValues.missingPlants || 0);
@@ -367,89 +481,85 @@ const PlantCensus = () => {
       setRowNotice(`Please correct ${names.join(", ")} (marked in red) and try again.`);
       return;
     }
-    setRowBusy(true);
-    try {
-      // The row has its own endpoints: one request per row, so rows never wait on each other.
-      const body = Object.fromEntries(
-        ROW_FIELDS.map(([name, , type]) => [name, type === "number" ? Number(rowValues[name]) : String(rowValues[name]).trim()]),
-      );
-      const result =
-        rowPopup.mode === "add"
-          ? await api.post(`/plant-censuses/${shown.id}/rows`, body)
-          : await api.put(`/plant-censuses/${shown.id}/rows/${rowPopup.id}`, body);
-      rememberCensus(shown.id);
-      if (result?.pending) watchApproval();
-      notifySaved(result, rowPopup.mode === "add" ? "Row added successfully!" : "Row updated successfully!");
-      setRowPopup(null);
-      reloadPanels();
-    } catch (error) {
-      // Field errors go under the row's fields; anything else (a 409: this row already waits) is shown as the message.
-      const mapped = {};
-      for (const [key, message] of Object.entries(error.fields ?? {})) mapped[key.split(".").pop()] = message;
-      setRowErrors(mapped);
-      const names = Object.keys(mapped).map((name) => ROW_FIELDS.find((field) => field[0] === name)?.[1] ?? name);
-      const notice = names.length ? `Please correct ${names.join(", ")} (marked in red).` : error.message;
-      setRowNotice(notice);
-      toast.error(names.length ? "The row was not saved. Please correct the fields marked in red." : error.message);
-    } finally {
-      setRowBusy(false);
-    }
+    const body = bodyOfRow(rowValues);
+    setChanges((current) => {
+      const rows = { ...current.rows };
+      if (rowPopup.mode === "add") {
+        rows.add = [...rows.add, { tempId: `new-${Date.now()}-${rows.add.length}`, ...body }];
+      } else if (rows.add.some((row) => row.tempId === rowPopup.id)) {
+        rows.add = rows.add.map((row) => (row.tempId === rowPopup.id ? { tempId: row.tempId, ...body } : row));
+      } else {
+        const saved = (shown?.rows ?? []).find((row) => row.id === rowPopup.id);
+        const same = saved && ROW_FIELDS.every(([name]) => String(saved[name]) === String(body[name]));
+        const update = { ...rows.update };
+        if (same) delete update[rowPopup.id];
+        else update[rowPopup.id] = body;
+        rows.update = update;
+      }
+      return { ...current, rows };
+    });
+    setRowProblems((current) => {
+      const next = { ...current };
+      delete next[rowPopup.id];
+      return next;
+    });
+    setRowPopup(null);
+  };
+  // Remove (or bring back) a row on the page; a new unsaved row is simply dropped.
+  const removeRow = (row) => {
+    setChanges((current) => {
+      const rows = { ...current.rows };
+      if (row.isNew) rows.add = rows.add.filter((item) => item.tempId !== row.id);
+      else if (rows.remove.includes(row.id)) rows.remove = rows.remove.filter((id) => id !== row.id);
+      else {
+        rows.remove = [...rows.remove, row.id];
+        const update = { ...rows.update };
+        delete update[row.id];
+        rows.update = update;
+      }
+      return { ...current, rows };
+    });
   };
 
-  // Upload pictures / documents of the census shown, one request per file.
+  // Pictures / documents upload when picked and are listed on the page; they join the census when it is saved.
   const addFiles = async (kind, event) => {
     const files = Array.from(event.target.files ?? []);
     event.target.value = "";
-    if (files.length === 0 || !shown) {
-      if (!shown) toast.error("Save the census first.");
-      return;
-    }
+    if (files.length === 0) return;
     setUploading(true);
-    try {
-      // Each file is its own request: upload it, then add it to the census.
-      let added = 0;
-      let waiting = 0;
-      let lastNumber = "";
-      for (const file of files) {
-        try {
-          const uploaded = await api.upload(file);
-          const result = await api.post(`/plant-censuses/${shown.id}/files`, { kind, fileId: uploaded.id }, { quiet: true });
-          if (result?.pending) {
-            waiting += 1;
-            lastNumber = result.approval?.requestNo ?? lastNumber;
-          } else added += 1;
-        } catch (error) {
-          toast.error(`${file.name}: ${error.message}`);
-        }
+    let added = 0;
+    for (const file of files) {
+      try {
+        const uploaded = await api.upload(file);
+        setChanges((current) => ({
+          ...current,
+          files: { ...current.files, [kind]: { ...current.files[kind], add: [...current.files[kind].add, { id: uploaded.id, name: uploaded.name ?? file.name, url: uploaded.url }] } },
+        }));
+        added += 1;
+      } catch (error) {
+        toast.error(`${file.name}: ${error.message}`);
       }
-      const noun = kind === "photos" ? "photo" : "document";
-      rememberCensus(shown.id);
-      if (waiting) watchApproval();
-      if (waiting) toast.success(`${waiting} ${noun}${waiting === 1 ? "" : "s"} sent for approval${lastNumber ? ` (last: ${lastNumber})` : ""}`);
-      if (added) toast.success(kind === "photos" ? "Photo uploaded successfully!" : "Document uploaded successfully!");
-      reloadPanels();
-    } catch (error) {
-      toast.error(error.message);
-    } finally {
-      setUploading(false);
     }
+    setUploading(false);
+    if (added) toast.success(`${added} ${kind === "photos" ? "photo" : "document"}${added === 1 ? "" : "s"} added. Press Save to keep ${added === 1 ? "it" : "them"}.`);
   };
 
-  // Delete a document: its own request.
-  const confirmDeleteDocument = async () => {
-    setDeleteBusy(true);
-    try {
-      const result = await api.del(`/plant-censuses/${shown.id}/files/${deletingDoc.id}`);
-      rememberCensus(shown.id);
-      if (result?.pending) watchApproval();
-      notifySaved(result, "Document deleted successfully!");
-      setDeletingDoc(null);
-      reloadPanels();
-    } catch (error) {
-      toast.error(error.message);
-    } finally {
-      setDeleteBusy(false);
-    }
+  const confirmRestoreDocument = (doc) =>
+    setChanges((current) => ({
+      ...current,
+      files: { ...current.files, documents: { ...current.files.documents, remove: current.files.documents.remove.filter((id) => id !== doc.id) } },
+    }));
+  // Remove a document on the page (not on the server until Save); an unsaved one is simply dropped.
+  const confirmDeleteDocument = () => {
+    const doc = deletingDoc;
+    setChanges((current) => {
+      const list = current.files.documents;
+      const next = doc.isNew
+        ? { ...list, add: list.add.filter((item) => item.id !== doc.id) }
+        : { ...list, remove: list.remove.includes(doc.id) ? list.remove.filter((id) => id !== doc.id) : [...list.remove, doc.id] };
+      return { ...current, files: { ...current.files, documents: next } };
+    });
+    setDeletingDoc(null);
   };
 
   // What the panels show, in the shapes the page already uses.
@@ -479,10 +589,10 @@ const PlantCensus = () => {
       ]
     : [];
   const summaryCards = summaryCardsLayout.map((item, index) => ({ ...item, value: cardValues[index] ?? DASH, badge: undefined }));
-  const rowRows = shown?.rows ?? [];
+  const rowRows = liveRows;
   const rowWiseTable = {
     headers: rowWiseLayout.headers,
-    rows: rowRows.map((row) => ({ ...row, gapPercentage: fixed(row.gapPercentage) })),
+    rows: viewRows.map((row) => ({ ...row, gapPercentage: fixed(row.gapPercentage) })),
   };
   const sum = (key) => rowRows.reduce((total, row) => total + Number(row[key] ?? 0), 0);
   const avg = (key) => (rowRows.length ? sum(key) / rowRows.length : 0);
@@ -494,30 +604,54 @@ const PlantCensus = () => {
   const liveDeadSlices = sliceTotal
     ? charts.liveVsDeadChart.data.map((item) => ({ ...item, value: Number(item.value) || 0, percentage: fixed(((Number(item.value) || 0) / sliceTotal) * 100) }))
     : [];
-  const photoUrls = shown?.photosUrl ?? [];
-  const documents = (shown?.documentsUrl ?? []).map((url, index) => ({
-    id: shown.documents[index],
-    documentName: decodeURIComponent(url.split("/").pop()?.split("?")[0] ?? "").replace(/\/content$/, "") || `Document ${index + 1}`,
-    type: "Document",
-    fileName: url,
-    uploadedOn: dmy(shown.updatedAt),
-    url,
-  }));
+  // Saved photos (minus the ones removed here) followed by the ones added on this page.
+  const photoUrls = [
+    ...(shown?.photosUrl ?? []).filter((_url, index) => !changes.files.photos.remove.includes(shown.photos[index])),
+    ...changes.files.photos.add.map((item) => item.url),
+  ];
+  const documents = [
+    ...(shown?.documentsUrl ?? []).map((url, index) => {
+      const id = shown.documents[index];
+      const removed = changes.files.documents.remove.includes(id);
+      return { id, documentName: fileName(url, `Document ${index + 1}`), type: "Document", fileName: url, uploadedOn: dmy(shown.updatedAt), url, removed, mark: removed ? "Removed" : null };
+    }),
+    ...changes.files.documents.add.map((item) => ({ id: item.id, documentName: item.name, type: "Document", fileName: item.name, uploadedOn: "-", url: item.url, isNew: true, mark: "Unsaved" })),
+  ];
   const censusHistory = data?.censusHistory ?? [];
-  const failure = first.error ?? record.error ?? report.error;
+  // Warn before leaving the page (another page, refresh or closing the tab) with changes that are not saved.
+  const blocker = useBlocker(({ currentLocation, nextLocation }) => hasUnsaved && !leavingRef.current && currentLocation.pathname + currentLocation.search !== nextLocation.pathname + nextLocation.search);
+  useEffect(() => {
+    if (!hasUnsaved) return undefined;
+    const warn = (event) => {
+      event.preventDefault();
+      event.returnValue = "";
+    };
+    window.addEventListener("beforeunload", warn);
+    return () => window.removeEventListener("beforeunload", warn);
+  }, [hasUnsaved]);
+  const failure = record.error ?? report.error;
   return (
     <div>
       {failure && (
         <ErrorState
           message={failure.message}
           onRetry={() => {
-            first.reload();
             record.reload();
             report.reload();
           }}
         />
       )}
       <div className='space-y-6 mt-4'>
+        {pendingRequest && (
+          <div role='status' className='rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-800'>
+            A request ({pendingRequest.requestNo}) is waiting for approval. This census cannot be changed until it is approved or rejected.
+          </div>
+        )}
+        {!pendingRequest && changesCount > 0 && (
+          <div role='status' className='rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-800'>
+            {changesCount} change{changesCount === 1 ? "" : "s"} to rows and files {changesCount === 1 ? "is" : "are"} not saved yet. Press Save to send everything as one request.
+          </div>
+        )}
         <div className='flex justify-end'>
           <button
             type='button'
@@ -611,6 +745,7 @@ const PlantCensus = () => {
                     }`}
                   >
                     <option value=''>Select Division</option>
+                    {savedOption("division", divisionOptions.data, divisionId)}
                     {(divisionOptions.data ?? []).map((division) => (
                       <option key={division.id} value={division.value}>
                         {division.label}
@@ -653,6 +788,7 @@ const PlantCensus = () => {
                           ? "No sections in this division"
                           : "Select Section"}
                     </option>
+                    {savedOption("section", sectionOptions.data, sectionId)}
                     {(sectionOptions.data ?? []).map((section) => (
                       <option key={section.id} value={section.value}>
                         {section.label}
@@ -698,6 +834,7 @@ const PlantCensus = () => {
                           ? "No fields in this section"
                           : "Select Field / Block"}
                     </option>
+                    {savedOption("fieldBlock", fieldOptions.data, fieldBlockId)}
                     {(fieldOptions.data ?? []).map((fieldOption) => (
                       <option key={fieldOption.id} value={fieldOption.value}>
                         {fieldOption.label}
@@ -1365,17 +1502,17 @@ const PlantCensus = () => {
 
                 {/* Table Body */}
                 <tbody>
-                  {waiting || (record.loading && !record.data) ? (
+                  {editId && record.loading && !record.data ? (
                     <TableSkeleton rows={4} columns={rowWiseTable.headers.length + 2} />
                   ) : rowWiseTable.rows.length === 0 ? (
                     <EmptyRow columns={rowWiseTable.headers.length + 2} />
                   ) : null}
                   {rowWiseTable.rows.map((row, index) => (
+                    <React.Fragment key={row.id}>
                     <tr
-                      key={row.id}
                       className={`transition-colors hover:bg-green-50 ${
                         index % 2 === 0 ? "bg-white" : "bg-gray-50"
-                      }`}
+                      } ${row.removed ? "line-through opacity-60" : ""} ${rowProblems[row.id] ? "outline outline-1 outline-red-400" : ""}`}
                     >
                       {/* SL */}
                       <td className='border border-gray-200 px-1 py-1 text-center text-sm'>
@@ -1404,7 +1541,11 @@ const PlantCensus = () => {
 
                       {/* Actions */}
                       <td className='border border-gray-200 px-3 py-1'>
-                        <PendingBadge row={row} />
+                        {row.mark && (
+                          <div className='mb-1 text-center'>
+                            <span className={`inline-block whitespace-nowrap rounded-full px-2 py-0.5 text-[11px] font-semibold no-underline ${MARK_CLASS[row.mark]}`}>{row.mark}</span>
+                          </div>
+                        )}
                         <div className='flex items-center justify-center gap-2'>
                           <button
                             type='button'
@@ -1417,16 +1558,34 @@ const PlantCensus = () => {
 
                           <button
                             type='button'
-                            disabled={Boolean(row.pendingRequest)}
-                            title={waitingTitle(row, "Edit")}
+                            disabled={Boolean(pendingRequest) || row.removed}
+                            title={pendingRequest ? `Waiting for approval (${pendingRequest.requestNo})` : "Edit"}
                             onClick={() => openRow("edit", row)}
                             className='rounded-md p-2 text-amber-600 transition hover:bg-amber-100 disabled:cursor-not-allowed disabled:opacity-40'
                           >
                             <Pencil size={16} />
                           </button>
+
+                          <button
+                            type='button'
+                            disabled={Boolean(pendingRequest)}
+                            title={pendingRequest ? `Waiting for approval (${pendingRequest.requestNo})` : row.removed ? "Bring back" : "Remove"}
+                            onClick={() => removeRow(row)}
+                            className={`rounded-md p-2 transition disabled:cursor-not-allowed disabled:opacity-40 ${row.removed ? "text-green-700 hover:bg-green-100" : "text-red-600 hover:bg-red-100"}`}
+                          >
+                            {row.removed ? <RotateCcw size={16} /> : <Trash2 size={16} />}
+                          </button>
                         </div>
                       </td>
                     </tr>
+                    {rowProblems[row.id] && (
+                      <tr>
+                        <td colSpan={rowWiseTable.headers.length + 2} className='border border-red-200 bg-red-50 px-3 py-1 text-xs text-red-700'>
+                          Row {row.rowNo}: {rowProblems[row.id]}
+                        </td>
+                      </tr>
+                    )}
+                    </React.Fragment>
                   ))}
                 </tbody>
                 {/* Total / Average Row */}
@@ -1494,8 +1653,9 @@ const PlantCensus = () => {
               {/* Right */}
               <button
                 type='button'
+                disabled={Boolean(pendingRequest)}
                 onClick={openAdd}
-                className='inline-flex items-center justify-center gap-2 rounded-lg border border-green-600 bg-white px-4 py-2 text-sm font-medium text-green-700 transition hover:bg-green-50'
+                className='inline-flex items-center justify-center gap-2 rounded-lg border border-green-600 bg-white px-4 py-2 text-sm font-medium text-green-700 transition hover:bg-green-50 disabled:cursor-not-allowed disabled:opacity-50'
               >
                 <Plus size={16} />
                 Add Row
@@ -1710,7 +1870,7 @@ const PlantCensus = () => {
                       <input ref={photoInput} type='file' accept='image/jpeg,image/png,image/webp' multiple className='hidden' onChange={(event) => addFiles("photos", event)} />
                       <button
                         type='button'
-                        disabled={uploading}
+                        disabled={uploading || Boolean(pendingRequest)}
                         onClick={() => photoInput.current?.click()}
                         className='flex w-full items-center justify-center gap-1 text-xs font-medium text-gray-600 transition hover:text-green-700 disabled:opacity-60'
                       >
@@ -1840,7 +2000,7 @@ const PlantCensus = () => {
                 <tbody>
                   {documents.length === 0 && <EmptyRow columns={documentTableHeaders.length} />}
                   {documents.map((doc, index) => (
-                    <tr key={doc.id}>
+                    <tr key={doc.id} className={doc.removed ? "line-through opacity-60" : ""}>
                       {documentTableHeaders.map((header) => (
                         <td
                           key={header.id}
@@ -1855,10 +2015,15 @@ const PlantCensus = () => {
                                 <Download size={14} />
                               </button>
 
-                              <button type='button' title='Delete' onClick={() => setDeletingDoc(doc)}>
-                                <Trash2 size={14} />
+                              <button type='button' title={doc.removed ? "Bring back" : "Remove"} disabled={Boolean(pendingRequest)} onClick={() => (doc.removed ? confirmRestoreDocument(doc) : setDeletingDoc(doc))} className='disabled:cursor-not-allowed disabled:opacity-40'>
+                                {doc.removed ? <RotateCcw size={14} /> : <Trash2 size={14} />}
                               </button>
                             </div>
+                          ) : header.key === "documentName" && doc.mark ? (
+                            <span className='inline-flex items-center gap-1'>
+                              {doc.documentName}
+                              <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold no-underline ${MARK_CLASS[doc.mark]}`}>{doc.mark}</span>
+                            </span>
                           ) : (
                             doc[header.key]
                           )}
@@ -1875,7 +2040,7 @@ const PlantCensus = () => {
               <input ref={documentInput} type='file' accept='.pdf,.jpg,.jpeg,.png,.doc,.docx' multiple className='hidden' onChange={(event) => addFiles("documents", event)} />
               <button
                 type='button'
-                disabled={uploading}
+                disabled={uploading || Boolean(pendingRequest)}
                 onClick={() => documentInput.current?.click()}
                 className='flex w-fit cursor-pointer items-center justify-center gap-2 rounded-lg border border-gray-300 px-4 py-1.5 text-sm font-medium text-gray-700 transition hover:border-green-700 hover:bg-green-700 hover:text-white disabled:opacity-60'
               >
@@ -1910,7 +2075,7 @@ const PlantCensus = () => {
             </button>
             <button
               type='button'
-              disabled={isSubmitting}
+              disabled={isSubmitting || Boolean(pendingRequest)}
               onClick={handleSubmit(onSubmit)}
               className='flex w-full items-center justify-center gap-2 rounded-lg bg-green-700 px-6 py-2.5 text-sm font-medium text-white transition hover:bg-green-800 disabled:opacity-60 sm:w-auto'
             >
@@ -1920,7 +2085,7 @@ const PlantCensus = () => {
             <button
               type='submit'
               form='census-form'
-              disabled={isSubmitting}
+              disabled={isSubmitting || Boolean(pendingRequest)}
               className='flex w-full items-center justify-center gap-2 rounded-lg bg-green-600 px-6 py-2.5 text-sm font-medium text-white transition hover:bg-green-700 disabled:opacity-60 sm:w-auto'
             >
               <CheckCircle2 size={18} />
@@ -1931,11 +2096,22 @@ const PlantCensus = () => {
       </div>
       <ConfirmDialog
         open={Boolean(deletingDoc)}
-        title='Delete document?'
-        message={`${deletingDoc?.documentName ?? "This document"} will be removed from this census.`}
-        loading={deleteBusy}
+        title='Remove document?'
+        confirmLabel='Remove'
+        message={`${deletingDoc?.documentName ?? "This document"} will be removed from this census when you press Save.`}
         onConfirm={confirmDeleteDocument}
         onCancel={() => setDeletingDoc(null)}
+      />
+      <ConfirmDialog
+        open={blocker.state === "blocked"}
+        title='Leave without saving?'
+        message='Some changes on this page are not saved yet. If you leave, they are lost.'
+        confirmLabel='Leave'
+        onConfirm={() => {
+          clearDraft();
+          blocker.proceed();
+        }}
+        onCancel={() => blocker.reset()}
       />
       {rowPopup && (
         <div className='fixed inset-0 z-[90] flex items-center justify-center bg-black/40 p-3' onMouseDown={closeRow}>
@@ -1995,8 +2171,8 @@ const PlantCensus = () => {
                 {rowPopup.mode === "view" ? "Close" : "Cancel"}
               </button>
               {rowPopup.mode !== "view" && (
-                <button type='submit' disabled={rowBusy} className='h-10 rounded-lg bg-green-700 px-4 text-sm font-medium text-white hover:bg-green-800 disabled:opacity-60'>
-                  {rowBusy ? "Saving..." : rowPopup.mode === "add" ? "Add Row" : "Save"}
+                <button type='submit' className='h-10 rounded-lg bg-green-700 px-4 text-sm font-medium text-white hover:bg-green-800'>
+                  {rowPopup.mode === "add" ? "Add Row" : "Save"}
                 </button>
               )}
             </div>

@@ -27,8 +27,11 @@ export function useApi(fn, deps = []) {
       .current()
       .then((data) => {
         if (id === requestId.current) {
-          dataRef.current = data;
-          setState({ data, loading: false, error: null });
+          // The same answer keeps the same object, so nothing that depends on it runs again.
+          const same = JSON.stringify(data) === JSON.stringify(dataRef.current);
+          const keep = same ? dataRef.current : data;
+          dataRef.current = keep;
+          setState({ data: keep, loading: false, error: null });
         }
         return data;
       })
