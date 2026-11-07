@@ -73,7 +73,7 @@ const STATUS_STYLE = {
   Approved: { className: "bg-green-100 text-green-700", Icon: CheckCircle2 },
   Rejected: { className: "bg-red-100 text-red-700", Icon: XCircle },
 };
-const HEADERS = ["SL", "Request ID", "Module", "Record Details", "Action", "Requested By", "Requested On", "Status", "Action"];
+const HEADERS = ["SL", "Request ID", "Module", "Record Details", "Request Type", "Requested By", "Requested On", "Status", "Actions"];
 
 // dd/MM/yyyy hh:mm a in the viewer's local time.
 const formatDateTime = (iso) => {
@@ -365,7 +365,7 @@ const ApprovalDashboard = () => {
               ))}
             </Select>
             <Select value={action} onChange={(event) => setAction(event.target.value)} className={selectClass}>
-              <option value=''>All Actions</option>
+              <option value=''>All Types</option>
               {ACTIONS.map((item) => (
                 <option key={item.value} value={item.value}>
                   {item.label}
