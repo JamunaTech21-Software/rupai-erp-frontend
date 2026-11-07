@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useBlocker, useNavigate, useSearchParams } from "react-router-dom";
 import { useForm } from "../../lib/useForm";
 import { bushRegisterData } from "../../data/PlantationManagementData/bushRegisterData";
 import { api, notifySaved } from "../../lib/api";
@@ -88,6 +88,17 @@ const num = (value) => (value === null || value === undefined ? DASH : Number(va
 const fixed = (value, digits = 2) => (value === null || value === undefined ? DASH : Number(value).toFixed(digits));
 const orDash = (value) => (value === null || value === undefined || value === "" ? DASH : value);
 
+// Rows added, edited or removed on the page and not saved yet: new rows (with a temporary id), edited rows by id, removed ids.
+const NO_CHANGES = { add: [], update: {}, remove: [] };
+const MAX_ROWS_PER_SAVE = 2000;
+const MARK_CLASS = {
+  Unsaved: "bg-blue-100 text-blue-700",
+  Edited: "bg-amber-100 text-amber-700",
+  Removed: "bg-red-100 text-red-600",
+};
+let tempCount = 0;
+const newTempId = () => `new-${++tempCount}`;
+
 const EMPTY_GAP = { totalGap: null, gapArea: null, replantRequired: null, suggestedAction: null, recommendedClone: null, bestTime: null };
 
 const HEALTH = ["Excellent", "Good", "Fair", "Poor", "Dead"];
@@ -163,12 +174,16 @@ const BushRegister = () => {
   const [applied, setApplied] = useState({});
   const [page, setPage] = useState(1);
   const [deleting, setDeleting] = useState(null);
-  const [deleteBusy, setDeleteBusy] = useState(false);
+  // Rows changed on the page and not saved yet, the server's complaints about single rows, and a question before leaving.
+  const [changes, setChanges] = useState(NO_CHANGES);
+  const [rowProblems, setRowProblems] = useState({});
+  const [saving, setSaving] = useState(false);
+  const [askLeave, setAskLeave] = useState(null);
+  const leavingRef = useRef(false);
   // Row popup: { mode: "view" | "edit", id } plus the values being edited.
   const [rowPopup, setRowPopup] = useState(null);
   const [rowValues, setRowValues] = useState({});
   const [rowErrors, setRowErrors] = useState({});
-  const [rowBusy, setRowBusy] = useState(false);
   const importInput = useRef(null);
   const [importing, setImporting] = useState(false);
   const [importProblems, setImportProblems] = useState([]);
@@ -184,19 +199,39 @@ const BushRegister = () => {
   const registers = useApi(() => (pickedId ? Promise.resolve(null) : loadNewestCreated("/bush-registers", applied, 1, 1)), [applied, pickedId]);
   const picked = useApi(() => (pickedId ? api.get(`/bush-registers/${pickedId}`) : Promise.resolve(null)), [pickedId]);
   const current = pickedId ? picked.data : registers.data?.data?.[0];
+  const pendingRequest = current?.pendingRequest ?? null;
+  const changesCount = changes.add.length + Object.keys(changes.update).length + changes.remove.length;
+  // The table first lists the new (unsaved) rows, ten to a page, then the saved rows page by page.
+  const newPages = Math.ceil(changes.add.length / PER_PAGE);
+  const onNewPage = page <= newPages;
+  const serverPage = onNewPage ? 1 : page - newPages;
   const rowsCall = useApi(
-    () => (current ? api.get(`/bush-registers/${current.id}/rows`, { page, perPage: PER_PAGE }) : Promise.resolve(null)),
-    [current?.id, page],
+    () => (current ? api.get(`/bush-registers/${current.id}/rows`, { page: serverPage, perPage: PER_PAGE }) : Promise.resolve(null)),
+    [current?.id, serverPage],
   );
   const report = useApi(() => (current ? api.get(`/bush-registers/${current.id}/report`) : Promise.resolve(null)), [current?.id, rowsCall.data]);
-  const rows = rowsCall.data?.data ?? [];
-  const rowMeta = rowsCall.data?.meta ?? { page: 1, perPage: PER_PAGE, total: 0, totalPages: 1 };
+  const serverMeta = rowsCall.data?.meta ?? { page: 1, perPage: PER_PAGE, total: 0, totalPages: 1 };
+  const rowMeta = { ...serverMeta, total: serverMeta.total + changes.add.length, totalPages: Math.max(1, newPages + serverMeta.totalPages) };
+  // The rows of this page as the page shows them: saved rows with their unsaved edit or removal, or the new rows.
+  const rows = onNewPage
+    ? changes.add.slice((page - 1) * PER_PAGE, page * PER_PAGE).map((row) => ({ ...row, id: row.tempId, isNew: true, mark: "Unsaved", gap: Math.round(gapOf(row) * 100) / 100 }))
+    : (rowsCall.data?.data ?? []).map((row) => {
+        const edit = changes.update[row.id];
+        const removed = changes.remove.includes(row.id);
+        return { ...row, ...(edit ?? {}), ...(edit ? { gap: Math.round(gapOf(edit) * 100) / 100 } : {}), removed, mark: removed ? "Removed" : edit ? "Edited" : null };
+      });
   const tableSummary = rowsCall.data?.tableSummary ?? report.data?.tableSummary;
   const data = report.data;
   const waiting = pickedId ? picked.loading && !picked.data : registers.loading && !registers.data;
   const failure = registers.error ?? picked.error ?? rowsCall.error ?? report.error;
 
-  const onSubmit = (values) => {
+  // Anything that shows another register first asks, when rows are changed and not saved.
+  const guard = (action) => {
+    if (changesCount > 0) setAskLeave(() => action);
+    else action();
+  };
+  const onSubmit = (values) => guard(() => runSearch(values));
+  const runSearch = (values) => {
     const filters = {};
     for (const [key, value] of Object.entries(values)) if (value !== "" && value !== undefined && value !== null && key !== "bushAge" && key !== "totalArea" && key !== "rowSpacing" && key !== "plantSpacing" && key !== "surveyDate") filters[key] = value;
     setPage(1);
@@ -204,14 +239,15 @@ const BushRegister = () => {
     setApplied(filters);
     toast.success("Search completed successfully!");
   };
-  const clearSearch = () => {
+  const clearSearch = () => guard(doClearSearch);
+  const doClearSearch = () => {
     reset({});
     setPage(1);
     if (pickedId) setSearchParams({});
     setApplied({});
   };
   const openRow = (mode, row) => {
-    setRowPopup({ mode, id: row.id });
+    setRowPopup({ mode, id: row.id, isNew: Boolean(row.isNew) });
     setRowValues(toRowForm(row));
     setRowErrors({});
   };
@@ -225,7 +261,18 @@ const BushRegister = () => {
     setRowErrors({});
   };
   const closeRow = () => setRowPopup(null);
-  // Import Survey Data: a CSV file whose rows are added to the register one by one.
+  // The problems of one row, or an empty object when it is fine.
+  const problemsOf = (values) => {
+    const problems = {};
+    for (const [name, label, type, required] of ROW_FIELDS) {
+      const value = values[name];
+      if (required && (value === "" || value === null || value === undefined)) problems[name] = `${label} is required.`;
+      else if (type === "number" && value !== "" && value !== null && value !== undefined && (Number.isNaN(Number(value)) || Number(value) < 0)) problems[name] = `${label} must be 0 or more.`;
+    }
+    return problems;
+  };
+  // Import Survey Data: a CSV file. Its good rows are put on the page as Unsaved rows, its problems are listed,
+  // and Save Changes sends everything as one request.
   const importSurvey = async (event) => {
     const file = event.target.files?.[0];
     event.target.value = "";
@@ -253,9 +300,8 @@ const BushRegister = () => {
         return;
       }
       const problems = [];
-      let added = 0;
-      let sent = 0;
-      let sentNumber = "";
+      const good = [];
+      const seen = new Set([...changes.add.map((row) => row.rowNo)]);
       for (const [index, cells] of lines.entries()) {
         const body = {};
         fields.forEach((name, column) => {
@@ -265,26 +311,26 @@ const BushRegister = () => {
           if (body[name] === "" || body[name] === undefined) body[name] = null;
           else if (!Number.isNaN(Number(body[name]))) body[name] = Number(body[name]);
         }
-        try {
-          const result = await api.post(`/bush-registers/${current.id}/rows`, body, { quiet: true });
-          if (result?.pending) {
-            sent += 1;
-            sentNumber = result.approval?.requestNo ?? sentNumber;
-          } else added += 1;
-        } catch (error) {
-          const detail = Object.entries(error.fields ?? {}).map(([key, message]) => `${key}: ${message}`).join("; ");
-          problems.push(`Row ${index + 2}${body.rowNo ? ` (${body.rowNo})` : ""} – ${detail || error.message}`);
+        const wrong = problemsOf(body);
+        const label = `Row ${index + 2}${body.rowNo ? ` (${body.rowNo})` : ""}`;
+        if (Object.keys(wrong).length) problems.push(`${label} – ${Object.values(wrong).join(" ")}`);
+        else if (seen.has(body.rowNo)) problems.push(`${label} – this row number is in the file or on the page twice.`);
+        else {
+          seen.add(body.rowNo);
+          good.push({ ...body, tempId: newTempId() });
         }
       }
-      setImportProblems(problems);
-      if (sent) toast.success(`${sent} ${sent === 1 ? "row" : "rows"} sent for approval${sentNumber ? ` (last: ${sentNumber})` : ""}`);
-      if (added) {
-        toast.success(`${added} ${added === 1 ? "row" : "rows"} imported successfully!`);
-        setPage(1);
-        rowsCall.reload();
-        report.reload();
+      if (changesCount + good.length > MAX_ROWS_PER_SAVE) {
+        toast.error(`One save can change at most ${MAX_ROWS_PER_SAVE} rows. Save the rows on the page first, or use a shorter file.`);
+        return;
       }
-      if (problems.length) toast.error(`${problems.length} ${problems.length === 1 ? "row was" : "rows were"} not imported.`);
+      setImportProblems(problems);
+      if (good.length) {
+        setChanges((cur) => ({ ...cur, add: [...cur.add, ...good] }));
+        setPage(1);
+        toast.success(`${good.length} ${good.length === 1 ? "row" : "rows"} read from the file. Press Save Changes to send them.`);
+      }
+      if (problems.length) toast.error(`${problems.length} ${problems.length === 1 ? "row has" : "rows have"} a problem and was left out.`);
     } catch (error) {
       toast.error(error.message || "Could not read the file.");
     } finally {
@@ -297,53 +343,137 @@ const BushRegister = () => {
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
   }, [rowPopup]);
-  const saveRow = async (event) => {
+  // The popup changes the page only; Save Changes sends everything.
+  const saveRow = (event) => {
     event.preventDefault();
-    const problems = {};
-    for (const [name, label, type, required] of ROW_FIELDS) {
-      const value = rowValues[name];
-      if (required && (value === "" || value === null || value === undefined)) problems[name] = `${label} is required.`;
-      else if (type === "number" && value !== "" && (Number.isNaN(Number(value)) || Number(value) < 0)) problems[name] = `${label} must be 0 or more.`;
-    }
+    const problems = problemsOf(rowValues);
     setRowErrors(problems);
     if (Object.keys(problems).length) return;
-    setRowBusy(true);
-    try {
-      const body = Object.fromEntries(
-        ROW_FIELDS.map(([name, , type]) => [name, rowValues[name] === "" ? null : type === "number" ? Number(rowValues[name]) : rowValues[name]]),
-      );
-      if (rowPopup.mode === "add") {
-        const result = await api.post(`/bush-registers/${current.id}/rows`, body);
-        notifySaved(result, "Row added successfully!");
-        setPage(1);
-      } else {
-        const result = await api.put(`/bush-registers/${current.id}/rows/${rowPopup.id}`, body);
-        notifySaved(result, "Row updated successfully!");
+    const body = Object.fromEntries(
+      ROW_FIELDS.map(([name, , type]) => [name, rowValues[name] === "" ? null : type === "number" ? Number(rowValues[name]) : rowValues[name]]),
+    );
+    if (rowPopup.mode === "add") {
+      if (changesCount + 1 > MAX_ROWS_PER_SAVE) {
+        toast.error(`One save can change at most ${MAX_ROWS_PER_SAVE} rows.`);
+        return;
       }
-      setRowPopup(null);
+      setChanges((cur) => ({ ...cur, add: [...cur.add, { ...body, tempId: newTempId() }] }));
+      setPage(1);
+    } else if (rowPopup.isNew) {
+      setChanges((cur) => ({ ...cur, add: cur.add.map((row) => (row.tempId === rowPopup.id ? { ...body, tempId: row.tempId } : row)) }));
+    } else {
+      setChanges((cur) => ({ ...cur, update: { ...cur.update, [rowPopup.id]: body } }));
+    }
+    setRowProblems((cur) => ({ ...cur, [rowPopup.id]: undefined }));
+    setRowPopup(null);
+  };
+
+  const confirmDelete = () => {
+    const row = deleting;
+    setChanges((cur) =>
+      row.isNew
+        ? { ...cur, add: cur.add.filter((item) => item.tempId !== row.id) }
+        : { ...cur, update: Object.fromEntries(Object.entries(cur.update).filter(([id]) => id !== row.id)), remove: [...cur.remove, row.id] },
+    );
+    setRowProblems((cur) => ({ ...cur, [row.id]: undefined }));
+    setDeleting(null);
+  };
+  const restoreRow = (row) => {
+    setChanges((cur) => ({ ...cur, remove: cur.remove.filter((id) => id !== row.id) }));
+    setRowProblems((cur) => ({ ...cur, [row.id]: undefined }));
+  };
+
+  // ONE Save: every added, edited and removed row goes in one request, so there is one approval.
+  const saveChanges = async () => {
+    if (!current || changesCount === 0 || saving) return;
+    if (changesCount > MAX_ROWS_PER_SAVE) {
+      toast.error(`One save can change at most ${MAX_ROWS_PER_SAVE} rows. This one has ${changesCount}.`);
+      return;
+    }
+    const ids = Object.keys(changes.update);
+    const body = {
+      add: changes.add.map(({ tempId, ...row }) => { void tempId; return row; }),
+      update: ids.map((id) => ({ id, ...changes.update[id] })),
+      remove: changes.remove,
+    };
+    setSaving(true);
+    setRowProblems({});
+    try {
+      const result = await api.post(`/bush-registers/${current.id}/rows/changes`, body);
+      notifySaved(result, "Changes saved successfully!");
+      setChanges(NO_CHANGES);
+      setImportProblems([]);
+      setPage(1);
+      registers.reload();
+      picked.reload();
       rowsCall.reload();
       report.reload();
     } catch (error) {
-      setRowErrors(error.fields ?? {});
-      toast.error(error.message);
+      // Row errors go to their row (and are listed), everything else is said once.
+      const issues = {};
+      const listed = [];
+      let other = "";
+      let gone = false;
+      for (const [key, message] of Object.entries(error.fields ?? {})) {
+        const match = key.match(/^(add|update|remove)\.(\d+)/);
+        if (match) {
+          const index = Number(match[2]);
+          const rowKey = match[1] === "update" ? ids[index] : match[1] === "remove" ? changes.remove[index] : changes.add[index]?.tempId;
+          if (rowKey && !issues[rowKey]) {
+            issues[rowKey] = message;
+            const row = match[1] === "add" ? changes.add[index] : null;
+            listed.push(`${row ? `Row ${row.rowNo}` : match[1] === "update" ? `Edited row ${index + 1}` : `Removed row ${index + 1}`} – ${message}`);
+          }
+        } else other = other || message;
+        if (/no longer/i.test(message)) gone = true;
+      }
+      setRowProblems(issues);
+      setImportProblems(listed);
+      // Show the page of the first new row that has a problem.
+      const firstNew = changes.add.findIndex((row) => issues[row.tempId]);
+      if (firstNew >= 0) setPage(Math.floor(firstNew / PER_PAGE) + 1);
+      const count = Object.keys(issues).length;
+      if (count) toast.error(`${count} row${count === 1 ? " has" : "s have"} a problem. See the marked row${count === 1 ? "" : "s"}.`);
+      else toast.error(other || error.message);
+      if (gone) {
+        rowsCall.reload();
+        report.reload();
+      }
     } finally {
-      setRowBusy(false);
+      setSaving(false);
     }
   };
 
-  const confirmDelete = async () => {
-    setDeleteBusy(true);
-    try {
-      const result = await api.del(`/bush-registers/${current.id}/rows/${deleting.id}`);
-      notifySaved(result, "Row deleted successfully!");
-      setDeleting(null);
+  // When a request that was waiting is decided, the rows are read again.
+  const hadRequest = useRef(false);
+  useEffect(() => {
+    if (hadRequest.current && !pendingRequest) {
       rowsCall.reload();
-    } catch (error) {
-      toast.error(error.message);
-    } finally {
-      setDeleteBusy(false);
+      report.reload();
     }
-  };
+    hadRequest.current = Boolean(pendingRequest);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pendingRequest]);
+  // Another register starts clean.
+  useEffect(() => {
+    setChanges(NO_CHANGES);
+    setRowProblems({});
+    setImportProblems([]);
+    setPage(1);
+  }, [current?.id]);
+  // Warn before leaving the page (another page, refresh or closing the tab) with rows that are not saved.
+  const blocker = useBlocker(({ currentLocation, nextLocation }) => changesCount > 0 && !leavingRef.current && currentLocation.pathname + currentLocation.search !== nextLocation.pathname + nextLocation.search);
+  useEffect(() => {
+    if (changesCount === 0) return undefined;
+    const warn = (event) => {
+      event.preventDefault();
+      event.returnValue = "";
+    };
+    window.addEventListener("beforeunload", warn);
+    return () => window.removeEventListener("beforeunload", warn);
+  }, [changesCount]);
+  const rowOff = (row) => Boolean(pendingRequest || row.pendingRequest);
+  const rowTitle = (row, label) => (pendingRequest ? `Waiting for approval (${pendingRequest.requestNo})` : waitingTitle(row, label));
 
   const gapSummary = data?.gapSummary ?? EMPTY_GAP;
   const gapSizeDetails = data?.gapSizeDetails ?? [];
@@ -435,6 +565,16 @@ const BushRegister = () => {
           Register List
         </button>
       </div>
+      {pendingRequest && (
+        <div role='status' className='rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-800'>
+          A request ({pendingRequest.requestNo}) is waiting for approval. This register cannot be changed until it is approved or rejected.
+        </div>
+      )}
+      {!pendingRequest && changesCount > 0 && (
+        <div role='status' className='rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-800'>
+          {changesCount} row change{changesCount === 1 ? "" : "s"} {changesCount === 1 ? "is" : "are"} not saved yet. Press Save Changes to send everything as one request.
+        </div>
+      )}
       {failure && (
         <ErrorState
           message={failure.message}
@@ -1034,7 +1174,7 @@ const BushRegister = () => {
                 <input ref={importInput} type='file' accept='.csv,text/csv' className='hidden' onChange={importSurvey} />
                 <button
                   type='button'
-                  disabled={importing}
+                  disabled={importing || Boolean(pendingRequest)}
                   onClick={() => importInput.current?.click()}
                   title={`CSV columns: ${IMPORT_HINT}`}
                   className='flex cursor-pointer items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-100 disabled:opacity-60'
@@ -1047,10 +1187,23 @@ const BushRegister = () => {
                 <button
                   type='button'
                   onClick={openAdd}
-                  className='flex cursor-pointer items-center gap-2 rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-green-700'
+                  disabled={Boolean(pendingRequest)}
+                  className='flex cursor-pointer items-center gap-2 rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-50'
                 >
                   <Plus size={18} />
                   Add Manual Entry
+                </button>
+
+                {/* Save Changes: one request for every row changed on the page */}
+                <button
+                  type='button'
+                  onClick={saveChanges}
+                  disabled={saving || changesCount === 0 || Boolean(pendingRequest)}
+                  title={pendingRequest ? `Waiting for approval (${pendingRequest.requestNo})` : undefined}
+                  className='flex cursor-pointer items-center gap-2 rounded-lg bg-green-800 px-4 py-2 text-sm font-medium text-white transition hover:bg-green-900 disabled:cursor-not-allowed disabled:opacity-50'
+                >
+                  <Save size={18} />
+                  {saving ? "Saving..." : `Save Changes${changesCount ? ` (${changesCount})` : ""}`}
                 </button>
               </div>
             </div>
@@ -1058,7 +1211,7 @@ const BushRegister = () => {
             {importProblems.length > 0 && (
               <div className='border-b border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700'>
                 <div className='flex items-start justify-between gap-3'>
-                  <p className='font-medium'>These rows were not imported:</p>
+                  <p className='font-medium'>These rows have a problem:</p>
                   <button type='button' onClick={() => setImportProblems([])} aria-label='Dismiss' className='rounded p-0.5 hover:bg-red-100'>
                     <X size={16} />
                   </button>
@@ -1088,19 +1241,21 @@ const BushRegister = () => {
                 </thead>
 
                 <tbody>
-                  {waiting || (current && rowsCall.loading && !rowsCall.data) ? (
+                  {waiting || (current && rowsCall.loading && !rowsCall.data && !onNewPage) ? (
                     <TableSkeleton rows={5} columns={bushRegisterData.tableHeaders.length} />
                   ) : rows.length === 0 ? (
                     <EmptyRow columns={bushRegisterData.tableHeaders.length} />
                   ) : null}
                   {rows.map((item, index) => (
-                    <tr key={item.id} className='hover:bg-gray-50'>
+                    <tr key={item.id} className={rowProblems[item.id] ? "bg-red-50" : item.removed ? "bg-gray-50 text-gray-400 line-through" : "hover:bg-gray-50"}>
                       <td className='border border-gray-200 px-3 py-2 text-center text-sm'>
                         {(page - 1) * PER_PAGE + index + 1}
                       </td>
 
                       <td className='border border-gray-200 px-3 py-2 text-center text-sm'>
                         {item.rowNo}
+                        {item.mark && <span className={`ml-1 inline-block whitespace-nowrap rounded-full px-2 py-0.5 text-[11px] font-semibold no-underline ${MARK_CLASS[item.mark]}`}>{item.mark}</span>}
+                        {rowProblems[item.id] && <p className='text-xs font-medium text-red-600 no-underline'>{rowProblems[item.id]}</p>}
                       </td>
 
                       <td className='border border-gray-200 px-3 py-2 text-center text-sm'>
@@ -1169,26 +1324,40 @@ const BushRegister = () => {
                           </button>
 
                           {/* Edit */}
-                          <button
-                            type='button'
-                            disabled={Boolean(item.pendingRequest)}
-                            title={waitingTitle(item, "Edit")}
-                            onClick={() => openRow("edit", item)}
-                            className='cursor-pointer rounded-md p-1 text-emerald-600 transition hover:bg-emerald-50 disabled:cursor-not-allowed disabled:opacity-40'
-                          >
-                            <Pencil size={16} />
-                          </button>
+                          {item.removed ? (
+                            <button
+                              type='button'
+                              disabled={rowOff(item)}
+                              title='Bring back'
+                              onClick={() => restoreRow(item)}
+                              className='cursor-pointer rounded-md p-1 text-green-700 transition hover:bg-green-50 disabled:cursor-not-allowed disabled:opacity-40'
+                            >
+                              <RotateCcw size={16} />
+                            </button>
+                          ) : (
+                            <>
+                              <button
+                                type='button'
+                                disabled={rowOff(item)}
+                                title={rowTitle(item, "Edit")}
+                                onClick={() => openRow("edit", item)}
+                                className='cursor-pointer rounded-md p-1 text-emerald-600 transition hover:bg-emerald-50 disabled:cursor-not-allowed disabled:opacity-40'
+                              >
+                                <Pencil size={16} />
+                              </button>
 
-                          {/* Delete */}
-                          <button
-                            type='button'
-                            disabled={Boolean(item.pendingRequest)}
-                            title={waitingTitle(item, "Delete")}
-                            onClick={() => setDeleting(item)}
-                            className='cursor-pointer rounded-md p-1 text-red-600 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-40'
-                          >
-                            <Trash2 size={16} />
-                          </button>
+                              {/* Remove */}
+                              <button
+                                type='button'
+                                disabled={rowOff(item)}
+                                title={rowTitle(item, "Remove")}
+                                onClick={() => setDeleting(item)}
+                                className='cursor-pointer rounded-md p-1 text-red-600 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-40'
+                              >
+                                <Trash2 size={16} />
+                              </button>
+                            </>
+                          )}
                         </div>
                       </td>
                     </tr>
@@ -1699,8 +1868,8 @@ const BushRegister = () => {
                 {rowPopup.mode === "view" ? "Close" : "Cancel"}
               </button>
               {rowPopup.mode !== "view" && (
-                <button type='submit' disabled={rowBusy} className='h-10 rounded-lg bg-green-700 px-4 text-sm font-medium text-white hover:bg-green-800 disabled:opacity-60'>
-                  {rowBusy ? "Saving..." : rowPopup.mode === "add" ? "Add Row" : "Save"}
+                <button type='submit' className='h-10 rounded-lg bg-green-700 px-4 text-sm font-medium text-white hover:bg-green-800'>
+                  {rowPopup.mode === "add" ? "Add Row" : "Update"}
                 </button>
               )}
             </div>
@@ -1709,11 +1878,25 @@ const BushRegister = () => {
       )}
       <ConfirmDialog
         open={Boolean(deleting)}
-        title='Delete row?'
-        message={`${deleting?.rowNo ?? ""} will be removed from this register.`}
-        loading={deleteBusy}
+        title='Remove row?'
+        confirmLabel='Remove'
+        message={`${deleting?.rowNo ?? ""} will be removed from this register when you press Save Changes.`}
         onConfirm={confirmDelete}
         onCancel={() => setDeleting(null)}
+      />
+      <ConfirmDialog
+        open={blocker.state === "blocked" || Boolean(askLeave)}
+        title='Leave without saving?'
+        message='Some rows on this page are not saved yet. If you leave, they are lost.'
+        confirmLabel='Leave'
+        onConfirm={() => {
+          if (askLeave) {
+            const action = askLeave;
+            setAskLeave(null);
+            action();
+          } else blocker.proceed();
+        }}
+        onCancel={() => (askLeave ? setAskLeave(null) : blocker.reset())}
       />
     </div>
   );
