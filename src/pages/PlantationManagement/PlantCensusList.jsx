@@ -11,6 +11,7 @@ import Select from "../../components/common/Select";
 import { api, notifySaved } from "../../lib/api";
 import { waitingTitle } from "../../lib/waitingTitle";
 import { useApi } from "../../lib/useApi";
+import { loadNewestCreated } from "../../lib/newestCreated";
 
 const PER_PAGE = 10;
 const HEADERS = ["SL", "Field", "Estate", "Census Date", "Census Year", "Survey Type", "Rows", "Live Plants", "Dead Plants", "Survival %", "Status", "Actions"];
@@ -65,7 +66,7 @@ const PlantCensusList = () => {
 
   const estates = useApi(() => api.get("/options/estates"), []);
   const censuses = useApi(
-    () => api.get("/plant-censuses", { ...applied, page, perPage: PER_PAGE }),
+    () => loadNewestCreated("/plant-censuses", applied, page, PER_PAGE),
     [searchText, filters.estate, filters.censusYear, filters.surveyType, page],
   );
   const rows = censuses.data?.data ?? [];

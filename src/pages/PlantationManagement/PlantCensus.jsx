@@ -27,6 +27,7 @@ import {
 } from "../../data/PlantationManagementData/plantCensusData";
 import { api, notifySaved } from "../../lib/api";
 import { useApi } from "../../lib/useApi";
+import { loadNewestCreated } from "../../lib/newestCreated";
 import ConfirmDialog from "../../components/common/ConfirmDialog";
 import PendingBadge from "../../components/common/PendingBadge";
 import { waitingTitle } from "../../lib/waitingTitle";
@@ -129,6 +130,34 @@ const gapOf = (row) => (Number(row.expectedPlants) ? ((Number(row.deadPlants || 
 // Document table column widths (percent of the table): File Name is kept narrow and cut with "..." when long.
 const DOCUMENT_COLUMN_WIDTH = { sl: "6%", documentName: "28%", type: "12%", fileName: "22%", uploadedOn: "18%", action: "14%" };
 
+// The census the user last worked on (opened from the list, or added rows / files to). The page shows it again next time;
+// without one it shows the census added most recently.
+const LAST_KEY = "rupai.plantCensus.lastId";
+const rememberCensus = (id) => {
+  try {
+    if (id) localStorage.setItem(LAST_KEY, id);
+    else localStorage.removeItem(LAST_KEY);
+  } catch {
+    /* storage not available: the newest census is shown instead */
+  }
+};
+async function loadCensusToShow() {
+  let stored = null;
+  try {
+    stored = localStorage.getItem(LAST_KEY);
+  } catch {
+    /* ignore */
+  }
+  if (stored) {
+    try {
+      return { data: [await api.get(`/plant-censuses/${stored}`)] };
+    } catch {
+      rememberCensus(null); // deleted or not allowed: forget it
+    }
+  }
+  return loadNewestCreated("/plant-censuses", {}, 1, 1);
+}
+
 const PlantCensus = () => {
   const {
     register,
@@ -159,7 +188,7 @@ const PlantCensus = () => {
   const [deleteBusy, setDeleteBusy] = useState(false);
 
   // The census being edited (?id=); the panels show it, or the first census when adding a new one.
-  const first = useApi(() => (editId ? Promise.resolve(null) : api.get("/plant-censuses", { perPage: 1 })), [editId]);
+  const first = useApi(() => (editId ? Promise.resolve(null) : loadCensusToShow()), [editId]);
   const shownId = editId ?? first.data?.data?.[0]?.id;
   const record = useApi(() => (shownId ? api.get(`/plant-censuses/${shownId}`) : Promise.resolve(null)), [shownId]);
   const report = useApi(() => (shownId ? api.get(`/plant-censuses/${shownId}/report`) : Promise.resolve(null)), [shownId]);
@@ -169,6 +198,30 @@ const PlantCensus = () => {
   const boundary = field.data?.map?.landBoundary ?? field.data?.map?.polygon ?? field.data?.polygon;
   const mapCenter = field.data?.map?.latitude != null ? [Number(field.data.map.latitude), Number(field.data.map.longitude)] : fieldMap.center;
   const waiting = !shownId && first.loading;
+  // A census opened from the list is the one the page keeps showing.
+  useEffect(() => {
+    if (editId) rememberCensus(editId);
+  }, [editId]);
+  // After rows or files were sent for approval, look again every few seconds (for 10 minutes) so the approved
+  // data shows up in the page without a refresh.
+  const [watchUntil, setWatchUntil] = useState(0);
+  const refreshRecord = record.refresh;
+  const refreshReport = report.refresh;
+  const watchApproval = () => setWatchUntil(Date.now() + 10 * 60 * 1000);
+  useEffect(() => {
+    if (!watchUntil) return undefined;
+    const timer = setInterval(() => {
+      if (Date.now() > watchUntil) {
+        setWatchUntil(0);
+        return;
+      }
+      if (document.visibilityState !== "hidden") {
+        refreshRecord();
+        refreshReport();
+      }
+    }, 5000);
+    return () => clearInterval(timer);
+  }, [watchUntil, refreshRecord, refreshReport]);
 
   // Estate -> Division -> Section -> Field / Block
   const estateId = watch("estate");
@@ -236,12 +289,9 @@ const PlantCensus = () => {
       if (value && errors[name]?.type === "stale") clearErrors(name);
     }
   }, [divisionId, sectionId, fieldBlockId, errors, clearErrors]);
-  // Total selected rows is worked out from the two row numbers.
-  useEffect(() => {
-    const from = Number(rowFrom);
-    const to = Number(rowTo);
-    setValue("totalSelectedRows", rowFrom !== "" && rowTo !== "" && to >= from ? to - from + 1 : "");
-  }, [rowFrom, rowTo, setValue]);
+  // Total selected rows is worked out on every render from the two row numbers (not stored in the form).
+  const rowsFilled = rowFrom !== undefined && rowTo !== undefined && String(rowFrom).trim() !== "" && String(rowTo).trim() !== "";
+  const totalRows = rowsFilled && Number(rowTo) >= Number(rowFrom) ? Number(rowTo) - Number(rowFrom) + 1 : "";
 
   const reloadPanels = () => {
     first.reload();
@@ -251,7 +301,7 @@ const PlantCensus = () => {
 
   const bodyOf = (values, extra = {}) => ({
     ...values,
-    totalSelectedRows: values.rowFrom !== "" && values.rowTo !== "" ? Number(values.rowTo) - Number(values.rowFrom) + 1 : values.totalSelectedRows,
+    totalSelectedRows: String(values.rowFrom ?? "").trim() !== "" && String(values.rowTo ?? "").trim() !== "" ? Number(values.rowTo) - Number(values.rowFrom) + 1 : values.totalSelectedRows,
     ...extra,
   });
   const onSubmit = async (values) => {
@@ -259,6 +309,7 @@ const PlantCensus = () => {
       const saved = editId
         ? await api.put(`/plant-censuses/${editId}`, bodyOf(values))
         : await api.post("/plant-censuses", { ...bodyOf(values), photos: [], documents: [], rows: [] });
+      if (!editId) rememberCensus(null); // a new census: show the newest one (this one) once it exists
       if (!saved?.pending) reset(editId ? toForm(saved) : EMPTY_FORM);
       notifySaved(saved, "Plant census saved successfully!");
       reloadPanels();
@@ -326,6 +377,8 @@ const PlantCensus = () => {
         rowPopup.mode === "add"
           ? await api.post(`/plant-censuses/${shown.id}/rows`, body)
           : await api.put(`/plant-censuses/${shown.id}/rows/${rowPopup.id}`, body);
+      rememberCensus(shown.id);
+      if (result?.pending) watchApproval();
       notifySaved(result, rowPopup.mode === "add" ? "Row added successfully!" : "Row updated successfully!");
       setRowPopup(null);
       reloadPanels();
@@ -370,6 +423,8 @@ const PlantCensus = () => {
         }
       }
       const noun = kind === "photos" ? "photo" : "document";
+      rememberCensus(shown.id);
+      if (waiting) watchApproval();
       if (waiting) toast.success(`${waiting} ${noun}${waiting === 1 ? "" : "s"} sent for approval${lastNumber ? ` (last: ${lastNumber})` : ""}`);
       if (added) toast.success(kind === "photos" ? "Photo uploaded successfully!" : "Document uploaded successfully!");
       reloadPanels();
@@ -385,6 +440,8 @@ const PlantCensus = () => {
     setDeleteBusy(true);
     try {
       const result = await api.del(`/plant-censuses/${shown.id}/files/${deletingDoc.id}`);
+      rememberCensus(shown.id);
+      if (result?.pending) watchApproval();
       notifySaved(result, "Document deleted successfully!");
       setDeletingDoc(null);
       reloadPanels();
@@ -804,6 +861,7 @@ const PlantCensus = () => {
                         value: 1,
                         message: "Row number must be greater than 0.",
                       },
+                      validate: (value) => Number(value) >= Number(rowFrom || 0) || "Row No. To cannot be less than Row No. From.",
                     })}
                     className={`w-full rounded-lg border bg-white px-3 py-2.5 text-sm outline-none transition-all ${
                       errors.rowTo
@@ -833,9 +891,13 @@ const PlantCensus = () => {
                     type='number'
                     placeholder='Auto Calculate'
                     readOnly
-                    {...register("totalSelectedRows")}
+                    value={totalRows}
+                    onChange={() => {}}
                     className='w-full rounded-lg border border-gray-300 bg-gray-100 px-3 py-2.5 text-sm outline-none'
                   />
+                  {rowsFilled && totalRows === "" && (
+                    <p className='mt-1 text-xs text-red-500'>Row No. To cannot be less than Row No. From.</p>
+                  )}
                 </div>
 
                 {/* Row Spacing */}

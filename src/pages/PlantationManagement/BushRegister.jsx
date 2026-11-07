@@ -7,6 +7,7 @@ import { api, notifySaved } from "../../lib/api";
 import PendingBadge from "../../components/common/PendingBadge";
 import { waitingTitle } from "../../lib/waitingTitle";
 import { useApi } from "../../lib/useApi";
+import { loadNewestCreated } from "../../lib/newestCreated";
 import TableSkeleton from "../../components/common/TableSkeleton";
 import EmptyRow from "../../components/common/EmptyRow";
 import ErrorState from "../../components/common/ErrorState";
@@ -180,7 +181,7 @@ const BushRegister = () => {
   const sectionOptions = useApi(() => (divisionId ? api.get("/options/sections", { division: divisionId }) : Promise.resolve([])), [divisionId]);
   const fieldOptions = useApi(() => (sectionId ? api.get("/options/fields", { section: sectionId }) : Promise.resolve([])), [sectionId]);
 
-  const registers = useApi(() => (pickedId ? Promise.resolve(null) : api.get("/bush-registers", { ...applied, perPage: 1 })), [applied, pickedId]);
+  const registers = useApi(() => (pickedId ? Promise.resolve(null) : loadNewestCreated("/bush-registers", applied, 1, 1)), [applied, pickedId]);
   const picked = useApi(() => (pickedId ? api.get(`/bush-registers/${pickedId}`) : Promise.resolve(null)), [pickedId]);
   const current = pickedId ? picked.data : registers.data?.data?.[0];
   const rowsCall = useApi(
