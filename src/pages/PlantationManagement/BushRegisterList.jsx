@@ -11,6 +11,7 @@ import Select from "../../components/common/Select";
 import { api, notifySaved } from "../../lib/api";
 import { waitingTitle } from "../../lib/waitingTitle";
 import { useApi } from "../../lib/useApi";
+import { loadNewestCreated } from "../../lib/newestCreated";
 
 const PER_PAGE = 10;
 const HEADERS = ["SL", "Field", "Estate", "Planting Year", "Survey Date", "Rows", "Total Bush", "Productive", "Dead", "Missing", "Actions"];
@@ -57,7 +58,7 @@ const BushRegisterList = () => {
 
   const estates = useApi(() => api.get("/options/estates"), []);
   const registers = useApi(
-    () => api.get("/bush-registers", { ...applied, page, perPage: PER_PAGE }),
+    () => loadNewestCreated("/bush-registers", applied, page, PER_PAGE),
     [searchText, filters.estate, filters.plantingYear, page],
   );
   const rows = registers.data?.data ?? [];

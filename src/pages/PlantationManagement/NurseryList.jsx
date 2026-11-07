@@ -11,6 +11,7 @@ import Select from "../../components/common/Select";
 import { api, notifySaved } from "../../lib/api";
 import { waitingTitle } from "../../lib/waitingTitle";
 import { useApi } from "../../lib/useApi";
+import { loadNewestCreated } from "../../lib/newestCreated";
 
 const PER_PAGE = 10;
 const HEADERS = ["SL", "Nursery Code", "Nursery Name", "Estate", "Division", "Beds", "Total Stock", "Status", "Actions"];
@@ -57,7 +58,7 @@ const NurseryList = () => {
 
   const estates = useApi(() => api.get("/options/estates"), []);
   const nurseries = useApi(
-    () => api.get("/nurseries", { ...applied, page, perPage: PER_PAGE }),
+    () => loadNewestCreated("/nurseries", applied, page, PER_PAGE),
     [searchText, filters.estate, filters.status, page],
   );
   const rows = nurseries.data?.data ?? [];

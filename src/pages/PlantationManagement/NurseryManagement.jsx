@@ -7,6 +7,7 @@ import { api, notifySaved } from "../../lib/api";
 import PendingBadge from "../../components/common/PendingBadge";
 import { waitingTitle } from "../../lib/waitingTitle";
 import { useApi } from "../../lib/useApi";
+import { loadNewestCreated } from "../../lib/newestCreated";
 import TableSkeleton from "../../components/common/TableSkeleton";
 import EmptyRow from "../../components/common/EmptyRow";
 import ErrorState from "../../components/common/ErrorState";
@@ -80,7 +81,7 @@ const NurseryManagement = () => {
 
   // The nursery being edited (?id=); the panels show it, or the first nursery when adding a new one.
   const nursery = useApi(() => (editId ? api.get(`/nurseries/${editId}`) : Promise.resolve(null)), [editId]);
-  const first = useApi(() => (editId ? Promise.resolve(null) : api.get("/nurseries", { perPage: 1 })), [editId]);
+  const first = useApi(() => (editId ? Promise.resolve(null) : loadNewestCreated("/nurseries", {}, 1, 1)), [editId]);
   const shownId = editId ?? first.data?.data?.[0]?.id;
 
   const summary = useApi(() => (shownId ? api.get(`/nurseries/${shownId}/summary`) : Promise.resolve(null)), [shownId]);
