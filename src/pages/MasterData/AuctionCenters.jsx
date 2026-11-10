@@ -113,7 +113,7 @@ const AuctionCenters = () => {
   const totalPages = Math.max(list.data?.meta?.totalPages ?? 1, 1);
   const from = rows.length > 0 ? (page - 1) * PER_PAGE + 1 : 0;
   const to = (page - 1) * PER_PAGE + rows.length;
-  const choicesOf = (name) => options.data?.[OPTION_LIST[name]] ?? [];
+  const choicesOf = (name) => (name === "cityDistrict" ? cityChoices : (options.data?.[OPTION_LIST[name]] ?? []));
   const dayChoices = options.data?.auctionDays ?? [];
 
   // A page that no longer exists (after a delete) steps back.
@@ -130,8 +130,28 @@ const AuctionCenters = () => {
     handleSubmit,
     reset,
     setError,
+    setValue,
+    watch,
     formState: { errors, isSubmitting },
   } = useForm({ defaultValues: EMPTY_FORM });
+
+  // City / District follows the Division: a picked division narrows the districts to its own.
+  const pickedDivision = watch("division");
+  const allCities = options.data?.cities ?? [];
+  const cityChoices = pickedDivision ? allCities.filter((city) => city.division === pickedDivision) : allCities;
+
+  // Changing the Division clears a district that no longer belongs to it.
+  const onDivisionChange = (event) => {
+    const division = event.target.value;
+    const current = allCities.find((city) => city.value === watch("cityDistrict"));
+    if (division && current && current.division !== division) setValue("cityDistrict", "", { shouldDirty: true });
+  };
+
+  // With no Division picked yet, choosing a district fills in its Division.
+  const onCityChange = (event) => {
+    const city = allCities.find((item) => item.value === event.target.value);
+    if (city && !watch("division")) setValue("division", city.division, { shouldDirty: true, shouldValidate: true });
+  };
 
   const handleAddNew = () => {
     setSelected(null);
@@ -277,7 +297,10 @@ const AuctionCenters = () => {
             <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
               {auctionCentersData.form.fields.map((field) => {
                 const wide = field.colSpan === 2;
-                const rule = { required: field.required ? `${field.label} is required` : false };
+                const rule = {
+                  required: field.required ? `${field.label} is required` : false,
+                  onChange: field.name === "division" ? onDivisionChange : field.name === "cityDistrict" ? onCityChange : undefined,
+                };
 
                 return (
                   <div key={field.name} className={wide ? "md:col-span-2" : ""}>
