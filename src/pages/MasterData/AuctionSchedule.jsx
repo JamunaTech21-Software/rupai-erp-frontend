@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useForm } from "../../lib/useForm";
+import toast from "react-hot-toast";
 import {
   ArrowLeft,
   ArrowRight,
@@ -16,38 +17,96 @@ import {
 import MasterDataTabs from "./MasterDataTabs";
 import { auctionScheduleData } from "../../data/MasterData/auctionSheduleData";
 import Select from "../../components/common/Select";
+import { api, notifySaved } from "../../lib/api";
+import { useApi } from "../../lib/useApi";
+import TableSkeleton from "../../components/common/TableSkeleton";
+import ErrorState from "../../components/common/ErrorState";
+import ConfirmDialog from "../../components/common/ConfirmDialog";
+import PendingBadge from "../../components/common/PendingBadge";
+import { waitingTitle } from "../../lib/waitingTitle";
+
+const EMPTY_FORM = {
+  seasonId: "",
+  auctionCenterId: "",
+  yearId: "",
+  saleDate: "",
+  buyerPromptDate: "",
+  catalogueClosingDate: "",
+  comments: "",
+  status: "SCHEDULED",
+};
+// The page names for the pickers; the server calls them season, auctionCenter and year.
+const TO_PAGE = { season: "seasonId", auctionCenter: "auctionCenterId", year: "yearId" };
+const iso = (value) => (value ? String(value).slice(0, 10) : "");
+// The auction year a date falls in (April to March), as the server works it out.
+const auctionYear = (dateString) => {
+  const date = new Date(`${dateString}T00:00:00`);
+  if (Number.isNaN(date.getTime())) return "";
+  const start = date.getMonth() >= 3 ? date.getFullYear() : date.getFullYear() - 1;
+  return `${start}-${start + 1}`;
+};
+
 const AuctionSchedule = () => {
   // =========================================================
   // DATA
   // =========================================================
 
-  const {
-    pageMeta,
-    filters,
-    defaultFilters,
-    table,
-    schedules,
-    information,
-    permissions,
-  } = auctionScheduleData;
+  const { pageMeta, table, information, permissions } = auctionScheduleData;
 
   // =========================================================
   // STATES
   // =========================================================
 
-  const [selectedFilters, setSelectedFilters] = useState(defaultFilters);
-
+  const [selectedFilters, setSelectedFilters] = useState({ seasonId: "all", auctionCenterId: "all", yearId: "", status: "all" });
+  const [yearSet, setYearSet] = useState(false);
   const [currentPage, setCurrentPage] = useState(table.pagination.defaultPage);
-
   const [perPage, setPerPage] = useState(table.pagination.defaultPerPage);
-
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
-
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
-
   const [editingSchedule, setEditingSchedule] = useState(null);
-
   const [viewingSchedule, setViewingSchedule] = useState(null);
+  const [deleting, setDeleting] = useState(null);
+  const [deleteBusy, setDeleteBusy] = useState(false);
+  const [exporting, setExporting] = useState(false);
+
+  // =========================================================
+  // API DATA
+  // =========================================================
+
+  const options = useApi(() => api.get("/auction-schedules/filter-options"), []);
+  const seasons = useApi(() => api.get("/options/seasons"), []);
+  const centers = useApi(() => api.get("/options/auction-centers"), []);
+
+  // The Year filter starts on the current auction year once the server has said which it is.
+  useEffect(() => {
+    if (!yearSet && options.data) {
+      setYearSet(true);
+      setSelectedFilters((prev) => ({ ...prev, yearId: options.data.currentYear ?? "all" }));
+    }
+  }, [yearSet, options.data]);
+
+  const filterParams = {
+    season: selectedFilters.seasonId === "all" ? "" : selectedFilters.seasonId,
+    auctionCenter: selectedFilters.auctionCenterId === "all" ? "" : selectedFilters.auctionCenterId,
+    year: selectedFilters.yearId === "all" ? "" : selectedFilters.yearId,
+    status: selectedFilters.status === "all" ? "" : selectedFilters.status,
+  };
+  const list = useApi(
+    () => api.get("/auction-schedules", { ...filterParams, page: currentPage, perPage }),
+    [filterParams.season, filterParams.auctionCenter, filterParams.year, filterParams.status, currentPage, perPage],
+  );
+  const paginatedSchedules = list.data?.data ?? [];
+  const totalEntries = list.data?.meta?.total ?? 0;
+  const totalPages = Math.max(list.data?.meta?.totalPages ?? 1, 1);
+  const startIndex = (currentPage - 1) * perPage;
+  const endIndex = startIndex + paginatedSchedules.length;
+  const yearList = options.data?.years ?? [];
+  const statusList = options.data?.statuses ?? [];
+
+  // A page that no longer exists (after a delete or a filter) steps back.
+  useEffect(() => {
+    if (!list.loading && list.data && paginatedSchedules.length === 0 && currentPage > 1) setCurrentPage(currentPage - 1);
+  }, [list.loading, list.data, paginatedSchedules.length, currentPage]);
 
   // =========================================================
   // REACT HOOK FORM
@@ -58,21 +117,22 @@ const AuctionSchedule = () => {
     handleSubmit,
     reset,
     watch,
-    formState: { errors },
-  } = useForm({
-    defaultValues: {
-      seasonId: "",
-      auctionCenterId: "",
-      yearId: "",
-      saleDate: "",
-      buyerPromptDate: "",
-      catalogueClosingDate: "",
-      comments: "",
-      status: "SCHEDULED",
-    },
-  });
+    setValue,
+    getValues,
+    setError,
+    formState: { errors, isSubmitting },
+  } = useForm({ defaultValues: EMPTY_FORM });
 
   const saleDate = watch("saleDate");
+  const formYear = watch("yearId");
+
+  // Picking a Sale Date fills the Year when none is chosen yet.
+  useEffect(() => {
+    if (isFormModalOpen && saleDate && !getValues("yearId")) setValue("yearId", auctionYear(saleDate));
+  }, [isFormModalOpen, saleDate, getValues, setValue]);
+
+  // The Year list holds the years of the saved sales, plus the one in the form.
+  const yearChoices = [...yearList.map((item) => item.value), ...(formYear && !yearList.some((item) => item.value === formYear) ? [formYear] : [])];
 
   // =========================================================
   // DATE FORMAT
@@ -81,7 +141,7 @@ const AuctionSchedule = () => {
   const formatDate = (dateString) => {
     if (!dateString) return "—";
 
-    const date = new Date(`${dateString}T00:00:00`);
+    const date = new Date(`${iso(dateString)}T00:00:00`);
 
     if (Number.isNaN(date.getTime())) {
       return dateString;
@@ -117,7 +177,6 @@ const AuctionSchedule = () => {
   // =========================================================
 
   const handleFilterChange = (field, value) => {
-
     setSelectedFilters((prev) => ({
       ...prev,
       [field]: value,
@@ -127,117 +186,77 @@ const AuctionSchedule = () => {
   };
 
   // =========================================================
-  // FILTERED DATA
-  // =========================================================
-
-  const filteredSchedules = schedules.filter((schedule) => {
-    const seasonMatch =
-      selectedFilters.seasonId === "all" ||
-      schedule.season?.id === selectedFilters.seasonId;
-
-    const centerMatch =
-      selectedFilters.auctionCenterId === "all" ||
-      schedule.auctionCenter?.id === selectedFilters.auctionCenterId;
-
-    const yearMatch =
-      selectedFilters.yearId === "all" ||
-      schedule.year?.id === selectedFilters.yearId;
-
-    const statusMatch =
-      selectedFilters.status === "all" ||
-      schedule.status?.code === selectedFilters.status;
-
-    return seasonMatch && centerMatch && yearMatch && statusMatch;
-  });
-
-  // =========================================================
-  // PAGINATION CALCULATION
-  // =========================================================
-
-  const totalEntries = filteredSchedules.length;
-
-  const totalPages = Math.max(1, Math.ceil(totalEntries / perPage));
-
-  const safeCurrentPage = Math.min(currentPage, totalPages);
-
-  const startIndex = (safeCurrentPage - 1) * perPage;
-
-  const endIndex = Math.min(startIndex + perPage, totalEntries);
-
-  const paginatedSchedules = filteredSchedules.slice(startIndex, endIndex);
-
-  // =========================================================
-  // ADD BUTTON
+  // ADD / EDIT / CLOSE
   // =========================================================
 
   const handleOpenAddModal = () => {
-
     setEditingSchedule(null);
 
     reset({
-      seasonId: selectedFilters.seasonId,
-      auctionCenterId: selectedFilters.auctionCenterId,
-      yearId: selectedFilters.yearId,
-      saleDate: "",
-      buyerPromptDate: "",
-      catalogueClosingDate: "",
-      comments: "",
-      status: "SCHEDULED",
+      ...EMPTY_FORM,
+      seasonId: selectedFilters.seasonId === "all" ? "" : selectedFilters.seasonId,
+      auctionCenterId: selectedFilters.auctionCenterId === "all" ? "" : selectedFilters.auctionCenterId,
+      yearId: selectedFilters.yearId === "all" ? "" : selectedFilters.yearId,
     });
 
     setIsFormModalOpen(true);
   };
 
-  // =========================================================
-  // EDIT BUTTON
-  // =========================================================
-
   const handleOpenEditModal = (schedule) => {
-
     setEditingSchedule(schedule);
 
     reset({
-      seasonId: schedule.season?.id || "",
-      auctionCenterId: schedule.auctionCenter?.id || "",
-      yearId: schedule.year?.id || "",
-      saleDate: schedule.saleDate || "",
-      buyerPromptDate: schedule.buyerPromptDate || "",
-      catalogueClosingDate: schedule.catalogueClosingDate || "",
+      seasonId: schedule.season || "",
+      auctionCenterId: schedule.auctionCenter || "",
+      yearId: schedule.year || "",
+      saleDate: iso(schedule.saleDate),
+      buyerPromptDate: iso(schedule.buyerPromptDate),
+      catalogueClosingDate: iso(schedule.catalogueClosingDate),
       comments: schedule.comments || "",
-      status: schedule.status?.code || "SCHEDULED",
+      status: schedule.status || "SCHEDULED",
     });
 
     setIsFormModalOpen(true);
   };
 
-  // =========================================================
-  // CLOSE FORM MODAL
-  // =========================================================
-
   const handleCloseFormModal = () => {
-
     setIsFormModalOpen(false);
     setEditingSchedule(null);
-    reset();
+    reset(EMPTY_FORM);
   };
 
   // =========================================================
   // FORM SUBMIT
   // =========================================================
 
-  const onSubmit = () => {
-
-
-    /*
-      Backend 
-
-      POST  -> Create
-      PUT   -> Update
-
-      API call 
-    */
-
-    handleCloseFormModal();
+  const onSubmit = async (values) => {
+    const body = {
+      season: values.seasonId,
+      auctionCenter: values.auctionCenterId,
+      year: values.yearId,
+      saleDate: values.saleDate,
+      buyerPromptDate: values.buyerPromptDate,
+      catalogueClosingDate: values.catalogueClosingDate,
+      comments: values.comments.trim() === "" ? null : values.comments.trim(),
+      status: values.status,
+    };
+    try {
+      const result = editingSchedule
+        ? await api.put(`/auction-schedules/${editingSchedule.id}`, body)
+        : await api.post("/auction-schedules", body);
+      notifySaved(result, editingSchedule ? "Auction schedule updated successfully!" : "Auction schedule saved successfully!");
+      handleCloseFormModal();
+      list.reload();
+    } catch (error) {
+      const fields = error.fields ?? {};
+      let unplaced = false;
+      for (const [key, message] of Object.entries(fields)) {
+        const name = TO_PAGE[key] ?? key;
+        if (name in EMPTY_FORM) setError(name, { message });
+        else unplaced = true;
+      }
+      if (unplaced || Object.keys(fields).length === 0) toast.error(error.message);
+    }
   };
 
   // =========================================================
@@ -245,7 +264,6 @@ const AuctionSchedule = () => {
   // =========================================================
 
   const handleView = (schedule) => {
-
     setViewingSchedule(schedule);
     setIsViewModalOpen(true);
   };
@@ -254,38 +272,42 @@ const AuctionSchedule = () => {
   // DELETE
   // =========================================================
 
-  const handleDelete = () => {
-
-    /*
-      Backend 
-
-      DELETE /auction-schedules/:id
-
-      API call 
-    */
+  const confirmDelete = async () => {
+    setDeleteBusy(true);
+    try {
+      const result = await api.del(`/auction-schedules/${deleting.id}`);
+      notifySaved(result, "Auction schedule deleted successfully!");
+      setDeleting(null);
+      list.reload();
+    } catch (error) {
+      toast.error(error.message);
+      setDeleting(null);
+    } finally {
+      setDeleteBusy(false);
+    }
   };
 
   // =========================================================
   // EXPORT
   // =========================================================
 
-  const handleExport = () => {
-
-
-    /*
-       backend export API 
-    */
-  };
-
-  // =========================================================
-  // IMPORT
-  // =========================================================
-
-  const handleImport = () => {
-
-    /*
-      Excel import functionality 
-    */
+  // The export needs the token, so it is fetched and saved as a file here.
+  const handleExport = async () => {
+    setExporting(true);
+    try {
+      const blob = await api.download("/auction-schedules/export", { ...filterParams, format: "xlsx" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = `auction-schedule-${new Date().toISOString().slice(0, 10)}.xlsx`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(link.href);
+    } catch (error) {
+      toast.error(error.message);
+    } finally {
+      setExporting(false);
+    }
   };
 
   // =========================================================
@@ -293,26 +315,22 @@ const AuctionSchedule = () => {
   // =========================================================
 
   const handlePreviousPage = () => {
-
     if (currentPage > 1) {
       setCurrentPage((prev) => prev - 1);
     }
   };
 
   const handleNextPage = () => {
-
     if (currentPage < totalPages) {
       setCurrentPage((prev) => prev + 1);
     }
   };
 
   const handlePageChange = (page) => {
-
     setCurrentPage(page);
   };
 
   const handlePerPageChange = (value) => {
-
     setPerPage(Number(value));
     setCurrentPage(1);
   };
@@ -382,8 +400,9 @@ const AuctionSchedule = () => {
             {permissions.canImport && (
               <button
                 type='button'
-                onClick={handleImport}
-                className='inline-flex cursor-pointer h-9 items-center justify-center gap-2 rounded-md border border-slate-300 bg-white px-3 text-xs font-semibold text-slate-700 transition hover:bg-slate-50'
+                disabled
+                title='Import from Excel is not available yet'
+                className='inline-flex h-9 cursor-not-allowed items-center justify-center gap-2 rounded-md border border-slate-300 bg-white px-3 text-xs font-semibold text-slate-700 opacity-50'
               >
                 <FileUp className='h-4 w-4' />
 
@@ -397,11 +416,12 @@ const AuctionSchedule = () => {
               <button
                 type='button'
                 onClick={handleExport}
-                className='inline-flex cursor-pointer h-9 items-center justify-center gap-2 rounded-md border border-slate-300 bg-white px-3 text-xs font-semibold text-slate-700 transition hover:bg-slate-50'
+                disabled={exporting}
+                className='inline-flex cursor-pointer h-9 items-center justify-center gap-2 rounded-md border border-slate-300 bg-white px-3 text-xs font-semibold text-slate-700 transition hover:bg-slate-50 disabled:opacity-60'
               >
                 <Download className='h-4 w-4' />
 
-                <span>Export</span>
+                <span>{exporting ? "Exporting..." : "Export"}</span>
               </button>
             )}
 
@@ -439,9 +459,10 @@ const AuctionSchedule = () => {
                 onChange={(e) => handleFilterChange("seasonId", e.target.value)}
                 className='h-10 w-full appearance-none rounded-md border border-slate-300 bg-white px-3 pr-9 text-sm text-slate-700 outline-none focus:border-emerald-600'
               >
-                {filters.seasons.map((season) => (
-                  <option key={season.id} value={season.id}>
-                    {season.name}
+                <option value='all'>All Seasons</option>
+                {(seasons.data ?? []).map((season) => (
+                  <option key={season.value} value={season.value}>
+                    {season.label}
                   </option>
                 ))}
               </Select>
@@ -465,9 +486,10 @@ const AuctionSchedule = () => {
                 }
                 className='h-10 w-full appearance-none rounded-md border border-slate-300 bg-white px-3 pr-9 text-sm text-slate-700 outline-none focus:border-emerald-600'
               >
-                {filters.auctionCenters.map((center) => (
-                  <option key={center.id} value={center.id}>
-                    {center.name}
+                <option value='all'>All Auction Centers</option>
+                {(centers.data ?? []).map((center) => (
+                  <option key={center.value} value={center.value}>
+                    {center.label}
                   </option>
                 ))}
               </Select>
@@ -489,9 +511,10 @@ const AuctionSchedule = () => {
                 onChange={(e) => handleFilterChange("yearId", e.target.value)}
                 className='h-10 w-full appearance-none rounded-md border border-slate-300 bg-white px-3 pr-9 text-sm text-slate-700 outline-none focus:border-emerald-600'
               >
-                {filters.years.map((year) => (
-                  <option key={year.id} value={year.id}>
-                    {year.name}
+                <option value='all'>All Years</option>
+                {yearList.map((year) => (
+                  <option key={year.value} value={year.value}>
+                    {year.label}
                   </option>
                 ))}
               </Select>
@@ -513,12 +536,10 @@ const AuctionSchedule = () => {
                 onChange={(e) => handleFilterChange("status", e.target.value)}
                 className='h-10 w-full appearance-none rounded-md border border-slate-300 bg-white px-3 pr-9 text-sm text-slate-700 outline-none focus:border-emerald-600'
               >
-                {filters.statuses.map((status) => (
-                  <option
-                    key={status.id}
-                    value={status.code === "ALL" ? "all" : status.code}
-                  >
-                    {status.name}
+                <option value='all'>All Status</option>
+                {statusList.map((status) => (
+                  <option key={status.value} value={status.value}>
+                    {status.label}
                   </option>
                 ))}
               </Select>
@@ -553,7 +574,15 @@ const AuctionSchedule = () => {
               {/* TABLE BODY */}
 
               <tbody>
-                {paginatedSchedules.length > 0 ? (
+                {list.loading && !list.data ? (
+                  <TableSkeleton rows={5} columns={table.columns.length} />
+                ) : list.error ? (
+                  <tr>
+                    <td colSpan={table.columns.length} className='p-4'>
+                      <ErrorState message={list.error.message} onRetry={list.reload} />
+                    </td>
+                  </tr>
+                ) : paginatedSchedules.length > 0 ? (
                   paginatedSchedules.map((schedule) => (
                     <tr
                       key={schedule.id}
@@ -600,12 +629,13 @@ const AuctionSchedule = () => {
                       {/* STATUS */}
 
                       <td className='px-4 py-3'>
+                        <PendingBadge row={schedule} />
                         <span
                           className={`inline-flex rounded-md px-2.5 py-1 text-[10px] font-semibold ${getStatusClass(
-                            schedule.status?.code,
+                            schedule.status,
                           )}`}
                         >
-                          {schedule.status?.label}
+                          {schedule.statusLabel}
                         </span>
                       </td>
 
@@ -631,9 +661,10 @@ const AuctionSchedule = () => {
                           {permissions.canEdit && (
                             <button
                               type='button'
-                              title='Edit'
+                              title={waitingTitle(schedule, "Edit")}
+                              disabled={Boolean(schedule.pendingRequest)}
                               onClick={() => handleOpenEditModal(schedule)}
-                              className='inline-flex h-8 w-8 items-center justify-center rounded-md border border-emerald-200 bg-white text-emerald-600 hover:bg-emerald-50'
+                              className='inline-flex h-8 w-8 items-center justify-center rounded-md border border-emerald-200 bg-white text-emerald-600 hover:bg-emerald-50 disabled:cursor-not-allowed disabled:opacity-40'
                             >
                               <Pencil className='h-4 w-4' />
                             </button>
@@ -644,9 +675,10 @@ const AuctionSchedule = () => {
                           {permissions.canDelete && (
                             <button
                               type='button'
-                              title='Delete'
-                              onClick={() => handleDelete(schedule)}
-                              className='inline-flex h-8 w-8 items-center justify-center rounded-md border border-red-200 bg-white text-red-500 hover:bg-red-50'
+                              title={waitingTitle(schedule, "Delete")}
+                              disabled={Boolean(schedule.pendingRequest)}
+                              onClick={() => setDeleting(schedule)}
+                              className='inline-flex h-8 w-8 items-center justify-center rounded-md border border-red-200 bg-white text-red-500 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-40'
                             >
                               <Trash2 className='h-4 w-4' />
                             </button>
@@ -844,9 +876,9 @@ const AuctionSchedule = () => {
                   >
                     <option value=''>Select Season</option>
 
-                    {filters.seasons.map((season) => (
-                      <option key={season.id} value={season.id}>
-                        {season.name}
+                    {(seasons.data ?? []).map((season) => (
+                      <option key={season.value} value={season.value}>
+                        {season.label}
                       </option>
                     ))}
                   </Select>
@@ -874,9 +906,9 @@ const AuctionSchedule = () => {
                   >
                     <option value=''>Select Auction Center</option>
 
-                    {filters.auctionCenters.map((center) => (
-                      <option key={center.id} value={center.id}>
-                        {center.name}
+                    {(centers.data ?? []).map((center) => (
+                      <option key={center.value} value={center.value}>
+                        {center.label}
                       </option>
                     ))}
                   </Select>
@@ -904,9 +936,9 @@ const AuctionSchedule = () => {
                   >
                     <option value=''>Select Year</option>
 
-                    {filters.years.map((year) => (
-                      <option key={year.id} value={year.id}>
-                        {year.name}
+                    {yearChoices.map((year) => (
+                      <option key={year} value={year}>
+                        {year}
                       </option>
                     ))}
                   </Select>
@@ -932,13 +964,11 @@ const AuctionSchedule = () => {
                     })}
                     className='h-10 w-full rounded-md border border-slate-300 bg-white px-3 text-sm outline-none focus:border-emerald-600'
                   >
-                    {filters.statuses
-                      .filter((status) => status.code !== "ALL")
-                      .map((status) => (
-                        <option key={status.id} value={status.code}>
-                          {status.name}
-                        </option>
-                      ))}
+                    {statusList.map((status) => (
+                      <option key={status.value} value={status.value}>
+                        {status.label}
+                      </option>
+                    ))}
                   </Select>
 
                   {errors.status && (
@@ -1058,9 +1088,10 @@ const AuctionSchedule = () => {
 
                 <button
                   type='submit'
-                  className='h-10 rounded-md bg-emerald-700 px-5 text-sm font-semibold text-white hover:bg-emerald-800'
+                  disabled={isSubmitting}
+                  className='h-10 rounded-md bg-emerald-700 px-5 text-sm font-semibold text-white hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-60'
                 >
-                  {editingSchedule ? "Update Schedule" : "Save Schedule"}
+                  {isSubmitting ? "Saving..." : editingSchedule ? "Update Schedule" : "Save Schedule"}
                 </button>
               </div>
             </form>
@@ -1106,7 +1137,7 @@ const AuctionSchedule = () => {
                 </p>
 
                 <p className='mt-1 text-sm font-semibold text-slate-700'>
-                  {viewingSchedule.season?.name}
+                  {viewingSchedule.seasonName}
                 </p>
               </div>
 
@@ -1116,7 +1147,7 @@ const AuctionSchedule = () => {
                 </p>
 
                 <p className='mt-1 text-sm font-semibold text-slate-700'>
-                  {viewingSchedule.auctionCenter?.name}
+                  {viewingSchedule.auctionCenterName}
                 </p>
               </div>
 
@@ -1124,7 +1155,7 @@ const AuctionSchedule = () => {
                 <p className='text-[11px] font-semibold text-slate-500'>Year</p>
 
                 <p className='mt-1 text-sm font-semibold text-slate-700'>
-                  {viewingSchedule.year?.name}
+                  {viewingSchedule.year}
                 </p>
               </div>
 
@@ -1175,10 +1206,10 @@ const AuctionSchedule = () => {
 
                 <span
                   className={`mt-1 inline-flex rounded-md px-2.5 py-1 text-[10px] font-semibold ${getStatusClass(
-                    viewingSchedule.status?.code,
+                    viewingSchedule.status,
                   )}`}
                 >
-                  {viewingSchedule.status?.label}
+                  {viewingSchedule.statusLabel}
                 </span>
               </div>
 
@@ -1207,6 +1238,15 @@ const AuctionSchedule = () => {
           </div>
         </div>
       )}
+
+      <ConfirmDialog
+        open={Boolean(deleting)}
+        title={`Delete sale no. ${deleting?.saleNo ?? ""}?`}
+        message='With approval on, the deletion is sent for approval first.'
+        loading={deleteBusy}
+        onConfirm={confirmDelete}
+        onCancel={() => setDeleting(null)}
+      />
     </div>
   );
 };

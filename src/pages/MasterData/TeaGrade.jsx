@@ -100,6 +100,7 @@ const TeaGrade = () => {
   // STATE
   // =========================================================
 
+  const [formOpen, setFormOpen] = useState(false); // the Add / Edit popup
   const [selected, setSelected] = useState(null); // the grade shown in the form; none = a new grade
   const [search, setSearch] = useState("");
   const [filters, setFilters] = useState(EMPTY_FILTERS);
@@ -184,9 +185,17 @@ const TeaGrade = () => {
   const handleSelectGrade = (grade) => {
     setSelected(grade);
     reset(toForm(grade));
+    setFormOpen(true);
   };
 
   const handleAddNewGrade = () => {
+    setSelected(null);
+    reset(EMPTY_FORM);
+    setFormOpen(true);
+  };
+
+  const closeForm = () => {
+    setFormOpen(false);
     setSelected(null);
     reset(EMPTY_FORM);
   };
@@ -202,8 +211,7 @@ const TeaGrade = () => {
       const body = toBody(values);
       const result = selected ? await api.put(`/tea-grades/${selected.id}`, body) : await api.post("/tea-grades", body);
       notifySaved(result, selected ? "Tea grade updated successfully!" : "Tea grade saved successfully!");
-      setSelected(null);
-      reset(EMPTY_FORM);
+      closeForm();
       if (!selected) setPage(1);
       refresh();
     } catch (error) {
@@ -216,7 +224,7 @@ const TeaGrade = () => {
     try {
       const result = await api.del(`/tea-grades/${deleting.id}`);
       notifySaved(result, "Tea grade deleted successfully!");
-      if (selected?.id === deleting.id) handleAddNewGrade();
+      if (selected?.id === deleting.id) closeForm();
       setDeleting(null);
       refresh();
     } catch (error) {
@@ -548,12 +556,14 @@ const TeaGrade = () => {
 
       <div className='grid grid-cols-1 gap-2 xl:grid-cols-12'>
         {/* =====================================================
-            GRADE DETAILS
+            GRADE DETAILS (popup)
         ===================================================== */}
 
-        <form onSubmit={handleSubmit(onSubmit)} className='rounded-lg border border-slate-200 bg-white p-4 shadow-sm xl:col-span-8'>
-          <div className='mb-2 flex items-center justify-between'>
-            <h2 className='text-sm font-bold text-emerald-700'>{selected ? teaGradeData.form.title : "Add Grade"}</h2>
+        {formOpen && (
+        <div className='fixed inset-0 z-[9999] flex items-center justify-center overflow-y-auto bg-black/40 px-4 py-6' onMouseDown={(e) => e.target === e.currentTarget && closeForm()}>
+        <form onSubmit={handleSubmit(onSubmit)} role='dialog' aria-modal='true' className='max-h-full w-full max-w-4xl overflow-y-auto rounded-lg border border-slate-200 bg-white p-4 shadow-xl'>
+          <div className='mb-2 flex items-center'>
+            <h2 className='mr-auto text-sm font-bold text-emerald-700'>{selected ? teaGradeData.form.title : "Add Grade"}</h2>
 
             <button
               type='button'
@@ -563,6 +573,16 @@ const TeaGrade = () => {
               <RotateCcw className='h-3.5 w-3.5' />
 
               {teaGradeData.form.resetButton.label}
+            </button>
+
+            <button
+              type='button'
+              onClick={closeForm}
+              aria-label='Close'
+              title='Close'
+              className='ml-2 flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-slate-500 transition hover:bg-slate-100 hover:text-slate-700'
+            >
+              <X className='h-4 w-4' />
             </button>
           </div>
 
@@ -671,8 +691,8 @@ const TeaGrade = () => {
             <div className='flex  gap-2'>
               <button
                 type='button'
-                onClick={handleAddNewGrade}
-                className='flex items-center justify-center gap-2 rounded-md border border-slate-200 px-4 py-2 text-xs font-medium text-slate-600 transition hover:bg-slate-50'
+                onClick={closeForm}
+                className='flex items-center justify-center gap-2 rounded-md border border-slate-200 px-6 py-2.5 text-xs font-medium text-slate-600 transition hover:bg-slate-50'
               >
                 <X className='h-3.5 w-3.5' />
 
@@ -682,7 +702,7 @@ const TeaGrade = () => {
               <button
                 type='submit'
                 disabled={isSubmitting || Boolean(waiting)}
-                className='flex items-center justify-center gap-2 rounded-md bg-emerald-700 px-4 py-2 text-xs font-medium text-white transition hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-60'
+                className='flex items-center justify-center gap-2 rounded-md bg-emerald-700 px-6 py-2.5 text-xs font-medium text-white transition hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-60'
               >
                 <Save className='h-3.5 w-3.5' />
 
@@ -691,12 +711,14 @@ const TeaGrade = () => {
             </div>
           </div>
         </form>
+        </div>
+        )}
 
         {/* =====================================================
             GRADE INFORMATION
         ===================================================== */}
 
-        <div className='rounded-lg border border-slate-200 bg-white p-4 shadow-sm xl:col-span-4'>
+        <div className='rounded-lg border border-slate-200 bg-white p-4 shadow-sm xl:col-span-12'>
           <div className='mb-2'>
             <h2 className='text-xl font-bold text-emerald-700'>{teaGradeData.information.title}</h2>
           </div>
