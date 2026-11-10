@@ -7,7 +7,7 @@ export default function ConfirmDialog({
   message = "This cannot be undone from the list.",
   confirmLabel = "Delete",
   confirmClass = "bg-red-600 hover:bg-red-700",
-  zClass = "z-[100]",
+  zClass = "z-[10000]",
   loading = false,
   onConfirm,
   onCancel,
