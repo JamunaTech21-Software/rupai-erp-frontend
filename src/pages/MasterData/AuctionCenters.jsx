@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useForm } from "../../lib/useForm";
 import toast from "react-hot-toast";
 
@@ -103,7 +103,7 @@ const AuctionCenters = () => {
   const [deleting, setDeleting] = useState(null);
   const [deleteBusy, setDeleteBusy] = useState(false);
   const [exporting, setExporting] = useState(false);
-  const topRef = useRef(null);
+  const [formOpen, setFormOpen] = useState(false); // the Add / Edit popup
 
   const options = useApi(() => api.get("/auction-centers/filter-options"), []);
   const list = useApi(() => api.get("/auction-centers", { page, perPage: PER_PAGE }), [page]);
@@ -133,15 +133,14 @@ const AuctionCenters = () => {
     formState: { errors, isSubmitting },
   } = useForm({ defaultValues: EMPTY_FORM });
 
-  const scrollToForm = () => topRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-
   const handleAddNew = () => {
     setSelected(null);
     reset(EMPTY_FORM);
-    scrollToForm();
+    setFormOpen(true);
   };
 
   const handleCancel = () => {
+    setFormOpen(false);
     setSelected(null);
     reset(EMPTY_FORM);
   };
@@ -149,7 +148,7 @@ const AuctionCenters = () => {
   const handleEdit = (center) => {
     setSelected(center);
     reset(toForm(center));
-    scrollToForm();
+    setFormOpen(true);
   };
 
   // =====================================================
@@ -217,7 +216,7 @@ const AuctionCenters = () => {
 
   const waiting = rows.find((row) => row.id === selected?.id)?.pendingRequest ?? selected?.pendingRequest;
   const boxClass = (name) =>
-    `w-full rounded-md border bg-white px-3 text-[11px] text-slate-700 outline-none ${
+    `w-full rounded-md border bg-white px-3 text-[12px] text-slate-700 outline-none ${
       errors[name] ? "border-red-400 focus:border-red-500" : "border-slate-200 focus:border-emerald-500"
     }`;
   const summaryValue = (key) => {
@@ -238,19 +237,39 @@ const AuctionCenters = () => {
           MAIN CONTENT
       ====================================================== */}
 
-      <div ref={topRef} className='grid grid-cols-1 gap-4 xl:grid-cols-12'>
+      <div className='grid grid-cols-1 gap-4 xl:grid-cols-12'>
         {/* ===================================================
-            LEFT SIDE - AUCTION CENTER FORM
+            LEFT SIDE - AUCTION CENTER FORM (a popup on Add New / Edit)
         ==================================================== */}
 
-        <div className='rounded-lg border border-slate-200 bg-white p-4 shadow-sm xl:col-span-6'>
-          <div className='mb-5'>
+        <div
+          className={formOpen ? "fixed inset-0 z-[9999] flex items-start justify-center overflow-y-auto bg-black/40 px-4 py-6" : "xl:col-span-6"}
+          onMouseDown={formOpen ? (event) => event.target === event.currentTarget && handleCancel() : undefined}
+        >
+        <div
+          role={formOpen ? "dialog" : undefined}
+          aria-modal={formOpen ? "true" : undefined}
+          className={formOpen ? "w-full max-w-3xl rounded-lg bg-white p-5 shadow-xl" : "rounded-lg border border-slate-200 bg-white p-4 shadow-sm"}
+        >
+          <div className='mb-5 flex items-center justify-between'>
             <h2 className='text-sm font-bold text-emerald-700'>{selected ? "Edit Auction Center" : auctionCentersData.form.title}</h2>
+
+            {formOpen && (
+              <button
+                type='button'
+                onClick={handleCancel}
+                aria-label='Close'
+                title='Close'
+                className='flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-slate-500 transition hover:bg-slate-100 hover:text-slate-700'
+              >
+                <X className='h-4 w-4' />
+              </button>
+            )}
           </div>
 
           <form onSubmit={handleSubmit(onSubmit)}>
             {waiting && (
-              <p role='status' className='mb-4 rounded-md bg-amber-50 px-3 py-2 text-[11px] text-amber-700'>
+              <p role='status' className='mb-4 rounded-md bg-amber-50 px-3 py-2 text-[12px] text-amber-700'>
                 Waiting for approval ({waiting.requestNo}). This center cannot be saved until the request is decided.
               </p>
             )}
@@ -262,7 +281,7 @@ const AuctionCenters = () => {
 
                 return (
                   <div key={field.name} className={wide ? "md:col-span-2" : ""}>
-                    <label className='mb-3 block text-[10px] font-semibold text-slate-700'>
+                    <label className='mb-3 block text-[11px] font-semibold text-slate-700'>
                       {field.label}
 
                       {field.required && <span className='ml-1 text-red-500'>*</span>}
@@ -311,7 +330,7 @@ const AuctionCenters = () => {
                     {field.type === "multi-select" && (
                       <div className={`flex min-h-9 flex-wrap gap-2 rounded-md border bg-white p-2 ${errors[field.name] ? "border-red-400" : "border-slate-200"}`}>
                         {dayChoices.map((day) => (
-                          <label key={day.value} className='flex cursor-pointer items-center gap-1.5 rounded bg-slate-50 px-2 py-2 text-[10px] text-slate-600'>
+                          <label key={day.value} className='flex cursor-pointer items-center gap-1.5 rounded bg-slate-50 px-2 py-2 text-[11px] text-slate-600'>
                             <input
                               type='checkbox'
                               value={day.value}
@@ -327,7 +346,7 @@ const AuctionCenters = () => {
                       </div>
                     )}
 
-                    {errors[field.name] && <p className='mt-2 text-[9px] text-red-500'>{errors[field.name].message}</p>}
+                    {errors[field.name] && <p className='mt-2 text-[10px] text-red-500'>{errors[field.name].message}</p>}
                   </div>
                 );
               })}
@@ -336,13 +355,13 @@ const AuctionCenters = () => {
             {/* FORM FOOTER */}
 
             <div className='mt-5 flex flex-col gap-3 border-t border-slate-100 pt-4 sm:flex-row sm:items-center sm:justify-between'>
-              <p className='text-[9px] font-medium text-red-500'>{auctionCentersData.page.mandatoryText}</p>
+              <p className='text-[10px] font-medium text-red-500'>{auctionCentersData.page.mandatoryText}</p>
 
               <div className='flex flex-wrap gap-2'>
                 <button
                   type='button'
                   onClick={handleCancel}
-                  className='flex h-9 items-center justify-center gap-2 rounded-md border border-slate-200 bg-white px-4 text-[11px] font-medium text-slate-600 hover:bg-slate-50'
+                  className='flex h-10 items-center justify-center gap-2 rounded-md border border-slate-200 bg-white px-6 text-xs font-medium text-slate-600 hover:bg-slate-50'
                 >
                   <X className='h-3.5 w-3.5' />
 
@@ -352,7 +371,7 @@ const AuctionCenters = () => {
                 <button
                   type='submit'
                   disabled={isSubmitting || Boolean(waiting)}
-                  className='flex h-9 items-center justify-center gap-2 rounded-md bg-emerald-700 px-4 text-[11px] font-medium text-white hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-60'
+                  className='flex h-10 items-center justify-center gap-2 rounded-md bg-emerald-700 px-6 text-xs font-medium text-white hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-60'
                 >
                   <Building2 className='h-3.5 w-3.5' />
 
@@ -361,6 +380,7 @@ const AuctionCenters = () => {
               </div>
             </div>
           </form>
+        </div>
         </div>
 
         {/* ===================================================
@@ -375,16 +395,16 @@ const AuctionCenters = () => {
               <h2 className='text-sm font-bold text-emerald-700'>{auctionCentersData.centerSummary.title}</h2>
             </div>
 
-            {!selected && <p className='mb-3 text-[11px] text-slate-400'>Pick Edit on a center to see its summary.</p>}
+            {!selected && <p className='mb-3 text-[12px] text-slate-400'>Pick Edit on a center to see its summary.</p>}
 
             <div className='space-y-2'>
               {auctionCentersData.centerSummary.items.map((item, index) => (
                 <div key={item.id} className='grid grid-cols-[130px_15px_1fr] items-start gap-2 border-b border-slate-100 pb-2 last:border-0'>
-                  <span className='text-[10px] font-medium text-slate-500'>{item.label}</span>
+                  <span className='text-[11px] font-medium text-slate-500'>{item.label}</span>
 
-                  <span className='text-[10px] text-slate-400'>:</span>
+                  <span className='text-[11px] text-slate-400'>:</span>
 
-                  <span className='break-words text-right text-[10px] font-semibold text-slate-700'>{summaryValue(SUMMARY_KEYS[index])}</span>
+                  <span className='break-words text-right text-[11px] font-semibold text-slate-700'>{summaryValue(SUMMARY_KEYS[index])}</span>
                 </div>
               ))}
             </div>
@@ -399,7 +419,7 @@ const AuctionCenters = () => {
               <button
                 type='button'
                 onClick={handleAddNew}
-                className='flex h-8 items-center gap-1.5 rounded-md bg-emerald-700 px-3 text-[10px] font-medium text-white hover:bg-emerald-800'
+                className='flex h-10 items-center gap-1.5 rounded-md bg-emerald-700 px-5 text-xs font-medium text-white hover:bg-emerald-800'
               >
                 <Plus className='h-3.5 w-3.5' />
 
@@ -412,12 +432,12 @@ const AuctionCenters = () => {
                 <thead>
                   <tr className='border-b border-slate-100 bg-slate-50'>
                     {auctionCentersData.otherCenters.tableHeaders.map((header) => (
-                      <th key={header.key} className='px-2 py-3 text-left text-[9px] font-semibold text-slate-600'>
+                      <th key={header.key} className='px-2 py-3 text-left text-[10px] font-semibold text-slate-600'>
                         {header.label}
                       </th>
                     ))}
 
-                    <th className='px-2 py-3 text-center text-[9px] font-semibold text-slate-600'>Action</th>
+                    <th className='px-2 py-3 text-center text-[10px] font-semibold text-slate-600'>Action</th>
                   </tr>
                 </thead>
 
@@ -435,12 +455,12 @@ const AuctionCenters = () => {
                   ) : (
                     others.map((center) => (
                       <tr key={center.id} className='border-b border-slate-100 last:border-0 hover:bg-slate-50'>
-                        <td className='px-2 py-3 text-[9px] text-slate-600'>{center.centerCode}</td>
-                        <td className='px-2 py-3 text-[9px] text-slate-600'>{center.centerName}</td>
-                        <td className='px-2 py-3 text-[9px] text-slate-600'>{orDash(center.cityDistrictLabel)}</td>
-                        <td className='px-2 py-3 text-[9px] text-slate-600'>{orDash(center.managedByLabel)}</td>
-                        <td className='px-2 py-3 text-[9px] text-slate-600'>{orDash(center.regulatoryAuthorityLabel)}</td>
-                        <td className='px-2 py-3 text-[9px] text-slate-600'>
+                        <td className='px-2 py-3 text-[10px] text-slate-600'>{center.centerCode}</td>
+                        <td className='px-2 py-3 text-[10px] text-slate-600'>{center.centerName}</td>
+                        <td className='px-2 py-3 text-[10px] text-slate-600'>{orDash(center.cityDistrictLabel)}</td>
+                        <td className='px-2 py-3 text-[10px] text-slate-600'>{orDash(center.managedByLabel)}</td>
+                        <td className='px-2 py-3 text-[10px] text-slate-600'>{orDash(center.regulatoryAuthorityLabel)}</td>
+                        <td className='px-2 py-3 text-[10px] text-slate-600'>
                           <PendingBadge row={center} />
                           {center.statusLabel ?? center.status}
                         </td>
@@ -478,7 +498,7 @@ const AuctionCenters = () => {
             {/* TABLE FOOTER */}
 
             <div className='mt-4 flex flex-col gap-3 border-t border-slate-100 pt-4 sm:flex-row sm:items-center sm:justify-between'>
-              <span className='text-[10px] text-slate-500'>
+              <span className='text-[11px] text-slate-500'>
                 Showing {from} to {to} of {total} entries
               </span>
 
@@ -509,7 +529,7 @@ const AuctionCenters = () => {
                   type='button'
                   onClick={handleExport}
                   disabled={exporting}
-                  className='flex h-8 items-center justify-center gap-2 rounded-md border border-emerald-200 px-3 text-[10px] font-medium text-emerald-700 hover:bg-emerald-50 disabled:opacity-60'
+                  className='flex h-10 items-center justify-center gap-2 rounded-md border border-emerald-200 px-5 text-xs font-medium text-emerald-700 hover:bg-emerald-50 disabled:opacity-60'
                 >
                   <Download className='h-3.5 w-3.5' />
 

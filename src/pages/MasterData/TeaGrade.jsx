@@ -52,9 +52,9 @@ const EMPTY_FILTERS = { teaType: "", category: "", status: "" };
 const FORM_KEYS = Object.keys(EMPTY_FORM);
 const OPTIONAL_KEYS = ["standard", "gradeSize", "description", "remarks"];
 const filterClass =
-  "h-9 w-full rounded-md border border-slate-200 bg-white px-3 text-[11px] text-slate-700 outline-none focus:border-emerald-500";
+  "h-9 w-full rounded-md border border-slate-200 bg-white px-3 text-[12px] text-slate-700 outline-none focus:border-emerald-500";
 const inputClass =
-  "h-9 w-full rounded-md border border-slate-200 bg-white px-3 text-[11px] text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-100";
+  "h-9 w-full rounded-md border border-slate-200 bg-white px-3 text-[12px] text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-100";
 
 // A saved grade as form values (empty optional values come back as null).
 const toForm = (grade) => Object.fromEntries(FORM_KEYS.map((key) => [key, grade[key] ?? EMPTY_FORM[key]]));
@@ -285,11 +285,11 @@ const TeaGrade = () => {
                 </div>
 
                 <div className='min-w-0'>
-                  <p className='text-[10px] font-medium text-slate-500'>{card.title}</p>
+                  <p className='text-[11px] font-medium text-slate-500'>{card.title}</p>
 
                   <p className='mt-1 text-lg font-bold text-slate-800'>{card.value}</p>
 
-                  <p className='text-[9px] text-slate-500'>{card.subtitle}</p>
+                  <p className='text-[10px] text-slate-500'>{card.subtitle}</p>
                 </div>
               </div>
             </div>
@@ -321,7 +321,7 @@ const TeaGrade = () => {
                   setPage(1);
                 }}
                 placeholder='Search grade name or code...'
-                className='h-9 w-full rounded-md border border-slate-200 bg-white pl-9 pr-3 text-[11px] text-slate-700 outline-none placeholder:text-slate-400 focus:border-emerald-500'
+                className='h-9 w-full rounded-md border border-slate-200 bg-white pl-9 pr-3 text-[12px] text-slate-700 outline-none placeholder:text-slate-400 focus:border-emerald-500'
               />
             </div>
 
@@ -344,7 +344,7 @@ const TeaGrade = () => {
             <button
               type='button'
               onClick={handleAddNewGrade}
-              className='flex h-9 items-center justify-center gap-2 rounded-md bg-emerald-700 px-4 text-xs font-medium text-white hover:bg-emerald-800'
+              className='flex h-10 items-center justify-center gap-2 rounded-md bg-emerald-700 px-5 text-sm font-medium text-white hover:bg-emerald-800'
             >
               <Plus className='h-4 w-4' />
               Add New Grade
@@ -359,7 +359,7 @@ const TeaGrade = () => {
         {showFilters && (
           <div className='mb-4 grid grid-cols-1 items-end gap-3 rounded-md border border-slate-100 bg-slate-50 p-3 sm:grid-cols-2 lg:grid-cols-4'>
             <div className='min-w-0'>
-              <label className='mb-1.5 block text-[11px] font-semibold text-slate-700'>Tea Type</label>
+              <label className='mb-1.5 block text-[12px] font-semibold text-slate-700'>Tea Type</label>
               <Select value={filters.teaType} onChange={setFilter("teaType")} className={filterClass}>
                 <option value=''>All</option>
                 {(allTypes.data ?? []).map((option) => (
@@ -370,7 +370,7 @@ const TeaGrade = () => {
               </Select>
             </div>
             <div className='min-w-0'>
-              <label className='mb-1.5 block text-[11px] font-semibold text-slate-700'>Category</label>
+              <label className='mb-1.5 block text-[12px] font-semibold text-slate-700'>Category</label>
               <Select value={filters.category} onChange={setFilter("category")} className={filterClass}>
                 <option value=''>All</option>
                 {(filterOptions.data?.categories ?? []).map((option) => (
@@ -381,7 +381,7 @@ const TeaGrade = () => {
               </Select>
             </div>
             <div className='min-w-0'>
-              <label className='mb-1.5 block text-[11px] font-semibold text-slate-700'>Status</label>
+              <label className='mb-1.5 block text-[12px] font-semibold text-slate-700'>Status</label>
               <Select value={filters.status} onChange={setFilter("status")} className={filterClass}>
                 <option value=''>All</option>
                 {(filterOptions.data?.statuses ?? []).map((option) => (
@@ -414,7 +414,7 @@ const TeaGrade = () => {
             <thead>
               <tr className='bg-slate-50'>
                 {teaGradeData.tableHeaders.map((header) => (
-                  <th key={header} className='whitespace-nowrap px-3 py-3 text-[10px] font-semibold text-slate-600'>
+                  <th key={header} className='whitespace-nowrap px-3 py-3 text-[11px] font-semibold text-slate-600'>
                     {header}
                   </th>
                 ))}
@@ -505,7 +505,7 @@ const TeaGrade = () => {
         ===================================================== */}
 
         <div className='mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between'>
-          <p className='text-[10px] text-slate-500'>
+          <p className='text-[11px] text-slate-500'>
             Showing {from} to {to} of {total} entries
           </p>
 
@@ -540,7 +540,7 @@ const TeaGrade = () => {
                 setPerPage(Number(e.target.value));
                 setPage(1);
               }}
-              className='h-8 rounded-md border border-slate-200 bg-white px-2 text-[10px] text-slate-600 outline-none'
+              className='h-8 rounded-md border border-slate-200 bg-white px-2 text-[11px] text-slate-600 outline-none'
             >
               <option value='10'>10 / page</option>
               <option value='20'>20 / page</option>
@@ -559,35 +559,44 @@ const TeaGrade = () => {
             GRADE DETAILS (popup)
         ===================================================== */}
 
-        {formOpen && (
-        <div className='fixed inset-0 z-[9999] flex items-center justify-center overflow-y-auto bg-black/40 px-4 py-6' onMouseDown={(e) => e.target === e.currentTarget && closeForm()}>
-        <form onSubmit={handleSubmit(onSubmit)} role='dialog' aria-modal='true' className='max-h-full w-full max-w-4xl overflow-y-auto rounded-lg border border-slate-200 bg-white p-4 shadow-xl'>
+        <div
+          className={formOpen ? "fixed inset-0 z-[9999] flex items-start justify-center overflow-y-auto bg-black/40 px-4 py-6" : "xl:col-span-8"}
+          onMouseDown={formOpen ? (e) => e.target === e.currentTarget && closeForm() : undefined}
+        >
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          role={formOpen ? "dialog" : undefined}
+          aria-modal={formOpen ? "true" : undefined}
+          className={formOpen ? "w-full max-w-4xl rounded-lg bg-white p-5 shadow-xl" : "rounded-lg border border-slate-200 bg-white p-4 shadow-sm"}
+        >
           <div className='mb-2 flex items-center'>
             <h2 className='mr-auto text-sm font-bold text-emerald-700'>{selected ? teaGradeData.form.title : "Add Grade"}</h2>
 
             <button
               type='button'
               onClick={handleReset}
-              className='flex items-center gap-2 rounded-md border border-slate-200 px-4 py-2 text-xs font-medium text-slate-600 transition hover:bg-slate-50'
+              className='flex items-center gap-2 rounded-md border border-slate-200 px-5 py-2.5 text-xs font-medium text-slate-600 transition hover:bg-slate-50'
             >
               <RotateCcw className='h-3.5 w-3.5' />
 
               {teaGradeData.form.resetButton.label}
             </button>
 
-            <button
-              type='button'
-              onClick={closeForm}
-              aria-label='Close'
-              title='Close'
-              className='ml-2 flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-slate-500 transition hover:bg-slate-100 hover:text-slate-700'
-            >
-              <X className='h-4 w-4' />
-            </button>
+            {formOpen && (
+              <button
+                type='button'
+                onClick={closeForm}
+                aria-label='Close'
+                title='Close'
+                className='ml-2 flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-slate-500 transition hover:bg-slate-100 hover:text-slate-700'
+              >
+                <X className='h-4 w-4' />
+              </button>
+            )}
           </div>
 
           {waiting && (
-            <p role='status' className='mb-3 rounded-md bg-amber-50 px-3 py-2 text-[11px] text-amber-700'>
+            <p role='status' className='mb-3 rounded-md bg-amber-50 px-3 py-2 text-[12px] text-amber-700'>
               Waiting for approval ({waiting.requestNo}). This grade cannot be saved until the request is decided.
             </p>
           )}
@@ -632,7 +641,7 @@ const TeaGrade = () => {
                     </Select>
                   )}
 
-                  {errors[field.name] && <p className='mt-1 text-[10px] text-red-500'>{errors[field.name].message}</p>}
+                  {errors[field.name] && <p className='mt-1 text-[11px] text-red-500'>{errors[field.name].message}</p>}
                 </div>
               );
             })}
@@ -648,9 +657,9 @@ const TeaGrade = () => {
                 maxLength={teaGradeData.form.description.maxLength}
                 placeholder={teaGradeData.form.description.placeholder}
                 {...register(teaGradeData.form.description.name)}
-                className='w-full resize-none rounded-md border border-slate-200 bg-white px-3 py-2 text-[11px] text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-100'
+                className='w-full resize-none rounded-md border border-slate-200 bg-white px-3 py-2 text-[12px] text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-100'
               />
-              {errors.description && <p className='mt-1 text-[10px] text-red-500'>{errors.description.message}</p>}
+              {errors.description && <p className='mt-1 text-[11px] text-red-500'>{errors.description.message}</p>}
             </div>
           </div>
 
@@ -665,9 +674,9 @@ const TeaGrade = () => {
               maxLength={teaGradeData.form.remarks.maxLength}
               placeholder={teaGradeData.form.remarks.placeholder}
               {...register(teaGradeData.form.remarks.name)}
-              className='w-full resize-none rounded-md border border-slate-200 bg-white px-3 py-2 text-[11px] text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-100'
+              className='w-full resize-none rounded-md border border-slate-200 bg-white px-3 py-2 text-[12px] text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-100'
             />
-            {errors.remarks && <p className='mt-1 text-[10px] text-red-500'>{errors.remarks.message}</p>}
+            {errors.remarks && <p className='mt-1 text-[11px] text-red-500'>{errors.remarks.message}</p>}
           </div>
 
           {/* =========================================================
@@ -675,7 +684,7 @@ const TeaGrade = () => {
                 ========================================================= */}
           <div className='mt-2 flex flex-col gap-3 border-t border-slate-100 pt-2 sm:flex-row sm:items-center sm:justify-between'>
             {/* Created Information */}
-            <div className='text-[10px] text-slate-500'>
+            <div className='text-[11px] text-slate-500'>
               {selected ? (
                 <>
                   Created On : <span className='font-medium text-slate-700'>{stamp(selected.createdAt)}</span>
@@ -712,13 +721,12 @@ const TeaGrade = () => {
           </div>
         </form>
         </div>
-        )}
 
         {/* =====================================================
             GRADE INFORMATION
         ===================================================== */}
 
-        <div className='rounded-lg border border-slate-200 bg-white p-4 shadow-sm xl:col-span-12'>
+        <div className='rounded-lg border border-slate-200 bg-white p-4 shadow-sm xl:col-span-4'>
           <div className='mb-2'>
             <h2 className='text-xl font-bold text-emerald-700'>{teaGradeData.information.title}</h2>
           </div>
@@ -748,7 +756,7 @@ const TeaGrade = () => {
               <h3 className='mb-3 text-[12px] font-semibold text-slate-700'>Tea Type Distribution</h3>
 
               {distribution.length === 0 ? (
-                <p className='py-8 text-center text-[11px] text-slate-400'>No grades yet</p>
+                <p className='py-8 text-center text-[12px] text-slate-400'>No grades yet</p>
               ) : (
                 <>
                   <div className='relative h-[150px] w-full'>
@@ -782,7 +790,7 @@ const TeaGrade = () => {
                           <div className='flex min-w-0 items-center gap-2'>
                             <span className='h-2 w-2 shrink-0 rounded-full' style={{ backgroundColor: CHART_COLORS[index % CHART_COLORS.length] }} />
 
-                            <span className='truncate text-[9px] text-slate-600'>{item.name}</span>
+                            <span className='truncate text-[10px] text-slate-600'>{item.name}</span>
                           </div>
 
                           <span className='ml-2 shrink-0 text-[12px] font-medium text-slate-700'>
