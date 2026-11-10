@@ -2,6 +2,9 @@ import React from "react";
 import MasterDataTabs from "./MasterDataTabs";
 import { Link } from "react-router-dom";
 import { masterDataDashboardData } from "../../data/MasterData/masterDataDashboardData";
+import { api } from "../../lib/api";
+import { useApi } from "../../lib/useApi";
+import ErrorState from "../../components/common/ErrorState";
 
 
 import {
@@ -127,7 +130,42 @@ const quickAccessIconMap = {
     bg: "bg-slate-50",
   },
 };
+// The prototype's links, mapped to the pages this app has.
+const ROUTE_FIX = { "/master-data-tea-brokers": "/master-data-add-new-broker" };
+const route = (path) => ROUTE_FIX[path] ?? path;
+
 const MasterDataDashboard = () => {
+  const summary = useApi(() => api.get("/master-data/summary"), []);
+  const data = summary.data;
+
+  // Loading / error: the page frame stays, the numbers wait for the API.
+  if (!data) {
+    return (
+      <div className='w-full space-y-4'>
+        <MasterDataTabs />
+
+        {summary.error ? (
+          <ErrorState message={summary.error.message} onRetry={summary.reload} />
+        ) : (
+          <div className='animate-pulse space-y-4' aria-busy='true'>
+            <div className='grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5'>
+              {[0, 1, 2, 3, 4].map((item) => (
+                <div key={item} className='h-24 rounded-lg border border-slate-200 bg-slate-100' />
+              ))}
+            </div>
+            <div className='grid grid-cols-1 gap-2 xl:grid-cols-12'>
+              <div className='h-[420px] rounded-lg border border-slate-200 bg-slate-100 xl:col-span-6' />
+              <div className='h-[420px] rounded-lg border border-slate-200 bg-slate-100 xl:col-span-6' />
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  const health = data.masterDataHealth;
+  const healthy = health.status === "healthy";
+
   return (
     <div className='w-full space-y-4'>
       <MasterDataTabs />
@@ -135,7 +173,7 @@ const MasterDataDashboard = () => {
           TOP SUMMARY CARDS
       ========================================================= */}
       <div className='grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5'>
-        {masterDataDashboardData.summaryCards.map((card) => {
+        {data.summaryCards.map((card) => {
           const iconConfig = summaryIconMap[card.icon];
           const Icon = iconConfig.icon;
 
@@ -163,7 +201,7 @@ const MasterDataDashboard = () => {
                   </h3>
 
                   <p className='mt-1 text-[11px] font-semibold text-green-600'>
-                    {card.active === card.total
+                    {card.total > 0 && card.active === card.total
                       ? "All Active"
                       : `${card.active} Active`}
                   </p>
@@ -231,7 +269,7 @@ const MasterDataDashboard = () => {
               {/* ================= TABLE BODY ================= */}
 
               <tbody>
-                {masterDataDashboardData.masterDataOverview.map((item) => {
+                {data.masterDataOverview.map((item) => {
                   const Icon = masterDataIconMap[item.icon];
 
                   return (
@@ -272,14 +310,14 @@ const MasterDataDashboard = () => {
                       {/* Last Updated */}
 
                       <td className='whitespace-nowrap px-3 py-2.5 text-center text-xs text-slate-500'>
-                        {item.lastUpdated}
+                        {item.lastUpdated ?? "-"}
                       </td>
 
                       {/* Action */}
 
                       <td className='px-3 py-2.5 text-center'>
                         <Link
-                          to={item.path}
+                          to={route(item.path)}
                           className='inline-flex h-8 w-8 items-center justify-center rounded-md border border-slate-200 text-slate-500 transition hover:border-emerald-600 hover:bg-emerald-50 hover:text-emerald-700'
                         >
                           <ArrowRight className='h-4 w-4' />
@@ -338,13 +376,15 @@ const MasterDataDashboard = () => {
 
             {/* Recently Added Rows */}
             <div className='space-y-3'>
-              {masterDataDashboardData.recentlyAdded.map((item) => {
+              {data.recentlyAdded.length === 0 && <p className='py-6 text-center text-[12px] text-slate-400'>No master data added yet</p>}
+
+              {data.recentlyAdded.map((item) => {
                 const Icon = iconMap[item.icon];
 
                 return (
                   <Link
                     key={item.id}
-                    to={item.path}
+                    to={route(item.path)}
                     className='grid grid-cols-4 items-center gap-3 rounded-md border-b border-slate-100 px-2 py-2.5 text-[12px] transition-colors hover:bg-slate-50'
                   >
                     {/* Master Data */}
@@ -394,9 +434,12 @@ const MasterDataDashboard = () => {
                 <div
                   className='absolute inset-0 rounded-full'
                   style={{
-                    background: `conic-gradient(
-              #16a34a 0% ${masterDataDashboardData.masterDataHealth.percentages.active}%,
-              #ef4444 ${masterDataDashboardData.masterDataHealth.percentages.active}% 100%
+                    background:
+                      health.total === 0
+                        ? "#e2e8f0"
+                        : `conic-gradient(
+              #16a34a 0% ${health.percentages.active}%,
+              #ef4444 ${health.percentages.active}% 100%
             )`,
                   }}
                 ></div>
@@ -404,7 +447,7 @@ const MasterDataDashboard = () => {
                 {/* Inner Circle */}
                 <div className='relative flex h-20 w-20 flex-col items-center justify-center rounded-full bg-white'>
                   <span className='text-lg font-bold text-slate-800'>
-                    {masterDataDashboardData.masterDataHealth.total}
+                    {health.total}
                   </span>
 
                   <span className='text-[10px] text-slate-500'>Total</span>
@@ -423,9 +466,9 @@ const MasterDataDashboard = () => {
                     </p>
 
                     <p className='text-[11px] text-slate-500'>
-                      {masterDataDashboardData.masterDataHealth.active} (
+                      {health.active} (
                       {
-                        masterDataDashboardData.masterDataHealth.percentages
+                        health.percentages
                           .active
                       }
                       %)
@@ -443,9 +486,9 @@ const MasterDataDashboard = () => {
                     </p>
 
                     <p className='text-[12px] text-slate-500'>
-                      {masterDataDashboardData.masterDataHealth.inactive} (
+                      {health.inactive} (
                       {
-                        masterDataDashboardData.masterDataHealth.percentages
+                        health.percentages
                           .inactive
                       }
                       %)
@@ -463,24 +506,24 @@ const MasterDataDashboard = () => {
                     </p>
 
                     <p className='text-[11px] text-slate-500'>
-                      {masterDataDashboardData.masterDataHealth.total} (100%)
+                      {health.total} (100%)
                     </p>
                   </div>
                 </div>
               </div>
 
               {/* ================= HEALTH MESSAGE ================= */}
-              <div className='w-full rounded-lg bg-green-50 p-4 sm:w-44'>
+              <div className={`w-full rounded-lg p-4 sm:w-44 ${healthy ? "bg-green-50" : "bg-amber-50"}`}>
                 <div className='mb-3 flex items-center gap-2'>
-                  <ShieldCheck className='h-4 w-4 text-green-600' />
+                  <ShieldCheck className={`h-4 w-4 ${healthy ? "text-green-600" : "text-amber-600"}`} />
 
-                  <h3 className='text-xs font-bold text-green-700'>
-                    {masterDataDashboardData.masterDataHealth.message.title}
+                  <h3 className={`text-xs font-bold ${healthy ? "text-green-700" : "text-amber-700"}`}>
+                    {health.message.title}
                   </h3>
                 </div>
 
                 <p className='text-[11px] leading-5 text-slate-600'>
-                  {masterDataDashboardData.masterDataHealth.message.description}
+                  {health.message.description}
                 </p>
               </div>
             </div>
@@ -507,7 +550,7 @@ const MasterDataDashboard = () => {
             return (
               <Link
                 key={item.id}
-                to={item.path}
+                to={route(item.path)}
                 className='flex min-h-20 flex-col items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white p-3 transition-all duration-200 hover:border-emerald-500 hover:bg-emerald-50'
               >
                 {/* Icon */}
