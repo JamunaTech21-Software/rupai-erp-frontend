@@ -417,7 +417,7 @@ const AuctionSchedule = () => {
                 type='button'
                 onClick={handleExport}
                 disabled={exporting}
-                className='inline-flex cursor-pointer h-9 items-center justify-center gap-2 rounded-md border border-slate-300 bg-white px-3 text-xs font-semibold text-slate-700 transition hover:bg-slate-50 disabled:opacity-60'
+                className='inline-flex cursor-pointer h-10 items-center justify-center gap-2 rounded-md border border-slate-300 bg-white px-5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:opacity-60'
               >
                 <Download className='h-4 w-4' />
 
@@ -431,7 +431,7 @@ const AuctionSchedule = () => {
               <button
                 type='button'
                 onClick={handleOpenAddModal}
-                className='inline-flex h-9 cursor-pointer items-center justify-center gap-2 rounded-md bg-emerald-700 px-3 text-xs font-semibold text-white transition hover:bg-emerald-800'
+                className='inline-flex h-10 cursor-pointer items-center justify-center gap-2 rounded-md bg-emerald-700 px-5 text-sm font-semibold text-white transition hover:bg-emerald-800'
               >
                 <Plus className='h-4 w-4' />
 
@@ -563,7 +563,7 @@ const AuctionSchedule = () => {
                   {table.columns.map((column) => (
                     <th
                       key={column.key}
-                      className='whitespace-nowrap px-4 py-3 text-left text-[11px] font-bold text-slate-700'
+                      className='whitespace-nowrap px-4 py-3 text-left text-[12px] font-bold text-slate-700'
                     >
                       {column.label}
                     </th>
@@ -631,7 +631,7 @@ const AuctionSchedule = () => {
                       <td className='px-4 py-3'>
                         <PendingBadge row={schedule} />
                         <span
-                          className={`inline-flex rounded-md px-2.5 py-1 text-[10px] font-semibold ${getStatusClass(
+                          className={`inline-flex rounded-md px-2.5 py-1 text-[11px] font-semibold ${getStatusClass(
                             schedule.status,
                           )}`}
                         >
@@ -787,16 +787,16 @@ const AuctionSchedule = () => {
           {/* BUYER PROMPT */}
 
           <div className='flex gap-2'>
-            <div className='mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-emerald-500 text-[10px] font-bold text-emerald-600'>
+            <div className='mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-emerald-500 text-[11px] font-bold text-emerald-600'>
               i
             </div>
 
             <div>
-              <p className='text-[11px] font-bold text-slate-700'>
+              <p className='text-[12px] font-bold text-slate-700'>
                 {information.buyerPromptDate.title}
               </p>
 
-              <p className='mt-0.5 text-[10px] leading-4 text-slate-500'>
+              <p className='mt-0.5 text-[11px] leading-4 text-slate-500'>
                 {information.buyerPromptDate.description}
               </p>
             </div>
@@ -805,16 +805,16 @@ const AuctionSchedule = () => {
           {/* CATALOGUE */}
 
           <div className='flex gap-2'>
-            <div className='mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-emerald-500 text-[10px] font-bold text-emerald-600'>
+            <div className='mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-emerald-500 text-[11px] font-bold text-emerald-600'>
               i
             </div>
 
             <div>
-              <p className='text-[11px] font-bold text-slate-700'>
+              <p className='text-[12px] font-bold text-slate-700'>
                 {information.catalogueClosingDate.title}
               </p>
 
-              <p className='mt-0.5 text-[10px] leading-4 text-slate-500'>
+              <p className='mt-0.5 text-[11px] leading-4 text-slate-500'>
                 {information.catalogueClosingDate.description}
               </p>
             </div>
@@ -1081,7 +1081,7 @@ const AuctionSchedule = () => {
                 <button
                   type='button'
                   onClick={handleCloseFormModal}
-                  className='h-10 rounded-md border border-slate-300 bg-white px-5 text-sm font-semibold text-slate-700 hover:bg-slate-50'
+                  className='h-11 rounded-md border border-slate-300 bg-white px-7 text-sm font-semibold text-slate-700 hover:bg-slate-50'
                 >
                   Cancel
                 </button>
@@ -1089,7 +1089,7 @@ const AuctionSchedule = () => {
                 <button
                   type='submit'
                   disabled={isSubmitting}
-                  className='h-10 rounded-md bg-emerald-700 px-5 text-sm font-semibold text-white hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-60'
+                  className='h-11 rounded-md bg-emerald-700 px-7 text-sm font-semibold text-white hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-60'
                 >
                   {isSubmitting ? "Saving..." : editingSchedule ? "Update Schedule" : "Save Schedule"}
                 </button>
@@ -1132,7 +1132,7 @@ const AuctionSchedule = () => {
 
             <div className='grid grid-cols-1 gap-4 p-5 sm:grid-cols-2'>
               <div>
-                <p className='text-[11px] font-semibold text-slate-500'>
+                <p className='text-[12px] font-semibold text-slate-500'>
                   Season
                 </p>
 
@@ -1142,7 +1142,7 @@ const AuctionSchedule = () => {
               </div>
 
               <div>
-                <p className='text-[11px] font-semibold text-slate-500'>
+                <p className='text-[12px] font-semibold text-slate-500'>
                   Auction Center
                 </p>
 
@@ -1152,7 +1152,7 @@ const AuctionSchedule = () => {
               </div>
 
               <div>
-                <p className='text-[11px] font-semibold text-slate-500'>Year</p>
+                <p className='text-[12px] font-semibold text-slate-500'>Year</p>
 
                 <p className='mt-1 text-sm font-semibold text-slate-700'>
                   {viewingSchedule.year}
@@ -1160,7 +1160,7 @@ const AuctionSchedule = () => {
               </div>
 
               <div>
-                <p className='text-[11px] font-semibold text-slate-500'>
+                <p className='text-[12px] font-semibold text-slate-500'>
                   Sale Date
                 </p>
 
@@ -1170,7 +1170,7 @@ const AuctionSchedule = () => {
               </div>
 
               <div>
-                <p className='text-[11px] font-semibold text-slate-500'>
+                <p className='text-[12px] font-semibold text-slate-500'>
                   Sale Day
                 </p>
 
@@ -1180,7 +1180,7 @@ const AuctionSchedule = () => {
               </div>
 
               <div>
-                <p className='text-[11px] font-semibold text-slate-500'>
+                <p className='text-[12px] font-semibold text-slate-500'>
                   Buyer Prompt Date
                 </p>
 
@@ -1190,7 +1190,7 @@ const AuctionSchedule = () => {
               </div>
 
               <div>
-                <p className='text-[11px] font-semibold text-slate-500'>
+                <p className='text-[12px] font-semibold text-slate-500'>
                   Catalogue Closing Date
                 </p>
 
@@ -1200,12 +1200,12 @@ const AuctionSchedule = () => {
               </div>
 
               <div>
-                <p className='text-[11px] font-semibold text-slate-500'>
+                <p className='text-[12px] font-semibold text-slate-500'>
                   Status
                 </p>
 
                 <span
-                  className={`mt-1 inline-flex rounded-md px-2.5 py-1 text-[10px] font-semibold ${getStatusClass(
+                  className={`mt-1 inline-flex rounded-md px-2.5 py-1 text-[11px] font-semibold ${getStatusClass(
                     viewingSchedule.status,
                   )}`}
                 >
@@ -1214,7 +1214,7 @@ const AuctionSchedule = () => {
               </div>
 
               <div className='sm:col-span-2'>
-                <p className='text-[11px] font-semibold text-slate-500'>
+                <p className='text-[12px] font-semibold text-slate-500'>
                   Comments
                 </p>
 
