@@ -156,11 +156,13 @@ const PlantCensus = () => {
     setValue,
     watch,
     getValues,
-    formState: { errors, isSubmitting, isDirty },
+    formState: { errors, isSubmitting },
   } = useForm();
   // True once the user has changed something in Census Information: a reload of the record must not overwrite that.
+  // react-hook-form's own isDirty is already true on a fresh page here, so the user's edits are noted by the form itself.
+  const [formEdited, setFormEdited] = useState(false);
   const dirtyRef = useRef(false);
-  dirtyRef.current = isDirty;
+  dirtyRef.current = formEdited;
   const resetFor = useRef(null);
   // What the user typed but did not save is kept in this browser tab (per census, or for a new one), so a page
   // refresh brings it back. It is cleared when the census is saved or the form is reset.
@@ -199,7 +201,7 @@ const PlantCensus = () => {
   const mapCenter = field.data?.map?.latitude != null ? [Number(field.data.map.latitude), Number(field.data.map.longitude)] : fieldMap.center;
   const changesCount = countChanges(changes);
   // Anything not saved yet: typed fields, rows, files.
-  const hasUnsaved = isDirty || draftActive || changesCount > 0;
+  const hasUnsaved = formEdited || draftActive || changesCount > 0;
 
   // Estate -> Division -> Section -> Field / Block
   const estateId = watch("estate");
@@ -216,6 +218,7 @@ const PlantCensus = () => {
   const clearDraft = () => {
     draftRef.current = null;
     setDraftActive(false);
+    setFormEdited(false);
     setChanges(NO_CHANGES);
     setRowProblems({});
     try {
@@ -256,6 +259,7 @@ const PlantCensus = () => {
     let timer;
     const subscription = watch((_values, info) => {
       if (info?.type !== "change") return;
+      setFormEdited(true);
       clearTimeout(timer);
       timer = setTimeout(() => {
         try {

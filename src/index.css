@@ -119,3 +119,8 @@ body {
   border-color: #ef4444 !important;
   box-shadow: 0 0 0 1px #ef4444;
 }
+
+/* Keep the map's own layers (z-index up to 1000) inside the map, so popups and dialogs always show above it. */
+.leaflet-container {
+  isolation: isolate;
+}
