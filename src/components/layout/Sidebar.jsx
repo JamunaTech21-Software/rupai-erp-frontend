@@ -23,6 +23,7 @@ import {
   BarChart3,
   Users,
   Settings,
+  FileText,
   ChevronRight,
   X,
 } from "lucide-react";
@@ -51,6 +52,7 @@ const iconMap = {
   BarChart3,
   Users,
   Settings,
+  FileText,
 };
 
 export default function Sidebar({ collapsed, mobileOpen, onCloseMobile }) {

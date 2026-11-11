@@ -53,6 +53,11 @@ const BrokerSalePositionSetup = lazyPage(() => import("./pages/MasterData/Broker
 const AddNewBroker = lazyPage(() => import("./pages/MasterData/AddNewBroker"));
 const TeaType = lazyPage(() => import("./pages/MasterData/TeaType"));
 const BuyerSetup = lazyPage(() => import("./pages/MasterData/BuyerSetup"));
+const DocumentCategory = lazyPage(() => import("./pages/Documents/DocumentCategory"));
+const DocumentType = lazyPage(() => import("./pages/Documents/DocumentType"));
+const ExpiryRenewal = lazyPage(() => import("./pages/Documents/ExpiryRenewal"));
+const AddNewDocument = lazyPage(() => import("./pages/Documents/AddNewDocument"));
+const DocumentRegister = lazyPage(() => import("./pages/Documents/DocumentRegister"));
 
 // Only in the built site: while developing, Vite would load all pages one by one and slow the first screen down.
 if (import.meta.env.PROD) setTimeout(() => loaders.forEach((load) => load().catch(() => {})), 500);
@@ -300,6 +305,46 @@ const router = createBrowserRouter([
         element: <Page><MasterDataDashboard /></Page>,
         handle: {
           title: "Master Data Dashboard",
+        },
+      },
+
+      {
+        path: "documents-category",
+        element: <Page><DocumentCategory /></Page>,
+        handle: {
+          title: "Document Category Setup",
+        },
+      },
+
+      {
+        path: "documents-type",
+        element: <Page><DocumentType /></Page>,
+        handle: {
+          title: "Document Type Setup",
+        },
+      },
+
+      {
+        path: "documents-expiry-renewal",
+        element: <Page><ExpiryRenewal /></Page>,
+        handle: {
+          title: "Expiry & Renewal Setting",
+        },
+      },
+
+      {
+        path: "documents-add-new",
+        element: <Page><AddNewDocument /></Page>,
+        handle: {
+          title: "Add New Document",
+        },
+      },
+
+      {
+        path: "documents-register",
+        element: <Page><DocumentRegister /></Page>,
+        handle: {
+          title: "Document Register",
         },
       },
 
