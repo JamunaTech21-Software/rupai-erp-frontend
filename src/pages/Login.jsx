@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Navigate, useNavigate, useSearchParams } from "react-router-dom";
 import { FiEye, FiEyeOff, FiLock, FiUser } from "react-icons/fi";
-import { api, tokens } from "../lib/api";
+import { api, loginNotice, tokens } from "../lib/api";
 
 // Only paths inside the dashboard are followed after sign-in.
 const safeReturnTo = (value) => (value && value.startsWith("/") && !value.startsWith("//") ? value : "/");
@@ -13,6 +13,8 @@ export default function Login() {
   const returnTo = safeReturnTo(searchParams.get("returnTo"));
   const [showPassword, setShowPassword] = useState(false);
   const [formError, setFormError] = useState("");
+  // Why the user was sent here (session ended, idle), shown once.
+  const [notice] = useState(() => loginNotice.take());
   const {
     register,
     handleSubmit,
@@ -20,13 +22,14 @@ export default function Login() {
     formState: { errors, isSubmitting },
   } = useForm({ defaultValues: { username: "", password: "" } });
 
-  if (tokens.access) return <Navigate to={returnTo} replace />;
+  if (tokens.valid()) return <Navigate to={returnTo} replace />;
 
   const onSubmit = async (values) => {
     setFormError("");
     try {
       const result = await api.public.post("/auth/login", values);
       tokens.set(result);
+      tokens.touch();
       navigate(returnTo, { replace: true });
     } catch (error) {
       for (const [key, message] of Object.entries(error.fields ?? {})) {
@@ -92,6 +95,12 @@ export default function Login() {
             </div>
             {errors.password && <p className='mt-1 text-xs text-red-500'>{errors.password.message}</p>}
           </div>
+
+          {notice && !formError && (
+            <p role='status' className='rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-700'>
+              {notice}
+            </p>
+          )}
 
           {formError && (
             <p role='alert' className='rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-600'>

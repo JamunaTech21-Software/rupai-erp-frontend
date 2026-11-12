@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { APP_VERSION } from "../../lib/appVersion";
 import { Link, NavLink, useLocation } from "react-router-dom";
 import {
   Home,
@@ -266,14 +267,14 @@ export default function Sidebar({ collapsed, mobileOpen, onCloseMobile }) {
           className={`flex items-center gap-2.5 rounded-xl bg-primary px-3.5 py-3 text-white ${
             collapsed ? "lg:justify-center lg:gap-0 lg:p-2.5 lg:px-2.5" : ""
           }`}
-          title='RupAi ERP v2.0.0'
+          title={`RupAi ERP v${APP_VERSION}`}
         >
           <div className='flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white/15'>
             <Leaf className='h-4 w-4' />
           </div>
           <div className={`min-w-0 ${labelClass}`}>
             <p className='truncate text-sm font-semibold'>RupAi ERP</p>
-            <p className='text-[11px] text-white/70'>Version 2.0.0</p>
+            <p className='text-[11px] text-white/70'>Version {APP_VERSION}</p>
           </div>
         </div>
       </div>

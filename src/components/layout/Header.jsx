@@ -11,10 +11,16 @@ import {
   Settings,
   LogOut,
   Shield,
+  Camera,
+  ImageOff,
 } from "lucide-react";
+import toast from "react-hot-toast";
 import { headerInfo } from "../../data/dashboardData";
 import { format } from "date-fns";
 import { api, tokens } from "../../lib/api";
+import UserAvatar from "./UserAvatar";
+import ProfilePhotoModal from "./ProfilePhotoModal";
+import ConfirmDialog from "../common/ConfirmDialog";
 
 const estates = [
   { id: 1, name: "Jamuna Tea Estate", location: "Sreemangal" },
@@ -27,14 +33,19 @@ const profileMenus = [
   { id: "profile", label: "My Profile", icon: User },
   { id: "settings", label: "Account Settings", icon: Settings },
   { id: "security", label: "Security", icon: Shield },
+  { id: "change-photo", label: "Change photo", icon: Camera },
+  { id: "remove-photo", label: "Remove photo", icon: ImageOff },
   { id: "logout", label: "Logout", icon: LogOut, danger: true },
 ];
 
 export default function Header({ onToggleSidebar }) {
-  const { user: sampleUser, notifications } = headerInfo;
+  const { notifications } = headerInfo;
   const navigate = useNavigate();
   const [me, setMe] = useState(null);
-  const user = { ...sampleUser, name: me?.name ?? sampleUser.name };
+  const user = me ?? { name: "", username: "", photoUrl: null };
+  const [photoOpen, setPhotoOpen] = useState(false);
+  const [removeOpen, setRemoveOpen] = useState(false);
+  const [removing, setRemoving] = useState(false);
   const matches = useMatches();
   const pageTitle =
     matches.find((match) => match.handle?.title)?.handle?.title ?? "Dashboard";
@@ -50,6 +61,21 @@ export default function Header({ onToggleSidebar }) {
       .then((result) => setMe(result.user))
       .catch(() => {});
   }, []);
+
+  const removePhoto = async () => {
+    setRemoving(true);
+    try {
+      const result = await api.put("/auth/me/photo", { photo: null });
+      setMe(result.user);
+      toast.success("Profile photo removed");
+      setRemoveOpen(false);
+    } catch (error) {
+      toast.error(error.fields?.photo ?? error.message);
+      setRemoveOpen(false);
+    } finally {
+      setRemoving(false);
+    }
+  };
 
   const logout = async () => {
     try {
@@ -188,16 +214,12 @@ export default function Header({ onToggleSidebar }) {
             }}
             className='flex cursor-pointer items-center gap-2 rounded-lg py-1 pl-1 pr-1 transition hover:bg-slate-50 sm:gap-2.5 sm:pr-2'
           >
-            <img
-              src={user.avatar}
-              alt={user.name}
-              className='h-8 w-8 rounded-full object-cover ring-2 ring-primary/20 sm:h-9 sm:w-9'
-            />
+            <UserAvatar user={user} className='h-8 w-8 sm:h-9 sm:w-9' />
             <div className='hidden text-left sm:block'>
               <p className='text-sm font-semibold leading-tight text-slate-800'>
                 {user.name}
               </p>
-              <p className='text-[11px] text-slate-500'>{user.role}</p>
+              <p className='text-[11px] text-slate-500'>{user.username}</p>
             </div>
             <ChevronDown
               className={`hidden h-3.5 w-3.5 text-slate-400 transition-transform sm:block ${
@@ -212,9 +234,11 @@ export default function Header({ onToggleSidebar }) {
                 <p className='text-sm font-semibold text-slate-800'>
                   {user.name}
                 </p>
-                <p className='text-[11px] text-slate-500'>{user.role}</p>
+                <p className='text-[11px] text-slate-500'>{user.username}</p>
               </div>
-              {profileMenus.map((item) => {
+              {profileMenus
+                .filter((item) => item.id !== "remove-photo" || user.photoUrl)
+                .map((item) => {
                 const Icon = item.icon;
                 return (
                   <button
@@ -223,6 +247,8 @@ export default function Header({ onToggleSidebar }) {
                     onClick={() => {
                       setProfileOpen(false);
                       if (item.id === "logout") logout();
+                      if (item.id === "change-photo") setPhotoOpen(true);
+                      if (item.id === "remove-photo") setRemoveOpen(true);
                     }}
                     className={`flex w-full cursor-pointer items-center gap-2.5 px-3 py-2.5 text-left text-sm transition hover:bg-slate-50 ${
                       item.danger
@@ -239,6 +265,17 @@ export default function Header({ onToggleSidebar }) {
           )}
         </div>
       </div>
+
+      {photoOpen && <ProfilePhotoModal user={user} onSaved={setMe} onClose={() => setPhotoOpen(false)} />}
+      <ConfirmDialog
+        open={removeOpen}
+        title='Remove photo?'
+        message='Your photo will be removed and your initials shown instead.'
+        confirmLabel='Remove'
+        loading={removing}
+        onConfirm={removePhoto}
+        onCancel={() => setRemoveOpen(false)}
+      />
     </header>
   );
 }

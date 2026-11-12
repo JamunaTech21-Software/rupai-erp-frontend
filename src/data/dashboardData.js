@@ -697,10 +697,5 @@ export const quickActions = [
 export const headerInfo = {
   estate: "Jamuna Tea Estate",
   date: "17 May 2026, Saturday",
-  user: {
-    name: "Md. Saadi",
-    role: "Super Admin",
-    avatar: "/admin-image.webp",
-  },
   notifications: 5,
 };

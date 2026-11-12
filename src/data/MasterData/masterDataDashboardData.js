@@ -1,3 +1,5 @@
+import { APP_VERSION } from "../../lib/appVersion";
+
 export const masterDataDashboardData = {
   // =========================================================
   // PAGE HEADER
@@ -307,6 +309,6 @@ export const masterDataDashboardData = {
 
   footer: {
     copyright: "© 2026 RupAi ERP. All rights reserved.",
-    version: "Version 1.0.0",
+    version: `Version ${APP_VERSION}`,
   },
 };
