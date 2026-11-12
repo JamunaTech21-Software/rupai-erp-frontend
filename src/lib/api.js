@@ -11,6 +11,12 @@ if (!BASE_URL) {
 }
 const ACCESS_KEY = "rupai.accessToken";
 const REFRESH_KEY = "rupai.refreshToken";
+// RP1-170/171: when the session ends (an ISO time from login / refresh), the idle limit, and the last use (shared by every tab).
+const SESSION_END_KEY = "rupai.sessionEndsAt";
+const IDLE_KEY = "rupai.idleMinutes";
+const ACTIVITY_KEY = "rupai.lastActivity";
+const NOTICE_KEY = "rupai.loginNotice";
+export const SESSION_ENDED = "Your session has ended. Please sign in again.";
 
 export class ApiError extends Error {
   constructor(status, code, message, fields = {}, body = null) {
@@ -30,15 +36,62 @@ export const tokens = {
   get refresh() {
     return localStorage.getItem(REFRESH_KEY);
   },
-  set({ accessToken, refreshToken }) {
+  get sessionEndsAt() {
+    const value = Date.parse(localStorage.getItem(SESSION_END_KEY) ?? "");
+    return Number.isNaN(value) ? null : value;
+  },
+  get idleMinutes() {
+    const value = Number(localStorage.getItem(IDLE_KEY));
+    return value > 0 ? value : 30;
+  },
+  get lastActivity() {
+    return Number(localStorage.getItem(ACTIVITY_KEY)) || Date.now();
+  },
+  // Signed in, and the session's end has not passed.
+  valid() {
+    const end = this.sessionEndsAt;
+    return !!this.access && !(end && end <= Date.now());
+  },
+  set({ accessToken, refreshToken, sessionEndsAt, idleMinutes }) {
     if (accessToken) localStorage.setItem(ACCESS_KEY, accessToken);
     if (refreshToken) localStorage.setItem(REFRESH_KEY, refreshToken);
+    if (sessionEndsAt) localStorage.setItem(SESSION_END_KEY, sessionEndsAt);
+    if (idleMinutes) localStorage.setItem(IDLE_KEY, String(idleMinutes));
+  },
+  touch() {
+    localStorage.setItem(ACTIVITY_KEY, String(Date.now()));
   },
   clear() {
     localStorage.removeItem(ACCESS_KEY);
     localStorage.removeItem(REFRESH_KEY);
+    localStorage.removeItem(SESSION_END_KEY);
+    localStorage.removeItem(IDLE_KEY);
+    localStorage.removeItem(ACTIVITY_KEY);
   },
 };
+
+// The message the sign-in page shows once after a sign-out we caused.
+export const loginNotice = {
+  set: (message) => sessionStorage.setItem(NOTICE_KEY, message),
+  take() {
+    const message = sessionStorage.getItem(NOTICE_KEY);
+    sessionStorage.removeItem(NOTICE_KEY);
+    return message ?? "";
+  },
+};
+
+// Ends the session here: tokens cleared, then /login?returnTo= with the message. The server is told (best effort).
+export function endSession(message = SESSION_ENDED) {
+  const refreshToken = tokens.refresh;
+  if (refreshToken) {
+    fetch(`${BASE_URL}/auth/logout`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ refreshToken }),
+    }).catch(() => {});
+  }
+  goToLogin(message);
+}
 
 // Query string from params; empty values are skipped, arrays repeat the key.
 function toQuery(params) {
@@ -52,8 +105,9 @@ function toQuery(params) {
   return text ? `?${text}` : "";
 }
 
-function goToLogin() {
+function goToLogin(message = SESSION_ENDED) {
   tokens.clear();
+  loginNotice.set(message);
   const here = window.location.pathname + window.location.search;
   if (!window.location.pathname.startsWith("/login")) {
     window.location.assign(`/login?returnTo=${encodeURIComponent(here)}`);
@@ -72,11 +126,14 @@ function refreshTokens() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ refreshToken }),
       });
-      if (!response.ok) return false;
+      if (!response.ok) {
+        // Another tab may have refreshed first (a refresh token works once): its new tokens are then already saved.
+        return tokens.refresh !== refreshToken && !!tokens.refresh;
+      }
       tokens.set(await response.json());
       return true;
     })()
-      .catch(() => false)
+      .catch(() => (navigator.onLine === false ? null : false))
       .finally(() => {
         refreshing = null;
       });
@@ -97,7 +154,8 @@ async function parse(response) {
 
 async function send(method, path, { params, body, form, auth = true, quiet = false } = {}, retried = false) {
   const headers = {};
-  if (auth && tokens.access) headers.Authorization = `Bearer ${tokens.access}`;
+  const sentToken = tokens.access;
+  if (auth && sentToken) headers.Authorization = `Bearer ${sentToken}`;
   if (body !== undefined) headers["Content-Type"] = "application/json";
   let response;
   try {
@@ -111,8 +169,11 @@ async function send(method, path, { params, body, form, auth = true, quiet = fal
   }
 
   if (response.status === 401 && auth && !retried && path !== "/auth/login") {
-    if (await refreshTokens()) return send(method, path, { params, body, form, auth, quiet }, true);
-    goToLogin();
+    // The token was already replaced (a refresh finished while this call was on its way): send it again as is.
+    const refreshed = tokens.access && tokens.access !== sentToken ? true : await refreshTokens();
+    if (refreshed) return send(method, path, { params, body, form, auth, quiet }, true);
+    // null: the server could not be reached, so the session is not known to be over; do not sign out.
+    if (refreshed === false) goToLogin();
   }
 
   const data = await parse(response);
