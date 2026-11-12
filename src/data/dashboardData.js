@@ -234,6 +234,26 @@ export const navSections = [
     ],
   },
 
+  // Documents Management
+  {
+    label: "Documents Management",
+    items: [
+      {
+        id: "documents",
+        label: "Documents Management",
+        icon: "FileText",
+        expandable: true,
+        children: [
+          { id: "document-register", label: "Document Register", path: "/documents-register" },
+          { id: "document-category", label: "Document Category", path: "/documents-category" },
+          { id: "document-type", label: "Document Type", path: "/documents-type" },
+          { id: "add-new-document", label: "Add New Document", path: "/documents-add-new" },
+          { id: "expiry-renewal", label: "Expiry & Renewal", path: "/documents-expiry-renewal" },
+        ],
+      },
+    ],
+  },
+
   // Work Force Management
   {
     label: "Workforce Management",
