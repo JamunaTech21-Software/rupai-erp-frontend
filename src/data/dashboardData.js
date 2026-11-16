@@ -229,6 +229,16 @@ export const navSections = [
             label: "Buyer Setup",
             path: "/master-data-buyer-setup",
           },
+          {
+            id: "association",
+            label: "Association",
+            path: "/master-data-association",
+          },
+          {
+            id: "regulatory-authority",
+            label: "Regulatory Authority",
+            path: "/master-data-regulatory-authority",
+          },
         ],
       },
     ],
@@ -244,6 +254,7 @@ export const navSections = [
         icon: "FileText",
         expandable: true,
         children: [
+          { id: "document-dashboard", label: "Document Dashboard", path: "/documents-dashboard" },
           { id: "document-register", label: "Document Register", path: "/documents-register" },
           { id: "document-category", label: "Document Category", path: "/documents-category" },
           { id: "document-type", label: "Document Type", path: "/documents-type" },

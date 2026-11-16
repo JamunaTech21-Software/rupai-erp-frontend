@@ -32,13 +32,6 @@ export const addNewBrokerData = {
       },
     ],
 
-    associationOptions: [
-      {
-        id: 1,
-        code: "TTAB",
-        name: "Tea Traders Association of Bangladesh (TTAB)",
-      },
-    ],
     commission: {
       label: "Commission (%)",
       name: "commission",
@@ -423,30 +416,6 @@ export const addNewBrokerData = {
         code: "PANCHAGARH",
         name: "Panchagarh Tea Auction Centre",
         status: "ACTIVE",
-      },
-    ],
-  },
-
-  // =========================================================
-  // ASSOCIATION
-  // =========================================================
-
-  associations: {
-    title: "Association",
-
-    required: true,
-
-    options: [
-      {
-        id: 1,
-        code: "TTAB",
-        name: "Tea Traders Association of Bangladesh (TTAB)",
-      },
-
-      {
-        id: 2,
-        code: "OTHER",
-        name: "Other Association",
       },
     ],
   },

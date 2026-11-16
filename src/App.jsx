@@ -53,11 +53,14 @@ const BrokerSalePositionSetup = lazyPage(() => import("./pages/MasterData/Broker
 const AddNewBroker = lazyPage(() => import("./pages/MasterData/AddNewBroker"));
 const TeaType = lazyPage(() => import("./pages/MasterData/TeaType"));
 const BuyerSetup = lazyPage(() => import("./pages/MasterData/BuyerSetup"));
+const Association = lazyPage(() => import("./pages/MasterData/Association"));
+const RegulatoryAuthority = lazyPage(() => import("./pages/MasterData/RegulatoryAuthority"));
 const DocumentCategory = lazyPage(() => import("./pages/Documents/DocumentCategory"));
 const DocumentType = lazyPage(() => import("./pages/Documents/DocumentType"));
 const ExpiryRenewal = lazyPage(() => import("./pages/Documents/ExpiryRenewal"));
 const AddNewDocument = lazyPage(() => import("./pages/Documents/AddNewDocument"));
 const DocumentRegister = lazyPage(() => import("./pages/Documents/DocumentRegister"));
+const DocumentDashboard = lazyPage(() => import("./pages/Documents/DocumentDashboard"));
 
 // Only in the built site: while developing, Vite would load all pages one by one and slow the first screen down.
 if (import.meta.env.PROD) setTimeout(() => loaders.forEach((load) => load().catch(() => {})), 500);
@@ -341,6 +344,14 @@ const router = createBrowserRouter([
       },
 
       {
+        path: "documents-dashboard",
+        element: <Page><DocumentDashboard /></Page>,
+        handle: {
+          title: "Documents Management – Dashboard",
+        },
+      },
+
+      {
         path: "documents-register",
         element: <Page><DocumentRegister /></Page>,
         handle: {
@@ -409,6 +420,20 @@ const router = createBrowserRouter([
         element: <BuyerSetup></BuyerSetup>,
         handle: {
           title: "Buyer Setup",
+        },
+      },
+      {
+        path: "master-data-association",
+        element: <Page><Association /></Page>,
+        handle: {
+          title: "Association Setup",
+        },
+      },
+      {
+        path: "master-data-regulatory-authority",
+        element: <Page><RegulatoryAuthority /></Page>,
+        handle: {
+          title: "Regulatory Authority Setup",
         },
       },
       // User Administration

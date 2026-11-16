@@ -241,25 +241,6 @@ const auctionCenterData = {
       },
     ],
 
-    managedByOptions: [
-      {
-        value: "ttab",
-        label: "Tea Traders Association of Bangladesh (TTAB)",
-      },
-      {
-        value: "small-tea-garden",
-        label:
-          "Small Tea Garden Owners & Tea Traders Association of Bangladesh",
-      },
-    ],
-
-    regulatoryAuthorityOptions: [
-      {
-        value: "bangladesh-tea-board",
-        label: "Bangladesh Tea Board",
-      },
-    ],
-
     // =====================================================
     // BUTTONS
     // =====================================================

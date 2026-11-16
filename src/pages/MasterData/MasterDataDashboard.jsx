@@ -19,6 +19,8 @@ import {
   Factory,
   CircleCheck,
   ShieldCheck,
+  Users,
+  Scale,
 } from "lucide-react";
 
 const summaryIconMap = {
@@ -46,6 +48,18 @@ const summaryIconMap = {
     bg: "bg-purple-50",
   },
 
+  association: {
+    icon: Users,
+    color: "text-indigo-600",
+    bg: "bg-indigo-50",
+  },
+
+  regulatoryAuthority: {
+    icon: Scale,
+    color: "text-rose-500",
+    bg: "bg-rose-50",
+  },
+
   teaWarehouse: {
     icon: Warehouse,
     color: "text-cyan-500",
@@ -57,6 +71,8 @@ const iconMap = {
   teaGrade: CupSoda,
   teaBrokers: UserRound,
   auctionCenters: Landmark,
+  association: Users,
+  regulatoryAuthority: Scale,
   teaWarehouse: Warehouse,
   unitOfMeasurement: Ruler,
   teaType: Sprout,
@@ -69,6 +85,8 @@ const masterDataIconMap = {
   teaGrade: CupSoda,
   teaBrokers: UserRound,
   auctionCenters: Landmark,
+  association: Users,
+  regulatoryAuthority: Scale,
   teaWarehouse: Warehouse,
   unitOfMeasurement: Ruler,
   teaType: Sprout,
@@ -98,6 +116,18 @@ const quickAccessIconMap = {
     icon: Landmark,
     color: "text-purple-600",
     bg: "bg-purple-50",
+  },
+
+  association: {
+    icon: Users,
+    color: "text-indigo-600",
+    bg: "bg-indigo-50",
+  },
+
+  regulatoryAuthority: {
+    icon: Scale,
+    color: "text-rose-500",
+    bg: "bg-rose-50",
   },
 
   teaWarehouse: {
@@ -174,7 +204,7 @@ const MasterDataDashboard = () => {
       ========================================================= */}
       <div className='grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5'>
         {data.summaryCards.map((card) => {
-          const iconConfig = summaryIconMap[card.icon];
+          const iconConfig = summaryIconMap[card.icon] ?? { icon: Landmark, color: "text-slate-500", bg: "bg-slate-50" };
           const Icon = iconConfig.icon;
 
           return (
@@ -270,7 +300,7 @@ const MasterDataDashboard = () => {
 
               <tbody>
                 {data.masterDataOverview.map((item) => {
-                  const Icon = masterDataIconMap[item.icon];
+                  const Icon = masterDataIconMap[item.icon] ?? Landmark;
 
                   return (
                     <tr
@@ -379,7 +409,7 @@ const MasterDataDashboard = () => {
               {data.recentlyAdded.length === 0 && <p className='py-6 text-center text-[12px] text-slate-400'>No master data added yet</p>}
 
               {data.recentlyAdded.map((item) => {
-                const Icon = iconMap[item.icon];
+                const Icon = iconMap[item.icon] ?? Landmark;
 
                 return (
                   <Link

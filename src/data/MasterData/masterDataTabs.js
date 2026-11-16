@@ -50,4 +50,14 @@ export const masterDataTabs = [
     label: "10. Buyer Setup",
     path: "/master-data-buyer-setup",
   },
+  {
+    id: "association",
+    label: "11. Association",
+    path: "/master-data-association",
+  },
+  {
+    id: "regulatory-authority",
+    label: "12. Regulatory Authority",
+    path: "/master-data-regulatory-authority",
+  },
 ];
