@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
+import { useSearchParams } from "react-router-dom";
 import {
   BarChart3,
   Building2,
@@ -88,7 +89,9 @@ const selectClass = "h-10 w-full rounded-md border border-gray-300 bg-white px-3
 
 const ApprovalDashboard = () => {
   // Top: module tab, date range and status; the table below has its own search, action and status.
-  const [module, setModule] = useState("");
+  // "?module=documents" (a module's Approval Requests link) opens with that module's tab chosen.
+  const [searchParams] = useSearchParams();
+  const [module, setModule] = useState(() => searchParams.get("module") ?? "");
   const tabsRef = useRef(null);
 
   // Keep the active module tab in view, whichever control changed it (a tab or a module card).

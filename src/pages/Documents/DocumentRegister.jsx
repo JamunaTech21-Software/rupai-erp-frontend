@@ -68,7 +68,7 @@ function Detail({ label, children }) {
 const DocumentRegister = () => {
   const [searchParams] = useSearchParams();
   const [search, setSearch] = useState("");
-  const [category, setCategory] = useState("");
+  const [category, setCategory] = useState(() => searchParams.get("category") ?? "");
   const [type, setType] = useState("");
   const [status, setStatus] = useState(() => statusFromUrl(searchParams.get("status")));
   const [expiryFrom, setExpiryFrom] = useState("");
