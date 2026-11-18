@@ -13,11 +13,20 @@ import ConfirmDialog from "../../components/common/ConfirmDialog";
 import PendingBadge from "../../components/common/PendingBadge";
 import { waitingTitle } from "../../lib/waitingTitle";
 
-// One Master Data setup page for a list of records that have a Code, a Name, a Short Name and a Status
+// One Master Data setup page for a list of records that have a Code, a Name, a Short Name, contact details and a Status
 // (Association Setup, Regulatory Authority Setup). The page is told which API path and words to use.
 //
 // config: { path, noun, plural, codeLabel, nameLabel, totalLabel, codeKey, nameKey, totalKey, usage: [{ key, label }], codeExample, nameExample }
 const PER_PAGE = 10;
+// RP1-195: the optional contact fields (the server's names, max lengths and the input type).
+const CONTACT_FIELDS = [
+  { name: "contactPerson", label: "Contact Person", max: 120, type: "text" },
+  { name: "designation", label: "Designation", max: 80, type: "text" },
+  { name: "phone", label: "Phone", max: 30, type: "tel", placeholder: "e.g. +880 1711 000000" },
+  { name: "email", label: "Email", max: 160, type: "text", placeholder: "e.g. info@example.com" },
+  { name: "website", label: "Website", max: 255, type: "text", placeholder: "https://" },
+];
+const CONTACT_KEYS = [...CONTACT_FIELDS.map((field) => field.name), "address"];
 const labelClass = "mb-1.5 block text-sm font-semibold text-slate-700";
 const boxClass = (error) => `h-11 w-full rounded-md border bg-white px-3 text-sm outline-none focus:border-emerald-600 ${error ? "border-red-500" : "border-slate-300"}`;
 
@@ -33,9 +42,9 @@ const useDebounced = (value, delay = 300) => {
 const CodeNameSetup = ({ config }) => {
   const { path, noun, plural, codeLabel, nameLabel, totalLabel, codeKey, nameKey, totalKey, usage = [], codeExample, nameExample } = config;
   const lower = noun.toLowerCase();
-  const EMPTY_FORM = { [codeKey]: "", [nameKey]: "", shortName: "", status: "ACTIVE" };
+  const EMPTY_FORM = { [codeKey]: "", [nameKey]: "", shortName: "", ...Object.fromEntries(CONTACT_KEYS.map((key) => [key, ""])), status: "ACTIVE" };
   const FORM_KEYS = Object.keys(EMPTY_FORM);
-  const columns = ["SL", "Code", nameLabel, "Short Name", ...usage.map((item) => item.label), "Status", "Action"];
+  const columns = ["SL", "Code", nameLabel, "Contact Person", "Phone", "Email", ...usage.map((item) => item.label), "Status", "Action"];
   const centered = [...usage.map((item) => item.label), "Status", "Action"];
   const cards = [
     { key: totalKey, label: totalLabel, icon: Landmark, tint: "from-blue-50 to-white border-blue-100", badge: "bg-blue-100 text-blue-600" },
@@ -100,7 +109,7 @@ const CodeNameSetup = ({ config }) => {
 
   const openEdit = (row) => {
     setEditing(row);
-    reset({ [codeKey]: row[codeKey] ?? "", [nameKey]: row[nameKey] ?? "", shortName: row.shortName ?? "", status: row.status ?? "ACTIVE" });
+    reset({ [codeKey]: row[codeKey] ?? "", [nameKey]: row[nameKey] ?? "", shortName: row.shortName ?? "", ...Object.fromEntries(CONTACT_KEYS.map((key) => [key, row[key] ?? ""])), status: row.status ?? "ACTIVE" });
     setFormOpen(true);
   };
 
@@ -116,6 +125,8 @@ const CodeNameSetup = ({ config }) => {
       [codeKey]: values[codeKey].trim(),
       [nameKey]: values[nameKey].trim(),
       shortName: shortName === "" ? null : shortName,
+      // an empty contact field clears the saved value
+      ...Object.fromEntries(CONTACT_KEYS.map((key) => [key, values[key].trim() === "" ? null : values[key].trim()])),
       status: values.status,
     };
     try {
@@ -215,7 +226,7 @@ const CodeNameSetup = ({ config }) => {
                 setSearch(event.target.value);
                 setPage(1);
               }}
-              placeholder={`Search by Code, ${nameLabel} or Short Name...`}
+              placeholder={`Search by Code, ${nameLabel}, Short Name, contact person, phone or email...`}
               className='h-11 w-full rounded-md border border-slate-300 bg-white pl-9 pr-3 text-sm outline-none focus:border-emerald-600'
             />
           </div>
@@ -285,7 +296,9 @@ const CodeNameSetup = ({ config }) => {
                     <td className='px-3 py-3'>{(page - 1) * PER_PAGE + index + 1}</td>
                     <td className='px-3 py-3 font-semibold text-slate-700'>{row[codeKey]}</td>
                     <td className='px-3 py-3 font-semibold text-slate-900'>{row[nameKey]}</td>
-                    <td className='px-3 py-3 text-slate-600'>{row.shortName ?? "-"}</td>
+                    <td className='px-3 py-3 text-slate-600'>{row.contactPerson || "-"}</td>
+                    <td className='px-3 py-3 whitespace-nowrap text-slate-600'>{row.phone || "-"}</td>
+                    <td className='px-3 py-3 text-slate-600'>{row.email || "-"}</td>
                     {usage.map((item) => (
                       <td key={item.key} className='px-3 py-3 text-center'>
                         {row[item.key] ?? 0}
@@ -411,6 +424,21 @@ const CodeNameSetup = ({ config }) => {
                     ))}
                   </Select>
                   {errors.status && <p className='mt-1 text-xs text-red-500'>{errors.status.message}</p>}
+                </div>
+              </div>
+
+              <div className='mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2'>
+                {CONTACT_FIELDS.map((field) => (
+                  <div key={field.name}>
+                    <label className={labelClass}>{field.label}</label>
+                    <input type={field.type} maxLength={field.max} placeholder={field.placeholder ?? "Optional"} {...register(field.name)} className={boxClass(errors[field.name])} />
+                    {errors[field.name] && <p className='mt-1 text-xs text-red-500'>{errors[field.name].message}</p>}
+                  </div>
+                ))}
+                <div className='sm:col-span-2'>
+                  <label className={labelClass}>Address</label>
+                  <textarea rows={3} maxLength={500} placeholder='Optional' {...register("address")} className={`w-full rounded-md border bg-white px-3 py-2 text-sm outline-none focus:border-emerald-600 ${errors.address ? "border-red-500" : "border-slate-300"}`} />
+                  {errors.address && <p className='mt-1 text-xs text-red-500'>{errors.address.message}</p>}
                 </div>
               </div>
             </div>

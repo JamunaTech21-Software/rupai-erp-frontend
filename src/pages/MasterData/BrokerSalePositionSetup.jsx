@@ -16,8 +16,8 @@ import { waitingTitle } from "../../lib/waitingTitle";
 
 const PER_PAGE = 10;
 const BROKER_KEYS = ["broker1", "broker2", "broker3", "broker4", "broker5", "broker6", "broker7"];
-const EMPTY_FORM = { auctionCenter: "", saleNo: "", ...Object.fromEntries(BROKER_KEYS.map((key) => [key, ""])) };
-const EMPTY_FILTERS = { auctionCenter: "all", season: "all", saleNo: "all", status: "all" };
+const EMPTY_FORM = { season: "", auctionCenter: "", saleNo: "", ...Object.fromEntries(BROKER_KEYS.map((key) => [key, ""])) };
+const EMPTY_FILTERS = { season: "all", auctionCenter: "all", saleNo: "all", status: "all" };
 // Sale numbers 01 to 25 for the Sale No filter (a season has far fewer sales than this).
 const SALE_NO_CHOICES = Array.from({ length: 25 }, (_, index) => String(index + 1).padStart(2, "0"));
 const iso = (value) => (value ? String(value).slice(0, 10) : "");
@@ -38,7 +38,7 @@ const BrokerSalePositionSetup = () => {
   // DATA
   // =========================================================
 
-  const centers = useApi(() => api.get("/options/auction-centers"), []);
+  const centers = useApi(() => api.get("/options/auction-centers", { status: "active" }), []);
   const seasons = useApi(() => api.get("/options/seasons"), []);
   const brokers = useApi(() => api.get("/options/brokers"), []);
   const filterOptions = useApi(() => api.get("/broker-sale-positions/filter-options"), []);
@@ -78,15 +78,21 @@ const BrokerSalePositionSetup = () => {
     formState: { errors, isSubmitting },
   } = useForm({ defaultValues: EMPTY_FORM });
 
-  // The Sale No list is the sales of the chosen auction center.
+  // RP1-192: Season, then Auction Center, then Sale No: the sales of that season and auction center.
+  const seasonId = watch("season");
   const centerId = watch("auctionCenter");
-  const sales = useApi(() => (centerId ? api.get("/options/auction-schedules", { auctionCenter: centerId }) : Promise.resolve([])), [centerId]);
+  const ready = Boolean(seasonId && centerId);
+  const sales = useApi(
+    () => (ready ? api.get("/options/auction-schedules", { season: seasonId, auctionCenter: centerId }) : Promise.resolve([])),
+    [seasonId, centerId],
+  );
   const saleChoices = [...(sales.data ?? [])];
-  if (editing && editing.auctionCenter === centerId && !saleChoices.some((item) => item.value === editing.auctionSchedule)) {
+  if (editing && editing.season === seasonId && editing.auctionCenter === centerId && !saleChoices.some((item) => item.value === editing.auctionSchedule)) {
     saleChoices.push({ value: editing.auctionSchedule, label: `Sale ${editing.saleNoLabel ?? editing.saleNo} — ${iso(editing.saleDate)}` });
   }
 
   const optionsOf = (name) => {
+    if (name === "season") return seasons.data ?? [];
     if (name === "auctionCenter") return centers.data ?? [];
     if (name === "saleNo") return saleChoices;
     return brokers.data ?? [];
@@ -107,6 +113,7 @@ const BrokerSalePositionSetup = () => {
     setIsAddMode(false);
     setEditing(position);
     reset({
+      season: position.season ?? "",
       auctionCenter: position.auctionCenter,
       saleNo: position.auctionSchedule,
       ...Object.fromEntries(BROKER_KEYS.map((key) => [key, position[key] ?? ""])),
@@ -115,7 +122,7 @@ const BrokerSalePositionSetup = () => {
   };
 
   const handleClear = () => {
-    if (editing) reset({ auctionCenter: editing.auctionCenter, saleNo: editing.auctionSchedule, ...Object.fromEntries(BROKER_KEYS.map((key) => [key, editing[key] ?? ""])) });
+    if (editing) reset({ season: editing.season ?? "", auctionCenter: editing.auctionCenter, saleNo: editing.auctionSchedule, ...Object.fromEntries(BROKER_KEYS.map((key) => [key, editing[key] ?? ""])) });
     else reset(EMPTY_FORM);
   };
 
@@ -128,6 +135,7 @@ const BrokerSalePositionSetup = () => {
 
   const onSubmit = async (values) => {
     const body = {
+      season: values.season,
       auctionCenter: values.auctionCenter,
       auctionSchedule: values.saleNo,
       ...Object.fromEntries(BROKER_KEYS.map((key) => [key, values[key]])),
@@ -192,8 +200,8 @@ const BrokerSalePositionSetup = () => {
 
   const waiting = positions.find((item) => item.id === editing?.id)?.pendingRequest ?? editing?.pendingRequest;
   const filterChoices = {
-    auctionCenter: centers.data ?? [],
     season: seasons.data ?? [],
+    auctionCenter: centers.data ?? [],
     saleNo: SALE_NO_CHOICES.map((value) => ({ value, label: value })),
     status: filterOptions.data?.statuses ?? teaBrokerData.list.filters.find((item) => item.name === "status").options.filter((option) => option.value !== "all"),
   };
@@ -261,15 +269,16 @@ const BrokerSalePositionSetup = () => {
                 </label>
 
                 <Select
+                  disabled={field.name === "saleNo" && !ready}
                   {...register(field.name, {
                     required: field.required ? `${field.label} is required` : false,
-                    onChange: field.name === "auctionCenter" ? () => setValue("saleNo", "") : undefined,
+                    onChange: field.name === "season" || field.name === "auctionCenter" ? () => setValue("saleNo", "") : undefined,
                   })}
                   className={`h-9 w-full rounded-md border bg-white px-3 text-[11px] text-slate-700 outline-none transition focus:border-emerald-500 ${
                     errors[field.name] ? "border-red-400" : "border-slate-200"
                   }`}
                 >
-                  <option value=''>{field.name === "saleNo" && !centerId ? "--- Select Auction Center first ---" : field.placeholder}</option>
+                  <option value=''>{field.name === "saleNo" && !ready ? "--- Select Season and Auction Center first ---" : field.placeholder}</option>
 
                   {optionsOf(field.name).map((option) => (
                     <option key={option.value} value={option.value}>
@@ -398,6 +407,8 @@ const BrokerSalePositionSetup = () => {
                       className={`border-b border-slate-100 last:border-0 hover:bg-slate-50 ${editing?.id === position.id ? "bg-emerald-50/50" : ""}`}
                     >
                       <td className='px-3 py-4 text-center text-[9px] text-slate-600'>{(page - 1) * PER_PAGE + index + 1}</td>
+
+                      <td className='px-3 py-4 text-center text-[10px] font-medium text-slate-700'>{position.seasonName ?? "-"}</td>
 
                       <td className='px-3 py-4 text-center text-[10px] font-medium text-slate-700'>{position.auctionCenterName}</td>
 

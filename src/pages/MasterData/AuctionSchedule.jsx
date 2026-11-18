@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useForm } from "../../lib/useForm";
 import toast from "react-hot-toast";
 import {
@@ -29,6 +29,7 @@ const EMPTY_FORM = {
   seasonId: "",
   auctionCenterId: "",
   yearId: "",
+  saleNo: "",
   saleDate: "",
   buyerPromptDate: "",
   catalogueClosingDate: "",
@@ -125,6 +126,25 @@ const AuctionSchedule = () => {
 
   const saleDate = watch("saleDate");
   const formYear = watch("yearId");
+  const formSeason = watch("seasonId");
+  const formCenter = watch("auctionCenterId");
+
+  // RP1-189: on a new sale, picking the Season and Auction Center suggests the next free Sale No.
+  // A number the user typed, or the saved one on an edit, is left alone.
+  const saleNoTouched = useRef(false);
+  useEffect(() => {
+    if (!isFormModalOpen || editingSchedule || !formSeason || !formCenter || saleNoTouched.current) return undefined;
+    let cancelled = false;
+    api
+      .get("/auction-schedules/next-sale-no", { season: formSeason, auctionCenter: formCenter })
+      .then((result) => {
+        if (!cancelled && !saleNoTouched.current) setValue("saleNo", String(result.saleNo));
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [isFormModalOpen, editingSchedule, formSeason, formCenter, setValue]);
 
   // Picking a Sale Date fills the Year when none is chosen yet.
   useEffect(() => {
@@ -191,6 +211,7 @@ const AuctionSchedule = () => {
 
   const handleOpenAddModal = () => {
     setEditingSchedule(null);
+    saleNoTouched.current = false;
 
     reset({
       ...EMPTY_FORM,
@@ -209,6 +230,7 @@ const AuctionSchedule = () => {
       seasonId: schedule.season || "",
       auctionCenterId: schedule.auctionCenter || "",
       yearId: schedule.year || "",
+      saleNo: schedule.saleNo == null ? "" : String(schedule.saleNo),
       saleDate: iso(schedule.saleDate),
       buyerPromptDate: iso(schedule.buyerPromptDate),
       catalogueClosingDate: iso(schedule.catalogueClosingDate),
@@ -234,6 +256,7 @@ const AuctionSchedule = () => {
       season: values.seasonId,
       auctionCenter: values.auctionCenterId,
       year: values.yearId,
+      saleNo: Number(values.saleNo),
       saleDate: values.saleDate,
       buyerPromptDate: values.buyerPromptDate,
       catalogueClosingDate: values.catalogueClosingDate,
@@ -946,6 +969,36 @@ const AuctionSchedule = () => {
                   {errors.yearId && (
                     <p className='mt-1 text-xs text-red-500'>
                       {errors.yearId.message}
+                    </p>
+                  )}
+                </div>
+
+                {/* SALE NO */}
+
+                <div>
+                  <label className='mb-1.5 block text-xs font-semibold text-slate-700'>
+                    Sale No.
+                    <span className='text-red-500'> *</span>
+                  </label>
+
+                  <input
+                    type='number'
+                    min='1'
+                    step='1'
+                    placeholder='e.g. 1'
+                    {...register("saleNo", {
+                      required: "Sale No. is required",
+                      validate: (value) => (Number.isInteger(Number(value)) && Number(value) >= 1) || "Must be 1 or more.",
+                      onChange: () => {
+                        saleNoTouched.current = true;
+                      },
+                    })}
+                    className='h-10 w-full rounded-md border border-slate-300 bg-white px-3 text-sm outline-none focus:border-emerald-600'
+                  />
+
+                  {errors.saleNo && (
+                    <p className='mt-1 text-xs text-red-500'>
+                      {errors.saleNo.message}
                     </p>
                   )}
                 </div>

@@ -4,6 +4,14 @@ const BrokerSalePositionData = {
 
     fields: [
       {
+        name: "season",
+        label: "Season",
+        placeholder: "--- Select Season ---",
+        required: true,
+        options: [],
+      },
+
+      {
         name: "auctionCenter",
         label: "Auction Center",
         placeholder: "--- Select Auction Center ---",
@@ -299,6 +307,16 @@ const BrokerSalePositionData = {
 
     filters: [
       {
+        name: "season",
+        label: "Season",
+        placeholder: "2026-2027",
+        options: [
+          { value: "2026-2027", label: "2026-2027" },
+          { value: "2025-2026", label: "2025-2026" },
+        ],
+      },
+
+      {
         name: "auctionCenter",
         label: "Auction Center",
         placeholder: "All",
@@ -307,16 +325,6 @@ const BrokerSalePositionData = {
           { value: "chattogram", label: "Chattogram" },
           { value: "sreemangal", label: "Sreemangal" },
           { value: "panchagarh", label: "Panchagarh" },
-        ],
-      },
-
-      {
-        name: "season",
-        label: "Season",
-        placeholder: "2026-2027",
-        options: [
-          { value: "2026-2027", label: "2026-2027" },
-          { value: "2025-2026", label: "2025-2026" },
         ],
       },
 
@@ -352,6 +360,7 @@ const BrokerSalePositionData = {
 
     tableHeaders: [
       "SL",
+      "Season",
       "Auction Center",
       "Sale No",
       "1st Brokers",
