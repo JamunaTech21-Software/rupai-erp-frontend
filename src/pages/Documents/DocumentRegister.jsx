@@ -9,6 +9,8 @@ import TableSkeleton from "../../components/common/TableSkeleton";
 import EmptyRow from "../../components/common/EmptyRow";
 import ErrorState from "../../components/common/ErrorState";
 import ConfirmDialog from "../../components/common/ConfirmDialog";
+import ColumnPicker from "../../components/common/ColumnPicker";
+import { useColumns } from "../../lib/useColumns";
 import PendingBadge from "../../components/common/PendingBadge";
 import { waitingTitle } from "../../lib/waitingTitle";
 import DocumentForm from "./DocumentForm";
@@ -16,8 +18,27 @@ import RenewDocumentForm from "./RenewDocumentForm";
 import RenewalHistory from "./RenewalHistory";
 
 const PER_PAGE = 10;
-const COLUMNS = ["SL", "Document Name", "Category", "Type", "Document No.", "Issuing Authority", "Issue Date", "Expiry Date", "Days Left", "Status", "Action"];
-const CENTERED = ["Days Left", "Status", "Action"];
+// RP1-206 Columns: locked = always shown; hidden = hidden by default (the picker shows / hides the rest).
+// pin = stays in view when the table scrolls sideways on a small screen.
+const COLUMNS = [
+  { key: "sl", label: "SL", locked: true },
+  { key: "name", label: "Document Name", locked: true, pin: "left" },
+  { key: "category", label: "Category" },
+  { key: "type", label: "Type" },
+  { key: "documentNo", label: "Document No." },
+  { key: "authority", label: "Issuing Authority", hidden: true },
+  { key: "issueDate", label: "Issue Date", hidden: true },
+  { key: "expiryDate", label: "Expiry Date" },
+  { key: "daysLeft", label: "Days Left", center: true },
+  { key: "status", label: "Status", center: true },
+  { key: "action", label: "Action", locked: true, center: true, pin: "right" },
+];
+// Pinned cells keep a solid background so the scrolled cells pass under them. Every header cell is already
+// sticky at z-10 (index.css, which beats a z- class), so a pinned header gets zIndex 20 inline and a pinned row cell z-[5].
+const PIN = {
+  left: "sticky left-0 shadow-[1px_0_0_#f1f5f9]",
+  right: "sticky right-0 shadow-[-1px_0_0_#f1f5f9]",
+};
 const STATUS_VALUES = ["ACTIVE", "EXPIRING_SOON", "EXPIRED", "INACTIVE"];
 
 const CARDS = [
@@ -182,8 +203,11 @@ const DocumentRegister = () => {
     }
   };
 
+  const table = useColumns("documents-register", COLUMNS);
+  const shown = table.visible;
+
   const pageButton = "flex h-9 w-9 cursor-pointer items-center justify-center rounded-md border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40";
-  const iconButton = "cursor-pointer rounded-md border p-2 disabled:cursor-not-allowed disabled:opacity-40";
+  const iconButton = "cursor-pointer rounded-md border p-1.5 disabled:cursor-not-allowed disabled:opacity-40";
 
   return (
     <div className='w-full space-y-4'>
@@ -270,6 +294,7 @@ const DocumentRegister = () => {
             </div>
           </div>
           <div className='flex flex-col gap-3 sm:flex-row lg:ml-auto'>
+            <ColumnPicker table={table} />
             <button
               type='button'
               onClick={exportList}
@@ -291,12 +316,13 @@ const DocumentRegister = () => {
         </div>
 
         <div className='mt-4 overflow-x-auto'>
-          <table className='w-full min-w-[1250px] text-left text-sm'>
+          {/* RP1-206: no fixed width; the table fits the shown columns and text wraps. */}
+          <table className='w-full text-left text-sm'>
             <thead>
               <tr className='bg-slate-50 text-slate-800'>
-                {COLUMNS.map((column) => (
-                  <th key={column} className={`px-3 py-3 font-bold ${CENTERED.includes(column) ? "text-center" : ""}`}>
-                    {column}
+                {shown.map((column) => (
+                  <th key={column.key} style={column.pin ? { zIndex: 20 } : undefined} className={`bg-slate-50 px-2.5 py-3 font-bold ${column.center ? "text-center" : ""} ${column.pin ? PIN[column.pin] : ""}`}>
+                    {column.label}
                   </th>
                 ))}
               </tr>
@@ -304,39 +330,39 @@ const DocumentRegister = () => {
 
             <tbody className='divide-y divide-slate-100'>
               {list.loading && !list.data ? (
-                <TableSkeleton rows={6} columns={COLUMNS.length} />
+                <TableSkeleton rows={6} columns={shown.length} />
               ) : list.error ? (
                 <tr>
-                  <td colSpan={COLUMNS.length} className='p-4'>
+                  <td colSpan={shown.length} className='p-4'>
                     <ErrorState message={list.error.message} onRetry={list.reload} />
                   </td>
                 </tr>
               ) : rows.length === 0 ? (
-                <EmptyRow columns={COLUMNS.length} message='No documents found' />
+                <EmptyRow columns={shown.length} message='No documents found' />
               ) : (
-                rows.map((row, index) => (
-                  <tr key={row.id} className='hover:bg-slate-50/60'>
-                    <td className='px-3 py-3'>{(page - 1) * PER_PAGE + index + 1}</td>
-                    <td className='px-3 py-3 font-semibold text-slate-900'>{row.documentName}</td>
-                    <td className='px-3 py-3 text-slate-700'>{row.categoryName}</td>
-                    <td className='px-3 py-3 text-slate-700'>{row.typeName}</td>
-                    <td className='px-3 py-3 text-slate-700'>{row.documentNo}</td>
-                    <td className='px-3 py-3 text-slate-600'>{row.issuingAuthority ?? "-"}</td>
-                    <td className='whitespace-nowrap px-3 py-3'>{dateText(row.issueDate)}</td>
-                    <td className='whitespace-nowrap px-3 py-3'>{dateText(row.expiryDate)}</td>
-                    <td className='px-3 py-3 text-center'>
-                      {row.daysLeftLabel ? (
-                        <span className={`inline-block whitespace-nowrap rounded px-2.5 py-1 text-xs font-semibold ${LEVEL_STYLE[row.daysLeftLevel] ?? LEVEL_STYLE.ok}`}>{row.daysLeftLabel}</span>
-                      ) : (
-                        "-"
-                      )}
-                    </td>
-                    <td className='px-3 py-3 text-center'>
-                      <PendingBadge row={row} />
-                      <span className={`inline-block whitespace-nowrap rounded px-2.5 py-1 text-xs font-semibold ${STATUS_STYLE[row.status] ?? STATUS_STYLE.ACTIVE}`}>{row.statusLabel}</span>
-                    </td>
-                    <td className='px-3 py-3'>
-                      <div className='flex justify-center gap-2'>
+                rows.map((row, index) => {
+                  const cells = {
+                    sl: (page - 1) * PER_PAGE + index + 1,
+                    name: <span className='font-semibold text-slate-900'>{row.documentName}</span>,
+                    category: row.categoryName,
+                    type: row.typeName,
+                    documentNo: <span className='break-all'>{row.documentNo}</span>,
+                    authority: row.issuingAuthority ?? "-",
+                    issueDate: <span className='whitespace-nowrap'>{dateText(row.issueDate)}</span>,
+                    expiryDate: <span className='whitespace-nowrap'>{dateText(row.expiryDate)}</span>,
+                    daysLeft: row.daysLeftLabel ? (
+                      <span className={`inline-block max-w-28 rounded px-2 py-1 text-xs font-semibold ${LEVEL_STYLE[row.daysLeftLevel] ?? LEVEL_STYLE.ok}`}>{row.daysLeftLabel}</span>
+                    ) : (
+                      "-"
+                    ),
+                    status: (
+                      <>
+                        <PendingBadge row={row} />
+                        <span className={`inline-block whitespace-nowrap rounded px-2.5 py-1 text-xs font-semibold ${STATUS_STYLE[row.status] ?? STATUS_STYLE.ACTIVE}`}>{row.statusLabel}</span>
+                      </>
+                    ),
+                    action: (
+                      <div className='flex justify-center gap-1.5'>
                         <button type='button' title='View' onClick={() => setViewing(row)} className={`${iconButton} border-blue-200 text-blue-600 hover:bg-blue-50`}>
                           <Eye className='h-4 w-4' />
                         </button>
@@ -370,9 +396,21 @@ const DocumentRegister = () => {
                           <Trash2 className='h-4 w-4' />
                         </button>
                       </div>
-                    </td>
-                  </tr>
-                ))
+                    ),
+                  };
+                  return (
+                    <tr key={row.id} className='group'>
+                      {shown.map((column) => (
+                        <td
+                          key={column.key}
+                          className={`bg-white px-2.5 py-3 text-slate-700 group-hover:bg-slate-50 ${column.center ? "text-center" : ""} ${column.key === "name" ? "min-w-40" : ""} ${column.pin ? `${PIN[column.pin]} z-[5]` : ""}`}
+                        >
+                          {cells[column.key]}
+                        </td>
+                      ))}
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>
