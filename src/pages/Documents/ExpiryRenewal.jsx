@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { useForm } from "../../lib/useForm";
 import toast from "react-hot-toast";
 import { Bell, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Info, MessageSquare, Pencil, Save, Search, Settings, X, Mail } from "lucide-react";
@@ -24,6 +24,8 @@ const RULES = [
 
 const labelClass = "mb-1.5 block text-sm font-semibold text-slate-700";
 const boxClass = (error) => `h-11 w-full rounded-md border bg-white px-3 text-sm outline-none focus:border-emerald-600 ${error ? "border-red-500" : "border-slate-300"}`;
+// A small dropdown for the Reminder Schedule rows (no w-full, so the reminder name keeps its room).
+const smallBox = (error) => `h-10 rounded-md border bg-white px-3 text-sm outline-none focus:border-emerald-600 disabled:cursor-not-allowed disabled:bg-slate-50 ${error ? "border-red-500" : "border-slate-300"}`;
 const panelClass = "rounded-lg border border-slate-200 bg-white shadow-sm";
 const yesNo = (value) => (value ? "Yes" : "No");
 
@@ -49,16 +51,40 @@ function SwitchField({ register, name, label }) {
   );
 }
 
-// ... and the same look, not clickable, for the saved values on the page.
-function SwitchView({ on }) {
+// RP1-204: the cards' switches (the same switch look, editable in place).
+const switchTrack =
+  "h-6 w-11 rounded-full bg-slate-300 transition peer-checked:bg-emerald-600 peer-focus-visible:ring-2 peer-focus-visible:ring-emerald-300 peer-disabled:opacity-60 after:absolute after:left-0.5 after:top-0.5 after:h-5 after:w-5 after:rounded-full after:bg-white after:transition after:content-[''] peer-checked:after:translate-x-5";
+
+function ToggleRow({ register, name, title, hint }) {
   return (
-    <span role='img' aria-label={on ? "On" : "Off"} className={`relative inline-block h-6 w-11 shrink-0 rounded-full ${on ? "bg-emerald-600" : "bg-slate-300"}`}>
-      <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white transition ${on ? "left-[22px]" : "left-0.5"}`} />
-    </span>
+    <label className='flex cursor-pointer items-center justify-between gap-3 py-4'>
+      <span>
+        <span className='block text-sm font-bold text-slate-800'>{title}</span>
+        <span className='block text-xs text-slate-500'>{hint}</span>
+      </span>
+      <span className='relative inline-flex shrink-0'>
+        <input type='checkbox' aria-label={title} {...register(name)} className='peer sr-only' />
+        <span className={switchTrack} />
+      </span>
+    </label>
   );
 }
 
-const daysLabel = (reminder) => `${reminder.value} ${(reminder.unit ?? "DAYS").charAt(0)}${(reminder.unit ?? "DAYS").slice(1).toLowerCase()}`;
+// A notification channel; `inactive` = saved as a setting only, nothing is sent yet (only In-App works, RP1-201).
+function ChannelToggle({ register, name, icon: Icon, label, inactive = false }) {
+  return (
+    <label className='flex cursor-pointer items-center justify-between gap-3 py-2 text-sm text-slate-700'>
+      <span className='flex items-center gap-2'>
+        <Icon className='h-4 w-4 text-slate-500' /> {label}
+        {inactive && <span className='rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-semibold uppercase text-slate-500'>Not active yet</span>}
+      </span>
+      <span className='relative inline-flex shrink-0'>
+        <input type='checkbox' aria-label={label} {...register(name)} className='peer sr-only' />
+        <span className={switchTrack} />
+      </span>
+    </label>
+  );
+}
 
 // The dropdown list with the saved value kept in it, even when it is not one of the usual choices.
 const withCurrent = (list, current, label) => {
@@ -69,7 +95,6 @@ const withCurrent = (list, current, label) => {
 
 const ExpiryRenewal = () => {
   const [searchParams, setSearchParams] = useSearchParams();
-  const [globalOpen, setGlobalOpen] = useState(false);
   const [editingType, setEditingType] = useState(null); // the type-wise row in the popup
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
@@ -109,25 +134,32 @@ const ExpiryRenewal = () => {
 
   const clearErrors = () => setRowErrors({});
 
-  const openGlobal = () => {
+  // RP1-204: the cards are the form. They show the saved settings; a change shows the Save / Cancel bar.
+  const savedValues = (saved) => ({
+    enableExpiryTracking: saved.enableExpiryTracking,
+    enableRenewalReminder: saved.enableRenewalReminder,
+    defaultReminderDays: String(saved.defaultReminderDays),
+    escalationDays: String(saved.escalationDays),
+    reminders: saved.reminders.map((item) => ({ enabled: item.enabled, value: String(item.value), unit: item.unit })),
+    emailEnabled: saved.emailEnabled,
+    inAppEnabled: saved.inAppEnabled,
+    smsEnabled: saved.smsEnabled,
+  });
+  const savedKey = config ? JSON.stringify([savedValues(config), config.pendingRequest?.id ?? null]) : "";
+  const justSaved = useRef(false);
+  // Fill the cards when the settings load or change; a quiet refresh never wipes changes being made.
+  useEffect(() => {
     if (!config) return;
-    clearErrors();
-    globalForm.reset({
-      enableExpiryTracking: config.enableExpiryTracking,
-      enableRenewalReminder: config.enableRenewalReminder,
-      defaultReminderDays: String(config.defaultReminderDays),
-      escalationDays: String(config.escalationDays),
-      reminders: config.reminders.map((item) => ({ enabled: item.enabled, value: String(item.value), unit: item.unit })),
-      emailEnabled: config.emailEnabled,
-      inAppEnabled: config.inAppEnabled,
-      smsEnabled: config.smsEnabled,
-    });
-    setGlobalOpen(true);
-  };
+    if (justSaved.current || !globalForm.formState.isDirty) {
+      justSaved.current = false;
+      globalForm.reset(savedValues(config));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [savedKey]);
 
-  const closeGlobal = () => {
-    setGlobalOpen(false);
+  const cancelGlobal = () => {
     clearErrors();
+    if (config) globalForm.reset(savedValues(config));
   };
 
   const openType = (row) => {
@@ -203,7 +235,8 @@ const ExpiryRenewal = () => {
     try {
       const result = await api.put("/document-settings", body);
       notifySaved(result, "Settings updated successfully!");
-      closeGlobal();
+      justSaved.current = true;
+      globalForm.reset(values);
       settings.reload();
     } catch (error) {
       showErrors(error, globalForm, GLOBAL_KEYS);
@@ -237,6 +270,7 @@ const ExpiryRenewal = () => {
 
   const pageButton = "flex h-9 w-9 cursor-pointer items-center justify-center rounded-md border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40";
   const globalWaiting = config?.pendingRequest;
+  const locked = !config || Boolean(globalWaiting);
   const typeWaiting = editingType ? (rows.find((item) => item.id === editingType.id)?.pendingRequest ?? editingType.pendingRequest) : null;
   const buttonBase = "flex h-11 cursor-pointer items-center justify-center gap-2 rounded-md px-7 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-60";
 
@@ -293,87 +327,103 @@ const ExpiryRenewal = () => {
         <ErrorState message={settings.error.message} onRetry={settings.reload} />
       ) : (
         <div className='grid grid-cols-1 gap-4 xl:grid-cols-3'>
-          {/* BASIC SETTINGS */}
-          <div className={panelClass}>
-            <h2 className='border-b border-slate-100 bg-emerald-50/40 px-5 py-3 text-base font-bold text-emerald-900'>Basic Settings</h2>
-            {config ? (
-              <div className='divide-y divide-slate-100 px-5'>
-                <div className='flex items-center justify-between gap-3 py-4'>
-                  <div>
-                    <p className='text-sm font-bold text-slate-800'>Enable Expiry Tracking</p>
-                    <p className='text-xs text-slate-500'>Automatically track expiry dates for all documents.</p>
+          {/* BASIC SETTINGS + REMINDER SCHEDULE: edited in place (RP1-204); one form, saved with the bar below */}
+          <form id='global-settings' onSubmit={globalForm.handleSubmit(onGlobalSubmit)} className='contents'>
+            <fieldset disabled={locked} className={`${panelClass} min-w-0`}>
+              <h2 className='border-b border-slate-100 bg-emerald-50/40 px-5 py-3 text-base font-bold text-emerald-900'>Basic Settings</h2>
+              {config ? (
+                <div className='divide-y divide-slate-100 px-5'>
+                  <ToggleRow register={globalForm.register} name='enableExpiryTracking' title='Enable Expiry Tracking' hint='Automatically track expiry dates for all documents.' />
+                  <ToggleRow register={globalForm.register} name='enableRenewalReminder' title='Enable Renewal Reminder' hint='Send reminders before expiry date.' />
+                  <div className='flex items-center justify-between gap-3 py-4'>
+                    <div>
+                      <p className='text-sm font-bold text-slate-800'>Default Reminder Days</p>
+                      <p className='text-xs text-slate-500'>Alert users before expiry (days).</p>
+                    </div>
+                    <div className='w-32 shrink-0'>
+                      <Select aria-label='Default Reminder Days' {...globalForm.register("defaultReminderDays")} className={`${boxClass(globalForm.formState.errors.defaultReminderDays)} cursor-pointer disabled:cursor-not-allowed disabled:bg-slate-50`}>
+                        {withCurrent(opts?.reminderDays, config.defaultReminderDays, (value) => `${value} Days`).map((option) => (
+                          <option key={option.value} value={option.value}>
+                            {option.label}
+                          </option>
+                        ))}
+                      </Select>
+                      {fieldError(globalForm, "defaultReminderDays")}
+                    </div>
                   </div>
-                  <SwitchView on={config.enableExpiryTracking} />
-                </div>
-                <div className='flex items-center justify-between gap-3 py-4'>
-                  <div>
-                    <p className='text-sm font-bold text-slate-800'>Enable Renewal Reminder</p>
-                    <p className='text-xs text-slate-500'>Send reminders before expiry date.</p>
+                  <div className='flex items-center justify-between gap-3 py-4'>
+                    <div>
+                      <p className='text-sm font-bold text-slate-800'>Escalation Days (After Expiry)</p>
+                      <p className='text-xs text-slate-500'>Send escalation notification if not renewed.</p>
+                    </div>
+                    <div className='w-32 shrink-0'>
+                      <Select aria-label='Escalation Days' {...globalForm.register("escalationDays")} className={`${boxClass(globalForm.formState.errors.escalationDays)} cursor-pointer disabled:cursor-not-allowed disabled:bg-slate-50`}>
+                        {withCurrent(opts?.escalationDays, config.escalationDays, (value) => `${value} Days`).map((option) => (
+                          <option key={option.value} value={option.value}>
+                            {option.label}
+                          </option>
+                        ))}
+                      </Select>
+                      {fieldError(globalForm, "escalationDays")}
+                    </div>
                   </div>
-                  <SwitchView on={config.enableRenewalReminder} />
                 </div>
-                <div className='flex items-center justify-between gap-3 py-4'>
-                  <div>
-                    <p className='text-sm font-bold text-slate-800'>Default Reminder Days</p>
-                    <p className='text-xs text-slate-500'>Alert users before expiry (days).</p>
-                  </div>
-                  <span className='rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700'>{config.defaultReminderDays} Days</span>
-                </div>
-                <div className='flex items-center justify-between gap-3 py-4'>
-                  <div>
-                    <p className='text-sm font-bold text-slate-800'>Escalation Days (After Expiry)</p>
-                    <p className='text-xs text-slate-500'>Send escalation notification if not renewed.</p>
-                  </div>
-                  <span className='rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700'>{config.escalationDays} Days</span>
-                </div>
-              </div>
-            ) : (
-              <div className='h-72 animate-pulse bg-slate-50' aria-busy='true' />
-            )}
-          </div>
+              ) : (
+                <div className='h-72 animate-pulse bg-slate-50' aria-busy='true' />
+              )}
+            </fieldset>
 
-          {/* REMINDER SCHEDULE + CHANNELS */}
-          <div className={panelClass}>
-            <h2 className='border-b border-slate-100 bg-emerald-50/40 px-5 py-3 text-base font-bold text-emerald-900'>Reminder Schedule</h2>
-            {config ? (
-              <div className='px-5 py-4'>
-                <p className='text-xs text-slate-500'>Multiple reminders can be sent before the expiry date.</p>
-                <ul className='mt-3 space-y-2'>
-                  {config.reminders.map((item, index) => (
-                    <li key={index} className='flex items-center gap-3 text-sm'>
-                      <input type='checkbox' checked={item.enabled} readOnly aria-label={reminderNames[index]} className='h-4 w-4 accent-emerald-700' />
-                      <span className='w-36 font-semibold text-slate-700'>{reminderNames[index]}</span>
-                      <span className='rounded-md border border-slate-200 bg-slate-50 px-3 py-1.5 text-slate-700'>{daysLabel(item)}</span>
+            <fieldset disabled={locked} className={`${panelClass} min-w-0`}>
+              <h2 className='border-b border-slate-100 bg-emerald-50/40 px-5 py-3 text-base font-bold text-emerald-900'>Reminder Schedule</h2>
+              {config ? (
+                <div className='px-5 py-4'>
+                  <p className='text-xs text-slate-500'>Multiple reminders can be sent before the expiry date.</p>
+                  <ul className='mt-3 space-y-2'>
+                    {reminderNames.map((name, index) => (
+                      <li key={name}>
+                        <div className='flex items-center gap-2 text-sm'>
+                          <label className='flex min-w-0 flex-1 cursor-pointer items-center gap-2 font-semibold text-slate-700'>
+                            <input type='checkbox' {...globalForm.register(`reminders.${index}.enabled`)} className='h-4 w-4 shrink-0 cursor-pointer accent-emerald-700' />
+                            <span className='truncate'>{name}</span>
+                          </label>
+                          <Select aria-label={`${name} value`} {...globalForm.register(`reminders.${index}.value`)} className={`${smallBox(rowErrors[index])} w-20 shrink-0 cursor-pointer`}>
+                            {withCurrent(opts?.reminderValues, config.reminders?.[index]?.value, (value) => String(value)).map((option) => (
+                              <option key={option.value} value={option.value}>
+                                {option.label}
+                              </option>
+                            ))}
+                          </Select>
+                          <Select aria-label={`${name} unit`} {...globalForm.register(`reminders.${index}.unit`)} className={`${smallBox(rowErrors[index])} w-28 shrink-0 cursor-pointer`}>
+                            {unitChoices.map((option) => (
+                              <option key={option.value} value={option.value}>
+                                {option.label}
+                              </option>
+                            ))}
+                          </Select>
+                        </div>
+                        {rowError(index)}
+                      </li>
+                    ))}
+                  </ul>
+
+                  <h3 className='mt-5 text-sm font-bold text-slate-800'>Notification Channels</h3>
+                  <ul className='mt-1'>
+                    <li>
+                      <ChannelToggle register={globalForm.register} name='emailEnabled' icon={Mail} label='Email' inactive />
                     </li>
-                  ))}
-                </ul>
-
-                <h3 className='mt-5 text-sm font-bold text-slate-800'>Notification Channels</h3>
-                <ul className='mt-2 space-y-3'>
-                  <li className='flex items-center justify-between text-sm text-slate-700'>
-                    <span className='flex items-center gap-2'>
-                      <Mail className='h-4 w-4 text-slate-500' /> Email
-                    </span>
-                    <SwitchView on={config.emailEnabled} />
-                  </li>
-                  <li className='flex items-center justify-between text-sm text-slate-700'>
-                    <span className='flex items-center gap-2'>
-                      <Bell className='h-4 w-4 text-slate-500' /> In-App Notification
-                    </span>
-                    <SwitchView on={config.inAppEnabled} />
-                  </li>
-                  <li className='flex items-center justify-between text-sm text-slate-700'>
-                    <span className='flex items-center gap-2'>
-                      <MessageSquare className='h-4 w-4 text-slate-500' /> SMS (Optional)
-                    </span>
-                    <SwitchView on={config.smsEnabled} />
-                  </li>
-                </ul>
-              </div>
-            ) : (
-              <div className='h-72 animate-pulse bg-slate-50' aria-busy='true' />
-            )}
-          </div>
+                    <li>
+                      <ChannelToggle register={globalForm.register} name='inAppEnabled' icon={Bell} label='In-App Notification' />
+                    </li>
+                    <li>
+                      <ChannelToggle register={globalForm.register} name='smsEnabled' icon={MessageSquare} label='SMS (Optional)' inactive />
+                    </li>
+                  </ul>
+                </div>
+              ) : (
+                <div className='h-72 animate-pulse bg-slate-50' aria-busy='true' />
+              )}
+            </fieldset>
+          </form>
 
           {/* RENEWAL RULES */}
           <div className={panelClass}>
@@ -393,14 +443,32 @@ const ExpiryRenewal = () => {
                   <Info className='h-4 w-4 text-blue-600' /> Note
                 </p>
                 <p className='mt-1'>
-                  Renewal settings apply to all document types. You can configure specific settings for each document type from the{" "}
-                  <Link to='/documents-type' className='font-semibold text-blue-700 hover:underline'>
-                    Document Type Setup
-                  </Link>{" "}
-                  page.
+                  Renewal settings apply to all document types. Each document type can have its own settings: use Edit in the{" "}
+                  <span className='font-semibold text-slate-800'>Document Type-wise Expiry Settings</span> table below.
                 </p>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Waiting for approval, or unsaved changes: the bar for the cards above (RP1-204). */}
+      {config && globalWaiting && (
+        <p role='status' className='rounded-md bg-amber-50 px-4 py-2.5 text-sm text-amber-700'>
+          Waiting for approval ({globalWaiting.requestNo}). These settings cannot be changed until the request is decided.
+        </p>
+      )}
+      {config && !locked && globalForm.formState.isDirty && (
+        <div className='sticky bottom-3 z-20 flex flex-col gap-3 rounded-lg border border-emerald-200 bg-white px-4 py-3 shadow-lg sm:flex-row sm:items-center sm:justify-between'>
+          <p className='text-sm font-semibold text-slate-700'>You have unsaved changes to the settings.</p>
+          <div className='flex flex-col-reverse gap-2 sm:flex-row'>
+            <button type='button' onClick={cancelGlobal} disabled={globalForm.formState.isSubmitting} className={`${buttonBase} border border-slate-300 text-slate-700 hover:bg-slate-50`}>
+              Cancel
+            </button>
+            <button type='submit' form='global-settings' disabled={globalForm.formState.isSubmitting} className={`${buttonBase} bg-emerald-800 text-white hover:bg-emerald-900`}>
+              <Save className='h-4 w-4' />
+              {globalForm.formState.isSubmitting ? "Saving..." : "Save Settings"}
+            </button>
           </div>
         </div>
       )}
@@ -426,16 +494,6 @@ const ExpiryRenewal = () => {
                 className='h-11 w-full rounded-md border border-slate-300 bg-white pl-9 pr-3 text-sm outline-none focus:border-emerald-600 sm:w-72'
               />
             </div>
-            <button
-              type='button'
-              onClick={openGlobal}
-              disabled={!config}
-              title={globalWaiting ? `Waiting for approval (${globalWaiting.requestNo})` : "Edit the global settings"}
-              className='flex h-11 cursor-pointer items-center justify-center gap-2 rounded-md bg-emerald-800 px-6 text-sm font-semibold text-white hover:bg-emerald-900 disabled:cursor-not-allowed disabled:opacity-60'
-            >
-              <Settings className='h-4 w-4' />
-              Edit Settings
-            </button>
           </div>
         </div>
 
@@ -522,94 +580,6 @@ const ExpiryRenewal = () => {
           </div>
         </div>
       </div>
-
-      {/* =====================================================
-          GLOBAL SETTINGS POPUP
-      ====================================================== */}
-
-      {globalOpen &&
-        popupShell(
-          "Edit Expiry & Renewal Settings",
-          closeGlobal,
-          globalForm.handleSubmit(onGlobalSubmit),
-          <>
-            {waitingNote(globalWaiting, "These settings")}
-
-            <h3 className='mb-1 text-sm font-bold text-emerald-900'>Basic Settings</h3>
-            <div className='divide-y divide-slate-100'>
-              <SwitchField register={globalForm.register} name='enableExpiryTracking' label='Enable Expiry Tracking' />
-              <SwitchField register={globalForm.register} name='enableRenewalReminder' label='Enable Renewal Reminder' />
-            </div>
-            <div className='mt-3 grid grid-cols-1 gap-4 sm:grid-cols-2'>
-              <div>
-                <label className={labelClass}>
-                  Default Reminder Days <span className='text-red-500'>*</span>
-                </label>
-                <Select {...globalForm.register("defaultReminderDays")} className={`${boxClass(globalForm.formState.errors.defaultReminderDays)} cursor-pointer`}>
-                  {withCurrent(opts?.reminderDays, config?.defaultReminderDays, (value) => `${value} Days`).map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </Select>
-                {fieldError(globalForm, "defaultReminderDays")}
-              </div>
-              <div>
-                <label className={labelClass}>
-                  Escalation Days (After Expiry) <span className='text-red-500'>*</span>
-                </label>
-                <Select {...globalForm.register("escalationDays")} className={`${boxClass(globalForm.formState.errors.escalationDays)} cursor-pointer`}>
-                  {withCurrent(opts?.escalationDays, config?.escalationDays, (value) => `${value} Days`).map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </Select>
-                {fieldError(globalForm, "escalationDays")}
-              </div>
-            </div>
-
-            <h3 className='mb-2 mt-6 text-sm font-bold text-emerald-900'>Reminder Schedule</h3>
-            <ul className='space-y-3'>
-              {reminderNames.map((name, index) => (
-                <li key={name}>
-                  <div className='flex flex-wrap items-center gap-3'>
-                    <label className='flex w-44 cursor-pointer items-center gap-2 text-sm font-semibold text-slate-700'>
-                      <input type='checkbox' {...globalForm.register(`reminders.${index}.enabled`)} className='h-4 w-4 cursor-pointer accent-emerald-700' />
-                      {name}
-                    </label>
-                    <Select {...globalForm.register(`reminders.${index}.value`)} className={`${boxClass(rowErrors[index])} w-28 cursor-pointer`}>
-                      {withCurrent(opts?.reminderValues, config?.reminders?.[index]?.value, (value) => String(value)).map((option) => (
-                        <option key={option.value} value={option.value}>
-                          {option.label}
-                        </option>
-                      ))}
-                    </Select>
-                    <Select {...globalForm.register(`reminders.${index}.unit`)} className={`${boxClass(rowErrors[index])} w-32 cursor-pointer`}>
-                      {unitChoices.map((option) => (
-                        <option key={option.value} value={option.value}>
-                          {option.label}
-                        </option>
-                      ))}
-                    </Select>
-                  </div>
-                  {rowError(index)}
-                </li>
-              ))}
-            </ul>
-
-            <h3 className='mb-1 mt-6 text-sm font-bold text-emerald-900'>Notification Channels</h3>
-            <div className='divide-y divide-slate-100'>
-              <SwitchField register={globalForm.register} name='emailEnabled' label='Email' />
-              <SwitchField register={globalForm.register} name='inAppEnabled' label='In-App Notification' />
-              <SwitchField register={globalForm.register} name='smsEnabled' label='SMS (Optional)' />
-            </div>
-          </>,
-          globalForm.formState.isSubmitting,
-          "Save Settings",
-          Boolean(globalWaiting),
-          false,
-        )}
 
       {/* =====================================================
           ONE TYPE'S POPUP
