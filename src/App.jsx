@@ -1,5 +1,5 @@
 import { lazy, Suspense } from "react";
-import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import { createBrowserRouter, Navigate, RouterProvider } from "react-router-dom";
 import AppLayout from "./components/layout/AppLayout";
 import RequireAuth from "./components/layout/RequireAuth";
 import PlantationLayout from "./components/plantationManagementTab/PlantationLayout";
@@ -58,7 +58,6 @@ const RegulatoryAuthority = lazyPage(() => import("./pages/MasterData/Regulatory
 const DocumentCategory = lazyPage(() => import("./pages/Documents/DocumentCategory"));
 const DocumentType = lazyPage(() => import("./pages/Documents/DocumentType"));
 const ExpiryRenewal = lazyPage(() => import("./pages/Documents/ExpiryRenewal"));
-const AddNewDocument = lazyPage(() => import("./pages/Documents/AddNewDocument"));
 const DocumentRegister = lazyPage(() => import("./pages/Documents/DocumentRegister"));
 const DocumentDashboard = lazyPage(() => import("./pages/Documents/DocumentDashboard"));
 
@@ -335,12 +334,10 @@ const router = createBrowserRouter([
         },
       },
 
+      // RP1-200: the Add New Document page is gone; the old address opens the Register's Add pop-up.
       {
         path: "documents-add-new",
-        element: <Page><AddNewDocument /></Page>,
-        handle: {
-          title: "Add New Document",
-        },
+        element: <Navigate to='/documents-register?add=1' replace />,
       },
 
       {

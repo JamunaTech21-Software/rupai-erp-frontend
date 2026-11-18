@@ -4,7 +4,6 @@ import {
   Menu,
   MapPin,
   Calendar,
-  Bell,
   ChevronDown,
   Check,
   User,
@@ -15,12 +14,12 @@ import {
   ImageOff,
 } from "lucide-react";
 import toast from "react-hot-toast";
-import { headerInfo } from "../../data/dashboardData";
 import { format } from "date-fns";
 import { api, tokens } from "../../lib/api";
 import UserAvatar from "./UserAvatar";
 import ProfilePhotoModal from "./ProfilePhotoModal";
 import ConfirmDialog from "../common/ConfirmDialog";
+import NotificationBell from "./NotificationBell";
 
 const estates = [
   { id: 1, name: "Jamuna Tea Estate", location: "Sreemangal" },
@@ -39,7 +38,6 @@ const profileMenus = [
 ];
 
 export default function Header({ onToggleSidebar }) {
-  const { notifications } = headerInfo;
   const navigate = useNavigate();
   const [me, setMe] = useState(null);
   const user = me ?? { name: "", username: "", photoUrl: null };
@@ -192,18 +190,8 @@ export default function Header({ onToggleSidebar }) {
           <span>{format(new Date(), "EEEE, dd MMMM yyyy")}</span>
         </div>
 
-        <button
-          type='button'
-          className='relative cursor-pointer rounded-lg p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-700'
-          aria-label='Notifications'
-        >
-          <Bell className='h-5 w-5' />
-          {notifications > 0 && (
-            <span className='absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white'>
-              {notifications}
-            </span>
-          )}
-        </button>
+        {/* RP1-202: live document reminders (was a fixed sample number). */}
+        <NotificationBell />
 
         <div className='relative' ref={profileRef}>
           <button

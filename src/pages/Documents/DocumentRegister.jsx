@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import toast from "react-hot-toast";
-import { AlertTriangle, CheckCircle2, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Clock, Eye, FileSpreadsheet, FileText, Hourglass, MinusCircle, Pencil, Plus, Search, Trash2, X } from "lucide-react";
+import { AlertTriangle, CheckCircle2, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Clock, Eye, FileSpreadsheet, FileText, Hourglass, MinusCircle, Pencil, Plus, RefreshCw, Search, Trash2, X } from "lucide-react";
 import Select from "../../components/common/Select";
 import { api, notifySaved } from "../../lib/api";
 import { useApi } from "../../lib/useApi";
@@ -12,6 +12,8 @@ import ConfirmDialog from "../../components/common/ConfirmDialog";
 import PendingBadge from "../../components/common/PendingBadge";
 import { waitingTitle } from "../../lib/waitingTitle";
 import DocumentForm from "./DocumentForm";
+import RenewDocumentForm from "./RenewDocumentForm";
+import RenewalHistory from "./RenewalHistory";
 
 const PER_PAGE = 10;
 const COLUMNS = ["SL", "Document Name", "Category", "Type", "Document No.", "Issuing Authority", "Issue Date", "Expiry Date", "Days Left", "Status", "Action"];
@@ -66,21 +68,33 @@ function Detail({ label, children }) {
 }
 
 const DocumentRegister = () => {
-  const [searchParams] = useSearchParams();
-  const [search, setSearch] = useState("");
+  const [searchParams, setSearchParams] = useSearchParams();
+  // "?search=" (the header bell opens a document this way) fills the search box.
+  const urlSearch = searchParams.get("search") ?? "";
+  const [search, setSearch] = useState(urlSearch);
   const [category, setCategory] = useState(() => searchParams.get("category") ?? "");
   const [type, setType] = useState("");
   const [status, setStatus] = useState(() => statusFromUrl(searchParams.get("status")));
   const [expiryFrom, setExpiryFrom] = useState("");
   const [expiryTo, setExpiryTo] = useState("");
   const [page, setPage] = useState(1);
-  const [form, setForm] = useState(null); // null = closed, "new", or the document being edited
+  // null = closed, "new", or the document being edited. "?add=1" (the old Add New Document address) opens it empty.
+  const [form, setForm] = useState(() => (searchParams.get("add") ? "new" : null));
   const [viewing, setViewing] = useState(null);
+  const [renewing, setRenewing] = useState(null); // RP1-198: the document being renewed
   const [deleting, setDeleting] = useState(null);
   const [deleteBusy, setDeleteBusy] = useState(false);
   const [exporting, setExporting] = useState(false);
 
   const searchText = useDebounced(search.trim());
+
+  // A new "?search=" while the page is open (another notification clicked) replaces the search.
+  useEffect(() => {
+    if (urlSearch) {
+      setSearch(urlSearch);
+      setPage(1);
+    }
+  }, [urlSearch]);
 
   // =========================================================
   // DATA
@@ -116,9 +130,21 @@ const DocumentRegister = () => {
     setPage(1);
   };
 
-  const closeForm = () => setForm(null);
+  const closeForm = () => {
+    setForm(null);
+    // Drop "?add=1" so a refresh does not open the form again.
+    if (searchParams.has("add")) {
+      const next = new URLSearchParams(searchParams);
+      next.delete("add");
+      setSearchParams(next, { replace: true });
+    }
+  };
   const saved = () => {
     closeForm();
+    list.reload();
+  };
+  const renewed = () => {
+    setRenewing(null);
     list.reload();
   };
 
@@ -314,6 +340,17 @@ const DocumentRegister = () => {
                         <button type='button' title='View' onClick={() => setViewing(row)} className={`${iconButton} border-blue-200 text-blue-600 hover:bg-blue-50`}>
                           <Eye className='h-4 w-4' />
                         </button>
+                        {row.canRenew && (
+                          <button
+                            type='button'
+                            title={waitingTitle(row, "Renew")}
+                            disabled={Boolean(row.pendingRequest)}
+                            onClick={() => setRenewing(row)}
+                            className={`${iconButton} border-amber-200 text-amber-600 hover:bg-amber-50`}
+                          >
+                            <RefreshCw className='h-4 w-4' />
+                          </button>
+                        )}
                         <button
                           type='button'
                           title={waitingTitle(row, "Edit")}
@@ -371,6 +408,10 @@ const DocumentRegister = () => {
 
       {form && <DocumentForm popup document={form === "new" ? null : form} onSaved={saved} onClose={closeForm} />}
 
+      {/* RENEW POPUP (RP1-198) */}
+
+      {renewing && <RenewDocumentForm document={renewing} onSaved={renewed} onClose={() => setRenewing(null)} />}
+
       {/* =====================================================
           VIEW POPUP
       ====================================================== */}
@@ -419,6 +460,7 @@ const DocumentRegister = () => {
                   <p className='mt-0.5 text-sm text-slate-800'>-</p>
                 )}
               </div>
+              <RenewalHistory documentId={viewing.id} />
             </div>
             <div className='flex justify-end border-t border-slate-200 px-5 py-4'>
               <button type='button' onClick={() => setViewing(null)} className='flex h-11 cursor-pointer items-center justify-center rounded-md border border-slate-300 px-7 text-sm font-semibold text-slate-700 hover:bg-slate-50'>
