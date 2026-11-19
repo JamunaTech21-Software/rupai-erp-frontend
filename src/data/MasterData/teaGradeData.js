@@ -45,7 +45,6 @@ const teaGradeData = {
   // =========================================================
   tableHeaders: [
     "SL",
-    "Grade Code",
     "Grade Name",
     "Tea Type",
     "Category",
@@ -297,14 +296,6 @@ const teaGradeData = {
 
     fields: [
       {
-        name: "gradeCode",
-        label: "Grade Code",
-        type: "text",
-        placeholder: "Enter grade code",
-        required: true,
-      },
-
-      {
         name: "gradeName",
         label: "Grade Name",
         type: "text",
@@ -329,6 +320,14 @@ const teaGradeData = {
       },
 
       {
+        name: "status",
+        label: "Status",
+        type: "select",
+        placeholder: "Select status",
+        required: true,
+      },
+
+      {
         name: "standard",
         label: "Standard / Specification",
         type: "text",
@@ -336,55 +335,19 @@ const teaGradeData = {
         required: false,
       },
 
-      {
-        name: "gradeSize",
-        label: "Grade Size / Particle",
-        type: "text",
-        placeholder: "Example: 2.00 - 2.80 mm",
-        required: false,
-      },
-
-      {
-        name: "status",
-        label: "Status",
-        type: "select",
-        placeholder: "Select status",
-        required: true,
-      },
     ],
 
+    // RP1-209: fixed lists (the server's /tea-grades/filter-options is the source; these are the fallback).
     teaTypeOptions: [
-      {
-        value: "Black Tea",
-        label: "Black Tea",
-      },
-      {
-        value: "CTC Tea",
-        label: "CTC Tea",
-      },
-      {
-        value: "Green Tea",
-        label: "Green Tea",
-      },
-      {
-        value: "White Tea",
-        label: "White Tea",
-      },
+      { value: "CTC", label: "CTC" },
+      { value: "Green Tea", label: "Green Tea" },
+      { value: "Orthodox", label: "Orthodox" },
     ],
 
     categoryOptions: [
-      {
-        value: "Orthodox",
-        label: "Orthodox",
-      },
-      {
-        value: "CTC",
-        label: "CTC",
-      },
-      {
-        value: "Specialty",
-        label: "Specialty",
-      },
+      { value: "Leaf", label: "Leaf" },
+      { value: "Dust", label: "Dust" },
+      { value: "Green-Ortho", label: "Green-Ortho" },
     ],
 
     statusOptions: [
@@ -398,12 +361,6 @@ const teaGradeData = {
       },
     ],
 
-    description: {
-      name: "description",
-      label: "Description",
-      placeholder: "Enter grade description...",
-      maxLength: 500,
-    },
 
     remarks: {
       name: "remarks",

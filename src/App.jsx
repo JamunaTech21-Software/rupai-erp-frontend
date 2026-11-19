@@ -51,7 +51,6 @@ const TeaWarehouse = lazyPage(() => import("./pages/MasterData/TeaWarehouse"));
 const AuctionSchedule = lazyPage(() => import("./pages/MasterData/AuctionSchedule"));
 const BrokerSalePositionSetup = lazyPage(() => import("./pages/MasterData/BrokerSalePositionSetup"));
 const AddNewBroker = lazyPage(() => import("./pages/MasterData/AddNewBroker"));
-const TeaType = lazyPage(() => import("./pages/MasterData/TeaType"));
 const BuyerSetup = lazyPage(() => import("./pages/MasterData/BuyerSetup"));
 const Association = lazyPage(() => import("./pages/MasterData/Association"));
 const RegulatoryAuthority = lazyPage(() => import("./pages/MasterData/RegulatoryAuthority"));
@@ -406,11 +405,9 @@ const router = createBrowserRouter([
         },
       },
       {
+        // RP1-209: Tea Type is a fixed list on Tea Grade now; the old page link goes there.
         path: "master-data-tea-type",
-        element: <TeaType></TeaType>,
-        handle: {
-          title: "Add New Tea Type",
-        },
+        element: <Navigate to='/master-data-tea-grade' replace />,
       },
       {
         path: "master-data-buyer-setup",
