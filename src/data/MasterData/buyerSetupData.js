@@ -190,6 +190,7 @@ export const buyerSetupData = {
   // BUYER TYPE OPTIONS
   // =======================================================
 
+  // RP1-212 P.7: only Local and Packer.
   buyerTypeOptions: [
     {
       value: "LOCAL",
@@ -197,23 +198,8 @@ export const buyerSetupData = {
     },
 
     {
-      value: "EXPORTER",
-      label: "Exporter",
-    },
-
-    {
       value: "PACKER",
       label: "Packer",
-    },
-
-    {
-      value: "TRADER",
-      label: "Trader",
-    },
-
-    {
-      value: "CORPORATE",
-      label: "Corporate",
     },
   ],
 

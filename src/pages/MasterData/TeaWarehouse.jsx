@@ -37,7 +37,6 @@ const EMPTY_FORM = {
   warehouseName: "",
   shortName: "",
   location: "",
-  warehouseType: "",
   capacity: "",
   inChargePerson: "",
   officePhone: "",
@@ -46,7 +45,8 @@ const EMPTY_FORM = {
 const FORM_KEYS = Object.keys(EMPTY_FORM);
 const NUMBER_KEYS = ["capacity"];
 const OPTIONAL_KEYS = ["shortName", "capacity", "officePhone"];
-const LIST_HEADERS = ["SL", "Code", "Name", "Type", "Location", "Capacity (MT)", "In-Charge", "Primary Contact", "Status", "Action"];
+// RP1-212 P.7: no Warehouse Type.
+const LIST_HEADERS = ["SL", "Code", "Name", "Location", "Capacity (MT)", "In-Charge", "Primary Contact", "Status", "Action"];
 const fieldClass =
   "h-9 w-full rounded-md border border-slate-200 bg-white px-3 text-[12px] text-slate-700 outline-none focus:border-emerald-500";
 const cellClass = "h-8 w-full rounded-md border border-slate-200 px-2 text-[10px] text-slate-700 outline-none focus:border-emerald-500";
@@ -104,7 +104,6 @@ const TeaWarehouse = () => {
   const [mobilesError, setMobilesError] = useState("");
   const [loadingId, setLoadingId] = useState(null);
   const [search, setSearch] = useState("");
-  const [warehouseType, setWarehouseType] = useState("");
   const [status, setStatus] = useState("");
   const [page, setPage] = useState(1);
   const [deleting, setDeleting] = useState(null);
@@ -119,18 +118,17 @@ const TeaWarehouse = () => {
 
   const options = useApi(() => api.get("/tea-warehouses/filter-options"), []);
   const list = useApi(
-    () => api.get("/tea-warehouses", { search: searchText, warehouseType, status, page, perPage: PER_PAGE }),
-    [searchText, warehouseType, status, page],
+    () => api.get("/tea-warehouses", { search: searchText, status, page, perPage: PER_PAGE }),
+    [searchText, status, page],
   );
   const rows = list.data?.data ?? [];
   const total = list.data?.meta?.total ?? 0;
   const totalPages = Math.max(list.data?.meta?.totalPages ?? 1, 1);
   const from = rows.length > 0 ? (page - 1) * PER_PAGE + 1 : 0;
   const to = (page - 1) * PER_PAGE + rows.length;
-  const typeOptions = options.data?.warehouseTypes ?? teaWarehouseData.form.fields.find((f) => f.name === "warehouseType").options;
   const statusOptions = options.data?.statuses ?? teaWarehouseData.statusOptions;
   const mobileTypeOptions = options.data?.mobileTypes ?? teaWarehouseData.mobileContacts.typeOptions;
-  const hasFilters = Boolean(search || warehouseType || status);
+  const hasFilters = Boolean(search || status);
 
   // A page that no longer exists (after a delete or a filter) steps back.
   useEffect(() => {
@@ -256,7 +254,6 @@ const TeaWarehouse = () => {
 
   const resetFilters = () => {
     setSearch("");
-    setWarehouseType("");
     setStatus("");
     setPage(1);
   };
@@ -265,7 +262,7 @@ const TeaWarehouse = () => {
   const exportList = async () => {
     setExporting(true);
     try {
-      const blob = await api.download("/tea-warehouses/export", { search: searchText, warehouseType, status, format: "xlsx" });
+      const blob = await api.download("/tea-warehouses/export", { search: searchText, status, format: "xlsx" });
       const link = document.createElement("a");
       link.href = URL.createObjectURL(blob);
       link.download = `tea-warehouses-${new Date().toISOString().slice(0, 10)}.xlsx`;
@@ -308,7 +305,6 @@ const TeaWarehouse = () => {
         warehouseName: selected.warehouseName,
         shortName: selected.shortName,
         location: selected.location,
-        warehouseType: selected.warehouseTypeLabel,
         capacity: selected.capacity === null || selected.capacity === undefined ? null : `${selected.capacity} MT`,
         inChargePerson: selected.inChargePerson,
         officePhone: selected.officePhone,
@@ -370,7 +366,7 @@ const TeaWarehouse = () => {
 
             <div className='grid grid-cols-1 gap-4 md:grid-cols-2  xl:grid-cols-3'>
               {teaWarehouseData.form.fields.map((field) => (
-                <div key={field.name} className={field.fullWidth ? "md:col-span-2" : ""}>
+                <div key={field.name} className={field.fullWidth ? "md:col-span-2 xl:col-span-3" : ""}>
                   <label className='mb-2 block text-[11px] font-semibold text-slate-700'>
                     {field.label}
 
@@ -393,21 +389,6 @@ const TeaWarehouse = () => {
 
                       {field.maxLength && <div className='mt-1 text-right text-[10px] text-slate-400'>Max {field.maxLength} characters</div>}
                     </div>
-                  )}
-
-                  {field.type === "select" && (
-                    <Select
-                      {...register(field.name, { required: field.required ? `${field.label} is required` : false })}
-                      className={fieldClass}
-                    >
-                      <option value=''>{field.placeholder}</option>
-
-                      {typeOptions.map((option) => (
-                        <option key={option.value} value={option.value}>
-                          {option.label}
-                        </option>
-                      ))}
-                    </Select>
                   )}
 
                   {(field.type === "text" || field.type === "number") && (
@@ -687,7 +668,7 @@ const TeaWarehouse = () => {
           </div>
         </div>
 
-        <div className='grid grid-cols-1 gap-3 p-4 sm:grid-cols-2 sm:px-5 lg:grid-cols-[minmax(0,2fr)_repeat(2,minmax(0,1fr))_auto]'>
+        <div className='grid grid-cols-1 gap-3 p-4 sm:grid-cols-2 sm:px-5 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)_auto]'>
           <div className='relative sm:col-span-2 lg:col-span-1'>
             <Search size={16} className='absolute left-3 top-1/2 -translate-y-1/2 text-gray-400' />
             <input
@@ -701,21 +682,6 @@ const TeaWarehouse = () => {
               className={`${filterClass} pl-9`}
             />
           </div>
-          <Select
-            value={warehouseType}
-            onChange={(event) => {
-              setWarehouseType(event.target.value);
-              setPage(1);
-            }}
-            className={filterClass}
-          >
-            <option value=''>All Types</option>
-            {typeOptions.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </Select>
           <Select
             value={status}
             onChange={(event) => {
@@ -770,7 +736,6 @@ const TeaWarehouse = () => {
                     <td className='px-3 py-3 text-center text-gray-700'>{(page - 1) * PER_PAGE + index + 1}</td>
                     <td className='whitespace-nowrap px-3 py-3 text-center text-gray-700'>{orDash(row.warehouseCode)}</td>
                     <td className='px-3 py-3 text-left font-medium text-gray-800'>{orDash(row.warehouseName)}</td>
-                    <td className='whitespace-nowrap px-3 py-3 text-center text-gray-700'>{orDash(row.warehouseTypeLabel)}</td>
                     <td className='px-3 py-3 text-left text-gray-700'>{orDash(row.location)}</td>
                     <td className='px-3 py-3 text-right text-gray-700'>{orDash(row.capacity)}</td>
                     <td className='px-3 py-3 text-left text-gray-700'>{orDash(row.inChargePerson)}</td>

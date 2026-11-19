@@ -97,15 +97,6 @@ export const addNewBrokerData = {
       },
 
       {
-        id: "licenseNo",
-        name: "licenseNo",
-        label: "License No.",
-        type: "text",
-        placeholder: "Enter license number",
-        required: true,
-      },
-
-      {
         id: "contactPersonName",
         name: "contactPersonName",
         label: "Contact Person Name",
@@ -457,11 +448,6 @@ export const addNewBrokerData = {
       },
 
       {
-        key: "licenseNo",
-        label: "License No.",
-      },
-
-      {
         key: "contactPerson",
         label: "Contact Person",
       },
@@ -484,11 +470,6 @@ export const addNewBrokerData = {
       {
         key: "auctionCenters",
         label: "Auction Center(s)",
-      },
-
-      {
-        key: "association",
-        label: "Association",
       },
 
       {
@@ -520,7 +501,6 @@ export const addNewBrokerData = {
   previewData: {
     brokerCode: "BRK-010",
     brokerName: "ABC Tea Brokers",
-    licenseNo: "BRK/2026/010",
 
     contactPerson: "Md. Anisur Rahman (Proprietor)",
 
@@ -532,7 +512,6 @@ export const addNewBrokerData = {
 
     auctionCenters: "3 Center(s)",
 
-    association: "Tea Traders Association of Bangladesh (TTAB)",
 
     commission: "2.50%",
 

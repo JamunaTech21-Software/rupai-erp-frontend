@@ -24,20 +24,6 @@ const teaGradeData = {
       subtitle: "Inactive",
       icon: "inactive",
     },
-    {
-      id: 4,
-      title: "Standard Grades",
-      value: 10,
-      subtitle: "With Standard",
-      icon: "tag",
-    },
-    {
-      id: 5,
-      title: "Custom Grades",
-      value: 2,
-      subtitle: "Custom",
-      icon: "edit",
-    },
   ],
 
   // =========================================================
@@ -48,7 +34,6 @@ const teaGradeData = {
     "Grade Name",
     "Tea Type",
     "Category",
-    "Standard",
     "Status",
     "Created By",
     "Created On",
@@ -65,10 +50,8 @@ const teaGradeData = {
       gradeName: "Broken Orange Pekoe",
       teaType: "Black Tea",
       category: "Orthodox",
-      standard: "ISO 1572",
       gradeSize: "2.00 - 2.80 mm",
       status: "Active",
-      gradeClassification: "Standard",
       description:
         "Well-made broken leaf with mixture of buds. A popular black tea grade.",
       remarks: "",
@@ -84,10 +67,8 @@ const teaGradeData = {
       gradeName: "Broken Orange Pekoe Fannings",
       teaType: "Black Tea",
       category: "Orthodox",
-      standard: "ISO 1573",
       gradeSize: "1.50 - 2.00 mm",
       status: "Active",
-      gradeClassification: "Standard",
       description:
         "Fine broken leaf grade suitable for producing a strong and bright liquor.",
       remarks: "",
@@ -103,10 +84,8 @@ const teaGradeData = {
       gradeName: "Broken Pekoe",
       teaType: "Black Tea",
       category: "Orthodox",
-      standard: "ISO 1574",
       gradeSize: "2.00 - 3.00 mm",
       status: "Active",
-      gradeClassification: "Standard",
       description:
         "Broken pekoe leaf grade with good strength and balanced character.",
       remarks: "",
@@ -122,10 +101,8 @@ const teaGradeData = {
       gradeName: "Pekoe Fannings",
       teaType: "Black Tea",
       category: "Orthodox",
-      standard: "ISO 1576",
       gradeSize: "1.00 - 1.50 mm",
       status: "Active",
-      gradeClassification: "Standard",
       description:
         "Small pekoe leaf particles producing a brisk and bright infusion.",
       remarks: "",
@@ -141,10 +118,8 @@ const teaGradeData = {
       gradeName: "Pekoe Dust",
       teaType: "Black Tea",
       category: "Orthodox",
-      standard: "ISO 1577",
       gradeSize: "0.50 - 1.00 mm",
       status: "Active",
-      gradeClassification: "Standard",
       description:
         "Fine pekoe particles used for producing strong and quick brewing tea.",
       remarks: "",
@@ -160,10 +135,8 @@ const teaGradeData = {
       gradeName: "Dust",
       teaType: "Black Tea",
       category: "Orthodox",
-      standard: "ISO 1578",
       gradeSize: "Below 0.50 mm",
       status: "Active",
-      gradeClassification: "Standard",
       description:
         "Very fine tea particles providing fast infusion and strong liquor.",
       remarks: "",
@@ -179,10 +152,8 @@ const teaGradeData = {
       gradeName: "Orange Pekoe A",
       teaType: "Black Tea",
       category: "Orthodox",
-      standard: "ISO 1571",
       gradeSize: "3.00 - 4.00 mm",
       status: "Active",
-      gradeClassification: "Standard",
       description:
         "Large whole leaf grade with delicate character and good appearance.",
       remarks: "",
@@ -198,10 +169,8 @@ const teaGradeData = {
       gradeName: "Orange Pekoe",
       teaType: "Black Tea",
       category: "Orthodox",
-      standard: "ISO 1570",
       gradeSize: "3.00 - 4.50 mm",
       status: "Active",
-      gradeClassification: "Standard",
       description:
         "Whole leaf black tea grade with good appearance and balanced flavor.",
       remarks: "",
@@ -217,10 +186,8 @@ const teaGradeData = {
       gradeName: "Pekoe",
       teaType: "Black Tea",
       category: "Orthodox",
-      standard: "ISO 1569",
       gradeSize: "2.50 - 3.50 mm",
       status: "Active",
-      gradeClassification: "Standard",
       description:
         "Medium whole leaf tea grade with smooth and balanced character.",
       remarks: "",
@@ -236,10 +203,8 @@ const teaGradeData = {
       gradeName: "Tippy Golden Flowery Orange Pekoe",
       teaType: "Black Tea",
       category: "Orthodox",
-      standard: "ISO 1610",
       gradeSize: "3.00 - 4.00 mm",
       status: "Active",
-      gradeClassification: "Standard",
       description:
         "Premium whole leaf grade containing golden tips and high-quality leaves.",
       remarks: "",
@@ -255,10 +220,8 @@ const teaGradeData = {
       gradeName: "CTC Dust",
       teaType: "CTC Tea",
       category: "CTC",
-      standard: "ISO 3102",
       gradeSize: "Below 0.50 mm",
       status: "Active",
-      gradeClassification: "Custom",
       description:
         "Fine CTC tea particle designed for quick infusion and strong liquor.",
       remarks: "",
@@ -274,10 +237,8 @@ const teaGradeData = {
       gradeName: "CTC Leaf",
       teaType: "CTC Tea",
       category: "CTC",
-      standard: "ISO 3101",
       gradeSize: "2.00 - 3.00 mm",
       status: "Active",
-      gradeClassification: "Custom",
       description:
         "CTC processed leaf grade with strong liquor and consistent appearance.",
       remarks: "",
@@ -296,14 +257,6 @@ const teaGradeData = {
 
     fields: [
       {
-        name: "gradeName",
-        label: "Grade Name",
-        type: "text",
-        placeholder: "Enter grade name",
-        required: true,
-      },
-
-      {
         name: "teaType",
         label: "Tea Type",
         type: "select",
@@ -320,6 +273,14 @@ const teaGradeData = {
       },
 
       {
+        name: "gradeName",
+        label: "Grade Name",
+        type: "text",
+        placeholder: "Enter grade name",
+        required: true,
+      },
+
+      {
         name: "status",
         label: "Status",
         type: "select",
@@ -327,13 +288,6 @@ const teaGradeData = {
         required: true,
       },
 
-      {
-        name: "standard",
-        label: "Standard / Specification",
-        type: "text",
-        placeholder: "Enter standard",
-        required: false,
-      },
 
     ],
 
@@ -360,7 +314,6 @@ const teaGradeData = {
         label: "Inactive",
       },
     ],
-
 
     remarks: {
       name: "remarks",
@@ -411,24 +364,12 @@ const teaGradeData = {
       },
       {
         id: 4,
-        label: "Standard Grades",
-        value: 10,
-        icon: "tag",
-      },
-      {
-        id: 5,
-        label: "Custom Grades",
-        value: 2,
-        icon: "edit",
-      },
-      {
-        id: 6,
         label: "Last Updated",
         value: "02/06/2026 09:25 AM",
         icon: "clock",
       },
       {
-        id: 7,
+        id: 5,
         label: "Last Updated By",
         value: "Afsana Begum",
         icon: "user",
