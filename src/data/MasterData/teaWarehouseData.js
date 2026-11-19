@@ -51,36 +51,6 @@ const teaWarehouseData = {
       },
 
       {
-        name: "warehouseType",
-        label: "Warehouse Type",
-        type: "select",
-        required: true,
-        placeholder: "Select warehouse type",
-        options: [
-          {
-            value: "main",
-            label: "Main Warehouse",
-          },
-          {
-            value: "factory",
-            label: "Factory Warehouse",
-          },
-          {
-            value: "raw_material",
-            label: "Raw Material Warehouse",
-          },
-          {
-            value: "finished_goods",
-            label: "Finished Goods Warehouse",
-          },
-          {
-            value: "temporary",
-            label: "Temporary Warehouse",
-          },
-        ],
-      },
-
-      {
         name: "capacity",
         label: "Capacity (MT)",
         type: "number",
@@ -279,11 +249,6 @@ const teaWarehouseData = {
       },
 
       {
-        key: "warehouseType",
-        label: "Warehouse Type",
-      },
-
-      {
         key: "capacity",
         label: "Capacity (MT)",
       },
@@ -338,7 +303,6 @@ const teaWarehouseData = {
 
     location: "63, Motijheel C/A, Dhaka-1000, Bangladesh",
 
-    warehouseType: "Main Warehouse",
 
     capacity: "5000 MT",
 

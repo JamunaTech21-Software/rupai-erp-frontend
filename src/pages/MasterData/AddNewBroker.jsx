@@ -33,11 +33,11 @@ import { waitingTitle } from "../../lib/waitingTitle";
 
 const PER_PAGE = 10;
 const DASH = "-";
-const LIST_HEADERS = ["SL", "Code", "Name", "License No.", "Contact Person", "Mobile Nos.", "Auction Center(s)", "Association", "Commission", "Status", "Action"];
+// RP1-212 P.7: no License No. or Association (the auction centers already belong to an association).
+const LIST_HEADERS = ["SL", "Code", "Name", "Contact Person", "Mobile Nos.", "Auction Center(s)", "Commission", "Status", "Action"];
 const EMPTY_FORM = {
   brokerCode: "",
   brokerName: "",
-  licenseNo: "",
   contactPersonName: "",
   designation: "",
   phone: "",
@@ -47,7 +47,6 @@ const EMPTY_FORM = {
   status: "active",
   address: "",
   remarks: "",
-  associationId: "",
 };
 const FORM_KEYS = Object.keys(EMPTY_FORM);
 const OPTIONAL_KEYS = ["phone", "email", "tinNo", "remarks"];
@@ -71,10 +70,9 @@ const useDebounced = (value, delay = 300) => {
   return debounced;
 };
 
-// A saved broker as form values (the page's names: associationId, designationId, typeCode).
+// A saved broker as form values (the page's names: designationId, typeCode).
 const toFormValues = (broker) => ({
   ...Object.fromEntries(FORM_KEYS.map((key) => [key, broker[key] ?? EMPTY_FORM[key]])),
-  associationId: broker.association ?? "",
   commission: broker.commission === null || broker.commission === undefined ? "" : String(broker.commission),
   mobileNumbers: (broker.mobileNumbers ?? []).map((row) =>
     newMobileRow({
@@ -101,7 +99,6 @@ const AddNewBroker = () => {
   const [loadingId, setLoadingId] = useState(null);
   const [search, setSearch] = useState("");
   const [designation, setDesignation] = useState("");
-  const [association, setAssociation] = useState("");
   const [status, setStatus] = useState("");
   const [auctionCenter, setAuctionCenter] = useState("");
   const [page, setPage] = useState(1);
@@ -119,8 +116,8 @@ const AddNewBroker = () => {
   const centerOptions = useApi(() => api.get("/options/auction-centers"), []);
   const centerList = useApi(() => api.get("/auction-centers", { perPage: 100 }), []);
   const list = useApi(
-    () => api.get("/brokers", { search: searchText, designation, association, status, auctionCenter, page, perPage: PER_PAGE }),
-    [searchText, designation, association, status, auctionCenter, page],
+    () => api.get("/brokers", { search: searchText, designation, status, auctionCenter, page, perPage: PER_PAGE }),
+    [searchText, designation, status, auctionCenter, page],
   );
   const rows = list.data?.data ?? [];
   const total = list.data?.meta?.total ?? 0;
@@ -129,14 +126,13 @@ const AddNewBroker = () => {
   const to = (page - 1) * PER_PAGE + rows.length;
   const designations = options.data?.designations ?? [];
   const mobileTypes = options.data?.mobileTypes ?? mobileNumbers.typeOptions.map((item) => ({ value: item.code, label: item.name }));
-  const associations = options.data?.associations ?? [];
   const statuses = options.data?.statuses ?? [];
   const centers = centerOptions.data ?? [];
   const centerStatus = useMemo(
     () => new Map((centerList.data?.data ?? []).map((center) => [center.id, center.statusLabel ?? center.status])),
     [centerList.data],
   );
-  const hasFilters = Boolean(search || designation || association || status || auctionCenter);
+  const hasFilters = Boolean(search || designation || status || auctionCenter);
 
   // A page that no longer exists (after a delete or a filter) steps back.
   useEffect(() => {
@@ -260,12 +256,11 @@ const AddNewBroker = () => {
     }
     const body = {
       ...Object.fromEntries(
-        FORM_KEYS.filter((key) => key !== "associationId").map((key) => {
+        FORM_KEYS.map((key) => {
           const text = String(values[key] ?? "").trim();
           return [key, OPTIONAL_KEYS.includes(key) && text === "" ? null : key === "commission" ? Number(text) : text];
         }),
       ),
-      association: values.associationId,
       auctionCenters: centerIds,
       mobileNumbers: values.mobileNumbers.map((row) => ({
         mobileNumber: String(row.mobileNumber ?? "").trim(),
@@ -286,8 +281,7 @@ const AddNewBroker = () => {
       let unplaced = false;
       for (const [key, message] of Object.entries(fields)) {
         const rowMatch = /^mobileNumbers\.(\d+)\.(\w+)$/.exec(key);
-        if (key === "association") setError("associationId", { message });
-        else if (key === "auctionCenters") setCentersError(message);
+        if (key === "auctionCenters") setCentersError(message);
         else if (key === "mobileNumbers") setMobilesError(message);
         else if (rowMatch) {
           const field = rowMatch[2] === "designation" ? "designationId" : rowMatch[2] === "type" ? "typeCode" : rowMatch[2];
@@ -306,7 +300,6 @@ const AddNewBroker = () => {
   const resetFilters = () => {
     setSearch("");
     setDesignation("");
-    setAssociation("");
     setStatus("");
     setAuctionCenter("");
     setPage(1);
@@ -316,7 +309,7 @@ const AddNewBroker = () => {
   const exportList = async () => {
     setExporting(true);
     try {
-      const blob = await api.download("/brokers/export", { search: searchText, designation, association, status, auctionCenter, format: "xlsx" });
+      const blob = await api.download("/brokers/export", { search: searchText, designation, status, auctionCenter, format: "xlsx" });
       const link = document.createElement("a");
       link.href = URL.createObjectURL(blob);
       link.download = `brokers-${new Date().toISOString().slice(0, 10)}.xlsx`;
@@ -600,11 +593,11 @@ const AddNewBroker = () => {
             </div>
 
             {/* =====================================================
-                    AUCTION CENTERS & ASSOCIATION
+                    AUCTION CENTERS
                 ====================================================== */}
 
             <div className='grid grid-cols-1 gap-4 md:grid-cols-12'>
-              <div className='md:col-span-7'>
+              <div className='md:col-span-12'>
                 <label className='mb-1 block text-xs font-semibold text-slate-700'>
                   Auction Center(s)
                   <span className='text-red-500'> *</span>
@@ -638,29 +631,6 @@ const AddNewBroker = () => {
                 {centersError && <p className='mt-1 text-[10px] text-red-500'>{centersError}</p>}
               </div>
 
-              <div className='md:col-span-5'>
-                <label className='mb-1 block text-xs font-semibold text-slate-700'>
-                  Association
-                  <span className='text-red-500'> *</span>
-                </label>
-
-                <Select
-                  {...register("associationId", { required: "Association is required" })}
-                  className={`min-h-[48px] w-full rounded-md border bg-white px-3 py-2 text-xs outline-none transition ${
-                    errors.associationId ? "border-red-400" : "border-slate-300 focus:border-emerald-500"
-                  }`}
-                >
-                  <option value=''>Select Association</option>
-
-                  {associations.map((item) => (
-                    <option key={item.value} value={item.value}>
-                      {item.label}
-                    </option>
-                  ))}
-                </Select>
-
-                {errors.associationId && <p className='mt-1 text-[10px] text-red-500'>{errors.associationId.message}</p>}
-              </div>
             </div>
 
             {/* =================================================
@@ -929,7 +899,7 @@ const AddNewBroker = () => {
           </div>
         </div>
 
-        <div className='grid grid-cols-1 gap-3 p-4 sm:grid-cols-2 sm:px-5 lg:grid-cols-[minmax(0,2fr)_repeat(4,minmax(0,1fr))_auto]'>
+        <div className='grid grid-cols-1 gap-3 p-4 sm:grid-cols-2 sm:px-5 lg:grid-cols-[minmax(0,2fr)_repeat(3,minmax(0,1fr))_auto]'>
           <div className='relative sm:col-span-2 lg:col-span-1'>
             <Search size={16} className='absolute left-3 top-1/2 -translate-y-1/2 text-gray-400' />
             <input
@@ -939,7 +909,7 @@ const AddNewBroker = () => {
                 setSearch(event.target.value);
                 setPage(1);
               }}
-              placeholder='Search by Code, Name, License No. or Contact...'
+              placeholder='Search by Code, Name or Contact...'
               className={`${filterClass} pl-9`}
             />
           </div>
@@ -953,21 +923,6 @@ const AddNewBroker = () => {
           >
             <option value=''>All Designations</option>
             {designations.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </Select>
-          <Select
-            value={association}
-            onChange={(event) => {
-              setAssociation(event.target.value);
-              setPage(1);
-            }}
-            className={filterClass}
-          >
-            <option value=''>All Associations</option>
-            {associations.map((option) => (
               <option key={option.value} value={option.value}>
                 {option.label}
               </option>
@@ -1042,11 +997,9 @@ const AddNewBroker = () => {
                     <td className='px-3 py-3 text-center text-gray-700'>{(page - 1) * PER_PAGE + index + 1}</td>
                     <td className='whitespace-nowrap px-3 py-3 text-center text-gray-700'>{orDash(row.brokerCode)}</td>
                     <td className='px-3 py-3 text-left font-medium text-gray-800'>{orDash(row.brokerName)}</td>
-                    <td className='whitespace-nowrap px-3 py-3 text-center text-gray-700'>{orDash(row.licenseNo)}</td>
                     <td className='px-3 py-3 text-left text-gray-700'>{orDash(row.contactPersonName)}</td>
                     <td className='px-3 py-3 text-center text-gray-700'>{orDash(row.totalMobileNumbers)}</td>
                     <td className='px-3 py-3 text-left text-gray-700'>{orDash((row.auctionCentersName ?? []).join(", "))}</td>
-                    <td className='px-3 py-3 text-left text-gray-700'>{orDash(row.associationLabel)}</td>
                     <td className='px-3 py-3 text-right text-gray-700'>{row.commission === null || row.commission === undefined ? DASH : `${row.commission}%`}</td>
                     <td className='px-3 py-3 text-center'>
                       <span

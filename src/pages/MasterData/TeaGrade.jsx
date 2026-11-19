@@ -38,17 +38,17 @@ import { waitingTitle } from "../../lib/waitingTitle";
 const DASH = "-";
 const CHART_COLORS = ["#16a34a", "#2563eb", "#f59e0b", "#ef4444", "#8b5cf6"];
 // RP1-209: no Grade Code, Grade Size or Description; Tea Type and Category are fixed lists from the server.
+// RP1-212: no Standard / Specification; form order Tea Type, Category, Grade Name, Status, then Remarks.
 const EMPTY_FORM = {
-  gradeName: "",
   teaType: "",
   category: "",
+  gradeName: "",
   status: "Active",
-  standard: "",
   remarks: "",
 };
 const EMPTY_FILTERS = { teaType: "", category: "", status: "" };
 const FORM_KEYS = Object.keys(EMPTY_FORM);
-const OPTIONAL_KEYS = ["standard", "remarks"];
+const OPTIONAL_KEYS = ["remarks"];
 const filterClass =
   "h-9 w-full rounded-md border border-slate-200 bg-white px-3 text-[12px] text-slate-700 outline-none focus:border-emerald-500";
 const inputClass =
@@ -237,13 +237,11 @@ const TeaGrade = () => {
     { ...teaGradeData.summaryCards[0], value: count(stats?.totalGrades) },
     { ...teaGradeData.summaryCards[1], value: count(stats?.activeGrades) },
     { ...teaGradeData.summaryCards[2], value: count(stats?.inactiveGrades) },
-    { ...teaGradeData.summaryCards[3], value: count(stats?.standardGrades) },
-    { ...teaGradeData.summaryCards[4], value: count(stats?.customGrades) },
   ];
   const infoItems = [
     ...summaryCards.map((card, index) => ({ ...teaGradeData.information.items[index], value: card.value })),
-    { ...teaGradeData.information.items[5], value: stats?.lastUpdated ? stamp(stats.lastUpdated) : DASH },
-    { ...teaGradeData.information.items[6], value: stats?.lastUpdatedBy ?? DASH },
+    { ...teaGradeData.information.items[3], value: stats?.lastUpdated ? stamp(stats.lastUpdated) : DASH },
+    { ...teaGradeData.information.items[4], value: stats?.lastUpdatedBy ?? DASH },
   ];
   const distribution = stats?.teaTypeDistribution ?? [];
   const distributionTotal = distribution.reduce((sum, item) => sum + Number(item.value || 0), 0);
@@ -264,7 +262,7 @@ const TeaGrade = () => {
           SUMMARY CARDS
       ========================================================= */}
 
-      <div className='grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5'>
+      <div className='grid grid-cols-1 gap-3 sm:grid-cols-3'>
         {summaryCards.map((card) => {
           const Icon = iconMap[card.icon];
 
@@ -401,7 +399,7 @@ const TeaGrade = () => {
         ===================================================== */}
 
         <div className='max-h-[350px] overflow-auto'>
-          <table className='w-full min-w-[960px] text-left'>
+          <table className='w-full min-w-[840px] text-left'>
             <thead>
               <tr className='bg-slate-50'>
                 {teaGradeData.tableHeaders.map((header) => (
@@ -440,8 +438,6 @@ const TeaGrade = () => {
                       <td className='px-3 py-3 text-[12px] text-slate-600'>{grade.teaType ?? DASH}</td>
 
                       <td className='px-3 py-3 text-[12px] text-slate-600'>{grade.category}</td>
-
-                      <td className='px-3 py-3 text-[12px] text-slate-600'>{grade.standard ?? DASH}</td>
 
                       <td className='px-3 py-3'>
                         <PendingBadge row={grade} />
@@ -595,8 +591,8 @@ const TeaGrade = () => {
                 ========================================================= */}
           <div className='grid grid-cols-1 gap-4 md:grid-cols-4'>
             {teaGradeData.form.fields.map((field) => {
-              // Row 1: Grade Name, Tea Type, Category, Status; Standard / Specification gets the next row.
-              const fieldClass = field.name === "standard" ? "md:col-span-4" : "md:col-span-1";
+              // One row: Tea Type, Category, Grade Name, Status.
+              const fieldClass = "md:col-span-1";
               const rule = { required: field.required ? `${field.label} is required` : false };
               const choices =
                 field.name === "teaType"
