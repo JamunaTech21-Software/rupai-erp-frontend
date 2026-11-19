@@ -20,13 +20,13 @@ import { waitingTitle } from "../../lib/waitingTitle";
 const PER_PAGE = 10;
 const DASH = "-";
 const BLANK_CONTACT = { mobileNumber: "", contactPersonName: "", designation: "", type: "", isPrimary: false };
+// 2026-11-19: no Country; Trading Type is Internal, Export or Both (from the server).
 const EMPTY_FORM = {
   buyerCode: "",
   buyerName: "",
   shortName: "",
   buyerType: "",
   tradingType: "",
-  country: "",
   address: "",
   phone: "",
   email: "",
@@ -79,7 +79,6 @@ const BuyerSetup = () => {
   const [search, setSearch] = useState("");
   const [buyerType, setBuyerType] = useState("");
   const [tradingType, setTradingType] = useState("");
-  const [country, setCountry] = useState("");
   const [status, setStatus] = useState("");
   const [page, setPage] = useState(1);
   const [deleting, setDeleting] = useState(null);
@@ -93,8 +92,8 @@ const BuyerSetup = () => {
 
   const options = useApi(() => api.get("/buyers/filter-options"), []);
   const list = useApi(
-    () => api.get("/buyers", { search: searchText, buyerType, tradingType, country, status, page, perPage: PER_PAGE }),
-    [searchText, buyerType, tradingType, country, status, page],
+    () => api.get("/buyers", { search: searchText, buyerType, tradingType, status, page, perPage: PER_PAGE }),
+    [searchText, buyerType, tradingType, status, page],
   );
   const rows = list.data?.data ?? [];
   const total = list.data?.meta?.total ?? 0;
@@ -103,11 +102,10 @@ const BuyerSetup = () => {
   const to = (page - 1) * PER_PAGE + rows.length;
   const buyerTypes = options.data?.buyerTypes ?? [];
   const tradingTypes = options.data?.tradingTypes ?? [];
-  const countries = options.data?.countries ?? [];
   const contactTypes = options.data?.contactTypes ?? [];
   const designations = options.data?.designations ?? [];
   const statuses = options.data?.statuses ?? [];
-  const hasFilters = Boolean(search || buyerType || tradingType || country || status);
+  const hasFilters = Boolean(search || buyerType || tradingType || status);
 
   // A page that no longer exists (after a delete or a filter) steps back.
   useEffect(() => {
@@ -235,7 +233,6 @@ const BuyerSetup = () => {
     setSearch("");
     setBuyerType("");
     setTradingType("");
-    setCountry("");
     setStatus("");
     setPage(1);
   };
@@ -244,7 +241,7 @@ const BuyerSetup = () => {
   const handleExport = async () => {
     setExporting(true);
     try {
-      const blob = await api.download("/buyers/export", { search: searchText, buyerType, tradingType, country, status, format: "xlsx" });
+      const blob = await api.download("/buyers/export", { search: searchText, buyerType, tradingType, status, format: "xlsx" });
       const link = document.createElement("a");
       link.href = URL.createObjectURL(blob);
       link.download = `buyers-${new Date().toISOString().slice(0, 10)}.xlsx`;
@@ -442,26 +439,6 @@ const BuyerSetup = () => {
 
                   {errors.tradingType && <p className='mt-1 text-xs text-red-500'>{errors.tradingType.message}</p>}
                 </div>
-              </div>
-
-              {/* COUNTRY */}
-
-              <div className='mt-4'>
-                <label className='mb-1 block text-xs font-semibold text-slate-700'>
-                  Country <span className='text-red-500'>*</span>
-                </label>
-
-                <Select className={inputClass("country")} {...register("country", { required: "Country is required" })}>
-                  <option value=''>Select country</option>
-
-                  {countries.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </Select>
-
-                {errors.country && <p className='mt-1 text-xs text-red-500'>{errors.country.message}</p>}
               </div>
 
               {/* ADDRESS */}
@@ -749,7 +726,7 @@ const BuyerSetup = () => {
 
           {/* SEARCH + FILTERS */}
 
-          <div className='mb-4 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-[minmax(0,2fr)_repeat(4,minmax(0,1fr))_auto]'>
+          <div className='mb-4 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-[minmax(0,2fr)_repeat(3,minmax(0,1fr))_auto]'>
             <input
               type='text'
               value={search}
@@ -787,22 +764,6 @@ const BuyerSetup = () => {
             >
               <option value=''>All Trading Types</option>
               {tradingTypes.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </Select>
-
-            <Select
-              value={country}
-              onChange={(event) => {
-                setCountry(event.target.value);
-                setPage(1);
-              }}
-              className={filterClass}
-            >
-              <option value=''>All Countries</option>
-              {countries.map((option) => (
                 <option key={option.value} value={option.value}>
                   {option.label}
                 </option>
@@ -876,8 +837,6 @@ const BuyerSetup = () => {
                       <td className='border-b px-3 py-4'>{buyer.buyerTypeLabel}</td>
 
                       <td className='border-b px-3 py-4'>{buyer.tradingTypeLabel}</td>
-
-                      <td className='border-b px-3 py-4'>{buyer.countryLabel}</td>
 
                       <td className='whitespace-nowrap border-b px-3 py-4'>{buyer.mobilePrimary || DASH}</td>
 

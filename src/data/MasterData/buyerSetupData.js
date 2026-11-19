@@ -40,7 +40,6 @@ export const buyerSetupData = {
     shortName: "",
     buyerType: "",
     tradingType: "",
-    country: "",
     address: "",
 
     contactPersons: [
@@ -117,17 +116,6 @@ export const buyerSetupData = {
       required: true,
       colSpan: 1,
       optionsKey: "tradingTypeOptions",
-    },
-
-    {
-      id: "country",
-      name: "country",
-      label: "Country",
-      type: "select",
-      placeholder: "Select country",
-      required: true,
-      colSpan: 2,
-      optionsKey: "countryOptions",
     },
 
     {
@@ -219,49 +207,8 @@ export const buyerSetupData = {
     },
 
     {
-      value: "IMPORT",
-      label: "Import",
-    },
-
-    {
       value: "BOTH",
       label: "Both (Int–Exp)",
-    },
-  ],
-
-  // =======================================================
-  // COUNTRY OPTIONS
-  // =======================================================
-
-  countryOptions: [
-    {
-      value: "BANGLADESH",
-      label: "Bangladesh",
-    },
-
-    {
-      value: "INDIA",
-      label: "India",
-    },
-
-    {
-      value: "PAKISTAN",
-      label: "Pakistan",
-    },
-
-    {
-      value: "SRI_LANKA",
-      label: "Sri Lanka",
-    },
-
-    {
-      value: "KENYA",
-      label: "Kenya",
-    },
-
-    {
-      value: "UNITED_KINGDOM",
-      label: "United Kingdom",
     },
   ],
 
@@ -455,11 +402,6 @@ export const buyerSetupData = {
     },
 
     {
-      key: "country",
-      label: "Country",
-    },
-
-    {
       key: "mobilePrimary",
       label: "Mobile (Primary)",
     },
@@ -497,8 +439,6 @@ export const buyerSetupData = {
       buyerType: "LOCAL",
 
       tradingType: "BOTH",
-
-      country: "BANGLADESH",
 
       address: "63, Motijheel C/A, Dhaka-1000, Bangladesh",
 
@@ -568,8 +508,6 @@ export const buyerSetupData = {
 
       tradingType: "INTERNAL",
 
-      country: "BANGLADESH",
-
       address: "Agrabad Commercial Area, Chattogram, Bangladesh",
 
       contactPersons: [
@@ -610,8 +548,6 @@ export const buyerSetupData = {
       buyerType: "LOCAL",
 
       tradingType: "EXPORT",
-
-      country: "BANGLADESH",
 
       address: "Kawran Bazar, Dhaka, Bangladesh",
 
@@ -654,8 +590,6 @@ export const buyerSetupData = {
 
       tradingType: "BOTH",
 
-      country: "BANGLADESH",
-
       address: "Banani, Dhaka, Bangladesh",
 
       contactPersons: [
@@ -696,8 +630,6 @@ export const buyerSetupData = {
       buyerType: "LOCAL",
 
       tradingType: "EXPORT",
-
-      country: "BANGLADESH",
 
       address: "Gulshan, Dhaka, Bangladesh",
 
@@ -740,8 +672,6 @@ export const buyerSetupData = {
 
       tradingType: "EXPORT",
 
-      country: "BANGLADESH",
-
       address: "Tejgaon Industrial Area, Dhaka, Bangladesh",
 
       contactPersons: [
@@ -782,8 +712,6 @@ export const buyerSetupData = {
       buyerType: "LOCAL",
 
       tradingType: "BOTH",
-
-      country: "BANGLADESH",
 
       address: "Motijheel, Dhaka, Bangladesh",
 
@@ -826,8 +754,6 @@ export const buyerSetupData = {
 
       tradingType: "EXPORT",
 
-      country: "BANGLADESH",
-
       address: "Narayanganj, Bangladesh",
 
       contactPersons: [
@@ -869,8 +795,6 @@ export const buyerSetupData = {
 
       tradingType: "BOTH",
 
-      country: "BANGLADESH",
-
       address: "Gulshan-2, Dhaka, Bangladesh",
 
       contactPersons: [
@@ -911,8 +835,6 @@ export const buyerSetupData = {
       buyerType: "LOCAL",
 
       tradingType: "INTERNAL",
-
-      country: "BANGLADESH",
 
       address: "Chattogram, Bangladesh",
 
@@ -971,7 +893,6 @@ export const buyerSetupData = {
     shortName: "",
     buyerType: "",
     tradingType: "",
-    country: "",
     address: "",
 
     contactPersons: [
