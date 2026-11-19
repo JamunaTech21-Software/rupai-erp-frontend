@@ -41,11 +41,6 @@ export const masterDataTabs = [
   },
 
   {
-    id: "tea-type",
-    label: "9. Tea Type",
-    path: "/master-data-tea-type",
-  },
-  {
     id: "buyer-setup",
     label: "10. Buyer Setup",
     path: "/master-data-buyer-setup",

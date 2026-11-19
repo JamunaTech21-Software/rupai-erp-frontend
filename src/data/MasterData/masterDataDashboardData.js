@@ -124,17 +124,6 @@ export const masterDataDashboardData = {
     },
 
     {
-      id: "tea-type",
-      name: "Tea Type",
-      total: 6,
-      active: 6,
-      inactive: 0,
-      lastUpdated: "03/06/2026 01:50 PM",
-      icon: "teaType",
-      path: "/master-data-tea-type",
-    },
-
-    {
       id: "production-type",
       name: "Production Type",
       total: 5,
@@ -286,13 +275,6 @@ export const masterDataDashboardData = {
       label: "Auction schedule",
       icon: "unitOfMeasurement",
       path: "/master-data-auction-schedule",
-    },
-
-    {
-      id: "tea-type",
-      label: "Tea Type",
-      icon: "teaType",
-      path: "/master-data-tea-type",
     },
 
     {

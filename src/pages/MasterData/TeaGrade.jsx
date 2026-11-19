@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useForm } from "../../lib/useForm";
 import toast from "react-hot-toast";
 
@@ -37,20 +37,18 @@ import { waitingTitle } from "../../lib/waitingTitle";
 
 const DASH = "-";
 const CHART_COLORS = ["#16a34a", "#2563eb", "#f59e0b", "#ef4444", "#8b5cf6"];
+// RP1-209: no Grade Code, Grade Size or Description; Tea Type and Category are fixed lists from the server.
 const EMPTY_FORM = {
-  gradeCode: "",
   gradeName: "",
   teaType: "",
   category: "",
-  standard: "",
-  gradeSize: "",
   status: "Active",
-  description: "",
+  standard: "",
   remarks: "",
 };
 const EMPTY_FILTERS = { teaType: "", category: "", status: "" };
 const FORM_KEYS = Object.keys(EMPTY_FORM);
-const OPTIONAL_KEYS = ["standard", "gradeSize", "description", "remarks"];
+const OPTIONAL_KEYS = ["standard", "remarks"];
 const filterClass =
   "h-9 w-full rounded-md border border-slate-200 bg-white px-3 text-[12px] text-slate-700 outline-none focus:border-emerald-500";
 const inputClass =
@@ -116,8 +114,6 @@ const TeaGrade = () => {
   // =========================================================
 
   const filterOptions = useApi(() => api.get("/tea-grades/filter-options"), []);
-  const activeTypes = useApi(() => api.get("/options/tea-types", { status: "ACTIVE" }), []);
-  const allTypes = useApi(() => api.get("/options/tea-types"), []);
   const list = useApi(
     () => api.get("/tea-grades", { search: searchText, ...filters, page, perPage }),
     [searchText, filters.teaType, filters.category, filters.status, page, perPage],
@@ -140,14 +136,9 @@ const TeaGrade = () => {
     summary.reload();
   };
 
-  // The Tea Type dropdown lists active types; a saved grade whose type is no longer active keeps it.
-  const teaTypeChoices = useMemo(() => {
-    const choices = [...(activeTypes.data ?? [])];
-    if (selected?.teaType && !choices.some((option) => option.value === selected.teaType)) {
-      choices.push({ value: selected.teaType, label: selected.teaTypeName ?? selected.teaType });
-    }
-    return choices;
-  }, [activeTypes.data, selected]);
+  // Fixed lists from the server (RP1-208), with the page's own copy until they load.
+  const teaTypeChoices = filterOptions.data?.teaTypes ?? teaGradeData.form.teaTypeOptions;
+  const categoryChoices = filterOptions.data?.categories ?? teaGradeData.form.categoryOptions;
 
   const setFilter = (name) => (event) => {
     setFilters((current) => ({ ...current, [name]: event.target.value }));
@@ -320,7 +311,7 @@ const TeaGrade = () => {
                   setSearch(e.target.value);
                   setPage(1);
                 }}
-                placeholder='Search grade name or code...'
+                placeholder='Search grade, type or category...'
                 className='h-9 w-full rounded-md border border-slate-200 bg-white pl-9 pr-3 text-[12px] text-slate-700 outline-none placeholder:text-slate-400 focus:border-emerald-500'
               />
             </div>
@@ -362,7 +353,7 @@ const TeaGrade = () => {
               <label className='mb-1.5 block text-[12px] font-semibold text-slate-700'>Tea Type</label>
               <Select value={filters.teaType} onChange={setFilter("teaType")} className={filterClass}>
                 <option value=''>All</option>
-                {(allTypes.data ?? []).map((option) => (
+                {teaTypeChoices.map((option) => (
                   <option key={option.value} value={option.value}>
                     {option.label}
                   </option>
@@ -373,7 +364,7 @@ const TeaGrade = () => {
               <label className='mb-1.5 block text-[12px] font-semibold text-slate-700'>Category</label>
               <Select value={filters.category} onChange={setFilter("category")} className={filterClass}>
                 <option value=''>All</option>
-                {(filterOptions.data?.categories ?? []).map((option) => (
+                {categoryChoices.map((option) => (
                   <option key={option.value} value={option.value}>
                     {option.label}
                   </option>
@@ -410,7 +401,7 @@ const TeaGrade = () => {
         ===================================================== */}
 
         <div className='max-h-[350px] overflow-auto'>
-          <table className='w-full min-w-[1100px] text-left'>
+          <table className='w-full min-w-[960px] text-left'>
             <thead>
               <tr className='bg-slate-50'>
                 {teaGradeData.tableHeaders.map((header) => (
@@ -444,11 +435,9 @@ const TeaGrade = () => {
                     >
                       <td className='px-3 py-3 text-[12px] text-slate-600'>{(page - 1) * perPage + index + 1}</td>
 
-                      <td className='px-3 py-3 text-[12px] font-semibold text-slate-700'>{grade.gradeCode}</td>
+                      <td className='px-3 py-3 text-[12px] font-semibold text-slate-700'>{grade.gradeName}</td>
 
-                      <td className='px-3 py-3 text-[12px] font-medium text-slate-700'>{grade.gradeName}</td>
-
-                      <td className='px-3 py-3 text-[12px] text-slate-600'>{grade.teaTypeName ?? DASH}</td>
+                      <td className='px-3 py-3 text-[12px] text-slate-600'>{grade.teaType ?? DASH}</td>
 
                       <td className='px-3 py-3 text-[12px] text-slate-600'>{grade.category}</td>
 
@@ -606,13 +595,14 @@ const TeaGrade = () => {
                 ========================================================= */}
           <div className='grid grid-cols-1 gap-4 md:grid-cols-4'>
             {teaGradeData.form.fields.map((field) => {
-              const fieldClass = field.name === "standard" || field.name === "gradeSize" ? "md:col-span-2" : "md:col-span-1";
+              // Row 1: Grade Name, Tea Type, Category, Status; Standard / Specification gets the next row.
+              const fieldClass = field.name === "standard" ? "md:col-span-4" : "md:col-span-1";
               const rule = { required: field.required ? `${field.label} is required` : false };
               const choices =
                 field.name === "teaType"
                   ? teaTypeChoices
                   : field.name === "category"
-                    ? (filterOptions.data?.categories ?? teaGradeData.form.categoryOptions)
+                    ? categoryChoices
                     : field.name === "status"
                       ? (filterOptions.data?.statuses ?? teaGradeData.form.statusOptions)
                       : null;
@@ -645,28 +635,12 @@ const TeaGrade = () => {
                 </div>
               );
             })}
-
-            {/* =======================================================
-                    DESCRIPTION
-                ======================================================= */}
-            <div className='md:col-span-3'>
-              <label className='mb-2 block text-xs font-medium text-slate-700'>{teaGradeData.form.description.label}</label>
-
-              <textarea
-                rows={3}
-                maxLength={teaGradeData.form.description.maxLength}
-                placeholder={teaGradeData.form.description.placeholder}
-                {...register(teaGradeData.form.description.name)}
-                className='w-full resize-none rounded-md border border-slate-200 bg-white px-3 py-2 text-[12px] text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-100'
-              />
-              {errors.description && <p className='mt-1 text-[11px] text-red-500'>{errors.description.message}</p>}
-            </div>
           </div>
 
           {/* =========================================================
                     REMARKS
                 ========================================================= */}
-          <div className='mt-2'>
+          <div className='mt-4'>
             <label className='mb-2 block text-xs font-medium text-slate-700'>{teaGradeData.form.remarks.label}</label>
 
             <textarea
