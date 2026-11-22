@@ -59,6 +59,7 @@ const DocumentType = lazyPage(() => import("./pages/Documents/DocumentType"));
 const ExpiryRenewal = lazyPage(() => import("./pages/Documents/ExpiryRenewal"));
 const DocumentRegister = lazyPage(() => import("./pages/Documents/DocumentRegister"));
 const DocumentDashboard = lazyPage(() => import("./pages/Documents/DocumentDashboard"));
+const WeatherStationSetup = lazyPage(() => import("./pages/Weather/WeatherStationSetup"));
 
 // Only in the built site: while developing, Vite would load all pages one by one and slow the first screen down.
 if (import.meta.env.PROD) setTimeout(() => loaders.forEach((load) => load().catch(() => {})), 500);
@@ -330,6 +331,15 @@ const router = createBrowserRouter([
         element: <Page><ExpiryRenewal /></Page>,
         handle: {
           title: "Expiry & Renewal Setting",
+        },
+      },
+
+      // Weather Management
+      {
+        path: "weather-station-setup",
+        element: <Page><WeatherStationSetup /></Page>,
+        handle: {
+          title: "Weather Station Setup",
         },
       },
 
