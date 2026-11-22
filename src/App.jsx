@@ -59,6 +59,9 @@ const DocumentType = lazyPage(() => import("./pages/Documents/DocumentType"));
 const ExpiryRenewal = lazyPage(() => import("./pages/Documents/ExpiryRenewal"));
 const DocumentRegister = lazyPage(() => import("./pages/Documents/DocumentRegister"));
 const DocumentDashboard = lazyPage(() => import("./pages/Documents/DocumentDashboard"));
+const WeatherDashboard = lazyPage(() => import("./pages/Weather/WeatherDashboard"));
+const DailyWeatherEntry = lazyPage(() => import("./pages/Weather/DailyWeatherEntry"));
+const WeatherEntries = lazyPage(() => import("./pages/Weather/WeatherEntries"));
 const WeatherStationSetup = lazyPage(() => import("./pages/Weather/WeatherStationSetup"));
 
 // Only in the built site: while developing, Vite would load all pages one by one and slow the first screen down.
@@ -335,6 +338,27 @@ const router = createBrowserRouter([
       },
 
       // Weather Management
+      {
+        path: "weather-dashboard",
+        element: <Page><WeatherDashboard /></Page>,
+        handle: {
+          title: "Weather Management – Dashboard",
+        },
+      },
+      {
+        path: "weather-daily-entry",
+        element: <Page><DailyWeatherEntry /></Page>,
+        handle: {
+          title: "Daily Weather Entry",
+        },
+      },
+      {
+        path: "weather-entries",
+        element: <Page><WeatherEntries /></Page>,
+        handle: {
+          title: "Weather Entries",
+        },
+      },
       {
         path: "weather-station-setup",
         element: <Page><WeatherStationSetup /></Page>,
