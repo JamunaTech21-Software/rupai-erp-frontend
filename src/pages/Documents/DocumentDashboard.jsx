@@ -247,46 +247,46 @@ const DocumentDashboard = () => {
       {/* =====================================================
           EXPIRING + RECENT DOCUMENTS
       ====================================================== */}
-      <div className='grid grid-cols-1 gap-5 xl:grid-cols-2'>
+      <div className='grid grid-cols-1 gap-5'>
         <div className={panel}>
           <div className='mb-3 flex items-center justify-between gap-3'>
             <h3 className={heading}>Expiring Documents</h3>
             <ViewAll to='/documents-register?status=expiring' />
           </div>
-          <div className='overflow-x-auto'>
-            <table className='w-full min-w-[460px] text-left text-sm'>
+          <div className='overflow-x-auto rounded-lg border border-slate-300'>
+            <table className='w-full min-w-[460px] border-collapse text-left text-sm'>
               <thead>
                 <tr className='bg-slate-50 text-xs font-semibold text-slate-600'>
-                  <th className='px-3 py-2'>SL</th>
-                  <th className='px-3 py-2'>Document Name</th>
-                  <th className='px-3 py-2'>Category</th>
-                  <th className='px-3 py-2'>Expiry Date</th>
-                  <th className='px-3 py-2 text-center'>Days Left</th>
+                  <th className='border border-slate-300 px-3 py-2'>SL</th>
+                  <th className='border border-slate-300 px-3 py-2'>Document Name</th>
+                  <th className='border border-slate-300 px-3 py-2'>Category</th>
+                  <th className='border border-slate-300 px-3 py-2'>Expiry Date</th>
+                  <th className='border border-slate-300 px-3 py-2 text-center'>Days Left</th>
                 </tr>
               </thead>
               <tbody>
                 {!data ? (
                   Array.from({ length: 5 }, (_, row) => (
                     <tr key={row}>
-                      <td colSpan={5} className='px-3 py-2'>
+                      <td colSpan={5} className='border border-slate-200 px-3 py-2'>
                         <Pulse className='block h-4 w-full' />
                       </td>
                     </tr>
                   ))
                 ) : expiring.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className='px-3 py-8 text-center text-sm text-slate-500'>
+                    <td colSpan={5} className='border border-slate-200 px-3 py-8 text-center text-sm text-slate-500'>
                       No documents are expiring soon
                     </td>
                   </tr>
                 ) : (
                   expiring.map((row, index) => (
-                    <tr key={row.id} className='border-b border-slate-100 text-slate-700'>
-                      <td className='px-3 py-2.5'>{index + 1}</td>
-                      <td className='px-3 py-2.5 font-medium'>{row.documentName}</td>
-                      <td className='px-3 py-2.5'>{row.categoryName}</td>
-                      <td className='px-3 py-2.5 whitespace-nowrap'>{dateText(row.expiryDate)}</td>
-                      <td className='px-3 py-2.5 text-center'>
+                    <tr key={row.id} className='text-slate-700'>
+                      <td className='border border-slate-200 px-3 py-2.5'>{index + 1}</td>
+                      <td className='border border-slate-200 px-3 py-2.5 font-medium'>{row.documentName}</td>
+                      <td className='border border-slate-200 px-3 py-2.5'>{row.categoryName}</td>
+                      <td className='border border-slate-200 px-3 py-2.5 whitespace-nowrap'>{dateText(row.expiryDate)}</td>
+                      <td className='border border-slate-200 px-3 py-2.5 text-center'>
                         <span className={`inline-block rounded px-2 py-0.5 text-xs font-semibold ${LEVEL_STYLE[row.daysLeftLevel] ?? LEVEL_STYLE.ok}`}>{row.daysLeftLabel}</span>
                       </td>
                     </tr>
@@ -302,40 +302,40 @@ const DocumentDashboard = () => {
             <h3 className={heading}>Recent Documents</h3>
             <ViewAll to='/documents-register' />
           </div>
-          <div className='overflow-x-auto'>
-            <table className='w-full min-w-[460px] text-left text-sm'>
+          <div className='overflow-x-auto rounded-lg border border-slate-300'>
+            <table className='w-full min-w-[460px] border-collapse text-left text-sm'>
               <thead>
                 <tr className='bg-slate-50 text-xs font-semibold text-slate-600'>
-                  <th className='px-3 py-2'>SL</th>
-                  <th className='px-3 py-2'>Document Name</th>
-                  <th className='px-3 py-2'>Category</th>
-                  <th className='px-3 py-2'>Uploaded On</th>
-                  <th className='px-3 py-2 text-center'>Status</th>
+                  <th className='border border-slate-300 px-3 py-2'>SL</th>
+                  <th className='border border-slate-300 px-3 py-2'>Document Name</th>
+                  <th className='border border-slate-300 px-3 py-2'>Category</th>
+                  <th className='border border-slate-300 px-3 py-2'>Uploaded On</th>
+                  <th className='border border-slate-300 px-3 py-2 text-center'>Status</th>
                 </tr>
               </thead>
               <tbody>
                 {!data ? (
                   Array.from({ length: 5 }, (_, row) => (
                     <tr key={row}>
-                      <td colSpan={5} className='px-3 py-2'>
+                      <td colSpan={5} className='border border-slate-200 px-3 py-2'>
                         <Pulse className='block h-4 w-full' />
                       </td>
                     </tr>
                   ))
                 ) : recent.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className='px-3 py-8 text-center text-sm text-slate-500'>
+                    <td colSpan={5} className='border border-slate-200 px-3 py-8 text-center text-sm text-slate-500'>
                       No documents yet
                     </td>
                   </tr>
                 ) : (
                   recent.map((row, index) => (
-                    <tr key={row.id ?? row.requestId} className='border-b border-slate-100 text-slate-700'>
-                      <td className='px-3 py-2.5'>{index + 1}</td>
-                      <td className='px-3 py-2.5 font-medium'>{row.documentName}</td>
-                      <td className='px-3 py-2.5'>{row.categoryName}</td>
-                      <td className='px-3 py-2.5 whitespace-nowrap'>{shortDate(row.uploadedOn)}</td>
-                      <td className='px-3 py-2.5 text-center'>
+                    <tr key={row.id ?? row.requestId} className='text-slate-700'>
+                      <td className='border border-slate-200 px-3 py-2.5'>{index + 1}</td>
+                      <td className='border border-slate-200 px-3 py-2.5 font-medium'>{row.documentName}</td>
+                      <td className='border border-slate-200 px-3 py-2.5'>{row.categoryName}</td>
+                      <td className='border border-slate-200 px-3 py-2.5 whitespace-nowrap'>{shortDate(row.uploadedOn)}</td>
+                      <td className='border border-slate-200 px-3 py-2.5 text-center'>
                         <span className={`inline-block rounded px-2 py-0.5 text-xs font-semibold ${RECENT_STYLE[row.status] ?? RECENT_STYLE.PENDING}`}>{row.statusLabel}</span>
                       </td>
                     </tr>

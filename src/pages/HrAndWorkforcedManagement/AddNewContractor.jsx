@@ -210,11 +210,12 @@ const AddNewContractor = () => {
       {editId && contractor.error && <ErrorState message={contractor.error.message} onRetry={contractor.reload} />}
 
       {/* FORM START */}
-      <form onSubmit={handleSubmit(onSubmit)}>
+      {/* Nest Hub Max (1280 to 1365 px): the small text is one step larger */}
+      <form onSubmit={handleSubmit(onSubmit)} className='min-[1280px]:max-[1365px]:[&_.text-xs]:text-sm min-[1280px]:max-[1365px]:[&_.text-\[10px\]]:text-xs min-[1280px]:max-[1365px]:[&_.text-\[9px\]]:text-[11px] min-[1280px]:max-[1365px]:[&_.text-\[8px\]]:text-[10px]'>
         {/* ================= ROW 1 ================= */}
         <div className='grid grid-cols-12 gap-2'>
           {/* ===== LEFT SIDE (2 CARD SAME ROW) ===== */}
-          <div className='col-span-12 xl:col-span-8 grid grid-cols-12 gap-2'>
+          <div className='col-span-12 min-[1280px]:max-[1365px]:col-span-12 min-[1366px]:col-span-8 grid grid-cols-12 gap-2'>
             {/* BASIC INFO */}
             {/* ================= BASIC INFORMATION ================= */}
             <div className='col-span-12 lg:col-span-6 border rounded-xl p-4'>
@@ -559,7 +560,7 @@ const AddNewContractor = () => {
           </div>
 
           {/* ===== RIGHT SIDE ===== */}
-          <div className='col-span-12 xl:col-span-4 space-y-4'>
+          <div className='col-span-12 min-[1280px]:max-[1365px]:col-span-12 min-[1366px]:col-span-4 space-y-4 min-[1280px]:max-[1365px]:grid min-[1280px]:max-[1365px]:grid-cols-2 min-[1280px]:max-[1365px]:gap-2 min-[1280px]:max-[1365px]:space-y-0'>
             {/* IMAGE */}
             {/* ================= IMAGE & LOGO ================= */}
             <div className='border rounded-xl p-4'>
@@ -633,7 +634,7 @@ const AddNewContractor = () => {
         {/* ================= ROW 2 ================= */}
         <div className='grid grid-cols-12 gap-2 mt-4'>
           {/* ================= BUSINESS / REGISTRATION INFO ================= */}
-          <div className='col-span-12 xl:col-span-4 border rounded-xl p-2'>
+          <div className='col-span-12 min-[1280px]:max-[1365px]:col-span-6 min-[1366px]:col-span-4 border rounded-xl p-2'>
             {/* HEADER */}
             <h3 className='font-semibold mb-4 text-green-700 flex items-center gap-2'>
               5. Business / Registration Information
@@ -676,7 +677,7 @@ const AddNewContractor = () => {
           </div>
 
           {/* ================= CONTRACT INFORMATION ================= */}
-          <div className='col-span-12 xl:col-span-4 border rounded-xl p-2'>
+          <div className='col-span-12 min-[1280px]:max-[1365px]:col-span-6 min-[1366px]:col-span-4 border rounded-xl p-2'>
             {/* HEADER */}
             <h3 className='font-semibold mb-4 text-green-700 flex items-center gap-2'>
               6. Contract Information
@@ -745,7 +746,7 @@ const AddNewContractor = () => {
           </div>
 
           {/* ================= BANKING INFORMATION ================= */}
-          <div className='col-span-12 xl:col-span-4 border rounded-xl p-2'>
+          <div className='col-span-12 min-[1280px]:max-[1365px]:col-span-12 min-[1366px]:col-span-4 border rounded-xl p-2'>
             {/* HEADER */}
             <h3 className='font-semibold mb-3 text-green-700 flex items-center gap-2'>
               7. Banking Information
@@ -814,7 +815,7 @@ const AddNewContractor = () => {
         {/* ================= ROW 3 ================= */}
         <div className='grid grid-cols-12 gap-2 mt-4'>
           {/* ================= DOCUMENTS & FILES ================= */}
-          <div className='col-span-12 xl:col-span-4 border rounded-xl p-2'>
+          <div className='col-span-12 min-[1280px]:max-[1365px]:col-span-6 min-[1366px]:col-span-4 border rounded-xl p-2'>
             {/* HEADER */}
             <h3 className='font-semibold mb-3 text-green-700 flex items-center gap-2'>
               8. Documents & Files
@@ -841,7 +842,7 @@ const AddNewContractor = () => {
           </div>
 
           {/* ================= ADDITIONAL IMPORTANT INFORMATION ================= */}
-          <div className='col-span-12 xl:col-span-4 border rounded-xl p-2'>
+          <div className='col-span-12 min-[1280px]:max-[1365px]:col-span-6 min-[1366px]:col-span-4 border rounded-xl p-2'>
             {/* HEADER */}
             <h3 className='font-semibold mb-3 text-green-700'>
               9. Additional Important Information
@@ -936,7 +937,7 @@ const AddNewContractor = () => {
           </div>
 
           {/* ================= EMERGENCY CONTACT ================= */}
-          <div className='col-span-12 xl:col-span-4 border rounded-xl p-2'>
+          <div className='col-span-12 min-[1280px]:max-[1365px]:col-span-12 min-[1366px]:col-span-4 border rounded-xl p-2'>
             {/* HEADER */}
             <h3 className='font-semibold mb-3 text-green-700 flex items-center gap-2'>
               10. Emergency Contact

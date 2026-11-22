@@ -119,13 +119,13 @@ const AddNewEmployee = () => {
       {/* MAIN FORM */}
       {/* ========================= */}
 
-      <form onSubmit={handleSubmit(onSubmit)}>
+      <form onSubmit={handleSubmit(onSubmit)} className='min-[1280px]:max-[1365px]:[&_.text-xs]:text-sm min-[1280px]:max-[1365px]:[&_.text-\[12px\]]:text-[14px] min-[1280px]:max-[1365px]:[&_.text-\[10px\]]:text-xs min-[1280px]:max-[1365px]:[&_.text-\[9px\]]:text-[11px] min-[1280px]:max-[1365px]:[&_.text-\[8px\]]:text-[10px]'>
         <div className='grid grid-cols-12 gap-2'>
           {/* ========================================= */}
           {/* LEFT MAIN CONTENT - 9 COLUMNS */}
           {/* ========================================= */}
 
-          <div className='col-span-12 xl:col-span-9 space-y-2'>
+          <div className='col-span-12 min-[1280px]:max-[1365px]:col-span-12 min-[1366px]:col-span-9 space-y-2'>
             {/* ================= ROW 1 ================= */}
 
             <div className='grid grid-cols-12 gap-2'>
@@ -610,12 +610,12 @@ const AddNewEmployee = () => {
           {/* RIGHT SIDEBAR - 3 COLUMNS */}
           {/* ========================================= */}
 
-          <div className='col-span-12 xl:col-span-3 space-y-2'>
+          <div className='col-span-12 min-[1280px]:max-[1365px]:col-span-12 min-[1366px]:col-span-3 space-y-2 min-[1280px]:max-[1365px]:grid min-[1280px]:max-[1365px]:grid-cols-12 min-[1280px]:max-[1365px]:gap-2 min-[1280px]:max-[1365px]:space-y-0'>
             {/* =====================================================
                 7. PHOTO & BIOMETRICS
             ===================================================== */}
 
-            <div className='col-span-12 lg:col-span-5 border border-gray-200 rounded-xl p-2.5 bg-white'>
+            <div className='col-span-12 min-[1280px]:max-[1365px]:col-span-6 border border-gray-200 rounded-xl p-2.5 bg-white'>
               {/* ================= HEADER ================= */}
               <div className='flex items-center gap-2 mb-2.5'>
                 <div className='flex items-center justify-center w-5 h-5 rounded-md bg-green-50 text-green-700'>
@@ -717,7 +717,7 @@ const AddNewEmployee = () => {
                 8. EMERGENCY CONTACT
             ===================================================== */}
 
-            <div className='col-span-12 lg:col-span-5 border border-gray-200 rounded-xl p-2.5 bg-white'>
+            <div className='col-span-12 min-[1280px]:max-[1365px]:col-span-6 border border-gray-200 rounded-xl p-2.5 bg-white'>
               {/* ================= HEADER ================= */}
               <div className='flex items-center gap-2 mb-2.5'>
                 <div className='flex items-center justify-center w-5 h-5 rounded-md bg-green-50 text-green-700'>
@@ -817,7 +817,7 @@ const AddNewEmployee = () => {
               9. NOMINEE INFORMATION
           ===================================================== */}
 
-            <div className='col-span-12 lg:col-span-5 border border-gray-200 rounded-xl p-2.5 bg-white'>
+            <div className='col-span-12 min-[1280px]:max-[1365px]:col-span-12 border border-gray-200 rounded-xl p-2.5 bg-white'>
               {/* ================= HEADER ================= */}
               <div className='flex items-center gap-2 mb-2.5'>
                 <div className='flex items-center justify-center w-5 h-5 rounded-md bg-green-50 text-green-700'>

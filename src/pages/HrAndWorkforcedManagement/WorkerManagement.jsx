@@ -898,7 +898,7 @@ const WorkerManagement = () => {
         {/* =====================================================
                 CATEGORY WISE WORKERS
             ====================================================== */}
-        <div className='rounded-xl border border-gray-200 bg-white p-2 shadow-sm xl:col-span-3'>
+        <div className='rounded-xl border border-gray-200 bg-white p-2 shadow-sm min-[1280px]:max-[1365px]:col-span-4 min-[1366px]:col-span-3'>
           {/* HEADER */}
           <h3 className='text-sm font-semibold text-green-700'>
             Category Wise Workers
@@ -976,7 +976,7 @@ const WorkerManagement = () => {
         {/* =====================================================
                 SECTION WISE DISTRIBUTION
             ====================================================== */}
-        <div className='rounded-xl border border-gray-200 bg-white p-4 shadow-sm xl:col-span-3'>
+        <div className='rounded-xl border border-gray-200 bg-white p-4 shadow-sm min-[1280px]:max-[1365px]:col-span-4 min-[1366px]:col-span-3'>
           {/* HEADER */}
           <h3 className='text-sm font-semibold text-green-700'>
             Section Wise Distribution
@@ -1019,7 +1019,7 @@ const WorkerManagement = () => {
         {/* =====================================================
                 WORKER TYPES
             ====================================================== */}
-        <div className='rounded-xl border border-gray-200 bg-white p-4 shadow-sm xl:col-span-2'>
+        <div className='rounded-xl border border-gray-200 bg-white p-4 shadow-sm min-[1280px]:max-[1365px]:col-span-4 min-[1366px]:col-span-2'>
           {/* HEADER */}
           <h3 className='text-sm font-semibold text-green-700'>Worker Types</h3>
 
@@ -1065,7 +1065,7 @@ const WorkerManagement = () => {
         {/* =====================================================
                 RECENT JOINEES
             ====================================================== */}
-        <div className='rounded-xl border border-gray-200 bg-white p-4 shadow-sm xl:col-span-4'>
+        <div className='rounded-xl border border-gray-200 bg-white p-4 shadow-sm min-[1280px]:max-[1365px]:col-span-12 min-[1366px]:col-span-4'>
           {/* HEADER */}
           <h3 className='text-sm font-semibold text-green-700'>
             Recent Joinees
