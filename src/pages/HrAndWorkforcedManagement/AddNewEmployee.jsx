@@ -133,14 +133,14 @@ const AddNewEmployee = () => {
               {/* 1. BASIC INFORMATION */}
               {/* ================================= */}
 
-              <div className='col-span-12 lg:col-span-6  border border-gray-200 rounded-xl p-2 bg-white '>
+              <div className='col-span-12 lg:col-span-6 flex flex-col border border-gray-200 rounded-xl p-2 bg-white'>
                 <h3 className='font-semibold text-green-700 mb-3'>
                   1. Basic Information
                 </h3>
 
                 {/* BASIC INFORMATION FIELDS */}
 
-                <div className='grid grid-cols-12 gap-2'>
+                <div className='grid grid-cols-12 gap-2 flex-1 lg:auto-rows-fr'>
                   {employeeManagementData.basicInformationFields.map(
                     (field) => {
                       const options =
@@ -149,7 +149,7 @@ const AddNewEmployee = () => {
                       return (
                         <div
                           key={field.name}
-                          className='col-span-12 md:col-span-4'
+                          className='col-span-12 md:col-span-4 flex flex-col'
                         >
                           {/* LABEL */}
 
@@ -172,7 +172,7 @@ const AddNewEmployee = () => {
                               {...register(field.name, {
                                 required: field.required ? "Required" : false,
                               })}
-                              className='w-full border border-gray-300 rounded-md px-3 py-2 text-xs outline-none focus:border-green-500 focus:ring-1 focus:ring-green-100 disabled:bg-gray-100 disabled:text-gray-500'
+                              className='w-full flex-1 border border-gray-300 rounded-md px-3 py-2 text-xs outline-none focus:border-green-500 focus:ring-1 focus:ring-green-100 disabled:bg-gray-100 disabled:text-gray-500'
                             />
                           )}
 
@@ -184,7 +184,7 @@ const AddNewEmployee = () => {
                               {...register(field.name, {
                                 required: field.required ? "Required" : false,
                               })}
-                              className='w-full border border-gray-300 rounded-md px-3 py-2 text-xs bg-white outline-none focus:border-green-500 focus:ring-1 focus:ring-green-100'
+                              className='w-full flex-1 border border-gray-300 rounded-md px-3 py-2 text-xs bg-white outline-none focus:border-green-500 focus:ring-1 focus:ring-green-100'
                             >
                               <option value=''>Select {field.label}</option>
 
@@ -214,14 +214,14 @@ const AddNewEmployee = () => {
               {/* 2. EMPLOYMENT INFORMATION */}
               {/* ================================= */}
 
-              <div className='col-span-12 lg:col-span-6 border border-gray-200 rounded-xl  bg-white p-2'>
+              <div className='col-span-12 lg:col-span-6 flex flex-col border border-gray-200 rounded-xl bg-white p-2'>
                 {/* HEADER */}
                 <h3 className='font-semibold text-green-700 mb-3'>
                   2. Employment Information
                 </h3>
 
                 {/* FORM FIELDS */}
-                <div className='grid grid-cols-12 gap-2'>
+                <div className='grid grid-cols-12 gap-2 flex-1 lg:auto-rows-fr'>
                   {employeeManagementData.employmentInformationFields.map(
                     (field) => {
                       const options =
@@ -230,7 +230,7 @@ const AddNewEmployee = () => {
                       return (
                         <div
                           key={field.name}
-                          className='col-span-12 md:col-span-4'
+                          className='col-span-12 md:col-span-4 flex flex-col'
                         >
                           {/* LABEL */}
                           <label className='block text-xs font-medium text-gray-700 mb-1'>
@@ -253,7 +253,7 @@ const AddNewEmployee = () => {
                               {...register(field.name, {
                                 required: field.required ? "Required" : false,
                               })}
-                              className='w-full border border-gray-300 rounded-md px-3 py-2 text-xs outline-none focus:border-green-500 focus:ring-1 focus:ring-green-100 disabled:bg-gray-100 disabled:text-gray-500'
+                              className='w-full flex-1 border border-gray-300 rounded-md px-3 py-2 text-xs outline-none focus:border-green-500 focus:ring-1 focus:ring-green-100 disabled:bg-gray-100 disabled:text-gray-500'
                             />
                           )}
 
@@ -264,7 +264,7 @@ const AddNewEmployee = () => {
                               {...register(field.name, {
                                 required: field.required ? "Required" : false,
                               })}
-                              className='w-full border border-gray-300 rounded-md px-3 py-2 text-xs bg-white outline-none focus:border-green-500 focus:ring-1 focus:ring-green-100'
+                              className='w-full flex-1 border border-gray-300 rounded-md px-3 py-2 text-xs bg-white outline-none focus:border-green-500 focus:ring-1 focus:ring-green-100'
                             >
                               <option value=''>Select {field.label}</option>
 

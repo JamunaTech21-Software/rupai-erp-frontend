@@ -4,6 +4,7 @@ import { Link, NavLink, useLocation } from "react-router-dom";
 import {
   Home,
   Map,
+  CloudSun,
   Layers,
   Sprout,
   Replace,
@@ -33,6 +34,7 @@ import { navSections } from "../../data/dashboardData";
 const iconMap = {
   Home,
   Map,
+  CloudSun,
   Layers,
   Sprout,
   Replace,

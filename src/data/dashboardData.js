@@ -259,6 +259,28 @@ export const navSections = [
     ],
   },
 
+  // Weather Management (RP1-216): the pages without a story yet are added with their story.
+  {
+    label: "Weather Management",
+    items: [
+      {
+        id: "weather-mgmt",
+        label: "Weather Management",
+        icon: "CloudSun",
+        expandable: true,
+        children: [
+          { id: "weather-dashboard", label: "Weather Dashboard", path: "/weather-dashboard" },
+          { id: "weather-daily-entry", label: "Daily Weather Entry", path: "/weather-daily-entry" },
+          { id: "weather-monthly-rainfall-summary", label: "Monthly Rainfall Summary", path: "/weather-monthly-rainfall-summary" },
+          { id: "weather-monthly-average-rainfall", label: "Monthly Average Rainfall", path: "/weather-monthly-average-rainfall" },
+          { id: "weather-forecast", label: "Weather Forecast", path: "/weather-forecast" },
+          { id: "weather-station-setup", label: "Weather Station Setup", path: "/weather-station-setup" },
+          { id: "weather-reports", label: "Reports & Analytics", path: "/weather-reports" },
+        ],
+      },
+    ],
+  },
+
   // Work Force Management
   {
     label: "Workforce Management",
