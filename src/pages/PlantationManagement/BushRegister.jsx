@@ -1558,7 +1558,7 @@ const BushRegister = () => {
         {/* Bottom Section */}
         <div className='grid grid-cols-12 gap-2'>
           {/* Gap Summary */}
-          <div className='col-span-12 xl:col-span-3 rounded-xl border border-gray-200 bg-white p-1'>
+          <div className='col-span-12 min-[1280px]:max-[1365px]:col-span-4 min-[1366px]:col-span-3 rounded-xl border border-gray-200 bg-white p-1'>
             <div className='col-span-4 rounded-xl '>
               <div className='border-b px-2 py-3'>
                 <h2 className='text-sm font-semibold text-green-700'>
@@ -1592,7 +1592,7 @@ const BushRegister = () => {
           </div>
 
           {/* Gap Size Wise Details */}
-          <div className='col-span-12 xl:col-span-4 rounded-xl border border-gray-200 bg-white shadow-sm'>
+          <div className='col-span-12 min-[1280px]:max-[1365px]:col-span-4 min-[1366px]:col-span-4 rounded-xl border border-gray-200 bg-white shadow-sm'>
             {/* Header */}
             <div className='border-b border-gray-200 px-4 py-3'>
               <h2 className='text-sm font-semibold text-green-700'>
@@ -1666,7 +1666,7 @@ const BushRegister = () => {
           </div>
 
           {/* Bush Health Distribution */}
-          <div className='col-span-12 xl:col-span-3 rounded-xl border border-gray-200 bg-white shadow-sm'>
+          <div className='col-span-12 min-[1280px]:max-[1365px]:col-span-4 min-[1366px]:col-span-3 rounded-xl border border-gray-200 bg-white shadow-sm'>
             {/* Header */}
             <div className='border-b border-gray-200 px-4 py-3'>
               <h2 className='text-sm font-semibold text-green-700'>
@@ -1724,7 +1724,7 @@ const BushRegister = () => {
           </div>
 
           {/* Quick Action */}
-          <div className='col-span-12 xl:col-span-2 rounded-xl border border-gray-200 bg-white shadow-sm'>
+          <div className='col-span-12 min-[1280px]:max-[1365px]:col-span-12 min-[1366px]:col-span-2 rounded-xl border border-gray-200 bg-white shadow-sm'>
             {/* Header */}
             <div className='border-b border-gray-200 px-4 py-3'>
               <h2 className='text-sm font-semibold text-green-700'>
@@ -1733,7 +1733,7 @@ const BushRegister = () => {
             </div>
 
             {/* Body */}
-            <div className='space-y-2 p-3'>
+            <div className='space-y-2 p-3 min-[1280px]:max-[1365px]:grid min-[1280px]:max-[1365px]:grid-cols-3 min-[1280px]:max-[1365px]:gap-2 min-[1280px]:max-[1365px]:space-y-0'>
               {bushRegisterData.quickActions.map((item) => {
                 const Icon = quickActionIconMap[item.value];
 

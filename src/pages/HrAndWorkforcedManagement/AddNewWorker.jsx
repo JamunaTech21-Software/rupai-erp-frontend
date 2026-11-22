@@ -245,7 +245,7 @@ const AddNewWorker = () => {
           MAIN FORM
       ===================================================== */}
 
-      <form onSubmit={handleSubmit(onSubmit)}>
+      <form onSubmit={handleSubmit(onSubmit)} className='min-[1280px]:max-[1365px]:[&_.text-xs]:text-sm min-[1280px]:max-[1365px]:[&_.text-sm]:text-[15px] min-[1280px]:max-[1365px]:[&_.text-\[12px\]]:text-[14px] min-[1280px]:max-[1365px]:[&_.text-\[11px\]]:text-[13px] min-[1280px]:max-[1365px]:[&_.text-\[10px\]]:text-xs min-[1280px]:max-[1365px]:[&_.text-\[9px\]]:text-[11px]'>
         <div className='space-y-4'>
           {/* =================================================
               MAIN CONTENT
@@ -1048,7 +1048,7 @@ const AddNewWorker = () => {
                     5. DEPENDENT (FAMILY MEMBER)
                 ========================================================= */}
 
-            <div className='xl:col-span-5'>
+            <div className='min-[1280px]:max-[1365px]:col-span-6 min-[1366px]:col-span-5'>
               <div className='border border-gray-200 rounded-xl bg-white p-3 sm:p-4'>
                 {/* Section Header */}
                 <div className='flex items-center gap-3 mb-4'>
@@ -1152,7 +1152,7 @@ const AddNewWorker = () => {
                     6. RESON CARD
                 ========================================================= */}
 
-            <div className='xl:col-span-3'>
+            <div className='min-[1280px]:max-[1365px]:col-span-6 min-[1366px]:col-span-3'>
               <div className='border border-gray-200 rounded-xl bg-white p-3 sm:p-4'>
                 {/* Section Header */}
                 <div className='flex items-center gap-2 mb-4'>
@@ -1249,7 +1249,7 @@ const AddNewWorker = () => {
                     7. ADDITIONAL IMPORTANT INFORMATION
                 ========================================================= */}
 
-            <div className='xl:col-span-4'>
+            <div className='min-[1280px]:max-[1365px]:col-span-12 min-[1366px]:col-span-4'>
               <div className='border border-gray-200 rounded-xl bg-white p-3 sm:p-4'>
                 {/* Section Header */}
                 <div className='flex items-center gap-2 mb-4'>

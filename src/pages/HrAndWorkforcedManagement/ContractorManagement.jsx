@@ -215,7 +215,7 @@ const ContractorManagement = () => {
       {/* =====================================================
           MAIN FORM
       ====================================================== */}
-      <div className='space-y-4'>
+      <div className='space-y-4 min-[1280px]:max-[1365px]:[&_.text-xs]:text-sm min-[1280px]:max-[1365px]:[&_.text-sm]:text-[15px] min-[1280px]:max-[1365px]:[&_.text-\[11px\]]:text-[13px] min-[1280px]:max-[1365px]:[&_.text-\[10px\]]:text-xs min-[1280px]:max-[1365px]:[&_.text-\[9px\]]:text-[11px] min-[1280px]:max-[1365px]:[&_.text-\[8px\]]:text-[10px] min-[1280px]:max-[1365px]:[&_.text-\[7px\]]:text-[9px]'>
         {/* ===================================================
                 1. ACTION BAR
             ==================================================== */}
@@ -281,7 +281,7 @@ const ContractorManagement = () => {
         {/* ===================================================
                 2. SUMMARY CARDS
             ==================================================== */}
-        <div className='grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6'>
+        <div className='grid grid-cols-1 gap-2 sm:grid-cols-2 lg:max-[1365px]:grid-cols-3 min-[1366px]:grid-cols-6'>
           {summaryCards.map((card) => {
             const Icon = iconMap[card.type] || UserRound;
 
@@ -323,7 +323,7 @@ const ContractorManagement = () => {
                     </p>
 
                     {/* VALUE */}
-                    <h3 className='mt-0.5 text-lg font-bold leading-tight text-gray-800'>
+                    <h3 className='mt-0.5 text-lg font-bold leading-tight text-gray-800 [overflow-wrap:anywhere]'>
                       {formattedValue}
                     </h3>
                   </div>
@@ -340,11 +340,11 @@ const ContractorManagement = () => {
           {/* =================================================
               LEFT SIDE - 8 COLUMNS
           ================================================== */}
-          <div className='col-span-12 flex flex-col gap-4 lg:col-span-8'>
+          <div className='col-span-12 max-[1279px]:flex min-[1366px]:flex flex-col gap-4 lg:col-span-8 min-[1280px]:max-[1365px]:contents'>
             {/* ===================================================
               3. CONTRACTOR LIST
           ==================================================== */}
-            <div className='overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm'>
+            <div className='min-[1280px]:max-[1365px]:col-span-8 min-[1280px]:max-[1365px]:order-1 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm'>
               {/* =================================================
                     SECTION HEADER
                 ================================================== */}
@@ -650,7 +650,7 @@ const ContractorManagement = () => {
             {/* =================================================
                 CHART SECTION
             ================================================== */}
-            <div className='grid flex-1 grid-cols-1 gap-2 md:grid-cols-2 xl:grid-cols-3'>
+            <div className='min-[1280px]:max-[1365px]:col-span-12 min-[1280px]:max-[1365px]:order-4 grid flex-1 grid-cols-1 gap-2 md:grid-cols-2 xl:grid-cols-3'>
               {/* =================================================
                       1. CONTRACTOR TYPE WISE
                   ================================================== */}
@@ -836,11 +836,11 @@ const ContractorManagement = () => {
           {/* =================================================
               RIGHT SIDE - 4 COLUMNS
           ================================================== */}
-          <div className='col-span-12 flex flex-col gap-4 lg:col-span-4'>
+          <div className='col-span-12 max-[1279px]:flex min-[1366px]:flex flex-col gap-4 lg:col-span-4 min-[1280px]:max-[1365px]:contents'>
             {/* ===================================================
                     CONTRACTOR PROFILE
                 ==================================================== */}
-            <div className='col-span-12 lg:col-span-4'>
+            <div className='col-span-12 lg:col-span-4 min-[1280px]:max-[1365px]:order-2'>
               <div className='rounded-xl border border-gray-200 bg-white shadow-sm'>
                 {/* =================================================
                       PROFILE HEADER
@@ -1111,7 +1111,7 @@ const ContractorManagement = () => {
             {/* =================================================
                     TOP 5 CONTRACTORS BY CONTRACT VALUE
                 ================================================= */}
-            <div className='flex-1 rounded-xl border border-gray-200 bg-white p-4 shadow-sm'>
+            <div className='min-[1280px]:max-[1365px]:col-span-12 min-[1280px]:max-[1365px]:order-3 flex-1 rounded-xl border border-gray-200 bg-white p-4 shadow-sm'>
               {/* =================================================
                       TITLE
                   ================================================== */}
@@ -1191,7 +1191,7 @@ const ContractorManagement = () => {
         {/* ===================================================
                 4. BOTTOM INFORMATION SECTION
             ==================================================== */}
-        <div className='grid grid-cols-1 gap-2 lg:grid-cols-2 xl:grid-cols-4'>
+        <div className='grid grid-cols-1 gap-2 lg:max-[1279px]:grid-cols-2 min-[1280px]:max-[1365px]:grid-cols-1 min-[1366px]:grid-cols-4'>
           {/* =================================================
                   1. CONTRACT EXPIRY ALERT
               ================================================== */}

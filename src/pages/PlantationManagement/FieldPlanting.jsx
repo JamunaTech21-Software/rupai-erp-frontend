@@ -367,7 +367,7 @@ const FieldPlanting = () => {
                   Row 01
                  =========================== */}
 
-                <div className='grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-5'>
+                <div className='grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4'>
                   {/* Estate */}
                   <div className='space-y-1.5'>
                     <label className='text-sm font-medium text-gray-700'>
@@ -531,7 +531,7 @@ const FieldPlanting = () => {
                   Row 02
               =========================== */}
 
-                <div className='grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-5'>
+                <div className='grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4'>
                   {/* Planting Season */}
                   <div className='space-y-1.5'>
                     <label className='text-sm font-medium text-gray-700'>
@@ -647,7 +647,7 @@ const FieldPlanting = () => {
                 {/* ===========================
                           Row 03
                     =========================== */}
-                <div className='grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-5'>
+                <div className='grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4'>
                   {/* Clone / Variety */}
                   <div className='space-y-1.5'>
                     <label className='text-sm font-medium text-gray-700'>
@@ -756,7 +756,7 @@ const FieldPlanting = () => {
                     =========================== */}
                 {/* ---------------- Row 04 ---------------- */}
 
-                <div className='grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-5'>
+                <div className='grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4'>
                   {/* Plant Spacing */}
                   <div className='space-y-1.5'>
                     <label className='text-sm font-medium text-gray-700'>
@@ -859,7 +859,7 @@ const FieldPlanting = () => {
                         Row 05
                     =========================== */}
 
-                <div className='grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-5'>
+                <div className='grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4'>
                   {/* Soil Type */}
                   <div className='space-y-1.5'>
                     <label className='text-sm font-medium text-gray-700'>
@@ -955,7 +955,7 @@ const FieldPlanting = () => {
                 {/* ===========================
                     Row 06
                 =========================== */}
-                <div className='grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-5'>
+                <div className='grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4'>
                   {/* Irrigation Source */}
                   <div className='space-y-1.5'>
                     <label className='text-sm font-medium text-gray-700'>
@@ -1628,6 +1628,59 @@ const FieldPlanting = () => {
                 </div>
               </div>
             </div>
+
+            {/* ===========================
+                    Quick Summary
+                =========================== */}
+            <div className={`rounded-xl border py-6 border-gray-200 bg-white shadow-sm ${editingId ? "hidden" : ""}`}>
+              {/* Header */}
+              <div className='border-b border-gray-200 px-4 py-3 sm:px-6 sm:py-4'>
+                <h2 className='text-lg font-semibold text-green-700'>
+                  Quick Summary
+                </h2>
+              </div>
+
+              {/* Body */}
+              <div className='space-y-4 p-4 sm:p-6'>
+                {record.error && <ErrorState message={record.error.message} onRetry={record.reload} />}
+                <div className='grid grid-cols-2 gap-5 py-4 md:grid-cols-3'>
+                  {quickSummary.map((item, index) => {
+                    const Icon = summaryIconMap[item.icon];
+                    const quickValues = shown
+                      ? [
+                          fixed(shown.totalArea),
+                          num(shown.expectedPlants),
+                          num(shown.targetPlants),
+                          DASH,
+                          num(progress?.plantsPlanted),
+                          `${shown.completion}%`,
+                        ]
+                      : [];
+
+                    return (
+                      <div
+                        key={item.id}
+                        className='flex py-2 items-center gap-3'
+                      >
+                        {/* Icon */}
+                        <div className='flex h-10 w-10 items-center justify-center rounded-lg bg-green-50 text-green-700'>
+                          <Icon size={22} />
+                        </div>
+
+                        {/* Content */}
+                        <div>
+                          <p className='text-xs text-gray-500'>{item.title}</p>
+
+                          <h4 className='mt-1 text-xl font-bold text-green-700'>
+                            {quickValues[index] ?? DASH}
+                          </h4>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
           </div>
 
           {/* ===========================
@@ -1801,59 +1854,6 @@ const FieldPlanting = () => {
                       </div>
                     ))}
                   </div>
-                </div>
-              </div>
-            </div>
-
-            {/* ===========================
-                    Quick Summary
-                =========================== */}
-            <div className='rounded-xl border py-6 border-gray-200 bg-white shadow-sm'>
-              {/* Header */}
-              <div className='border-b border-gray-200 px-4 py-3 sm:px-6 sm:py-4'>
-                <h2 className='text-lg font-semibold text-green-700'>
-                  Quick Summary
-                </h2>
-              </div>
-
-              {/* Body */}
-              <div className='space-y-4 p-4 sm:p-6'>
-                {record.error && <ErrorState message={record.error.message} onRetry={record.reload} />}
-                <div className='grid grid-cols-2 py-4 gap-5'>
-                  {quickSummary.map((item, index) => {
-                    const Icon = summaryIconMap[item.icon];
-                    const quickValues = shown
-                      ? [
-                          fixed(shown.totalArea),
-                          num(shown.expectedPlants),
-                          num(shown.targetPlants),
-                          DASH,
-                          num(progress?.plantsPlanted),
-                          `${shown.completion}%`,
-                        ]
-                      : [];
-
-                    return (
-                      <div
-                        key={item.id}
-                        className='flex py-2 items-center gap-3'
-                      >
-                        {/* Icon */}
-                        <div className='flex h-10 w-10 items-center justify-center rounded-lg bg-green-50 text-green-700'>
-                          <Icon size={22} />
-                        </div>
-
-                        {/* Content */}
-                        <div>
-                          <p className='text-xs text-gray-500'>{item.title}</p>
-
-                          <h4 className='mt-1 text-xl font-bold text-green-700'>
-                            {quickValues[index] ?? DASH}
-                          </h4>
-                        </div>
-                      </div>
-                    );
-                  })}
                 </div>
               </div>
             </div>
