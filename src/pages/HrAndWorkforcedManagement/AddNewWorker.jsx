@@ -1149,7 +1149,7 @@ const AddNewWorker = () => {
             </div>
 
             {/* =========================================================
-                    6. RESON CARD
+                    6. RATION CARD
                 ========================================================= */}
 
             <div className='min-[1280px]:max-[1365px]:col-span-6 min-[1366px]:col-span-3'>
@@ -1205,7 +1205,7 @@ const AddNewWorker = () => {
                     ))}
                 </div>
 
-                {/* Upload Reson Card */}
+                {/* Upload Ration Card */}
                 {addNewWorkerData.sections.resonCard.fields
                   .filter((field) => field.type === "file")
                   .map((field) => (
@@ -1230,7 +1230,7 @@ const AddNewWorker = () => {
                         <span className='text-gray-500 text-sm'>📄</span>
 
                         <span className='text-xs text-gray-600 truncate'>
-                          {files.resonCardFile?.name ?? (saved?.resonCardFileName || "Choose Reson Card")}
+                          {files.resonCardFile?.name ?? (saved?.resonCardFileName || "Choose Ration Card")}
                         </span>
                         <input
                           id={field.name}
