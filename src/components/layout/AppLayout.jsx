@@ -26,7 +26,7 @@ export default function AppLayout() {
   };
 
   return (
-    <div className='flex h-screen overflow-hidden bg-slate-50'>
+    <div className='flex h-screen overflow-hidden bg-slate-50 print:block print:h-auto print:overflow-visible'>
       {mobileOpen && (
         <button
           type='button'
@@ -42,10 +42,10 @@ export default function AppLayout() {
         onCloseMobile={() => setMobileOpen(false)}
       />
 
-      <div className='flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden'>
+      <div className='flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden print:block print:overflow-visible'>
         <Header onToggleSidebar={handleToggleSidebar} />
 
-        <main ref={mainRef} className='[scrollbar-gutter:stable] [overflow-anchor:none] min-h-0 flex-1 space-y-3 overflow-x-hidden overflow-y-auto p-3 sm:space-y-4 sm:p-4 lg:p-4'>
+        <main ref={mainRef} className='[scrollbar-gutter:stable] [overflow-anchor:none] min-h-0 flex-1 space-y-3 overflow-x-hidden overflow-y-auto p-3 sm:space-y-4 sm:p-4 lg:p-4 print:overflow-visible'>
           <Outlet />
         </main>
       </div>
