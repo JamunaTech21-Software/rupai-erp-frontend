@@ -63,6 +63,9 @@ const WeatherDashboard = lazyPage(() => import("./pages/Weather/WeatherDashboard
 const DailyWeatherEntry = lazyPage(() => import("./pages/Weather/DailyWeatherEntry"));
 const WeatherEntries = lazyPage(() => import("./pages/Weather/WeatherEntries"));
 const MonthlyRainfallSummary = lazyPage(() => import("./pages/Weather/MonthlyRainfallSummary"));
+const MonthlyAverageRainfall = lazyPage(() => import("./pages/Weather/MonthlyAverageRainfall"));
+const WeatherReports = lazyPage(() => import("./pages/Weather/WeatherReports"));
+const WeatherForecast = lazyPage(() => import("./pages/Weather/WeatherForecast"));
 const WeatherStationSetup = lazyPage(() => import("./pages/Weather/WeatherStationSetup"));
 
 // Only in the built site: while developing, Vite would load all pages one by one and slow the first screen down.
@@ -365,6 +368,27 @@ const router = createBrowserRouter([
         element: <Page><MonthlyRainfallSummary /></Page>,
         handle: {
           title: "Monthly Rainfall Summary",
+        },
+      },
+      {
+        path: "weather-monthly-average-rainfall",
+        element: <Page><MonthlyAverageRainfall /></Page>,
+        handle: {
+          title: "Monthly Average Rainfall",
+        },
+      },
+      {
+        path: "weather-reports",
+        element: <Page><WeatherReports /></Page>,
+        handle: {
+          title: "Weather Reports & Analytics",
+        },
+      },
+      {
+        path: "weather-forecast",
+        element: <Page><WeatherForecast /></Page>,
+        handle: {
+          title: "Weather Forecast",
         },
       },
       {
