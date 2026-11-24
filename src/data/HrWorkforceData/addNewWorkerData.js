@@ -600,20 +600,20 @@ export const addNewWorkerData = {
     },
 
     // =======================================================
-    // 6. RESON CARD
+    // 6. RATION CARD
     // =======================================================
 
     resonCard: {
       id: "resonCard",
       sectionNo: 6,
-      title: "Reson Card",
+      title: "Ration Card",
 
       fields: [
         {
           name: "resonCardNo",
-          label: "Reson Card No.",
+          label: "Ration Card No.",
           type: "text",
-          placeholder: "Enter Reson Card No.",
+          placeholder: "Enter Ration Card No.",
           required: false,
         },
         {
@@ -632,14 +632,14 @@ export const addNewWorkerData = {
         },
         {
           name: "reasonDealerOffice",
-          label: "Reason Dealer / Office",
+          label: "Ration Dealer / Office",
           type: "text",
           placeholder: "Enter Dealer / Office",
           required: false,
         },
         {
           name: "resonCardFile",
-          label: "Upload Reson Card",
+          label: "Upload Ration Card",
           type: "file",
           accept: ".jpg,.jpeg,.png,.pdf",
           maxSizeMB: 2,
@@ -648,7 +648,7 @@ export const addNewWorkerData = {
       ],
 
       actions: {
-        uploadLabel: "Upload Reson Card",
+        uploadLabel: "Upload Ration Card",
         removeLabel: "Remove",
       },
     },
