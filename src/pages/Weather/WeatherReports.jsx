@@ -6,6 +6,7 @@ import Select from "../../components/common/Select";
 import ErrorState from "../../components/common/ErrorState";
 import { api } from "../../lib/api";
 import { useApi } from "../../lib/useApi";
+import { errorText, useWeatherEstate } from "../../lib/useWeatherEstate";
 import weatherReportsData from "../../data/Weather/weatherReportsData";
 
 const card = "rounded-xl border border-slate-200 bg-white p-4 shadow-sm";
@@ -54,7 +55,7 @@ const WeatherReports = () => {
   const stations = useApi(() => (estate ? api.get("/options/weather-stations", { estate }) : Promise.resolve([])), [estate]);
 
   // The first estate is shown until another is picked, and its report loads at once.
-  const firstEstate = estates.data?.[0]?.value ?? "";
+  const firstEstate = useWeatherEstate(estates.data);
   useEffect(() => {
     if (!estate && firstEstate) {
       setEstate(firstEstate);
@@ -225,7 +226,7 @@ const WeatherReports = () => {
       </div>
 
       {report.error ? (
-        <ErrorState message={report.error.message} onRetry={report.reload} />
+        <ErrorState message={errorText(report.error)} onRetry={report.reload} />
       ) : !estate && !estates.loading ? (
         <p className='rounded-xl border border-slate-200 bg-white py-10 text-center text-sm text-slate-500'>{weatherReportsData.noEstate}</p>
       ) : (

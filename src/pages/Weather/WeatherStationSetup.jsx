@@ -141,10 +141,12 @@ const WeatherStationSetup = () => {
 
   const options = useApi(() => api.get("/weather-stations/filter-options"), []);
   const estateOptions = useApi(() => api.get("/options/estates"), []);
-  const list = useApi(() => api.get("/weather-stations", { search: searchText, page, perPage: PER_PAGE }), [searchText, page]);
-  const rows = list.data?.data ?? [];
-  const total = list.data?.meta?.total ?? 0;
-  const totalPages = Math.max(list.data?.meta?.totalPages ?? 1, 1);
+  // The server lists by Station ID, so the stations are loaded together (up to its 100 limit) and the latest updated is shown first.
+  const list = useApi(() => api.get("/weather-stations", { search: searchText, perPage: 100 }), [searchText]);
+  const sorted = [...(list.data?.data ?? [])].sort((x, y) => new Date(y.updatedAt) - new Date(x.updatedAt));
+  const rows = sorted.slice((page - 1) * PER_PAGE, page * PER_PAGE);
+  const total = sorted.length;
+  const totalPages = Math.max(Math.ceil(total / PER_PAGE), 1);
   const from = rows.length > 0 ? (page - 1) * PER_PAGE + 1 : 0;
   const to = (page - 1) * PER_PAGE + rows.length;
 
@@ -305,9 +307,10 @@ const WeatherStationSetup = () => {
       const result = editing ? await api.put(`/weather-stations/${editing.id}`, body) : await api.post("/weather-stations", body);
       notifySaved(result, editing ? "Weather station updated successfully!" : "Weather station saved successfully!");
       closeForm();
+      // The saved station is now the latest updated, so the list goes back to its first page.
+      setPage(1);
       if (!editing) {
         setSearch("");
-        setPage(1);
         if (result?.id && !result.pending) setSelectedId(result.id);
       }
       list.reload();
