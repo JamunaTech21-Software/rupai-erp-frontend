@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import toast from "react-hot-toast";
-import { CloudRain, CloudSun, Droplets, FileText, Info, List, Paperclip, Save, Send, Sun, Thermometer, Wind, X } from "lucide-react";
+import { CloudRain, CloudSun, Droplets, FileText, Info, List, Paperclip, Plus, Save, Send, Sun, Thermometer, Wind, X } from "lucide-react";
 import Select from "../../components/common/Select";
 import ErrorState from "../../components/common/ErrorState";
 import { api, notifySaved } from "../../lib/api";
@@ -131,6 +131,8 @@ const DailyWeatherEntry = () => {
   const totalRainfall = watch("totalRainfall");
 
   const stations = useApi(() => (estate ? api.get("/options/weather-stations", { estate, status: "active" }) : Promise.resolve([])), [estate]);
+  // An estate is picked and its stations have loaded, but none is active.
+  const noStation = Boolean(estate) && !stations.loading && (stations.data ?? []).length === 0;
 
   // A new entry starts on the first estate.
   const firstEstate = estates.data?.[0]?.value ?? "";
@@ -407,13 +409,26 @@ const DailyWeatherEntry = () => {
               </Field>
               <Field label='Weather Station' required error={errors.station}>
                 <Select {...register("station", { required: "Weather Station is required" })} className={`${boxClass(errors.station)} cursor-pointer`}>
-                  <option value=''>Select Station</option>
+                  <option value=''>{noStation ? "No active station" : "Select Station"}</option>
                   {(stations.data ?? []).map((item) => (
                     <option key={item.id} value={item.value}>
                       {item.label}
                     </option>
                   ))}
                 </Select>
+                {noStation && (
+                  <div className='mt-1 flex flex-wrap items-center gap-2'>
+                    <p className='text-xs text-amber-600'>No active weather station for this estate.</p>
+                    <button
+                      type='button'
+                      onClick={() => navigate("/weather-station-setup", { state: { newStationEstate: estate } })}
+                      className='flex h-8 cursor-pointer items-center gap-1 rounded-md bg-emerald-700 px-3 text-xs font-semibold text-white hover:bg-emerald-800'
+                    >
+                      <Plus className='h-3.5 w-3.5' />
+                      Create Active Station
+                    </button>
+                  </div>
+                )}
               </Field>
               <Field label='Division / Location' error={errors.location}>
                 <input type='text' maxLength={160} placeholder="The station's location" {...register("location")} className={boxClass(errors.location)} />
