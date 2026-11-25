@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Bar, CartesianGrid, ComposedChart, LabelList, Legend, Line, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import { BarChart3, CalendarDays, Cloud, CloudDrizzle, CloudFog, CloudLightning, CloudRain, CloudRainWind, CloudSun, Clock, Droplet, RefreshCw, Search, Sun, Thermometer, Wind, CheckCircle2 } from "lucide-react";
+import { BarChart3, CalendarDays, Cloud, CloudDrizzle, CloudFog, CloudLightning, CloudRain, CloudRainWind, CloudSun, Clock, Droplet, RefreshCw, Search, Sun, Thermometer, Wind, CheckCircle2, Plus } from "lucide-react";
 import Select from "../../components/common/Select";
 import ErrorState from "../../components/common/ErrorState";
 import { api } from "../../lib/api";
@@ -41,7 +42,11 @@ const WeatherForecast = () => {
   const [applied, setApplied] = useState(null);
 
   const estates = useApi(() => api.get("/options/estates"), []);
+  const navigate = useNavigate();
   const stations = useApi(() => (estate ? api.get("/options/weather-stations", { estate, status: "active" }) : Promise.resolve([])), [estate]);
+
+  // The chosen estate has no active weather station, so there is no forecast to get.
+  const noStation = Boolean(estate) && !stations.loading && (stations.data ?? []).length === 0;
 
   // The first estate is shown until another is picked, and its forecast loads at once.
   const firstEstate = useWeatherEstate(estates.data);
@@ -160,7 +165,20 @@ const WeatherForecast = () => {
         </button>
       </div>
 
-      {report.error ? (
+      {noStation ? (
+        <div role='alert' className='flex flex-col items-center justify-center gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-8 text-center'>
+          <CloudSun className='h-8 w-8 text-amber-500' />
+          <p className='text-sm font-medium text-amber-800'>No active weather station for this estate. The forecast needs a station's location.</p>
+          <button
+            type='button'
+            onClick={() => navigate("/weather-station-setup", { state: { newStationEstate: estate } })}
+            className='flex h-10 cursor-pointer items-center gap-2 rounded-md bg-emerald-700 px-5 text-sm font-semibold text-white hover:bg-emerald-800'
+          >
+            <Plus className='h-4 w-4' />
+            Create Active Station
+          </button>
+        </div>
+      ) : report.error ? (
         <ErrorState message={errorText(report.error)} onRetry={report.reload} />
       ) : !estate && !estates.loading ? (
         <p className='rounded-xl border border-slate-200 bg-white py-10 text-center text-sm text-slate-500'>{weatherForecastData.noEstate}</p>

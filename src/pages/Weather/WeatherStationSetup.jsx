@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
+import { useLocation, useNavigate } from "react-router-dom";
 import {
   Activity,
   Battery,
@@ -200,7 +201,7 @@ const WeatherStationSetup = () => {
     if (photoInput.current) photoInput.current.value = "";
   };
 
-  const openNew = async () => {
+  const openNew = async (estateId = "") => {
     let stationCode = "";
     try {
       stationCode = (await api.get("/weather-stations/next-code"))?.stationCode ?? "";
@@ -211,9 +212,20 @@ const WeatherStationSetup = () => {
     setEditing(null);
     setParams([]);
     setMapping([]);
-    reset({ ...EMPTY_FORM, stationCode });
+    reset({ ...EMPTY_FORM, stationCode, estate: estateId });
     setFormOpen(true);
   };
+
+  // Sent here from Daily Weather Entry (an estate with no active station): the Add popup opens with that estate chosen.
+  const location = useLocation();
+  const navigate = useNavigate();
+  const newForEstate = location.state?.newStationEstate;
+  useEffect(() => {
+    if (!newForEstate) return;
+    openNew(newForEstate);
+    navigate(location.pathname, { replace: true, state: null });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [newForEstate]);
 
   const openEdit = (row) => {
     clearPhoto();
@@ -354,7 +366,7 @@ const WeatherStationSetup = () => {
         </div>
         <button
           type='button'
-          onClick={openNew}
+          onClick={() => openNew()}
           className='flex h-11 cursor-pointer items-center justify-center gap-2 rounded-md bg-emerald-800 px-5 text-sm font-semibold text-white hover:bg-emerald-900'
         >
           <Plus className='h-4 w-4' />
