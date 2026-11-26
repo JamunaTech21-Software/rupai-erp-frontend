@@ -157,6 +157,20 @@ const DailyWeatherEntry = () => {
     }
   }, [stations.data, setValue]);
 
+  // Picking a station fills Division / Location from that station (it can still be changed).
+  const fillLocation = async (stationValue) => {
+    if (!stationValue) {
+      setValue("location", "");
+      return;
+    }
+    try {
+      const detail = await api.get(`/weather-stations/${stationValue}`);
+      if (getValues("station") === stationValue) setValue("location", detail?.location ?? "", { shouldValidate: true });
+    } catch {
+      // no station details: Division / Location stays as typed
+    }
+  };
+
   // Total Rainfall fills itself from the three parts once one of them is typed.
   useEffect(() => {
     const parts = [morningRainfall, afternoonRainfall, eveningRainfall];
@@ -398,7 +412,7 @@ const DailyWeatherEntry = () => {
                 />
               </Field>
               <Field label='Estate' required error={errors.estate}>
-                <Select {...register("estate", { required: "Estate is required", onChange: () => setValue("station", "") })} className={`${boxClass(errors.estate)} cursor-pointer`}>
+                <Select {...register("estate", { required: "Estate is required", onChange: () => (setValue("station", ""), setValue("location", "")) })} className={`${boxClass(errors.estate)} cursor-pointer`}>
                   <option value=''>Select Estate</option>
                   {(estates.data ?? []).map((item) => (
                     <option key={item.id} value={item.value}>
@@ -408,7 +422,7 @@ const DailyWeatherEntry = () => {
                 </Select>
               </Field>
               <Field label='Weather Station' required error={errors.station}>
-                <Select {...register("station", { required: "Weather Station is required" })} className={`${boxClass(errors.station)} cursor-pointer`}>
+                <Select {...register("station", { required: "Weather Station is required", onChange: (event) => fillLocation(event.target.value) })} className={`${boxClass(errors.station)} cursor-pointer`}>
                   <option value=''>{noStation ? "No active station" : "Select Station"}</option>
                   {(stations.data ?? []).map((item) => (
                     <option key={item.id} value={item.value}>
@@ -443,7 +457,7 @@ const DailyWeatherEntry = () => {
                 </Select>
               </Field>
               <Field label='Recorded By' required>
-                <input type='text' readOnly tabIndex={-1} value={saved?.createdByName ?? me.data?.user?.name ?? ""} className={boxClass(false)} />
+                <input type='text' readOnly tabIndex={-1} value={saved?.createdByName ?? me.data?.user?.name ?? ""} title='Filled in from the signed-in user' className='h-10 w-full cursor-not-allowed rounded-md border border-slate-300 bg-slate-100 px-3 text-sm text-slate-500 outline-none' />
               </Field>
               <Field label='Recording Time' required error={errors.recordingTime}>
                 <input type='time' {...register("recordingTime", { required: "Recording Time is required" })} className={boxClass(errors.recordingTime)} />
